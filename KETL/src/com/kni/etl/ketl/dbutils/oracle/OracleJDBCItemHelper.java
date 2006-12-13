@@ -1,0 +1,49 @@
+package com.kni.etl.ketl.dbutils.oracle;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.HashMap;
+
+import oracle.sql.ARRAY;
+import oracle.sql.ArrayDescriptor;
+
+import org.w3c.dom.Element;
+
+import com.kni.etl.dbutils.JDBCItemHelper;
+import com.kni.etl.util.XMLHelper;
+
+public class OracleJDBCItemHelper extends JDBCItemHelper {
+
+    HashMap mArrayDescriptors = new HashMap();
+
+    @Override
+    public void setParameterFromClass(PreparedStatement pPreparedStatement, int parameterIndex, Class pClass,
+            Object pDataItem, int maxCharLength, Element pXMLConfig) throws SQLException {
+        if (pClass.isArray()) {
+            HashMap res = (HashMap) this.mArrayDescriptors.get(pPreparedStatement);
+            if (res == null) {
+                res = new HashMap();
+                this.mArrayDescriptors.put(pPreparedStatement, res);
+            }
+
+            ArrayDescriptor descriptor = (ArrayDescriptor) res.get(parameterIndex);
+
+            if (true || descriptor == null ) {
+                String typename = XMLHelper.getAttributeAsString(pXMLConfig.getAttributes(), "ARRAYTYPENAME", null);
+                if (typename == null)
+                    throw new SQLException("ARRAYTYPENAME must be specified for port containing an array");
+
+                descriptor = ArrayDescriptor.createDescriptor(typename, pPreparedStatement.getConnection());
+                res.put(parameterIndex, descriptor);
+            }
+
+            pPreparedStatement.setObject(parameterIndex, new ARRAY(descriptor, pPreparedStatement.getConnection(),
+                    pDataItem));
+
+        }
+        else
+            super.setParameterFromClass(pPreparedStatement, parameterIndex, pClass, pDataItem, maxCharLength,
+                    pXMLConfig);
+    }
+
+}

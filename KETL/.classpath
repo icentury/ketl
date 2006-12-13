@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/axis.jar"/>
+	<classpathentry kind="lib" path="lib/axis-ant.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="lib" path="lib/jaxrpc.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
+	<classpathentry kind="lib" path="lib/postgresql.jar"/>
+	<classpathentry kind="lib" path="lib/saaj.jar"/>
+	<classpathentry kind="lib" path="lib/saxon8.jar"/>
+	<classpathentry kind="lib" path="lib/saxon8-dom.jar"/>
+	<classpathentry kind="lib" path="lib/saxon8-xpath.jar"/>
+	<classpathentry kind="lib" path="C:/development/Lib/ojdbc14.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3.8.1"/>
+	<classpathentry kind="lib" path="C:/development/hypersonic/hsqldb_1_8_0_7/hsqldb/lib/hsqldb.jar" sourcepath="C:/development/hypersonic/hsqldb_1_8_0_7/hsqldb/src"/>
+	<classpathentry kind="lib" path="C:/development/Lib/je-3.1.0/lib/je-3.1.0.jar" sourcepath="C:/development/Lib/je-3.1.0/src">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/C:/development/Lib/je-3.1.0/docs/java/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.5.0_09/lib/tools.jar"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>

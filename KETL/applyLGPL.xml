@@ -1,0 +1,33 @@
+<project default="apply-lgpl">
+
+	<property name="backup-dir" value="../backup"/>
+
+	<target name="backup">
+		<copy todir="${backup-dir}">
+			<fileset dir="src">
+				<include name="**/*.java"/>
+				<exclude name="${backup-dir}/**/*.java"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="apply-lgpl" depends="backup">
+		<condition property="lgpl-header"
+			value="lgpl-win32-header.txt"
+			else="lgpl-unix-header.txt">
+
+			<os family="windows"/>
+		</condition>
+		<loadfile srcfile="license/${lgpl-header}" property="lgpl"/>
+
+		<replaceregexp match="([a-zA-Z0-9./\*\r\n \.\,\-\s ]*)package ([^;]+);"
+			replace="${lgpl}package \2;"> 
+		     
+			<fileset dir="src">
+				<include name="**/DBConnection.java"/>
+				<exclude name="${backup-dir}/**/*.java"/>
+				<exclude name="*/net/*.java"/>
+			</fileset>
+		</replaceregexp>
+	</target>
+</project>
