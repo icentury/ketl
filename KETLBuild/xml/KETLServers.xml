@@ -1,0 +1,12 @@
+<!--  change demo to actual servername, if not connecting via localhost -->
+<SERVERS DEFAULTSERVER="localhost">
+	<SERVER NAME="localhost">
+		<USERNAME>ketlmd</USERNAME>
+		<PASSWORD>ketlmd</PASSWORD>
+		<NETWORKNAME>localhost</NETWORKNAME>
+		<DRIVER>oracle.jdbc.driver.OracleDriver</DRIVER>
+		<URL>jdbc:oracle:thin:@localhost:1521:xe</URL>
+		<MDPREFIX></MDPREFIX>
+		<PASSPHRASE>ZATXO+7vBD7k9uicS/JOlBtsuscFIA8bpWBHZcHYNrc=</PASSPHRASE>		
+	</SERVER>
+</SERVERS>

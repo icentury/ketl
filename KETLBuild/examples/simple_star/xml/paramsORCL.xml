@@ -1,0 +1,20 @@
+<ETL>
+	<PARAMETER_LIST NAME="TargetDB">
+		<PARAMETER NAME="USER">SIMPLE_STAR</PARAMETER>
+		<PARAMETER NAME="PASSWORD">SIMPLE_STAR</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:xe</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+		<PARAMETER NAME="LOADDT">11122000</PARAMETER>
+	</PARAMETER_LIST>
+	
+	<PARAMETER_LIST NAME="Orders">
+		<PARAMETER NAME="SEARCHPATH">C:\development\LiveCode\workspace\KETLV2Build\examples\simple_star\data\orders.csv</PARAMETER>
+	</PARAMETER_LIST>
+	
+	<PARAMETER_LIST NAME="Products">
+		<PARAMETER NAME="SEARCHPATH">C:\development\LiveCode\workspace\KETLV2Build\examples\simple_star\data\products.xml</PARAMETER>
+	</PARAMETER_LIST>
+	<PARAMETER_LIST NAME="Customers">
+		<PARAMETER NAME="SEARCHPATH">C:\development\LiveCode\workspace\KETLV2Build\examples\simple_star\data\customers.flf</PARAMETER>
+	</PARAMETER_LIST>
+</ETL>

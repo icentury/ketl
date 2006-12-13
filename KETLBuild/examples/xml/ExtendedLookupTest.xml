@@ -1,0 +1,54 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	  <PARAMETER_LIST NAME="testData">
+		    		    <PARAMETER NAME="SEARCHPATH">examples/data/CSV.txt</PARAMETER>
+		    		    <PARAMETER NAME="COUNTRYDBPATH">C:\development\GeoIPJava-1.1.7\GeoIP.dat</PARAMETER>
+		    		    <PARAMETER NAME="CITYDBPATH">C:\development\GeoIPJava-1.1.7\GeoLiteCity.dat</PARAMETER>
+      </PARAMETER_LIST>
+	 
+	
+       <JOB  BATCHSIZE="4" ID="ExtLookup" PARRALLISM="2"  NAME="ExtLookup" PROJECT="TEST" TYPE="KETL">
+            <ACTION >
+                  <STEP NAME="Status" PARRALLISM="1" RECORD_DELIMITER="#0D#0A" CLASS="com.kni.etl.ketl.reader.NIOFileReader" CHARACTERSET="UTF-8" DELIMITER="," PARAMETER_LIST="testData">
+                         <OUT NAME="IP" DATATYPE="STRING" TRIM="TRUE"/>                        
+                   </STEP>
+
+                   <STEP NAME="GEO"  CLASS="com.kni.etl.ketl.transformation.geoip.GeoIPTransformation" FLOWTYPE="FANOUT" PARAMETER_LIST="testData">
+                        <IN NAME="IP">Status.IP</IN>                        
+                        <OUT NAME="COUNTRY_CODE" TYPE="COUNTRY" FIELD="COUNTRYCODE"/>
+                        <OUT NAME="COUNTRY_NAME" TYPE="COUNTRY" FIELD="COUNTRYNAME"/>
+                        <OUT NAME="CITY" TYPE="CITY" FIELD="CITY">IP</OUT>
+                        <OUT NAME="POSTALCODE" TYPE="CITY" FIELD="POSTALCODE">IP</OUT>
+                        <OUT NAME="REGION" TYPE="CITY" FIELD="REGION">IP</OUT>
+                        <OUT NAME="IP">${IP}</OUT>
+                  </STEP>
+
+                   <STEP NAME="IPLookup" CLASS="com.kni.etl.ketl.writer.LookupWriter">
+                        <IN>GEO.COUNTRY_CODE</IN>                        
+                        <IN>GEO.COUNTRY_NAME</IN>                        
+                        <IN VALUE="3" >GEO.CITY</IN>                        
+                        <IN VALUE="2" >GEO.POSTALCODE</IN>                        
+                        <IN VALUE="1" >GEO.REGION</IN>                        
+                        <IN KEY="1">GEO.IP</IN>                        
+                  </STEP>
+                  
+                  <STEP NAME="Status2" PARRALLISM="1" RECORD_DELIMITER="#0D#0A" CLASS="com.kni.etl.ketl.reader.NIOFileReader" CHARACTERSET="UTF-8" DELIMITER="," PARAMETER_LIST="testData">
+                         <OUT NAME="IP" DATATYPE="STRING" TRIM="TRUE"/>                        
+                   </STEP>
+                   
+                   <STEP NAME="Trans" FLOWTYPE="FANOUT" CLASS="com.kni.etl.ketl.transformation.DynamicTransformation" >
+                        <IN NAME="IP">Status2.IP</IN>                        
+                        <OUT NAME="CITY" DATATYPE="STRING">lookup("IPLookup",${IP},"CITY")</OUT>
+                        <OUT NAME="POSTALCODE" DATATYPE="STRING">lookup("IPLookup",${IP},"POSTALCODE")</OUT>
+                        <OUT>${IP}</OUT>
+                  </STEP>
+
+                   <STEP NAME="Dump" CLASS="com.kni.etl.ketl.writer.NullWriter">
+                        <IN>Trans.*</IN>                        
+                  </STEP>
+                  
+                  
+            </ACTION>
+      </JOB>
+</ETL>

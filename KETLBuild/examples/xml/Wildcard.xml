@@ -1,0 +1,41 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <PARAMETER_LIST NAME="atsAts_IDS_Application">
+ 		<PARAMETER NAME="USER">test</PARAMETER>
+		<PARAMETER NAME="PASSWORD">test</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:orcl</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+         <PARAMETER NAME="TABLE">Application</PARAMETER>
+  </PARAMETER_LIST>
+  <JOB ID="atsAts_IDS_Application" NAME="atsAts_IDS_Application" PROJECT="TEST" TYPE="KETL">
+    <!--DEPENDS_ON>FIXME</DEPENDS_ON-->
+    <ACTION>      
+      <STEP NAME="readAts_IDS_Application" CLASS="com.kni.etl.ketl.reader.JDBCReader" OUTSYNTAX="INFERRED" PARAMETER_LIST="atsAts_IDS_Application">
+        <IN> 
+			select A.application_id, 'ATS' as source_system_name,
+			A.source_id, A.candidate_id, A.create_date ,
+			A.future_followup_date , A.requisition_id, A.resume_grade,
+			A.shared_reason_lu_id, A.status_id,
+			A.update_date, A.email_subject, A.email_to,
+			A.file_subdirectory, A.needs_attention,
+			A.hiring_committee_review_requir, A.interview_schedule_required,
+			A.future_followup_required, A.printed_flag,
+			A.resume_priority, A.original_coverletter_file,
+			A.original_resume_file, A.original_transcript_file,
+			A.text_coverletter_file, A.text_resume_file, A.text_transcript_file,
+			A.recruiter_id
+			from ats_application a where rownum &lt; 10
+        </IN>   		          
+      </STEP>
+      
+      <STEP NAME="transform" FLOWTYPE="FANOUT" CLASS="com.kni.etl.ketl.transformation.DynamicTransformation" >
+        <IN>readAts_IDS_Application.*</IN>
+        <OUT>${RECRUITER_ID}</OUT>
+        <OUT>*</OUT>
+      </STEP>     
+      
+      <STEP xDEBUG="TRUE" MONITOR="TRUE" NAME="Dump" CLASS="com.kni.etl.ketl.writer.ConsoleWriter">
+        <IN>transform.CREATE_DATE</IN>
+      </STEP>
+    </ACTION>
+  </JOB>
+</ETL>

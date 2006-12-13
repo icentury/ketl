@@ -1,0 +1,35 @@
+<?xml-stylesheet type="text/xsl" href="F:\Development\XML\JobLoader\job_parameter_values.xsl"?>
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+	<JOB ID="ORDER_DIM"  NAME="ORDER_DIM"  PROJECT="SIMPLESTART" TYPE="KETL">
+		<ACTION>
+		    <!--  read comma seperated file -->
+			<STEP TIMING="TRUE" SKIPLINES="1" RECORD_DELIMITER="#0D#0A" NAME="Reader" PARAMETER_LIST="Orders" CLASS="com.kni.etl.ketl.reader.NIOFileReader">
+				<OUT DATATYPE="STRING" NAME="ORDER_NATURAL_KEY" />
+				<OUT DATATYPE="DATE" NAME="SHIPPED_DATE" FORMATSTRING="MM/dd/yyyy"/>
+				<OUT DATATYPE="DATE" NAME="RETURNED_DATE" FORMATSTRING="MM/dd/yyyy"/>
+				<OUT DATATYPE="DATE" NAME="ORDERED_DATE" FORMATSTRING="MM/dd/yyyy"/>
+				<OUT DATATYPE="STRING" NAME="PRODUCT_NATURAL_KEY"/>
+				<OUT DATATYPE="STRING" NAME="CUSTOMER_NATURAL_KEY"/>
+				<OUT DATATYPE="INTEGER" NAME="QUANTITY"/>
+				<OUT DATATYPE="DOUBLE" NAME="PRICE"/>
+			</STEP>
+
+		    <STEP NAME="Order" MODE="KEYTABLEONLY"  PERSISTENCE="LOAD" CLASS="com.kni.etl.ketl.transformation.DimensionTransformation" TABLE="ORDER_DIMENSION" PARAMETER_LIST="TargetDB">
+				<IN SK="1" NAME="ORDER_NATURAL_KEY">Reader.ORDER_NATURAL_KEY</IN> 
+				<IN>Reader.*</IN> 
+				<OUT NAME="ORDER_SURROGATE_KEY" PK="TRUE"/>
+				<OUT>*</OUT>						
+			</STEP>
+				                      
+			<!-- The jdbc writer is now used to merge the dates in, duplicate runs of the same
+			     job will result in the same date however -->
+			<STEP NAME="Writer" IGNOREINVALIDCOLUMNS="TRUE"  TYPE="UPSERT" CLASS="com.kni.etl.ketl.writer.JDBCWriter" TABLE="ORDER_DIMENSION" PARAMETER_LIST="TargetDB">
+				<IN SK="TRUE">Order.ORDER_SURROGATE_KEY</IN>				
+				<IN>Order.*</IN>				
+			</STEP>
+			
+		</ACTION>
+	</JOB>
+
+</ETL>
