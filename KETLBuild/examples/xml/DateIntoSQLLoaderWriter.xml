@@ -15,7 +15,7 @@
        <JOB ID="DateIntoSQLLoader"  NAME="CSVWithEscapesAndQuotes" PROJECT="TEST" TYPE="KETL">
             <ACTION PARRALLISM="2">
 		    <!--  Sequence generator is used to generate the natural key and the date surrogate key -->
-			<STEP PARRALLISM="1" TIMING="TRUE" NAME="Reader" VALUES="3000000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+			<STEP PARRALLISM="1" TIMING="TRUE" NAME="Reader" VALUES="2000000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
 				<OUT DATATYPE="INTEGER" NAME="DATE_SURROGATE_KEY" />
 				<OUT DATATYPE="DATE" NAME="DATE_DESCRIPTION" STARTVALUE="2000-01-01" FORMATSTRING="yyyy-MM-dd"/>
 			</STEP>
