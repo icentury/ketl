@@ -9,13 +9,13 @@
 	</PARAMETER_LIST>
 	
 	<PARAMETER_LIST NAME="Orders">
-		<PARAMETER NAME="SEARCHPATH">C:\development\LiveCode\workspace\KETLV2Build\examples\simple_star\data\orders.csv</PARAMETER>
+		<PARAMETER NAME="SEARCHPATH">C:\development\LiveCode\workspace\KETLBuild\examples\simple_star\data\orders.csv</PARAMETER>
 	</PARAMETER_LIST>
 	
 	<PARAMETER_LIST NAME="Products">
-		<PARAMETER NAME="SEARCHPATH">C:\development\LiveCode\workspace\KETLV2Build\examples\simple_star\data\products.xml</PARAMETER>
+		<PARAMETER NAME="SEARCHPATH">C:\development\LiveCode\workspace\KETLBuild\examples\simple_star\data\products.xml</PARAMETER>
 	</PARAMETER_LIST>
 	<PARAMETER_LIST NAME="Customers">
-		<PARAMETER NAME="SEARCHPATH">C:\development\LiveCode\workspace\KETLV2Build\examples\simple_star\data\customers.flf</PARAMETER>
+		<PARAMETER NAME="SEARCHPATH">C:\development\LiveCode\workspace\KETLBuild\examples\simple_star\data\customers.flf</PARAMETER>
 	</PARAMETER_LIST>
 </ETL>
