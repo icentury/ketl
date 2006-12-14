@@ -21,11 +21,8 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 
 import com.kni.etl.ETLJob;
-import com.kni.etl.ETLJobExecutor;
 import com.kni.etl.EngineConstants;
 import com.kni.etl.Metadata;
-import com.kni.etl.OSJobExecutor;
-import com.kni.etl.SQLJobExecutor;
 import com.kni.etl.ketl.ETLPort;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.KETLJobExecutor;

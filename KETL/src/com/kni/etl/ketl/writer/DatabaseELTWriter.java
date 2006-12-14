@@ -110,7 +110,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     String[] maOtherColumns = null;
     boolean mBatchData = true;
     boolean mStreamChanges = true;
-    private Connection mcDBConnection;
+    protected Connection mcDBConnection;
     int mDBCase = -1;
     String mDBType = null;
     boolean mDontCompoundStatements = false;
@@ -618,8 +618,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
     StatementWrapper stmt;
     private int maxCharLength;
-    private int mBatchCounter;
-    private boolean firePreBatch;
+    protected int mBatchCounter;
+    protected boolean firePreBatch;
     private boolean mbReinitOnError;
 
     /**
@@ -1174,7 +1174,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return pStr;
     }
 
-    private int dedupeCounter = 0;
+    protected int dedupeCounter = 0;
 
     public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
             throws KETLWriteException {
@@ -1431,7 +1431,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
     private Set mFailedBatchElements = new HashSet();
 
-    private void clearBatchLogBatch() {
+    protected void clearBatchLogBatch() {
         this.mBatchLog.clear();
         this.mFailedBatchElements.clear();
     }
