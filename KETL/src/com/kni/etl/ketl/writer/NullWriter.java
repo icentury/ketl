@@ -75,10 +75,12 @@ public class NullWriter extends ETLWriter implements DefaultWriterCore {
      */
     @Override
     public int complete() throws KETLThreadException {
-        if (this.mLog)
+        int res = super.complete();
+        
+        if (this.mLog && this.isLastThreadToEnterCompletePhase())
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Total Records processed: "
                     + this.mSharedCounter.value());
-        return super.complete();
+       return res;
     }
 
     @Override
