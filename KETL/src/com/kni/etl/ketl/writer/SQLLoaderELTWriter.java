@@ -48,36 +48,10 @@ public class SQLLoaderELTWriter extends JDBCWriter {
         if (this.pipeData() == false)
             return super.finishBatch(len);
 
-        int result = 0;
-
-        // tihs must be done or memory will be exhausted
         this.clearBatchLogBatch();
-
-        try {
-            if ((this.mBatchCounter >= this.miCommitSize
-                    || (this.mBatchCounter > 0 && this.isMemoryLow(mLowMemoryThreashold)) || (len == LASTBATCH && this.mBatchCounter > 0))) {
-                this.dedupeCounter = 0;
-                this.stmt.executeBatch();
-                result = this.mBatchCounter;
-                this.miInsertCount += this.mBatchCounter;
-                this.mBatchCounter = 0;
-                this.executePostBatchStatements();
-                this.firePreBatch = true;                
-            }
-
-        } catch (SQLException e) {
-            try {
-                // StatementManager.executeStatements(this.getFailureCleanupLoadSQL(), this.mcDBConnection,
-                // mStatementSeperator, StatementManager.END, this, true);
-            } catch (Exception e1) {
-
-            }
-
-            KETLWriteException e1 = new KETLWriteException(e);
-            this.incrementErrorCount(e1, null, 1);
-
-            throw e1;
-        }
+        int result = this.mBatchCounter;
+        this.miInsertCount += this.mBatchCounter;
+        this.mBatchCounter = 0;
 
         return result;
     }
@@ -103,16 +77,29 @@ public class SQLLoaderELTWriter extends JDBCWriter {
     protected String buildInBatchSQL(String pTable) throws Exception {
 
         mOSCommand = this.getStepTemplate(mDBType, "SQLLDR", true);
+
+        boolean parallel = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "PARALLEL", true);
+
         mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "CONNECTIONSTRING", this.getParameterValue(0,
                 CONNECTIONSTRING_ATTRIB));
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "BINDSIZE",Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(),"BINDSIZE",1000)));
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "ROWS", Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(),"ROWS",this.miCommitSize)));
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "PARALLEL",XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(),"PARALLEL",true)?"TRUE":"FALSE");
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "DIRECT", XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(),"DIRECT",true)?"TRUE":"FALSE");
+        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "BINDSIZE", "BINDSIZE="
+                + Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "BINDSIZE", 1000)));
+
+        if (parallel)
+            mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "ROWS", "");
+        else
+            mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "ROWS", "ROWS="
+                    + Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "ROWS",
+                            this.miCommitSize)));
+
+        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "PARALLEL", "PARALLEL="
+                + (parallel ? "TRUE" : "FALSE"));
+        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "DIRECT", "DIRECT="
+                + (XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "DIRECT", true) ? "TRUE"
+                        : "FALSE"));
         mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "PASSWORD", this.getParameterValue(0,
                 PASSWORD_ATTRIB));
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "USER", this.getParameterValue(0,
-                USER_ATTRIB));
+        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "USER", this.getParameterValue(0, USER_ATTRIB));
         mTargetTable = pTable;
         return mOSCommand;
     }
@@ -129,8 +116,7 @@ public class SQLLoaderELTWriter extends JDBCWriter {
                     this.mBatchCounter = 0;
                     this.executePostBatchStatements();
                     this.firePreBatch = true;
-                    
-                    
+
                 }
             } catch (Exception e) {
 

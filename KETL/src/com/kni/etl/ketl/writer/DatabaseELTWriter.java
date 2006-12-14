@@ -1469,7 +1469,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             while(Thread.currentThread().getThreadGroup().activeCount() > 1){
                     try {
                         Thread.sleep(1000);
-                    } catch (InterruptedException e) {
+                    } catch (InterruptedException e) {                        
                        throw new KETLError(e);
                     }
             }

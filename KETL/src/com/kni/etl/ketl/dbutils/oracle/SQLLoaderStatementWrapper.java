@@ -25,6 +25,8 @@ import com.kni.etl.dbutils.DatabaseColumnDefinition;
 import com.kni.etl.dbutils.JDBCItemHelper;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.dbutils.StatementWrapper;
+import com.kni.etl.ketl.exceptions.KETLError;
+import com.kni.etl.ketl.exceptions.KETLWriteException;
 
 final public class SQLLoaderStatementWrapper extends StatementWrapper {
 
@@ -49,18 +51,6 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
             } catch (IOException ioe) {
             }
         }
-    }
-
-    class ProcessRunner extends Thread {
-
-        String fileName;
-
-        @Override
-        public void run() {
-            // TODO Auto-generated method stub
-            super.run();
-        }
-
     }
 
     Connection con;
@@ -110,7 +100,6 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
         }
 
         // this.mEncoder = Charset.forName(charset);
-        fileName = File.createTempFile("ketl", ".dat").getAbsolutePath();
 
         StringBuffer cols = new StringBuffer();
         for (int i = 0; i < madcdColumns.length; i++) {
@@ -198,7 +187,13 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
         }
 
         recordLenSize = Integer.toString(recordLenSize).length();
-        String template = "LOAD DATA  LENGTH CHARACTER BYTEORDER BIG ENDIAN INFILE '" + fileName + "' \"VAR "
+
+        if (pipeSupported)
+            msDataFile = createPipe();
+        else
+            msDataFile = File.createTempFile("ketl", ".dat").getAbsolutePath();
+
+        String template = "LOAD DATA  LENGTH CHARACTER BYTEORDER BIG ENDIAN INFILE '" + msDataFile + "' \"VAR "
                 + recordLenSize
                 + "\" APPEND INTO TABLE ${DESTINATIONTABLENAME}\n\tTRAILING NULLCOLS (${DESTINATIONCOLUMNS})\n\t";
 
@@ -213,6 +208,9 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
         template = EngineConstants.replaceParameterV2(template, "DESTINATIONTABLENAME", pTableName);
 
         this.mLoadStatement = EngineConstants.replaceParameterV2(loadStatement, "CONTROLFILE", this.mControlFile);
+        this.mLoadStatement = EngineConstants.replaceParameterV2(mLoadStatement, "BADDATA", this.mControlFile + ".bad");
+        this.mLoadStatement = EngineConstants.replaceParameterV2(mLoadStatement, "LOG", this.mControlFile + ".log");
+        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE,this.mLoadStatement);
     }
 
     boolean pipeSupported = false;
@@ -221,29 +219,31 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
     private StringBuffer mErrBuffer;
     private BufferedOutputStream mBuffer;
 
-    private void initFile() throws IOException {
+    private String createPipe() throws IOException {
+        String pipeFilename;
+        String tempdir = System.getProperty("java.io.tmpdir");
 
-        if (pipeSupported) {
-            // instantiate process and pipe data to it
-            // create pipe
-            String tmpFilename = "sqlPip" + Long.toString(System.nanoTime());
-            String command = "mknod " + tmpFilename;
+        if ((tempdir != null) && (tempdir.endsWith("/") == false) && (tempdir.endsWith("\\") == false)) {
+            tempdir = tempdir + File.separator;
+        }
+        else if (tempdir == null) {
+            tempdir = "";
+        }
 
-            Process proc = Runtime.getRuntime().exec(command);
-            StringBuffer inBuffer = new StringBuffer();
-            InputStream inStream = proc.getInputStream();
-            new InputStreamHandler(inBuffer, inStream);
+        pipeFilename = tempdir + "sqlPip" + Long.toString(System.nanoTime());
+        String command = "mkfifo " + pipeFilename;
 
-            StringBuffer errBuffer = new StringBuffer();
-            InputStream errStream = proc.getErrorStream();
-            new InputStreamHandler(errBuffer, errStream);
+        Process proc = Runtime.getRuntime().exec(command);
+        StringBuffer inBuffer = new StringBuffer();
+        InputStream inStream = proc.getInputStream();
+        new InputStreamHandler(inBuffer, inStream);
 
-            int iReturnValue;
-            try {
-                iReturnValue = proc.waitFor();
-            } catch (InterruptedException e) {
-                throw new IOException("Failed to wait for pipe creation: " + e.getMessage());
-            }
+        StringBuffer errBuffer = new StringBuffer();
+        InputStream errStream = proc.getErrorStream();
+        new InputStreamHandler(errBuffer, errStream);
+
+        try {
+            int iReturnValue = proc.waitFor();
 
             switch (iReturnValue) {
             case EX_SUCC:
@@ -255,76 +255,101 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
             default:
                 throw new IOException("STDERROR:" + errBuffer.toString() + "\nSTDOUT:" + inBuffer.toString());
             }
+        } catch (InterruptedException e) {
+            throw new IOException("Failed to wait for pipe creation: " + e.getMessage());
+        }
 
-            this.mTarget = new FileOutputStream(fileName);
-            if (this.pipeSupported)
-                this.mWriter = new DataOutputStream(this.mTarget);
-            else {
-                this.mBuffer = new BufferedOutputStream(mTarget);
-                this.mWriter = new DataOutputStream(this.mBuffer);
+        return pipeFilename;
+    }
+
+    private boolean mFilesOpen = false;
+
+    private void initFile() throws IOException {
+
+        if (pipeSupported) {
+            // instantiate process
+            this.mActiveSQLLoaderThread = new SQLLoaderProcess(this.mLoadStatement, Thread.currentThread());
+            this.mActiveSQLLoaderThread.start();
+        }
+
+        this.mTarget = new FileOutputStream(msDataFile);
+        this.mBuffer = new BufferedOutputStream(mTarget);
+        this.mWriter = new DataOutputStream(this.mBuffer);
+        mFilesOpen = true;
+
+    }
+
+    SQLLoaderProcess mActiveSQLLoaderThread = null;
+
+    class SQLLoaderProcess extends Thread {
+
+        private String command;
+        private int finalStatus = -999;
+        private Thread parent;
+        private SQLException exception = null;
+
+        public SQLLoaderProcess(String command, Thread parent) {
+            super();
+            this.command = command;
+            this.parent = parent;
+        }
+
+        @Override
+        public void run() {
+            InputStream inStream;
+            InputStream errStream;
+            try {
+                mPipeToProcess = Runtime.getRuntime().exec(command);
+                mInBuffer = new StringBuffer();
+                inStream = mPipeToProcess.getInputStream();
+                new InputStreamHandler(mInBuffer, inStream);
+
+                mErrBuffer = new StringBuffer();
+                errStream = mPipeToProcess.getErrorStream();
+                new InputStreamHandler(mErrBuffer, errStream);
+
+                finalStatus = mPipeToProcess.waitFor();
+
+                mPipeToProcess = null;
+
+                // interrupt parent if an error occurs
+                switch (finalStatus) {
+                case EX_SUCC:
+                    break;
+                case EX_WARN:
+                    ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+                            "SQL*Loader reported a warning, check the log " + mControlFile + ".log");
+                    break;
+                default:
+                    Thread.sleep(1000);
+                    if (mFilesOpen == false) {
+                        // this is here in the event that the pipe fails and hangs the other thread
+                        ResourcePool.LogException(new KETLWriteException("STDERROR:" + mErrBuffer.toString()
+                                + "\nSTDOUT:" + mInBuffer.toString()), parent);
+                        parent.interrupt();
+                    }
+                    exception = new SQLException("SQL*Loader Failed\nExtended Log: " + mControlFile + ".log\nError code: " + this.finalStatus + "\nSTDERROR:" + mErrBuffer.toString() + "\nSTDOUT:"
+                            + mInBuffer.toString());
+                }
+
+            } catch (Exception e) {
+                ResourcePool.LogException(new KETLWriteException("STDERROR:" + mErrBuffer.toString() + "\nSTDOUT:"
+                        + mInBuffer.toString()), parent);
+                ResourcePool.LogException(e, parent);
+                parent.interrupt();
             }
 
-            command = EngineConstants.replaceParameterV2(mLoadStatement, "DATASOURCE", fileName);
-            command = EngineConstants.replaceParameterV2(command, "BADDATA", fileName + ".bad");
-
-            this.mPipeToProcess = Runtime.getRuntime().exec(command);
-            this.mInBuffer = new StringBuffer();
-            inStream = proc.getInputStream();
-            new InputStreamHandler(this.mInBuffer, inStream);
-
-            this.mErrBuffer = new StringBuffer();
-            errStream = proc.getErrorStream();
-            new InputStreamHandler(this.mErrBuffer, errStream);
-
-        }
-        else {
-            File fl = new File(fileName);
-            this.mTarget = new FileOutputStream(fl);
-            this.mWriter = new DataOutputStream(this.mTarget);
         }
 
     }
 
-    private void deleteDataFile() throws IOException {
+    private void deleteDataFile() {
 
-        if (this.pipeSupported) {
-            String command = "rmdir " + fileName;
+        File fl = new File(msDataFile);
 
-            Process proc = Runtime.getRuntime().exec(command);
-            StringBuffer inBuffer = new StringBuffer();
-            InputStream inStream = proc.getInputStream();
-            new InputStreamHandler(inBuffer, inStream);
-
-            StringBuffer errBuffer = new StringBuffer();
-            InputStream errStream = proc.getErrorStream();
-            new InputStreamHandler(errBuffer, errStream);
-
-            int iReturnValue;
-            try {
-                iReturnValue = proc.waitFor();
-            } catch (InterruptedException e) {
-                throw new IOException("Failed to delete pipe: " + e.getMessage());
-            }
-
-            switch (iReturnValue) {
-            case EX_SUCC:
-                break;
-            case EX_WARN:
-                ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-                        "Pipe deletion report a warning");
-                break;
-            default:
-                throw new IOException("STDERROR:" + errBuffer.toString() + "\nSTDOUT:" + inBuffer.toString());
-            }
-
-        }
-        else {
-            File fl = new File(fileName);
-
-            if (fl.exists()) {
-                fl.delete();
-                fl = new File(fileName);
-            }
+        if (fl.exists()) {
+            fl.delete();
+            fl = new File(msDataFile);
         }
 
     }
@@ -453,9 +478,18 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
     private int rowsInThisBatch = 0;
 
     public void close() throws SQLException {
+        if (pipeSupported)
+            deleteDataFile();
+
+        if (mPipeToProcess != null)
+            mPipeToProcess.destroy();
+
+        // delete control file
+        File fl = new File(mControlFile);
+        fl.delete();        
     }
 
-    private String fileName;
+    private String msDataFile;
 
     public int[] executeBatch() throws SQLException {
         int[] res = new int[this.rowsInThisBatch];
@@ -467,23 +501,28 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
             this.closeFile();
             // execute data file
             if (!this.pipeSupported) {
-                String command = EngineConstants.replaceParameterV2(mLoadStatement, "DATASOURCE", fileName);
-                command = EngineConstants.replaceParameterV2(command, "BADDATA", fileName + ".bad");
-
-                Process proc = Runtime.getRuntime().exec(command);
+                this.mPipeToProcess = Runtime.getRuntime().exec(this.mLoadStatement);
                 this.mInBuffer = new StringBuffer();
-                InputStream inStream = proc.getInputStream();
+                InputStream inStream = this.mPipeToProcess.getInputStream();
                 new InputStreamHandler(this.mInBuffer, inStream);
 
                 this.mErrBuffer = new StringBuffer();
-                InputStream errStream = proc.getErrorStream();
+                InputStream errStream = this.mPipeToProcess.getErrorStream();
                 new InputStreamHandler(this.mErrBuffer, errStream);
 
-                iReturnValue = proc.waitFor();
-                java.util.Arrays.fill(res, 1);
+                iReturnValue = this.mPipeToProcess.waitFor();
+                this.mPipeToProcess = null;
+                deleteDataFile();
             }
             else {
-                iReturnValue = this.mPipeToProcess.waitFor();
+                while (this.mActiveSQLLoaderThread.isAlive()) {
+                    Thread.sleep(100);
+                }
+
+                iReturnValue = this.mActiveSQLLoaderThread.finalStatus;
+
+                if (this.mActiveSQLLoaderThread.exception != null)
+                    throw this.mActiveSQLLoaderThread.exception;
             }
 
             switch (iReturnValue) {
@@ -498,7 +537,7 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
                         + this.mInBuffer.toString());
             }
 
-            deleteDataFile();
+            java.util.Arrays.fill(res, 1);
 
             rowsInThisBatch = 0;
         } catch (Exception e) {
@@ -586,7 +625,6 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
         }
 
         recordLen += mDatums[pos - 1].length + (this.mDatumNeedsDelimiter[pos - 1] ? DEL_LENGTH : 0);
-        ;
 
     }
 

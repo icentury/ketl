@@ -863,7 +863,7 @@ public class ETLJob {
                 }
                 else 
                     ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
-                            "Failed or cancelled job details logged to " + this.mDumpFile);
+                            "Job details logged to " + this.mDumpFile);
             } catch (IOException e) {
                 this.mLoggerFailed = true;
                 System.err.println("Job logging failed: " + e.toString());
