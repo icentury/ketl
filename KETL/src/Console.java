@@ -68,14 +68,13 @@ public class Console {
     static final int LOOKUPS = 2;
     static final int RESTART = 4;
     static final int LOADID = 3;
-    
 
     static final int RESTART_JOB = 9;
 
     static final int RESUME = 10;
     static final int RUN = 13;
     static final int LAST = 14;
-    static final String[] RUN_TYPES = { "LIST", "RESET", "LOOKUPS","LOADID" };
+    static final String[] RUN_TYPES = { "LIST", "RESET", "LOOKUPS", "LOADID" };
 
     static final int SERVER = 12;
 
@@ -97,7 +96,7 @@ public class Console {
             "STATUS {CLUSTER|JOBS}",
             "JOB <NAME> {DEFINITION|DELETE|KILL|XMLDEFINITION|RESTART|SKIP|EXPORT <FILENAME>|IMPORT <FILENAME>|DEPENDENCIES|EXECUTE <PROJECTID> {MULTI} {IGNOREDEPENDENCIES}}",
             "RESTART {IMMEDIATE|NORMAL}", "QUIT", "CONNECT <SERVER|LOCALHOST> <USERNAME>", "HELP",
-            "PARAMETERLIST <NAME> <EXPORT|IMPORT> <FILENAME>", "PAUSE <SERVERID>", "RESUME <SERVERID>", "PROJECT LIST",
+            "PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}", "PAUSE <SERVERID>", "RESUME <SERVERID>", "PROJECT LIST",
             "SERVER LIST", "RUN {LIST|RESET|<FILENAME>|LOADID <VALUE>}", "/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}" };
 
     static final int XMLDEFINITION = 0;
@@ -656,12 +655,16 @@ public class Console {
     }
 
     private String parameterList(String[] pCommands) throws Exception {
-        StringBuffer sb = new StringBuffer();
 
         if (connected()) {
             // if its an export then load from file
             if ((pCommands.length > 2) && (resolveCommand(pCommands[2], JOBDETAIL_TYPES) == IMPORT)) {
                 return importParameters(pCommands);
+            }
+            else if ((pCommands.length > 2) && (resolveCommand(pCommands[2], JOBDETAIL_TYPES) == DEFINITION)) {
+
+                return getXMLParameterlistDefinition(pCommands[1]);
+
             }
             else if ((pCommands.length > 2) && (resolveCommand(pCommands[2], JOBDETAIL_TYPES) == EXPORT)) {
                 if (pCommands.length < 4) {
@@ -670,50 +673,55 @@ public class Console {
                     return this.syntaxError(PARAMETERLIST);
                 }
 
-                String[] pLists = md.getValidParameterListName(pCommands[1].replaceAll("\\*", "%"));
-
-                sb.append("<?xml version=\"1.0\"?>\n<ETL VERSION=\"" + md.getMetadataVersion()
-                        + "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n");
-
-                if (pLists != null) {
-                    for (int i = 0; i < pLists.length; i++) {
-                        sb.append("  <PARAMETER_LIST NAME=\"" + pLists[i] + "\">\n");
-
-                        Object[][] pList = md.getParameterList(pLists[i]);
-
-                        ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Exporting: " + pLists[i]);
-
-                        if (pList != null) {
-                            for (int x = 0; x < pList.length; x++) {
-                                String sub = "";
-                                String val = "/>\n";
-
-                                if (pList[x][Metadata.SUB_PARAMETER_LIST_NAME] != null) {
-                                    sub = " PARAMETER_LIST=\"" + pList[x][Metadata.SUB_PARAMETER_LIST_NAME] + "\" ";
-                                }
-
-                                if (pList[x][Metadata.PARAMETER_VALUE] != null) {
-                                    val = " >" + pList[x][Metadata.PARAMETER_VALUE] + "</PARAMETER>\n";
-                                }
-
-                                sb.append("     <PARAMETER NAME=\"" + pList[x][Metadata.PARAMETER_NAME] + "\"" + sub
-                                        + val);
-                            }
-                        }
-
-                        sb.append("  </PARAMETER_LIST>\n");
-                    }
-                }
-
-                sb.append("\n</ETL>");
-
                 BufferedWriter out = new BufferedWriter(new java.io.FileWriter(pCommands[3]));
-                out.write(sb.toString());
+                out.write(getXMLParameterlistDefinition(pCommands[1]));
                 out.close();
             }
         }
 
         return "Done";
+    }
+
+    private String getXMLParameterlistDefinition(String pListMatchString) {
+        StringBuffer sb = new StringBuffer();
+
+        String[] pLists = md.getValidParameterListName(pListMatchString.replaceAll("\\*", "%"));
+
+        sb.append("<?xml version=\"1.0\"?>\n<ETL VERSION=\"" + md.getMetadataVersion()
+                + "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n");
+
+        if (pLists != null) {
+            for (int i = 0; i < pLists.length; i++) {
+                sb.append("  <PARAMETER_LIST NAME=\"" + pLists[i] + "\">\n");
+
+                Object[][] pList = md.getParameterList(pLists[i]);
+
+                ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Fetching: " + pLists[i]);
+
+                if (pList != null) {
+                    for (int x = 0; x < pList.length; x++) {
+                        String sub = "";
+                        String val = "/>\n";
+
+                        if (pList[x][Metadata.SUB_PARAMETER_LIST_NAME] != null) {
+                            sub = " PARAMETER_LIST=\"" + pList[x][Metadata.SUB_PARAMETER_LIST_NAME] + "\" ";
+                        }
+
+                        if (pList[x][Metadata.PARAMETER_VALUE] != null) {
+                            val = " >" + pList[x][Metadata.PARAMETER_VALUE] + "</PARAMETER>\n";
+                        }
+
+                        sb.append("     <PARAMETER NAME=\"" + pList[x][Metadata.PARAMETER_NAME] + "\"" + sub + val);
+                    }
+                }
+
+                sb.append("  </PARAMETER_LIST>\n");
+            }
+        }
+
+        sb.append("\n</ETL>");
+
+        return sb.toString();
     }
 
     private String pause(String[] pCommands) throws Exception {
@@ -802,7 +810,7 @@ public class Console {
 
         // EngineConstants.getSystemXML();
         xmlConfig = Metadata.LoadConfigFile(null, configFile);
-       
+
         System.out.println(displayVersionInfo());
 
         String[] quickCommand = null;
@@ -968,17 +976,17 @@ public class Console {
             switch (jobDetailType) {
             case LOADID:
                 try {
-                if (pCommands.length == 3) 
-                    iLoadID = Integer.parseInt(pCommands[2]);
-                else
-                    return "Invalid syntax";
-                } catch(Exception e){
+                    if (pCommands.length == 3)
+                        iLoadID = Integer.parseInt(pCommands[2]);
+                    else
+                        return "Invalid syntax";
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-                
+
                 return "LoadID = " + this.iLoadID;
             case RESET:
-                    if (pCommands.length == 3) {
+                if (pCommands.length == 3) {
                     if (ResourcePool.releaseLookup(pCommands[2]))
                         return "Released lookup " + pCommands[2];
                     else
@@ -1019,10 +1027,10 @@ public class Console {
                     } catch (Exception e) {
                         return e.toString();
                     }
-                    
-                    if(doc == null)
+
+                    if (doc == null)
                         return "File \'" + file + "\' not found";
-                    
+
                     NodeList nl = doc.getElementsByTagName("JOB");
 
                     for (int i = 0; i < nl.getLength(); i++) {
