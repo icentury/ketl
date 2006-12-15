@@ -8,8 +8,6 @@ pgmdir=`dirname \`command which $0\``
 loaderRoot=`dirname $pgmdir`
 loaderJars=`echo $KETLDIR/lib/*.jar | tr ' ' ':'`
 
-
-
 . $KETLDIR/conf/Extra.Libraries
 . $KETLDIR/conf/Extra.Config
 CLASSPATH=$KETL_DIR
