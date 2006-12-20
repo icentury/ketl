@@ -194,11 +194,13 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         boolean mbXPathEvaluateField;
         String[] mRecursiveXPath;
         ParsePosition position;
+        String nullIF = null;
 
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             this.xpath = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), XPATH_ATTRIB, null);
-            this.mbXPathEvaluateField = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(),
+            this.nullIF = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "NULLIF", null);
+               this.mbXPathEvaluateField = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(),
                     XPATH_EVALUATE_ATTRIB, true);
             int res = super.initialize(xmlConfig);
 
@@ -333,7 +335,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
             }
 
-            if (result == null || result.length() == 0)
+            if (result == null || result.length() == 0 || (port.nullIF != null && port.nullIF.equals(result)))
                 return null;
 
             Class cl = port.getPortClass();
