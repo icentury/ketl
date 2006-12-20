@@ -199,6 +199,10 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             this.xpath = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), XPATH_ATTRIB, null);
+            
+            if(this.xpath == null)
+                this.xpath = XMLHelper.getAttributeAsString(xmlConfig.getParentNode().getAttributes(), XPATH_ATTRIB, null);
+            
             this.nullIF = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "NULLIF", null);
                this.mbXPathEvaluateField = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(),
                     XPATH_EVALUATE_ATTRIB, true);
