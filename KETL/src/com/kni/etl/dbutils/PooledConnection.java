@@ -66,8 +66,14 @@ public class PooledConnection {
                 throw e;
             }
         }
-                
-        this.setInUse(false);
+             
+        try {
+            this.setInUse(false);
+        } catch (SQLException e) {
+            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Error getting connection");
+            mConnection.close();
+            throw e;
+        }
     }
 
     public boolean timeout(java.util.Date pCurrentDate) throws Exception {

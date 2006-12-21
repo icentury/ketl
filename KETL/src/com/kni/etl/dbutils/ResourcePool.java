@@ -271,9 +271,21 @@ public class ResourcePool {
 
             if ((connection.inUse() == false)
                     && connection.match(strDriverClass, strURL, strUserName, strPassword, strPrepSQL, bAllowPooling)) {
-                connection.setInUse(true);
+                try {
+                    connection.setInUse(true);
+                    return connection.mConnection;
+                } catch (Exception e1) {
+                    ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Connection has entered an unknown state and will be release");
+                    e1.printStackTrace();
+                    try {
+                        aConnections.remove(connection.mConnection);
+                        connection.mConnection.close();
+                    } catch (Exception e2) {
+                        e2.printStackTrace();
+                    }
 
-                return connection.mConnection;
+                }
+                
             }
         }
 

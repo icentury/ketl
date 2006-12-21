@@ -154,6 +154,16 @@ public class StatementManager {
 
                         boolean runQueryPerPartition = XMLHelper.getAttributeAsBoolean(node.getAttributes(),
                                 "PERPARTITION", false);
+                        boolean autocommit = XMLHelper.getAttributeAsBoolean(node.getAttributes(), "AUTOCOMMIT", false);
+
+                        boolean currentlyAutocommit = stmt.getConnection().getAutoCommit();
+
+                        if (autocommit != currentlyAutocommit) {
+                            if(currentlyAutocommit == false)
+                                stmt.getConnection().commit();
+                            
+                            stmt.getConnection().setAutoCommit(autocommit);
+                        }
 
                         if (runQueryPerPartition || canRun) {
                             if (XMLHelper.getAttributeAsBoolean(node.getAttributes(), "CRITICAL", true)) {
@@ -172,6 +182,10 @@ public class StatementManager {
                                     }
                                 }
                             }
+                        }
+
+                        if (autocommit != currentlyAutocommit) {
+                            stmt.getConnection().setAutoCommit(currentlyAutocommit);
                         }
                     }
                 }

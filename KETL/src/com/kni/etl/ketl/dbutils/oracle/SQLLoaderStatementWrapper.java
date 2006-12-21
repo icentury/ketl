@@ -1,12 +1,8 @@
 package com.kni.etl.ketl.dbutils.oracle;
 
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Writer;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -17,41 +13,16 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.w3c.dom.Element;
-
 import com.kni.etl.EngineConstants;
+import com.kni.etl.dbutils.BulkLoaderStatementWrapper;
 import com.kni.etl.dbutils.ColumnDefinition;
 import com.kni.etl.dbutils.DatabaseColumnDefinition;
 import com.kni.etl.dbutils.JDBCItemHelper;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.dbutils.StatementWrapper;
-import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
 
-final public class SQLLoaderStatementWrapper extends StatementWrapper {
-
-    class InputStreamHandler extends Thread {
-
-        private StringBuffer m_captureBuffer;
-        private InputStream m_stream;
-
-        InputStreamHandler(StringBuffer captureBuffer, InputStream stream) {
-            m_stream = stream;
-            m_captureBuffer = captureBuffer;
-            start();
-        }
-
-        public void run() {
-            try {
-                int nextChar;
-
-                while ((nextChar = m_stream.read()) != -1) {
-                    m_captureBuffer.append((char) nextChar);
-                }
-            } catch (IOException ioe) {
-            }
-        }
-    }
+final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper {
 
     Connection con;
     JDBCItemHelper helper;
@@ -69,11 +40,10 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
     public SQLLoaderStatementWrapper(Connection connection, String pTableName, String loadStatement,
             DatabaseColumnDefinition[] madcdColumns, JDBCItemHelper helper, boolean pipe) throws IOException,
             SQLException {
-        super();
+        super(pipe);
         this.con = connection;
         this.helper = helper;
 
-        this.pipeSupported = pipe;
         this.mColumns = madcdColumns.length;
         this.mColumnDetails = madcdColumns;
         this.mDatums = new byte[madcdColumns.length][];
@@ -188,12 +158,7 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
 
         recordLenSize = Integer.toString(recordLenSize).length();
 
-        if (pipeSupported)
-            msDataFile = createPipe();
-        else
-            msDataFile = File.createTempFile("ketl", ".dat").getAbsolutePath();
-
-        String template = "LOAD DATA  LENGTH CHARACTER BYTEORDER BIG ENDIAN INFILE '" + msDataFile + "' \"VAR "
+        String template = "LOAD DATA  LENGTH CHARACTER BYTEORDER BIG ENDIAN INFILE '" + getDataFile() + "' \"VAR "
                 + recordLenSize
                 + "\" APPEND INTO TABLE ${DESTINATIONTABLENAME}\n\tTRAILING NULLCOLS (${DESTINATIONCOLUMNS})\n\t";
 
@@ -210,167 +175,14 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
         this.mLoadStatement = EngineConstants.replaceParameterV2(loadStatement, "CONTROLFILE", this.mControlFile);
         this.mLoadStatement = EngineConstants.replaceParameterV2(mLoadStatement, "BADDATA", this.mControlFile + ".bad");
         this.mLoadStatement = EngineConstants.replaceParameterV2(mLoadStatement, "LOG", this.mControlFile + ".log");
-        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE,this.mLoadStatement);
+        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, this.mLoadStatement);
     }
 
-    boolean pipeSupported = false;
-    private Process mPipeToProcess;
-    private StringBuffer mInBuffer;
-    private StringBuffer mErrBuffer;
-    private BufferedOutputStream mBuffer;
-
-    private String createPipe() throws IOException {
-        String pipeFilename;
-        String tempdir = System.getProperty("java.io.tmpdir");
-
-        if ((tempdir != null) && (tempdir.endsWith("/") == false) && (tempdir.endsWith("\\") == false)) {
-            tempdir = tempdir + File.separator;
-        }
-        else if (tempdir == null) {
-            tempdir = "";
-        }
-
-        pipeFilename = tempdir + "sqlPip" + Long.toString(System.nanoTime());
-        String command = "mkfifo " + pipeFilename;
-
-        Process proc = Runtime.getRuntime().exec(command);
-        StringBuffer inBuffer = new StringBuffer();
-        InputStream inStream = proc.getInputStream();
-        new InputStreamHandler(inBuffer, inStream);
-
-        StringBuffer errBuffer = new StringBuffer();
-        InputStream errStream = proc.getErrorStream();
-        new InputStreamHandler(errBuffer, errStream);
-
-        try {
-            int iReturnValue = proc.waitFor();
-
-            switch (iReturnValue) {
-            case EX_SUCC:
-                break;
-            case EX_WARN:
-                ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-                        "Pipe creation report a warning");
-                break;
-            default:
-                throw new IOException("STDERROR:" + errBuffer.toString() + "\nSTDOUT:" + inBuffer.toString());
-            }
-        } catch (InterruptedException e) {
-            throw new IOException("Failed to wait for pipe creation: " + e.getMessage());
-        }
-
-        return pipeFilename;
-    }
-
-    private boolean mFilesOpen = false;
-
-    private void initFile() throws IOException {
-
-        if (pipeSupported) {
-            // instantiate process
-            this.mActiveSQLLoaderThread = new SQLLoaderProcess(this.mLoadStatement, Thread.currentThread());
-            this.mActiveSQLLoaderThread.start();
-        }
-
-        this.mTarget = new FileOutputStream(msDataFile);
-        this.mBuffer = new BufferedOutputStream(mTarget);
-        this.mWriter = new DataOutputStream(this.mBuffer);
-        mFilesOpen = true;
-
-    }
-
-    SQLLoaderProcess mActiveSQLLoaderThread = null;
-
-    class SQLLoaderProcess extends Thread {
-
-        private String command;
-        private int finalStatus = -999;
-        private Thread parent;
-        private SQLException exception = null;
-
-        public SQLLoaderProcess(String command, Thread parent) {
-            super();
-            this.command = command;
-            this.parent = parent;
-        }
-
-        @Override
-        public void run() {
-            InputStream inStream;
-            InputStream errStream;
-            try {
-                mPipeToProcess = Runtime.getRuntime().exec(command);
-                mInBuffer = new StringBuffer();
-                inStream = mPipeToProcess.getInputStream();
-                new InputStreamHandler(mInBuffer, inStream);
-
-                mErrBuffer = new StringBuffer();
-                errStream = mPipeToProcess.getErrorStream();
-                new InputStreamHandler(mErrBuffer, errStream);
-
-                finalStatus = mPipeToProcess.waitFor();
-
-                mPipeToProcess = null;
-
-                // interrupt parent if an error occurs
-                switch (finalStatus) {
-                case EX_SUCC:
-                    break;
-                case EX_WARN:
-                    ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-                            "SQL*Loader reported a warning, check the log " + mControlFile + ".log");
-                    break;
-                default:
-                    Thread.sleep(1000);
-                    if (mFilesOpen == false) {
-                        // this is here in the event that the pipe fails and hangs the other thread
-                        ResourcePool.LogException(new KETLWriteException("STDERROR:" + mErrBuffer.toString()
-                                + "\nSTDOUT:" + mInBuffer.toString()), parent);
-                        parent.interrupt();
-                    }
-                    exception = new SQLException("SQL*Loader Failed\nExtended Log: " + mControlFile + ".log\nError code: " + this.finalStatus + "\nSTDERROR:" + mErrBuffer.toString() + "\nSTDOUT:"
-                            + mInBuffer.toString());
-                }
-
-            } catch (Exception e) {
-                ResourcePool.LogException(new KETLWriteException("STDERROR:" + mErrBuffer.toString() + "\nSTDOUT:"
-                        + mInBuffer.toString()), parent);
-                ResourcePool.LogException(e, parent);
-                parent.interrupt();
-            }
-
-        }
-
-    }
-
-    private void deleteDataFile() {
-
-        File fl = new File(msDataFile);
-
-        if (fl.exists()) {
-            fl.delete();
-            fl = new File(msDataFile);
-        }
-
-    }
-
-    private void closeFile() throws IOException {
-        if (this.mWriter != null) {
-            this.mWriter.close();
-            this.mWriter = null;
-        }
-
-        if (!this.pipeSupported) {
-            if (this.mBuffer != null) {
-                this.mBuffer.close();
-                this.mBuffer = null;
-            }
-        }
-
-        if (this.mTarget != null) {
-            this.mTarget.close();
-            this.mTarget = null;
-        }
+    final public void close() throws SQLException {
+        super.close();
+        // delete control file
+        File fl = new File(mControlFile);
+        fl.delete();
     }
 
     public static StatementWrapper prepareStatement(Connection mcDBConnection, String pTableName, String loadStatement,
@@ -380,83 +192,6 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
         } catch (IOException e) {
             throw new SQLException(e.toString());
         }
-    }
-
-    @Override
-    public int executeUpdate() throws SQLException {
-        throw new RuntimeException("Single updates not supported yet by SQLLoader");
-    }
-
-    @Override
-    public void setParameterFromClass(int parameterIndex, Class pClass, Object pDataItem, int maxCharLength,
-            Element pXMLConfig) throws SQLException {
-        if (pClass == Short.class || pClass == short.class) {
-            this.setShort(parameterIndex, (Short) pDataItem);
-        }
-        else if (pClass == Integer.class || pClass == int.class) {
-            this.setInt(parameterIndex, (Integer) pDataItem);
-        }
-        else if (pClass == Double.class || pClass == double.class) {
-            this.setDouble(parameterIndex, (Double) pDataItem);
-        }
-        else if (pClass == Float.class || pClass == float.class) {
-            this.setFloat(parameterIndex, (Float) pDataItem);
-
-        }
-        else if (pClass == Long.class || pClass == long.class) {
-            this.setLong(parameterIndex, (Long) pDataItem);
-        }
-        else if (pClass == String.class) {
-            if (pDataItem == null)
-                this.setNull(parameterIndex, java.sql.Types.VARCHAR);
-            else
-                this.setString(parameterIndex, (String) pDataItem);
-        }
-        else if (pClass == java.util.Date.class) {
-            if (pDataItem == null)
-                this.setNull(parameterIndex, java.sql.Types.TIMESTAMP);
-            else
-                this.setTimestamp(parameterIndex, new java.sql.Timestamp(((java.util.Date) pDataItem).getTime()));
-        }
-        else if (pClass == java.sql.Date.class) {
-            if (pDataItem == null)
-                this.setNull(parameterIndex, java.sql.Types.DATE);
-            else
-                this.setSQLDate(parameterIndex, (java.sql.Date) pDataItem);
-        }
-        else if (pClass == java.sql.Time.class) {
-            if (pDataItem == null)
-                this.setNull(parameterIndex, java.sql.Types.TIME);
-            else
-                this.setSQLTime(parameterIndex, (java.sql.Time) pDataItem);
-        }
-        else if (pClass == java.sql.Timestamp.class) {
-            if (pDataItem == null)
-                this.setNull(parameterIndex, java.sql.Types.TIMESTAMP);
-            else
-                this.setSQLTimestamp(parameterIndex, (java.sql.Timestamp) pDataItem);
-        }
-        else if (pClass == Boolean.class || pClass == boolean.class) {
-            if (pDataItem == null)
-                this.setNull(parameterIndex, java.sql.Types.BOOLEAN);
-            else
-                this.setBoolean(parameterIndex, (Boolean) pDataItem);
-        }
-        else if (pClass == Character.class || pClass == char.class) {
-            if (pDataItem == null)
-                this.setNull(parameterIndex, java.sql.Types.BOOLEAN);
-            else
-                this.setString(parameterIndex, pDataItem.toString());
-        }
-        else if (pClass == Byte[].class || pClass == byte[].class) {
-            if (pDataItem == null)
-                this.setNull(parameterIndex, java.sql.Types.BLOB);
-            else
-                this.setByteArrayValue(parameterIndex, (byte[]) pDataItem);
-        }
-        else
-            throw new RuntimeException("Datatype" + pClass.getCanonicalName() + " is not supported by SQL*Loader");
-
     }
 
     private final static String mDelimiter = "|";
@@ -473,107 +208,11 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
     private byte[][] mDatums;
     private int[] mDatumPadLength;
     private boolean[] mDatumNeedsDelimiter;
-    private FileOutputStream mTarget = null;
-    private DataOutputStream mWriter = null;
-    private int rowsInThisBatch = 0;
-
-    public void close() throws SQLException {
-        if (pipeSupported)
-            deleteDataFile();
-
-        if (mPipeToProcess != null)
-            mPipeToProcess.destroy();
-
-        // delete control file
-        File fl = new File(mControlFile);
-        fl.delete();        
-    }
-
-    private String msDataFile;
-
-    public int[] executeBatch() throws SQLException {
-        int[] res = new int[this.rowsInThisBatch];
-        // copy data from the given input stream to the table
-        try {
-            int iReturnValue;
-
-            // get dataFile
-            this.closeFile();
-            // execute data file
-            if (!this.pipeSupported) {
-                this.mPipeToProcess = Runtime.getRuntime().exec(this.mLoadStatement);
-                this.mInBuffer = new StringBuffer();
-                InputStream inStream = this.mPipeToProcess.getInputStream();
-                new InputStreamHandler(this.mInBuffer, inStream);
-
-                this.mErrBuffer = new StringBuffer();
-                InputStream errStream = this.mPipeToProcess.getErrorStream();
-                new InputStreamHandler(this.mErrBuffer, errStream);
-
-                iReturnValue = this.mPipeToProcess.waitFor();
-                this.mPipeToProcess = null;
-                deleteDataFile();
-            }
-            else {
-                while (this.mActiveSQLLoaderThread.isAlive()) {
-                    Thread.sleep(100);
-                }
-
-                iReturnValue = this.mActiveSQLLoaderThread.finalStatus;
-
-                if (this.mActiveSQLLoaderThread.exception != null)
-                    throw this.mActiveSQLLoaderThread.exception;
-            }
-
-            switch (iReturnValue) {
-            case EX_SUCC:
-                break;
-            case EX_WARN:
-                ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-                        "SQL*loader reporting a a warning");
-                break;
-            default:
-                throw new SQLException("STDERROR:" + this.mErrBuffer.toString() + "\nSTDOUT:"
-                        + this.mInBuffer.toString());
-            }
-
-            java.util.Arrays.fill(res, 1);
-
-            rowsInThisBatch = 0;
-        } catch (Exception e) {
-            throw new SQLException(e.toString());
-        }
-        return res;
-    }
+    // private FileOutputStream mTarget = null;
 
     private static final int EX_SUCC = 0;
     private static final int EX_WARN = 2;
     private int recordLen = 0, recordLenSize = 7;
-
-    public void addBatch() throws SQLException {
-        try {
-
-            if (this.mWriter == null)
-                this.initFile();
-
-            this.mWriter.write(pad(Integer.toString(recordLen), recordLenSize, '0').getBytes());
-
-            recordLen = 0;
-            for (int i = 0; i < mColumns; i++) {
-                this.mWriter.write((byte[]) this.mDatums[i]);
-                if (this.mDatumNeedsDelimiter[i] && i < (mColumns - 1)) {
-                    this.mWriter.write(mDelimiter.getBytes());
-                }
-                this.mDatums[i] = null;
-            }
-
-        } catch (Exception e) {
-            SQLException e1 = new SQLException(e.toString());
-            e1.setStackTrace(e.getStackTrace());
-            throw e1;
-        }
-        this.rowsInThisBatch++;
-    }
 
     private final static byte[] TRUE = "1".getBytes();
     private final static byte[] FALSE = "0".getBytes();
@@ -628,7 +267,7 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
 
     }
 
-    private void setObject(int pos, byte[] arg0) {
+    public void setObject(int pos, byte[] arg0) {
 
         mDatums[pos - 1] = arg0;
         recordLen += arg0.length + (this.mDatumNeedsDelimiter[pos - 1] ? DEL_LENGTH : 0);
@@ -730,5 +369,50 @@ final public class SQLLoaderStatementWrapper extends StatementWrapper {
 
     public void setSQLTime(int pos, java.sql.Time arg0) {
         this.setObject(pos, this.sqlTimeFormatter.format(arg0).getBytes());
+    }
+
+    @Override
+    protected SQLException handleLoaderStatus(int finalStatus, Thread thread) throws InterruptedException {
+        switch (finalStatus) {
+        case EX_SUCC:
+            break;
+        case EX_WARN:
+            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+                    "SQL*Loader reported a warning, check the log " + mControlFile + ".log");
+            break;
+        default:
+            Thread.sleep(1000);
+            if (filesOpen() == false) {
+                // this is here in the event that the pipe fails and hangs the other thread
+                ResourcePool.LogException(new KETLWriteException("STDERROR:" + this.getStandardErrorMessage()
+                        + "\nSTDOUT:" + this.getStandardOutMessage()), thread);
+                if (thread != Thread.currentThread())
+                    thread.interrupt();
+            }
+            return new SQLException("SQL*Loader Failed\nExtended Log: " + mControlFile + ".log\nError code: "
+                    + finalStatus + "\nSTDERROR:" + this.getStandardErrorMessage() + "\nSTDOUT:"
+                    + this.getStandardOutMessage());
+        }
+
+        return null;
+    }
+
+    @Override
+    protected void writeRecord() throws IOException, Error {
+        this.mWriter.write(pad(Integer.toString(recordLen), recordLenSize, '0').getBytes());
+
+        recordLen = 0;
+        for (int i = 0; i < mColumns; i++) {
+            this.mWriter.write((byte[]) this.mDatums[i]);
+            if (this.mDatumNeedsDelimiter[i] && i < (mColumns - 1)) {
+                this.mWriter.write(mDelimiter.getBytes());
+            }
+            this.mDatums[i] = null;
+        }
+    }
+
+    @Override
+    protected String getLoadStatement() {
+        return this.mLoadStatement;
     }
 }

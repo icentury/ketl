@@ -20,19 +20,13 @@ import com.kni.etl.ketl.exceptions.KETLWriteException;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 
-public class SQLLoaderELTWriter extends JDBCWriter {
+public class SQLLoaderELTWriter extends BulkLoaderELTWriter {
 
     private static final String CONNECTIONSTRING_ATTRIB = "CONNECTIONSTRING";
-
-    private boolean mPipeData = !System.getProperty("os.name").startsWith("Windows");
 
     public SQLLoaderELTWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
-
-    protected boolean pipeData() {
-        return this.mPipeData;
     }
 
     @Override
@@ -41,33 +35,6 @@ public class SQLLoaderELTWriter extends JDBCWriter {
 
         return SQLLoaderStatementWrapper.prepareStatement(Connection, mTargetTable, loadStatement, madcdColumns,
                 jdbcHelper, this.pipeData());
-    }
-
-    @Override
-    public int finishBatch(int len) throws KETLWriteException {
-        if (this.pipeData() == false)
-            return super.finishBatch(len);
-
-        this.clearBatchLogBatch();
-        int result = this.mBatchCounter;
-        this.miInsertCount += this.mBatchCounter;
-        this.mBatchCounter = 0;
-
-        return result;
-    }
-
-    @Override
-    protected JDBCItemHelper instantiateHelper(String hdl) throws KETLThreadException {
-        if (hdl == null)
-            return new SQLLoaderItemHelper();
-        else {
-            try {
-                Class cl = Class.forName(hdl);
-                return (SQLLoaderItemHelper) cl.newInstance();
-            } catch (Exception e) {
-                throw new KETLThreadException("HANDLER class not found", e, this);
-            }
-        }
     }
 
     private String mOSCommand;
@@ -102,41 +69,6 @@ public class SQLLoaderELTWriter extends JDBCWriter {
         mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "USER", this.getParameterValue(0, USER_ATTRIB));
         mTargetTable = pTable;
         return mOSCommand;
-    }
-
-    @Override
-    public int complete() throws KETLThreadException {
-
-        if (this.pipeData()) {
-            try {
-                if (this.mBatchCounter > 0) {
-                    this.dedupeCounter = 0;
-                    this.stmt.executeBatch();
-                    this.miInsertCount += this.mBatchCounter;
-                    this.mBatchCounter = 0;
-                    this.executePostBatchStatements();
-                    this.firePreBatch = true;
-
-                }
-            } catch (Exception e) {
-
-                try {
-                    stmt.close();
-                    stmt = null;
-                } catch (Exception e1) {
-                    ResourcePool.LogException(e1, this);
-                }
-
-                if (this.mcDBConnection != null) {
-                    ResourcePool.releaseConnection(this.mcDBConnection);
-                    this.mcDBConnection = null;
-                }
-
-                throw new KETLThreadException(e, e.getMessage());
-            }
-        }
-
-        return super.complete();
     }
 
 }

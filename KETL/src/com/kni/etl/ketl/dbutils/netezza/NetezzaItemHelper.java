@@ -1,4 +1,4 @@
-package com.kni.etl.ketl.dbutils.oracle;
+package com.kni.etl.ketl.dbutils.netezza;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -7,7 +7,7 @@ import org.w3c.dom.Element;
 
 import com.kni.etl.dbutils.JDBCItemHelper;
 
-final public class SQLLoaderItemHelper extends JDBCItemHelper {
+final public class NetezzaItemHelper extends JDBCItemHelper {
 
     @Override
     public void setParameterFromClass(PreparedStatement pPreparedStatement, int parameterIndex, Class pClass,
