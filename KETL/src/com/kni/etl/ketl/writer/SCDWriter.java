@@ -434,6 +434,8 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
         return res;
     }
 
+    boolean lookupLocked = true;
+    
     private void seedSCDLookup() throws SQLException, KETLTransformException, KETLThreadException, IOException {
         try {
             // download values to lookup
@@ -498,7 +500,8 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
 
             mLookup.commit(true);
             
-            ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
+            if(lookupLocked)
+            	((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
 
         } catch (SQLException e) {
             throw e;
@@ -988,6 +991,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
 
         this.mLookup = ((KETLJob) this.getJobExecutor().getCurrentETLJob()).registerLookupWriteLock(this.getName(),
                 this, cachePersistence);
+        this.lookupLocked = true;
 
     }
 
@@ -1441,6 +1445,9 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     @Override
     protected void close(boolean success) {
         try {
+
+        	if(lookupLocked)
+            	((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
 
             if (this.mcDBConnection != null && this.mIncrementalCommit == false && success == false
                     && this.getRecordsProcessed() > 0) {

@@ -388,6 +388,11 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
         try {
 
+        	if(lookupLocked){
+        		// release any write lock
+                ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
+        	}
+        	
             if (this.mcDBConnection != null && this.mIncrementalCommit == false && success == false
                     && this.getRecordsProcessed() > 0) {
                 this.mcDBConnection.rollback();
@@ -412,6 +417,8 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
     }
 
+    private boolean lookupLocked = false;
+    
     @Override
     public int complete() throws KETLThreadException {
         int res = super.complete();
@@ -431,8 +438,11 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         }
 
         // submit lookup for use
-        ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
-
+        if(lookupLocked){
+        		// release any write lock
+                ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
+        }
+        
         return res;
     }
 
@@ -773,6 +783,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
         this.mLookup = ((KETLJob) this.getJobExecutor().getCurrentETLJob()).registerLookupWriteLock(this.getName(),
                 this, cachePersistence);
+        this.lookupLocked = true;
 
         try {
             this.mcDBConnection = ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword,

@@ -155,6 +155,7 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
 
         this.mLookup = ((KETLJob) this.getJobExecutor().getCurrentETLJob()).registerLookupWriteLock(this.getName(),
                 this, cachePersistence);
+        this.lookupLocked = true;
 
         return 0;
     }
@@ -259,6 +260,8 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
         this.mLookup.put(elements, values);
     }
 
+    boolean lookupLocked = false;
+    
     @Override
     public int complete() throws KETLThreadException {
         int res = super.complete();
@@ -266,7 +269,8 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
         if (res != 0)
             return res;
         // submit lookup for use
-        ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
+        if(lookupLocked)
+        	((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
 
         return 0;
     }
@@ -278,6 +282,9 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
 
     @Override
     protected void close(boolean success) {
+    	if(lookupLocked)
+        	((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
+
         if (this.cachePersistence == EngineConstants.JOB_PERSISTENCE) {
             ((KETLJob) this.getJobExecutor().getCurrentETLJob()).deleteLookup(this.getName());
         }
