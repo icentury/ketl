@@ -1247,7 +1247,6 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
             }
 
-            this.setWaiting(null);
             rs.close();
             
             this.setWaiting("maximum surrogate value");
@@ -1291,6 +1290,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 			}
         	
             mStmt.close();
+            
+            this.setWaiting(null);
+            
         } catch (Exception e) {
             if (mStmt != null)
                 try {
