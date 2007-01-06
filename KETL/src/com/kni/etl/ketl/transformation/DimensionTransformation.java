@@ -1188,7 +1188,8 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     }
 
     protected void seedLookup() throws KETLThreadException {
-
+    	
+        
         this.setWaiting("lookup to seed");
         String template = this.getStepTemplate(mDBType, "SEEDLOOKUP", true);
         if (this.msKeyTableAllColumns != null) {
@@ -1248,6 +1249,48 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
             this.setWaiting(null);
             rs.close();
+            
+            this.setWaiting("maximum surrogate value");
+			String maxStatement = "select max(${PKCOLUMNS}) from ${SCHEMANAME}.${TABLENAME}";
+			if (this.mstrKeyTableName != null) {
+				template = EngineConstants.replaceParameterV2(maxStatement,
+						"TABLENAME", this.mstrKeyTableName);
+				template = EngineConstants.replaceParameterV2(template,
+						"SCHEMANAME", this.mstrSchemaName);
+				template = EngineConstants.replaceParameterV2(template,
+						"PKCOLUMNS", this.getPrimaryKeyColumns());
+
+				rs = mStmt.executeQuery(template);
+				while (rs.next()) {
+					Integer sk = rs.getInt(1);
+
+					if (sk > this.mKeySource.value()) {
+						this.mKeySource.set(sk);
+					}
+				}
+				rs.close();
+			}
+
+			if (this.mstrTableName != null) {
+				template = EngineConstants.replaceParameterV2(maxStatement,
+						"TABLENAME", this.mstrTableName);
+				template = EngineConstants.replaceParameterV2(template,
+						"SCHEMANAME", this.mstrSchemaName);
+				template = EngineConstants.replaceParameterV2(template,
+						"PKCOLUMNS", this.getPrimaryKeyColumns());
+
+				rs = mStmt.executeQuery(template);
+				while (rs.next()) {
+					Integer sk = rs.getInt(1);
+
+					if (sk > this.mKeySource.value()) {
+						this.mKeySource.set(sk);
+					}
+				}
+				rs.close();
+			}
+        	
+            mStmt.close();
         } catch (Exception e) {
             if (mStmt != null)
                 try {
