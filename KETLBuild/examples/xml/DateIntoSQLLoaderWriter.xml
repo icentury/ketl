@@ -11,7 +11,11 @@
 		<PARAMETER NAME="CONNECTIONSTRING">prd2ora</PARAMETER>
 	  </PARAMETER_LIST>
 
-	
+	   <!-- CREATE TABLE DATE_DIMENSION (DATE_SURROGATE_KEY
+    NUMBER(9) NOT NULL, DATE_DESCRIPTION DATE, DAY_OF_MONTH
+    NUMBER, DAY_OF_WEEK NUMBER, DAY_OF_YEAR NUMBER, 
+    MONTH_OF_YEAR NUMBER, YEAR NUMBER) -->
+    
        <JOB ID="DateIntoSQLLoader"  NAME="CSVWithEscapesAndQuotes" PROJECT="TEST" TYPE="KETL">
             <ACTION PARRALLISM="2">
 		    <!--  Sequence generator is used to generate the natural key and the date surrogate key -->
