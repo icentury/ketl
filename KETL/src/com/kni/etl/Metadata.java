@@ -775,6 +775,10 @@ public class Metadata {
 					sFromAddress = m_rs.getString(4);
 				}
 
+                if(sMailHost == null){
+                    return false;
+                }
+                
 				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
 						"Using mail server: " + sMailHost);
 				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,

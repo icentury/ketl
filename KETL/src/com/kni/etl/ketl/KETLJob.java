@@ -153,6 +153,8 @@ public class KETLJob extends ETLJob {
     final public synchronized void releaseLookupWriteLock(String name, LookupCreatorImpl lookupImpl) {
         RegisteredLookup res = (RegisteredLookup) this.mLookups.get(name);
 
+        if(res == null) return;
+        
         if (res.writers == 1){
             res.lookup = lookupImpl.swichToReadOnlyMode();
         }
