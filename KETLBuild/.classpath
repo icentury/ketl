@@ -22,7 +22,9 @@
 	<classpathentry kind="lib" path="lib/saxon8-xpath.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.5.0_09/lib/tools.jar"/>
 	<classpathentry kind="lib" path="lib/KETLGPLExtensions.jar"/>
-	<classpathentry kind="lib" path="lib/perst15.jar"/>
+	<classpathentry kind="lib" path="lib/perst15.jar" sourcepath="C:/development/perst/src15"/>
 	<classpathentry kind="lib" path="C:/oracle/product/10.2.0/client/jdbc/lib/ojdbc14.jar"/>
+	<classpathentry kind="lib" path="lib/commons-discovery-0.2.jar"/>
+	<classpathentry kind="lib" path="lib/wsdl4j-1.5.1.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
