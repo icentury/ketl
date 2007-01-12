@@ -8,7 +8,7 @@
 	<classpathentry kind="lib" path="lib/hsqldb.jar"/>
 	<classpathentry kind="lib" path="lib/jaxrpc.jar"/>
 	<classpathentry kind="lib" path="lib/junit.jar"/>
-	<classpathentry kind="lib" path="lib/KETL.jar" sourcepath="/KETL V2"/>
+	<classpathentry kind="lib" path="lib/KETL.jar" sourcepath="/KETL/src"/>
 	<classpathentry kind="lib" path="lib/KETLGeoIP.jar"/>
 	<classpathentry kind="lib" path="lib/KETLOracleExt.jar"/>
 	<classpathentry kind="lib" path="lib/KETLPostGreExt.jar"/>
@@ -21,7 +21,7 @@
 	<classpathentry kind="lib" path="lib/saxon8-dom.jar"/>
 	<classpathentry kind="lib" path="lib/saxon8-xpath.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.5.0_09/lib/tools.jar"/>
-	<classpathentry kind="lib" path="lib/KETLGPLExtensions.jar"/>
+	<classpathentry kind="lib" path="lib/KETLGPLExtensions.jar" sourcepath="/KETLGPL"/>
 	<classpathentry kind="lib" path="lib/perst15.jar" sourcepath="C:/development/perst/src15"/>
 	<classpathentry kind="lib" path="C:/oracle/product/10.2.0/client/jdbc/lib/ojdbc14.jar"/>
 	<classpathentry kind="lib" path="lib/commons-discovery-0.2.jar"/>
