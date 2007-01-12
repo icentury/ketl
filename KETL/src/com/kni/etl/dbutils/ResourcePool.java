@@ -307,19 +307,31 @@ public class ResourcePool {
                 // this may be cached with some drivers, not sure.
                 java.sql.ResultSet rs = cConnection.getMetaData().getSchemas();
 
-                int iSchemas = 0;
+                int iObjects = 0;
 
-                while (rs.next() && (iSchemas == 0)) {
+                while (rs.next() && (iObjects == 0)) {
                     String strSchemaName = rs.getString(1);
                     strSchemaName.trim();
-                    iSchemas++;
+                    iObjects++;
                 }
 
                 rs.close();
 
+                if(iObjects == 0){
+                     rs = cConnection.getMetaData().getTables(null,null, null,null);
+
+                    while (rs.next() && (iObjects == 0)) {
+                        String strSchemaName = rs.getString(1);
+                        strSchemaName.trim();
+                        iObjects++;
+                    }
+
+                    rs.close();
+
+                }
                 // if no schemas found then connection is invalid, as a schema is required
                 // to perform any sql, a database must have one schema at least.
-                if (iSchemas == 0) {
+                if (iObjects == 0) {
                     cConnection.close();
                     cConnection = null;
 
