@@ -94,19 +94,24 @@ public class Metadata {
 	protected String currentTimeStampSyntax;
 
 	private String nextLoadIDSyntax;
+    private boolean useIdentityColumn;
 
 	private String nextServerIDSyntax;
 
 	private String singleRowPullSyntax;
 
-	private String[] dbTypes = { "PostGreSQL", "Oracle" };
+	private String[] dbTypes = { "PostGreSQL", "Oracle","MySQL" };
 
-	private String[] dbTimeStampTypes = { "CURRENT_TIMESTAMP", "SYSDATE" };
+    private boolean[] dbUseIdentityColumn = {false, false,true};
+    private String[] dbTimeStampTypes = { "CURRENT_TIMESTAMP", "SYSDATE","CURRENT_TIMESTAMP" };
 
-	private String[] dbSequenceSyntax = { "nextval('#')", "#.NEXTVAL" };
+	private String[] dbSequenceSyntax = { "nextval('#')", "#.NEXTVAL","SELECT LAST_INSERT_ID()" };
 
-	private String[] dbSingleRowPull = { "", " FROM DUAL " };
+    private String[] dbIncrementIdentityColumnSyntax = {null,null,"UPDATE mysql_sequence SET id=LAST_INSERT_ID(id+1)"};
+	private String[] dbSingleRowPull = { "", " FROM DUAL ","" };
 
+    private String[] mLoadTableName = {null,null,"root_load"};
+    
 	private String mPassphrase;
 
 	private String mPassphraseFilePath = null;
@@ -175,6 +180,10 @@ public class Metadata {
 	private DesEncrypter mEncryptor;
 
 	private boolean mEncryptionEnabled = true;
+
+    private PreparedStatement mIncIdentColStmt = null;
+
+    private String mResolvedLoadTableName;
 
 	public Metadata(boolean pEnableEncryption) throws Exception {
 		this(pEnableEncryption, null);
@@ -263,12 +272,12 @@ public class Metadata {
 			m_stmt = metadataConnection
 					.prepareStatement("SELECT load_id, start_job_id, start_date, project_id, end_date, ignored_parents, failed, 0  FROM  "
 							+ tablePrefix
-							+ "LOAD A where start_date >= coalesce(?,start_date) and load_id = coalesce(?,load_id) and load_id in (select load_id from "
+							+ loadTableName() +" A where start_date >= coalesce(?,start_date) and load_id = coalesce(?,load_id) and load_id in (select load_id from "
 							+ tablePrefix
 							+ "JOB_LOG) union all "
 							+ " SELECT load_id, start_job_id, start_date, project_id, end_date, ignored_parents, failed, 1  FROM  "
 							+ tablePrefix
-							+ "LOAD A where start_date >= coalesce(?,start_date) and load_id = coalesce(?,load_id) and load_id not in (select load_id from "
+							+ loadTableName() +" A where start_date >= coalesce(?,start_date) and load_id = coalesce(?,load_id) and load_id not in (select load_id from "
 							+ tablePrefix + "JOB_LOG)");
 
 			if (pStartDate == null) {
@@ -347,7 +356,7 @@ public class Metadata {
 					.prepareStatement("SELECT a.load_id, a.start_job_id, a.start_date as load_start_date, a.project_id, "
 							+ "a.end_date as load_end_date, a.ignored_parents, a.failed, 0 as is_running, b.dm_load_id FROM  "
 							+ tablePrefix
-							+ "LOAD a, "
+							+ loadTableName() + " a, "
 							+ tablePrefix
 							+ "JOB_LOG b "
 							+ "where a.load_id=b.load_id and b.start_date >= coalesce(?,b.start_date) and job_id = coalesce(?,job_id) "
@@ -355,7 +364,7 @@ public class Metadata {
 							+ "SELECT a.load_id, a.start_job_id, a.start_date as load_start_date, a.project_id, "
 							+ "a.end_date as load_end_date, a.ignored_parents, a.failed, 1 as is_running, b.dm_load_id FROM  "
 							+ tablePrefix
-							+ "LOAD a, "
+							+ loadTableName() + " a, "
 							+ tablePrefix
 							+ "JOB_LOG_HIST b "
 							+ "where a.load_id=b.load_id and b.start_date >= coalesce(?,b.start_date) and job_id = coalesce(?,job_id)");
@@ -1158,6 +1167,14 @@ public class Metadata {
 			}
 
 			try {
+                if(mIncIdentColStmt != null){
+                    try{
+                        mIncIdentColStmt.close();
+                    }catch(Exception e){
+                        System.out.println(e);
+                    }
+                }
+                
 				metadataConnection.rollback();
 				metadataConnection.close();
 				metadataConnection = null;
@@ -1363,17 +1380,18 @@ public class Metadata {
 			}
 
 			// get next load_id
-			m_stmt = metadataConnection.prepareStatement("SELECT "
-					+ nextLoadIDSyntax + singleRowPullSyntax + "");
+            m_stmt = metadataConnection.prepareStatement(this.useIdentityColumn?this.nextLoadIDSyntax:("SELECT "
+					+ nextLoadIDSyntax + singleRowPullSyntax + ""));
 			m_rs = m_stmt.executeQuery();
 
+            
 			String jobID = pJobID;
 			int loadID;
 
 			PreparedStatement newLoadStmt = metadataConnection
 					.prepareStatement("INSERT INTO  "
 							+ tablePrefix
-							+ "LOAD(LOAD_ID,START_JOB_ID,START_DATE,PROJECT_ID) VALUES(?,?,"
+							+ loadTableName() + "(LOAD_ID,START_JOB_ID,START_DATE,PROJECT_ID) VALUES(?,?,"
 							+ currentTimeStampSyntax + ",?)");
 			PreparedStatement dependenciesStmt = metadataConnection
 					.prepareStatement("SELECT JOB_ID, PARENT_JOB_ID  FROM  "
@@ -1439,7 +1457,7 @@ public class Metadata {
 										+ tablePrefix
 										+ "JOB_LOG(JOB_ID,LOAD_ID,STATUS_ID,START_DATE,MESSAGE,DM_LOAD_ID) SELECT JOB_ID,?,?,"
 										+ currentTimeStampSyntax + ",?,"
-										+ nextLoadIDSyntax + " FROM  "
+										+ (this.useIdentityColumn?"null":nextLoadIDSyntax) + " FROM  "
 										+ tablePrefix + "job where job_id = ?");
 					}
 
@@ -1478,7 +1496,7 @@ public class Metadata {
 									+ "JOB_LOG(JOB_ID,LOAD_ID,STATUS_ID,START_DATE,MESSAGE,DM_LOAD_ID) SELECT JOB_ID,?,?,"
 									+ currentTimeStampSyntax
 									+ ",?, "
-									+ nextLoadIDSyntax
+									+ (this.useIdentityColumn?"null":nextLoadIDSyntax)
 									+ "  FROM  "
 									+ tablePrefix
 									+ "JOB where not exists (select 1 from  "
@@ -3994,9 +4012,17 @@ public class Metadata {
 					this.currentTimeStampSyntax = this.dbTimeStampTypes[dbType];
 					this.nextLoadIDSyntax = this.dbSequenceSyntax[dbType]
 							.replaceAll("#", "LOAD_ID");
+                    this.useIdentityColumn = this.dbUseIdentityColumn[dbType];
+                    
 					this.nextServerIDSyntax = this.dbSequenceSyntax[dbType]
 							.replaceAll("#", "SERVER_ID");
-					this.singleRowPullSyntax = this.dbSingleRowPull[dbType];
+                    this.singleRowPullSyntax = this.dbSingleRowPull[dbType];
+                    this.mResolvedLoadTableName = this.mLoadTableName[dbType];
+                    
+                    String incrementIdenentityColumnSyntax = this.dbIncrementIdentityColumnSyntax[dbType];
+                    if(incrementIdenentityColumnSyntax != null){
+                        mIncIdentColStmt  = metadataConnection.prepareStatement(incrementIdenentityColumnSyntax);
+                    }
 				}
 			}
 
@@ -4011,6 +4037,10 @@ public class Metadata {
 		}
 	}
 
+    final protected String loadTableName() {
+        return this.mResolvedLoadTableName == null?"LOAD":this.mResolvedLoadTableName;
+    }
+    
 	/**
 	 * Insert the method's description here. Creation date: (5/1/2002 7:29:49
 	 * PM)
@@ -4058,10 +4088,14 @@ public class Metadata {
 				if (serverID == -1) {
 					// create new server
 					PreparedStatement selNextServerID = this.metadataConnection
-							.prepareStatement("SELECT " + nextServerIDSyntax
-									+ " " + singleRowPullSyntax + ""); //$NON-NLS-1$
+							.prepareStatement(this.useIdentityColumn?this.nextServerIDSyntax:("SELECT " + nextServerIDSyntax
+									+ " " + singleRowPullSyntax + "")); //$NON-NLS-1$
 
-					m_rs = selNextServerID.executeQuery();
+                    if(this.mIncIdentColStmt != null){                        
+                        this.mIncIdentColStmt.execute();                        
+                    }
+                    
+                    m_rs = selNextServerID.executeQuery();
 
 					// cycle through pending jobs setting next run date
 					while (m_rs.next()) {
