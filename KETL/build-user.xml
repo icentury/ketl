@@ -19,7 +19,6 @@
 			    <exclude name="**/oracle/*"/>
                 <exclude name="**/*SOAP*"/>
                 <exclude name="**/FastLoad*"/>
-                <exclude name="**/*Test*"/>
                 <exclude name="**/*XMLToFieldsTransformation*"/>
                 <exclude name="**/*XMLReader*"/>
             </fileset>
