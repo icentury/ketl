@@ -736,6 +736,8 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
             StringBuffer joinColumns = new StringBuffer();
             StringBuffer insertValues = new StringBuffer();
 
+            String updColFormat = this.getStepTemplate(mDBType, "UPDATECOLUMNFORMAT", true);
+
             ArrayList fieldPopulationOrder = new ArrayList();
 
             int cntJoinColumns = 0, cntInsertColumns = 0, cntUpdateTriggers = 0, cntUpdateCols = 0, cntBestJoinColumns = 0, allColumnCount = 0;
@@ -758,14 +760,20 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
                             updateColumns.append(",\n\t");
                         }
                         cntUpdateCols++;
-                        updateColumns.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+
+                        String tmp = EngineConstants.replaceParameterV2(updColFormat, "TARGETCOLUMN", madcdColumns[i]
+                                .getColumnName(getIDQuote(), this.mDBCase));
 
                         if (madcdColumns[i].getAlternateUpdateValue() == null) {
-                            updateColumns.append(" = ${SOURCETABLENAME}.");
-                            updateColumns.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN",
+                                    "${SOURCETABLENAME}." + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
                         }
-                        else
-                            updateColumns.append(" = " + madcdColumns[i].getAlternateUpdateValue());
+                        else {
+                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN", " = "
+                                    + madcdColumns[i].getAlternateUpdateValue());
+                        }
+                        
+                        updateColumns.append(tmp);
 
                     }
 
@@ -1386,7 +1394,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
         if (this.isLastThreadToEnterCompletePhase()) {
             // wait for all other threads to complete
             this.setWaiting("all other threads in group to complete");
-            while (Thread.currentThread().getThreadGroup().activeCount() > 1) {
+            while (this.getThreadManager().countOfStepThreadsAlive(this) > 1) {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {

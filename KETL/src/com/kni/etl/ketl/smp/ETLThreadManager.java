@@ -17,6 +17,7 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.KETLJobExecutor;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
+import com.kni.etl.ketl.writer.DatabaseELTWriter;
 import com.kni.etl.util.XMLHelper;
 
 /**
@@ -370,5 +371,16 @@ public class ETLThreadManager {
         if (failureException != null)
             throw failureException;
 
+    }
+
+    public int countOfStepThreadsAlive(ETLStep writer) {
+        int cnt = 0;
+        for(Object o:this.threads){
+            WorkerThread wrk = (WorkerThread)o;
+            
+            if(wrk.thread.isAlive() && wrk.step.mstrName.endsWith(writer.getName()))
+                cnt++;
+        }
+        return cnt;
     }
 }
