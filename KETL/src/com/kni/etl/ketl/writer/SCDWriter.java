@@ -769,8 +769,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
                                     "${SOURCETABLENAME}." + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
                         }
                         else {
-                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN", " = "
-                                    + madcdColumns[i].getAlternateUpdateValue());
+                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN",madcdColumns[i].getAlternateUpdateValue());
                         }
                         
                         updateColumns.append(tmp);

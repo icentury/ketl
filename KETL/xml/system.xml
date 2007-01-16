@@ -3,7 +3,7 @@
 	<GLOBAL>
 		<OPTION NAME="PARAMETERSTART">${</OPTION>
 		<OPTION NAME="PARAMETEREND">}</OPTION>
-		<OPTION NAME="VERSION">2.0.35 production</OPTION>
+		<OPTION NAME="VERSION">2.0.36 production</OPTION>
 		<OPTION NAME="MAXERRORMESSAGELENGTH">800</OPTION>
 		<OPTION NAME="CACHEPATH">log</OPTION>
 		<OPTION NAME="BADRECORDPATH">log</OPTION>
@@ -748,6 +748,19 @@
 				<TEMPLATE NAME="SAMPLE">SELECT TOP 10 DISTINCT ${COL} FROM ${TABLE}</TEMPLATE>
 			</GROUP>
 			<GROUP NAME="DEFAULT">
+				<TEMPLATE NAME="COMPLETENESSCOLEXPRESSION">case when ${COL} is null then 0 else 1 end</TEMPLATE>			
+				<TEMPLATE NAME="COMPLETENESS">select sum(case when cmp between 0.0 and 0.1 then 1 end),
+												 	sum(case when cmp between 0.1 and 0.2 then 1 end),
+													sum(case when cmp between 0.2 and 0.3 then 1 end),
+													sum(case when cmp between 0.3 and 0.4then 1 end),
+													sum(case when cmp between 0.4 and 0.5 then 1 end),
+													sum(case when cmp between 0.5 and 0.6 then 1 end),
+													sum(case when cmp between 0.6 and 0.7 then 1 end),
+													sum(case when cmp between 0.7 and 0.8 then 1 end),
+													sum(case when cmp between 0.8 and 0.9 then 1 end),
+													sum(case when cmp between 0.9 and 1.0 then 1 end)
+											    from (select (${COLS})/${COLCOUNT} as cmp 
+											            from ${TABLE})</TEMPLATE>			
 				<TEMPLATE NAME="SAMPLE">SELECT DISTINCT ${COL} FROM ${TABLE}</TEMPLATE>
 				<TEMPLATE NAME="DOV">SELECT ${COL},count(*) FROM ${TABLE} GROUP BY ${COL} ORDER BY count(*) DESC</TEMPLATE>
 				<TEMPLATE NAME="COLUMNQUERY">SELECT ${COL} FROM ${TABLE}</TEMPLATE>
