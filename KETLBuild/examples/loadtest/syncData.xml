@@ -1,0 +1,58 @@
+<ETL>
+	 <JOB ID="SyncMySQLTable" PARRALLISM="1" NAME="SyncMySQLTable" PROJECT="LOAD_TEST" TYPE="KETL">
+	 		<DEPENDS_ON>ORCL_198</DEPENDS_ON>		
+			<DEPENDS_ON>PG_196</DEPENDS_ON>
+            <ACTION>
+                   <STEP NAME="SourceOrcl" CLASS="com.kni.etl.ketl.reader.JDBCReader"   OUTSYNTAX="INFERRED" PARAMETER_LIST="ORCL_CONNECTION">
+                         <IN>SELECT * FROM LOAD_TEST_DATA</IN>
+                   </STEP>
+
+                   <STEP NAME="TargetFromOrcl" CLASS="com.kni.etl.ketl.writer.JDBCWriter" TYPE="UPSERT" PARAMETER_LIST="MYSQL_CONNECTION" TABLE="LOAD_TEST_DATA">
+                        <IN NAME="value" SK="TRUE">SourceOrcl.VALUE</IN> 
+                        <IN NAME="insert_dt">StatusOrcl.INSERT_DT</IN>                        
+                        <IN NAME="update_dt">StatusOrcl.UPDATE_DT</IN>                        
+                  </STEP>
+                  
+                   <STEP NAME="SourcePG" CLASS="com.kni.etl.ketl.reader.JDBCReader"   OUTSYNTAX="INFERRED" PARAMETER_LIST="PG_CONNECTION">
+                         <IN>SELECT * FROM LOAD_TEST_DATA</IN>
+                   </STEP>
+
+                   <STEP NAME="TargetFromPG" CLASS="com.kni.etl.ketl.writer.JDBCWriter" TYPE="UPSERT" PARAMETER_LIST="MYSQL_CONNECTION" TABLE="LOAD_TEST_DATA">
+                        <IN NAME="value" SK="TRUE">SourcePG.value</IN> 
+                        <IN NAME="insert_dt">SourcePG.insert_dt</IN>                        
+                        <IN NAME="update_dt">SourcePG.update_dt</IN>                        
+                  </STEP>                  
+            </ACTION>
+      </JOB>
+
+	 <JOB ID="SyncORCLTable" PARRALLISM="1" NAME="SyncORCLTable" PROJECT="LOAD_TEST" TYPE="KETL">
+	 		<DEPENDS_ON>SyncMySQLTable</DEPENDS_ON>		
+            <ACTION>
+                   <STEP NAME="Source" CLASS="com.kni.etl.ketl.reader.JDBCReader"   OUTSYNTAX="INFERRED" PARAMETER_LIST="MYSQL_CONNECTION">
+                         <IN>SELECT * FROM LOAD_TEST_DATA</IN>
+                   </STEP>
+
+                   <STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.JDBCWriter" TYPE="UPSERT" PARAMETER_LIST="ORCL_CONNECTION" TABLE="LOAD_TEST_DATA">
+                        <IN NAME="VALUE" SK="TRUE">Source.value</IN> 
+                        <IN NAME="INSERT_DT">Status.insert_dt</IN>                        
+                        <IN NAME="UPDATE_DT">Status.update_dt</IN>                        
+                  </STEP>
+            </ACTION>
+      </JOB>
+
+	 <JOB ID="SyncPGTable" PARRALLISM="1" NAME="SyncPGTable" PROJECT="LOAD_TEST" TYPE="KETL">
+	 		<DEPENDS_ON>SyncMySQLTable</DEPENDS_ON>		
+            <ACTION>
+                   <STEP NAME="Source" CLASS="com.kni.etl.ketl.reader.JDBCReader"   OUTSYNTAX="INFERRED" PARAMETER_LIST="MYSQL_CONNECTION">
+                         <IN>SELECT * FROM LOAD_TEST_DATA</IN>
+                   </STEP>
+
+                   <STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.JDBCWriter" TYPE="UPSERT" PARAMETER_LIST="PG_CONNECTION" TABLE="LOAD_TEST_DATA">
+                        <IN SK="TRUE">Source.value</IN> 
+                        <IN>Status.insert_dt</IN>                        
+                        <IN>Status.update_dt</IN>                        
+                  </STEP>
+            </ACTION>
+      </JOB>
+
+</ETL>

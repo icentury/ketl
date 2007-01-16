@@ -1,16 +1,28 @@
 <ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 	<PARAMETER_LIST NAME="myDB">
+		<!--  destination for spreadsheet results -->
+		<!--  alternatively the destination could be a database or
+		      any other writer supported by KETL -->
+		<PARAMETER NAME="FILEPATH">ssa.xls</PARAMETER>
+
+		<!--  database connection information -->	
 		<PARAMETER NAME="USER">TEST</PARAMETER>
 		<PARAMETER NAME="PASSWORD">TEST</PARAMETER>
-		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:orcl</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:xe</PARAMETER>
 		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+
+		<!--  schema being scanned -->
+		<PARAMETER NAME="SCHEMA">TEST</PARAMETER>
+
+		<!--  table being scanned -->
+		<PARAMETER NAME="TABLE">%</PARAMETER>		
 	</PARAMETER_LIST>
 
 
-	<JOB ID="JDBCSSAScan" TYPE="KETL"PROJECT="TEST" >
+	<JOB ID="JDBCSSAScan" TYPE="KETL" PROJECT="TEST" >
 		<ACTION  PARRALLISM="2" >
-			<STEP BATCHSIZE="1" NAME="Scan" CLASS="com.kni.etl.ketl.reader.JDBCSSAScanner" MAXDOVSIZ="40" PARAMETER_LIST="myDB" SCHEMA="TEST">
+			<STEP BATCHSIZE="1" NAME="Scan" CLASS="com.kni.etl.ketl.reader.JDBCSSAScanner" MAXDOVSIZ="40" PARAMETER_LIST="myDB" SCHEMA="${SCHEMA}" TABLE="${TABLE}">
 				<OUT NAME="TableName" TYPE="TABLE_NAME" />
 				<OUT NAME="TableSchema" TYPE="TABLE_SCHEMA" />
 				<OUT NAME="TableCatalog" TYPE="TABLE_CAT" />
@@ -38,7 +50,10 @@
 				<OUT NAME="RowCount" TYPE="ROW_COUNT"/>				
 			</STEP>
 
-			<STEP NAME="Results" FLOWTYPE="FANIN" IDQUOTE="TRUE" CLASS="com.kni.etl.ketl.writer.NullWriter">
+			<STEP NAME="Results" FLOWTYPE="FANIN" PARAMETER_LIST="myDB" CLASS="com.kni.etl.ketl.writer.ExcelWriter">			
+				<IN TAB="TRUE">Scan.TableName</IN>
+				<IN>Scan.ColumnName</IN>
+				<IN>Scan.TypeName</IN>
 				<IN>Scan.*</IN>
 			</STEP>
 		</ACTION>
