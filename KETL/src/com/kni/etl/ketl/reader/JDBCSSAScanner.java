@@ -87,7 +87,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                         || type.equalsIgnoreCase("IS_NULLABLE") || type.equalsIgnoreCase("MAX_VALUE")
                         || type.equalsIgnoreCase("MIN_VALUE") || type.equalsIgnoreCase("DOV")
                         || type.equalsIgnoreCase("SAMPLE") || type.equalsIgnoreCase("COLUMNERRORMESSAGE")
-                        || type.equalsIgnoreCase("TABLEERRORMESSAGE")|| type.equalsIgnoreCase("TABLE_COMPLETENESS")) {
+                        || type.equalsIgnoreCase("TABLEERRORMESSAGE") || type.equalsIgnoreCase("TABLE_COMPLETENESS")) {
                     type = "STRING";
                 }
                 else {
@@ -297,7 +297,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                     + cTable.mFullTableAddress + ", cause \"No columns found\"");
             return getNextTable();
         }
-        
+
         cTable.completeness = this.getCompleteness(cTable);
 
         String query = this.getStepTemplate(mDBType, "COLUMNQUERY", true);
@@ -329,7 +329,11 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
         } catch (SQLException e) {
             cTable.mErrorMessage.add("Unable to retrieve column info for table '" + cTable.mFullTableAddress + "': "
                     + e.toString());
-            this.mcDBConnection.rollback();
+            try {
+                this.mcDBConnection.rollback();
+            } catch (Exception e1) {
+
+            }
         } finally {
             if (s != null) {
                 try {
@@ -370,7 +374,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                     + col.mTable.mFullTableAddress + " " + e.toString());
             try {
                 this.mcDBConnection.rollback();
-            } catch (SQLException e1) {
+            } catch (Exception e1) {
             }
         } finally {
             if (rs != null) {
@@ -419,7 +423,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                     + col.mTable.mFullTableAddress + " " + e.toString());
             try {
                 this.mcDBConnection.rollback();
-            } catch (SQLException e1) {
+            } catch (Exception e1) {
             }
         } finally {
             if (rs != null) {
@@ -459,7 +463,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                     + e.toString());
             try {
                 this.mcDBConnection.rollback();
-            } catch (SQLException e1) {
+            } catch (Exception e1) {
             }
         } finally {
             if (rs != null) {
@@ -479,28 +483,27 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
         return iRowCount;
     }
-    
-//  Returns -1 on error.
+
+    // Returns -1 on error.
     String getCompleteness(Table tbl) throws KETLThreadException {
 
         String sql = this.getStepTemplate(mDBType, "COMPLETENESS", true);
         String colExp = this.getStepTemplate(mDBType, "COMPLETENESSCOLEXPRESSION", true);
 
-        sql = EngineConstants.replaceParameterV2(sql, "COLCOUNT",Integer.toString(tbl.mColumnList.size()));
+        sql = EngineConstants.replaceParameterV2(sql, "COLCOUNT", Integer.toString(tbl.mColumnList.size()));
         sql = EngineConstants.replaceParameterV2(sql, "TABLE", tbl.mFullTableAddress);
 
         StringBuffer sb = new StringBuffer();
-        for(int i=0;i<tbl.mColumnList.size();i++){
+        for (int i = 0; i < tbl.mColumnList.size(); i++) {
             Column cl = (Column) tbl.mColumnList.get(i);
-            
-            if(i>0)
+
+            if (i > 0)
                 sb.append(" + ");
-            sb.append(EngineConstants.replaceParameterV2(colExp, "COL",  idQuote + cl.mName + idQuote));
+            sb.append(EngineConstants.replaceParameterV2(colExp, "COL", idQuote + cl.mName + idQuote));
         }
-        
+
         sql = EngineConstants.replaceParameterV2(sql, "COLS", sb.toString());
 
-        
         Statement s = null;
         ResultSet rs = null;
 
@@ -509,22 +512,24 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
             rs = s.executeQuery(sql);
 
-             sb = new StringBuffer();
-            int i=0;
+            sb = new StringBuffer();
+            int pct = 0;
             while (rs.next()) {
-                if (sb.length() > 0)
-                    sb.append(", ");
-                sb.append(i+ "-"+(i+10)+"% = " + rs.getInt(1));
+                for (int i = 1; i <= 10; i++) {
+                    if (sb.length() > 0)
+                        sb.append(", ");
+                    sb.append(pct + "-" + (pct + 10) + "% = " + rs.getInt(i));
+                    pct += 10;
+                }
             }
             return sb.toString();
         } catch (SQLException e) {
-            return "Unable to retrieve completeness for table"
-                    + tbl.mFullTableAddress + " " + e.toString();
-           
+            return "Unable to retrieve completeness for table" + tbl.mFullTableAddress + " " + e.toString();
+
         } finally {
             try {
                 this.mcDBConnection.rollback();
-            } catch (SQLException e1) {
+            } catch (Exception e1) {
             }
             if (rs != null) {
                 try {
@@ -540,7 +545,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                 }
             }
         }
-        
+
     }
 
     public int initialize(Node xmlConfig) throws KETLThreadException {
@@ -633,7 +638,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                         else if (type.equalsIgnoreCase("TABLE_CAT")) {
                             pResultArray[pos++] = (col.mTable.mCatalog);
                         }
-                        else if (type.equalsIgnoreCase("TABEL_COMPLETENESS")) {
+                        else if (type.equalsIgnoreCase("TABLE_COMPLETENESS")) {
                             pResultArray[pos++] = (col.mTable.completeness);
                         }
                         else if (type.equalsIgnoreCase("TYPE_NAME")) {

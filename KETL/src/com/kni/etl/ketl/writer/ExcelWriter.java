@@ -180,7 +180,7 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
             writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
         else if (pClass == String.class) {
             writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
-            writeData(checkAndEscapeXMLData((String) pValue));
+            writeData(checkAndEscapeXMLData((String)pValue));
         }
         else if (pClass == BigDecimal.class) {
             writeData("<ss:Cell><ss:Data ss:Type=\"Number\">");
