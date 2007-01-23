@@ -41,6 +41,7 @@ import com.kni.util.FileHelpers;
  */
 public class Console {
 
+    
     static final int CANCEL_JOB = 12;
     static final int CONNECT = 6;
     static final int DEFINITION = 1;
@@ -110,6 +111,7 @@ public class Console {
      * @param args
      */
     public static void main(String[] args) {
+        ResourcePool.setCacheIndexPrefix("Console");
         // create console object
         Console console = new Console();
 

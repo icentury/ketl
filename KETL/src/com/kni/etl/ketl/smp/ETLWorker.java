@@ -942,15 +942,15 @@ abstract public class ETLWorker implements Runnable {
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Worker interrupted");
             controlledExit = true;
             this.interruptAllSteps();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             controlledExit = true;
-            if (e.getCause() instanceof InterruptedException) {
+            if (e.getCause() != null && e.getCause() instanceof InterruptedException) {
                 ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Worker interrupted");
                 this.interruptAllSteps();
             }
             else if (this instanceof ETLStep) {
                 ETLStep step = (ETLStep) this;
-                step.getJobExecutor().getCurrentETLJob().getStatus().setException(e);
+                step.getJobExecutor().getCurrentETLJob().getStatus().setException(new Exception(e));
                 step.getJobExecutor().getCurrentETLJob().getStatus().setErrorMessage(e.getMessage());
             }
             this.interruptAllSteps();

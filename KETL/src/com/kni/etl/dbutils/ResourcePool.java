@@ -42,7 +42,7 @@ public class ResourcePool {
     private final static int INUSE_ELEMENT = 0;
     private final static int CONNECTION_ELEMENT = 1;
     private final static int ALLOW_REUSE = 2;
-    private final static int MAX_CONNECTION_USE = 5;
+    private final static int MAX_CONNECTION_USE = 1;
     private final static int MAX_CONNECTION_ARRAY_ELEMENTS = 3;
     private static Metadata metadata = null;
     private static Logger logger = null;
@@ -530,10 +530,17 @@ public class ResourcePool {
         return new HashMap();
     }
 
-    private static void getCacheIndexPrefix() {
+    public static String getCacheIndexPrefix() {
         if(mCacheIndexPrefix==null){
             mCacheIndexPrefix = Thread.currentThread().getName().contains("Executor")?"Daemon":"Console";
+            System.err.println("Defaulting cache prefix to " + mCacheIndexPrefix);
         }
+        
+        return mCacheIndexPrefix;
+    } 
+    
+    public static void setCacheIndexPrefix(String arg0) {
+            mCacheIndexPrefix = arg0;
     }
 
     private static synchronized void syncLookupsToDisc() {

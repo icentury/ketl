@@ -715,12 +715,16 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         for (int i = 0; i < this.mSKColCount; i++)
             skData[i] = pInputRecords[skIndx[i]];
 
+       
         Object res = this.mLookup.get(skData, null);
+        
+        ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "getSurrogateKey:In->" + java.util.Arrays.toString(skData) + ", Out->" + res);
+
         return (Integer) res;
     }
 
     private int mSCD;
-
+    private boolean purgeCache;
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
         int res = super.initialize(xmlConfig);
@@ -743,6 +747,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         cachePersistence = EngineConstants.JOB_PERSISTENCE;
 
         mSCD = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), SCD_ATTRIB, 1);
+        this.purgeCache = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), "PURGECACHE", true);
 
         ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Slowly changing dimension mode = " + mSCD);
 
@@ -781,8 +786,13 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         else if (this.mSKColCount < 1)
             throw new KETLThreadException("Source key has not been specified e.g. SK=\"1\"", this);
 
+        if(this.purgeCache)
+            ((KETLJob) this.getJobExecutor().getCurrentETLJob()).deleteLookup(this.getName());
+        
         this.mLookup = ((KETLJob) this.getJobExecutor().getCurrentETLJob()).registerLookupWriteLock(this.getName(),
                 this, cachePersistence);
+        
+        
         this.lookupLocked = true;
 
         try {
@@ -1106,7 +1116,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             elements[i] = o[this.skIndx[i]];
         }
 
-        ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, java.util.Arrays.toString(elements));
+        ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE,"putKeyArrayDataArray:"+ java.util.Arrays.toString(elements));
         this.mLookup.put(elements, new Object[] { data });
     }
 
@@ -1248,6 +1258,14 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             }
 
             rs.close();
+            
+            this.mLookup.commit(true);
+            int size = this.mLookup.size();
+            if(size != x)
+                throw new KETLThreadException("Cache has failed load all elements, cache corruption, size = " + size + ", expected size = " + x,this);
+            else {
+                ResourcePool.LogMessage(this,ResourcePool.INFO_MESSAGE,"Cache loaded with " + x + " elements");                
+            }
             
             this.setWaiting("maximum surrogate value");
 			String maxStatement = "select max(${PKCOLUMNS}) from ${SCHEMANAME}.${TABLENAME}";

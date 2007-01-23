@@ -26,7 +26,7 @@ public class PooledConnection {
     String mUserName;
     String mPassword;
     String mPreSQL;
-    int mUsed = 0;
+    int mUsed = 1;
     java.util.Date mLastActivity = null;
 
     /**

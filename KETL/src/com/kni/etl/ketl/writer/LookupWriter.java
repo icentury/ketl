@@ -269,9 +269,10 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
         if (res != 0)
             return res;
         // submit lookup for use
-        if(lookupLocked)
+        if(lookupLocked){
+            this.mLookup.commit(true);
         	((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
-
+        }
         return 0;
     }
 

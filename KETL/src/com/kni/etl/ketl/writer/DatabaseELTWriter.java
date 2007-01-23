@@ -832,6 +832,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             this.mcDBConnection = ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword,
                     strPreSQL, true);
 
+            this.mcDBConnection.setAutoCommit(false);            
             this.mDBType = this.mcDBConnection.getMetaData().getDatabaseProductName();
             this.mUsedConnections.add(this.mcDBConnection);
 

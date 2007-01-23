@@ -5,6 +5,9 @@
  */
 package com.kni.etl.ketl.smp;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -169,13 +172,20 @@ public class ETLThreadManager {
         return flowTypeMappings[res];
     }
 
+    public static String getStackTrace(Throwable aThrowable) {
+         Writer result = new StringWriter();
+         PrintWriter printWriter = new PrintWriter(result);
+        aThrowable.printStackTrace(printWriter);
+        return result.toString();
+      }
+    
     public void close(ETLJob eJob) {
         StringBuilder sb = new StringBuilder();
         boolean errorsOccured = false;
         Exception cause = this.mkjExecutor.getCurrentETLJob().getStatus().getException();
 
         if (cause != null) {
-            sb.append("\n\nCause: " + this.mkjExecutor.getCurrentETLJob().getStatus().getException().toString());
+            sb.append("\n\nCause: " + cause.toString() + "\n" + getStackTrace(cause));
             sb.append("\n\nTrace\n------\n");
         }
         for (Object o : this.threads) {

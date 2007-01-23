@@ -10,11 +10,15 @@ public class HSQLDBIndexedMapTest extends IndexedMapTest {
     public HSQLDBIndexedMapTest(String name) {
         super(name);
 
+    }
+
+    @Override
+    PersistentMap getMap() {
+
         EngineConstants.getSystemXML();
-        map = new CachedIndexedMap(new HSQLDBIndexedMap("test",NumberFormatter
-				.convertToBytes(EngineConstants.getDefaultCacheSize()), 0, System.getProperty("user.dir")
-                + File.separator + "log", new Class[] { Long.class, Float.class }, new Class[] { Long.class,
-                Float.class }, new String[] { "a", "b" }, false));
+        return new CachedIndexedMap(new HSQLDBIndexedMap("test" + this.getName(),NumberFormatter
+                .convertToBytes(EngineConstants.getDefaultCacheSize()), 0, System.getProperty("user.dir")
+                + File.separator + "log", new Class[] { Integer.class }, new Class[] {String.class }, new String[] { "a" }, false));        
     }
 }
 

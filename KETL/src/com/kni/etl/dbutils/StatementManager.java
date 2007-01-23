@@ -40,6 +40,8 @@ public class StatementManager {
         String sql = null;
         Statement stmt = null;
 
+        boolean autoCommit = connection.getAutoCommit();
+        
         try {
             if (pIgnoreErrors) {
                 pStatementSeperator = null;
@@ -112,6 +114,13 @@ public class StatementManager {
             e.setNextException(e1);
             throw e;
         } finally {
+            
+            try {
+                connection.setAutoCommit(autoCommit);
+            } catch(Exception e){
+                ResourcePool.LogException(e, pParent);
+            }
+            
             if (stmt != null) {
                 stmt.close();
                 stmt = null;
@@ -127,9 +136,8 @@ public class StatementManager {
     public static int executeStatements(ETLStep step, DBConnection dbConnection, String pTag, int pThreadGroupOrder)
             throws SQLException {
         String sql = null;
-
+        boolean autoCommit = false;
         boolean canRun = true;
-
         if (pThreadGroupOrder == START)
             canRun = step.isFirstThreadToEnterInitializePhase();
         else if (pThreadGroupOrder == END)
@@ -138,16 +146,26 @@ public class StatementManager {
         Statement stmt = null;
         try {
             try {
+                autoCommit = dbConnection.getConnection().getAutoCommit();
                 stmt = dbConnection.getConnection().createStatement();
             } catch (ClassNotFoundException e2) {
+                ResourcePool.LogException(e2, step);
             }
 
             NodeList nl = step.getXMLConfig().getChildNodes();
             if (nl != null) {
                 for (int i = 0; i < nl.getLength(); i++) {
 
-                    Node node = nl.item(i);
-
+                    Node node;
+                    try {
+                        node = nl.item(i);
+                    } catch (Exception e) {
+                        ResourcePool
+                                .LogMessage(step, ResourcePool.WARNING_MESSAGE,
+                                        "Nodelist gave a null pointer exception skipping node, check for tag's in step "
+                                                + pTag);
+                        node = null;
+                    }
                     if (node != null && node.getNodeName() != null && pTag != null
                             && node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().compareTo(pTag) == 0) {
                         sql = XMLHelper.getTextContent(node);
@@ -159,9 +177,9 @@ public class StatementManager {
                         boolean currentlyAutocommit = stmt.getConnection().getAutoCommit();
 
                         if (autocommit != currentlyAutocommit) {
-                            if(currentlyAutocommit == false)
+                            if (currentlyAutocommit == false)
                                 stmt.getConnection().commit();
-                            
+
                             stmt.getConnection().setAutoCommit(autocommit);
                         }
 
@@ -193,9 +211,16 @@ public class StatementManager {
             try {
                 dbConnection.getConnection().commit();
             } catch (ClassNotFoundException e) {
+                ResourcePool.LogException(e, step);
             }
 
         } finally {
+
+            try {
+                dbConnection.getConnection().setAutoCommit(autoCommit);
+            } catch (Exception e) {
+                ResourcePool.LogException(e, step);
+            }
             if (stmt != null)
                 try {
                     stmt.close();
