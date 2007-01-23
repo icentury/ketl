@@ -31,6 +31,8 @@ import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.stringtools.NumberFormatter;
 import com.kni.util.Bytes;
 import com.sleepycat.bind.ByteArrayBinding;
+import com.sleepycat.bind.tuple.*;
+import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.collections.StoredMap;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
@@ -116,6 +118,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 
     private Statement stmt;
     private int mSize;
+    private boolean mKeyIsArray;
 
     private static Environment myEnvironment = null;
 
@@ -129,7 +132,27 @@ final public class SleepycatIndexedMap implements PersistentMap {
         this.mCacheDir = pCacheDir;
         this.mKeyTypes = pKeyTypes;
         this.mValueTypes = pValueTypes;
-        this.mValuesIsArray = true; // pValueTypes.length == 1 ? false : true;
+        this.mKeyIsArray = pKeyTypes.length == 1 ? false : true;
+
+        if (this.mKeyIsArray == false) {
+            Class cl = pKeyTypes[0];
+            if (cl == BigInteger.class)
+                this.mKeyBinding = new BigIntegerBinding();
+            if (cl == Boolean.class)
+                this.mKeyBinding = new BooleanBinding();
+            this.mKeyBinding = new DoubleBinding();
+            if (cl == Float.class)
+                this.mKeyBinding = new FloatBinding();
+            if (cl == Integer.class)
+                this.mKeyBinding = new IntegerBinding();
+            if (cl == Long.class)
+                this.mKeyBinding = new LongBinding();
+            if (cl == Short.class)
+                this.mKeyBinding = new ShortBinding();
+            if (cl == String.class)
+                this.mKeyBinding = new StringBinding();
+        }
+
         this.mValueFields = pValueFields;
         for (int i = 0; i < pValueFields.length; i++) {
             fieldIndex.put(pValueFields[i], i);
@@ -148,15 +171,18 @@ final public class SleepycatIndexedMap implements PersistentMap {
     }
 
     public synchronized void commit(boolean force) {
-        if (commitCount > 0) {
 
-            Runtime r = Runtime.getRuntime();
-            long free = (r.maxMemory() - (r.totalMemory() - r.freeMemory()));
-            if (free < (10 * 1024 * 1024)) {
+        if (force || commitCount > 0) {
+
+            if (force == false) {
+                Runtime r = Runtime.getRuntime();
+                long free = (r.maxMemory() - (r.totalMemory() - r.freeMemory()));
+                force = free < (10 * 1024 * 1024);
+            }
+            if (force) {
                 try {
                     commitCount = 0;
                     ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Lookup '" + mName
-                            + "' Size: " + NumberFormatter.format(new File(this.getCacheDirectory()).length())
                             + ", Approximate Count: " + this.myDatabase.count());
 
                     this.myDatabase.sync();
@@ -190,7 +216,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
                 String nm = myDatabase.getDatabaseName();
                 myDatabase.close();
                 myEnvironment.removeDatabase(null, nm);
-                
+
                 nm = this.myClassDb.getDatabaseName();
                 myClassDb.close();
                 myEnvironment.removeDatabase(null, nm);
@@ -279,7 +305,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
             myDatabase = myEnvironment.openDatabase(null, mName, myDbConfig);
             myClassDb = myEnvironment.openDatabase(null, mName + "classDb", myDbConfig);
             List ls = myEnvironment.getDatabaseNames();
-            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE,"Cache db's: " + ls.toString());
+            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "Cache db's: " + ls.toString());
             this.myDatabase.sync();
             this.myClassDb.sync();
         } catch (DatabaseException dbe) {
@@ -354,7 +380,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
         try {
 
             // Create the DatabaseEntry for the key
-            DatabaseEntry theKey = new DatabaseEntry(objToByteArray(pkey));
+            DatabaseEntry theKey = this.getKey(pkey);
 
             // Create the DatabaseEntry for the data. Use the EntryBinding object
             // that was just created to populate the DatabaseEntry
@@ -364,7 +390,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
             if (myDatabase.putNoOverwrite(null, theKey, theData) == OperationStatus.SUCCESS)
                 commitCount++;
 
-            if (this.commitCount > 200000) {
+            if (this.commitCount >= 200000) {
                 this.commit(false);
             }
 
@@ -384,7 +410,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
         // Create the DatabaseEntry for the key
         DatabaseEntry theKey;
         try {
-            theKey = new DatabaseEntry(objToByteArray(pkey));
+            theKey = this.getKey(pkey);
         } catch (IOException e1) {
             throw new KETLError(e1);
         }
@@ -444,7 +470,8 @@ final public class SleepycatIndexedMap implements PersistentMap {
 
     public Object getItem(Object pkey) throws DatabaseException, IOException, ClassNotFoundException {
         // Create the DatabaseEntry for the key
-        DatabaseEntry theKey = new DatabaseEntry(objToByteArray(pkey));
+
+        DatabaseEntry theKey = this.getKey(pkey);
         DatabaseEntry theData = new DatabaseEntry();
 
         // Do the get as normal
@@ -458,6 +485,18 @@ final public class SleepycatIndexedMap implements PersistentMap {
         if (res == null)
             return null;
         return byteArrayToObject(res, 0, res.length);
+    }
+
+    private TupleBinding mKeyBinding;
+
+    private DatabaseEntry getKey(Object val) throws IOException {
+        if (this.mKeyBinding == null)
+            return new DatabaseEntry(objToByteArray((val)));
+
+        DatabaseEntry entry = new DatabaseEntry();
+        this.mKeyBinding.objectToEntry((val == null ? null : (Object[]) val)[0], entry);
+        return entry;
+
     }
 
     final static byte SHORT = 0;
