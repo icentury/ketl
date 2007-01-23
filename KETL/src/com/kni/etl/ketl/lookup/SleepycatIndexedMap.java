@@ -153,6 +153,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
                 this.mKeyBinding = new StringBinding();
         }
 
+        mValuesIsArray = pValueTypes.length == 1 ? false : true;
         this.mValueFields = pValueFields;
         for (int i = 0; i < pValueFields.length; i++) {
             fieldIndex.put(pValueFields[i], i);
