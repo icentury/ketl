@@ -116,7 +116,6 @@ final public class SleepycatIndexedMap implements PersistentMap {
 
     private Class[] mValueTypes;
 
-    private Statement stmt;
     private int mSize;
     private boolean mKeyIsArray;
 
@@ -309,6 +308,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "Cache db's: " + ls.toString());
             this.myDatabase.sync();
             this.myClassDb.sync();
+            
         } catch (DatabaseException dbe) {
             throw new KETLError(dbe);
         }
@@ -429,19 +429,14 @@ final public class SleepycatIndexedMap implements PersistentMap {
     }
 
     public int size() {
-        try {
-            ResultSet rs = stmt.executeQuery("select count(*) from " + mName);
-
-            int size = -1;
-            while (rs.next()) {
-                size = rs.getInt(1);
-            }
-            return size;
-        } catch (SQLException e) {
-            throw new KETLError(e);
-
-        }
-    }
+		try {
+			this.myDatabase.sync();
+			return (int) this.myDatabase.count();
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+			throw new KETLError(e);
+		}
+	}
 
     public void switchToReadOnlyMode() {
 
