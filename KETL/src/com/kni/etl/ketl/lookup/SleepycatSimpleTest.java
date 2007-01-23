@@ -1,6 +1,7 @@
 package com.kni.etl.ketl.lookup;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Random;
 
@@ -16,12 +17,51 @@ public class SleepycatSimpleTest extends TestCase {
     }
     PersistentMap map = this.getMap();
  
+    
+    public void testPutBigDecimal() {
+        int i;
+        map.clear();
+        for (i = 0; i < 50000; i++) {
+            Object[] key = new Object[] { i };
+
+            map.put(key, new Object[] { new BigDecimal(34.4553+i), new Float(43) });
+
+            // Long l = (Long) map.get(key,"a");
+            // Float f = (Float) map.get(key,"b");
+
+            if (i > 0 & i % 50000 == 0) {
+                System.out.println("Inserts: " + i);
+            }
+        }
+
+        map.commit(true);
+        
+        int hits = 0;
+        for (i = 0; i < 1000000; i++) {
+
+            Object[] key = new Object[] {  new BigDecimal(34.4553+i), new Float(43) };
+
+           
+            if (i > 0 & i % 50000 == 0) {
+                System.out.println("Lookups: " + i + ", Hits: " + hits);
+            }
+            Object obj;
+            if ((obj = map.get(key, "a")) != null)
+                hits++;
+            obj = null;
+        }
+
+        System.out.println("Lookups: " + i);
+        map.clear();
+
+    }
+
     public void testPutLargeSimple() {
         int i;
         map.clear();
         Date st = new Date();
         System.out.println("Write");
-        int vals = 8000000;
+        int vals = 1000000;
         for (i = 0; i < vals; i++) {
             Object[] key = new Object[] { i };
 
