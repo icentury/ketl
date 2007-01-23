@@ -139,7 +139,8 @@ final public class SleepycatIndexedMap implements PersistentMap {
                 this.mKeyBinding = new BigIntegerBinding();
             if (cl == Boolean.class)
                 this.mKeyBinding = new BooleanBinding();
-            this.mKeyBinding = new DoubleBinding();
+            if(cl == Double.class)
+            	this.mKeyBinding = new DoubleBinding();
             if (cl == Float.class)
                 this.mKeyBinding = new FloatBinding();
             if (cl == Integer.class)
