@@ -11,14 +11,12 @@ public class SleepycatIndexedMapTest extends IndexedMapTest {
         super(name);
     }
 
- 
-
     @Override
     PersistentMap getMap() {
         EngineConstants.getSystemXML();
-        return new SleepycatIndexedMap("test" + this.getName(), NumberFormatter.convertToBytes(EngineConstants.getDefaultCacheSize()), 0,
-                System.getProperty("user.dir") + File.separator + "log", new Class[] { Integer.class },
-                new Class[] { String.class }, new String[] { "a" }, false);
+        return new SleepycatIndexedMap("test" + this.getName(), NumberFormatter.convertToBytes(EngineConstants
+                .getDefaultCacheSize()), 0, System.getProperty("user.dir") + File.separator + "log",
+                new Class[] { Integer.class }, new Class[] { String.class }, new String[] { "a" }, false);
     }
 
 }

@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.exceptions.KETLError;
@@ -43,36 +42,37 @@ final public class CachedIndexedMap implements PersistentMap {
         }
 
         public LRU(int cacheSize) {
-            super(cacheSize);
+            super(2);
             // TODO Auto-generated constructor stub
         }
-        
-        public synchronized int sizeMemoryOnly(){
-        	int cnt=0;
-        	for(Object o:this.getBackingMap().keySet()){
-        		 if (mKeyIsArray) {
-                     if (((HashWrapper) o).dirty) {
-                         cnt++;
-                     }
-                 }
-        	}
-        	
-        	return cnt;
+
+        public synchronized int sizeMemoryOnly() {
+            int cnt = 0;
+            for (Object o : this.getBackingMap().keySet()) {
+                if (mKeyIsArray) {
+                    if (((HashWrapper) o).dirty) {
+                        cnt++;
+                    }
+                }
+            }
+
+            return cnt;
         }
-        
+
         public void flush() {
-        	Object[] vals = this.getBackingMap().keySet().toArray();
-			for (Object pKey : vals) {
-				Object pValue = this.get(pKey);
-				if (mKeyIsArray) {
-					if (((HashWrapper) pKey).dirty) {
-						mParentCache.put(((HashWrapper) pKey).data, pValue);
-						((HashWrapper) pKey).dirty = false;
-					}
-				} else
-					mParentCache.put(pKey, pValue);
-			}
-		}
+            Object[] vals = this.getBackingMap().keySet().toArray();
+            for (Object pKey : vals) {
+                Object pValue = this.get(pKey);
+                if (mKeyIsArray) {
+                    if (((HashWrapper) pKey).dirty) {
+                        mParentCache.put(((HashWrapper) pKey).data, pValue);
+                        ((HashWrapper) pKey).dirty = false;
+                    }
+                }
+                else
+                    mParentCache.put(pKey, pValue);
+            }
+        }
 
     }
 
@@ -135,7 +135,7 @@ final public class CachedIndexedMap implements PersistentMap {
 
     private HashMap mFieldIndex = new HashMap();
 
-    private HashWrapper mHWR = new HashWrapper(null,true);
+    private HashWrapper mHWR = new HashWrapper(null, true);
     private boolean mKeyIsArray;
 
     private LRU mLRU;
@@ -229,7 +229,7 @@ final public class CachedIndexedMap implements PersistentMap {
             if (res == null)
                 return null;
             else
-                this.put(pkey, res,false);
+                this.put(pkey, res, false);
 
         }
 
@@ -271,13 +271,13 @@ final public class CachedIndexedMap implements PersistentMap {
      */
     public Object put(Object pkey, Object pValue) {
 
-       return this.put(pkey, pValue,true);
+        return this.put(pkey, pValue, true);
     }
-    
-    final private Object put(Object pkey, Object pValue,boolean dirty) {
+
+    final private Object put(Object pkey, Object pValue, boolean dirty) {
 
         // local hashed cached
-        this.mLRU.put(this.mKeyIsArray ? new HashWrapper((Object[]) pkey,dirty) : pkey, pValue);
+        this.mLRU.put(this.mKeyIsArray ? new HashWrapper((Object[]) pkey, dirty) : pkey, pValue);
         // this.mParentCache.put(pkey, pValue);
 
         return null;
@@ -303,8 +303,8 @@ final public class CachedIndexedMap implements PersistentMap {
     }
 
     @Override
-    public String toString() {   
-    	this.mLRU.flush();
+    public String toString() {
+        this.mLRU.flush();
         return this.mParentCache.toString();
     }
 
@@ -336,10 +336,12 @@ final public class CachedIndexedMap implements PersistentMap {
         return this.mParentCache.getStorageClass();
     }
 
-	public void close() {
-		this.mParentCache.close();		
-	}
-    
+    public void close() {
+        this.mParentCache.close();
+    }
 
+    public void closeCacheEnvironment() {
+        this.mParentCache.closeCacheEnvironment();
+    }
 
 }

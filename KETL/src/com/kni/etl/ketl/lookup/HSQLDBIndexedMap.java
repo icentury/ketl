@@ -535,9 +535,14 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         return this.getClass();
     }
 
-	public void close() {
-		// TODO Auto-generated method stub
-		
-	}
+    public void close() {
+        // TODO Auto-generated method stub
+
+    }
+
+    public void closeCacheEnvironment() {
+        // TODO Auto-generated method stub
+        
+    }
 
 }

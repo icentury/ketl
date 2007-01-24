@@ -15,18 +15,19 @@ public class SleepycatSimpleTest extends TestCase {
     public SleepycatSimpleTest(String name) {
         super(name);
     }
+
     PersistentMap map = this.getMap();
- 
+
     public void testPutSQLTimestamp() {
         int i;
         map.clear();
         for (i = 0; i < 50000; i++) {
             Object[] key = new Object[] { i };
 
-            java.sql.Timestamp tms = new java.sql.Timestamp(34000+i);
+            java.sql.Timestamp tms = new java.sql.Timestamp(34000 + i);
             tms.setNanos(123);
-            
-            map.put(key, new Object[] {tms , new Float(43) });
+
+            map.put(key, new Object[] { tms, new Float(43) });
 
             // Long l = (Long) map.get(key,"a");
             // Float f = (Float) map.get(key,"b");
@@ -37,13 +38,12 @@ public class SleepycatSimpleTest extends TestCase {
         }
 
         map.commit(true);
-        
+
         int hits = 0;
         for (i = 0; i < 1000000; i++) {
 
-        	Object[] key = new Object[] { i };
+            Object[] key = new Object[] { i };
 
-           
             if (i > 0 & i % 50000 == 0) {
                 System.out.println("Lookups: " + i + ", Hits: " + hits);
             }
@@ -58,14 +58,13 @@ public class SleepycatSimpleTest extends TestCase {
 
     }
 
-    
     public void testPutBigDecimal() {
         int i;
         map.clear();
         for (i = 0; i < 50000; i++) {
             Object[] key = new Object[] { i };
 
-            map.put(key, new Object[] { new BigDecimal(34.4553+i), new Float(43) });
+            map.put(key, new Object[] { new BigDecimal(34.4553 + i), new Float(43) });
 
             // Long l = (Long) map.get(key,"a");
             // Float f = (Float) map.get(key,"b");
@@ -76,13 +75,12 @@ public class SleepycatSimpleTest extends TestCase {
         }
 
         map.commit(true);
-        
+
         int hits = 0;
         for (i = 0; i < 1000000; i++) {
 
-        	Object[] key = new Object[] { i };
+            Object[] key = new Object[] { i };
 
-           
             if (i > 0 & i % 50000 == 0) {
                 System.out.println("Lookups: " + i + ", Hits: " + hits);
             }
@@ -176,9 +174,9 @@ public class SleepycatSimpleTest extends TestCase {
 
     PersistentMap getMap() {
         EngineConstants.getSystemXML();
-        return new SleepycatIndexedMap("test" + this.getName(), NumberFormatter.convertToBytes(EngineConstants.getDefaultCacheSize()), 0,
-                System.getProperty("user.dir") + File.separator + "log", new Class[] { Integer.class },
-                new Class[] { String.class }, new String[] { "a" }, false);
+        return new SleepycatIndexedMap("test" + this.getName(), NumberFormatter.convertToBytes(EngineConstants
+                .getDefaultCacheSize()), 0, System.getProperty("user.dir") + File.separator + "log",
+                new Class[] { Integer.class }, new Class[] { String.class }, new String[] { "a" }, false);
     }
 
 }

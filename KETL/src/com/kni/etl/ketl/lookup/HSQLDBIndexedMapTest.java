@@ -16,9 +16,9 @@ public class HSQLDBIndexedMapTest extends IndexedMapTest {
     PersistentMap getMap() {
 
         EngineConstants.getSystemXML();
-        return new CachedIndexedMap(new HSQLDBIndexedMap("test" + this.getName(),NumberFormatter
+        return new CachedIndexedMap(new HSQLDBIndexedMap("test" + this.getName(), NumberFormatter
                 .convertToBytes(EngineConstants.getDefaultCacheSize()), 0, System.getProperty("user.dir")
-                + File.separator + "log", new Class[] { Integer.class }, new Class[] {String.class }, new String[] { "a" }, false));        
+                + File.separator + "log", new Class[] { Integer.class }, new Class[] { String.class },
+                new String[] { "a" }, false));
     }
 }
-

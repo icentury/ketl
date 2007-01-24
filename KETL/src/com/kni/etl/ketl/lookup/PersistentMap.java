@@ -1,6 +1,5 @@
 package com.kni.etl.ketl.lookup;
 
-
 import java.util.Map;
 
 public interface PersistentMap extends Map {
@@ -12,7 +11,7 @@ public interface PersistentMap extends Map {
     public abstract Object put(Object key, Object value);
 
     public abstract Class getStorageClass();
-    
+
     public abstract void delete();
 
     public abstract void switchToReadOnlyMode();
@@ -31,6 +30,8 @@ public interface PersistentMap extends Map {
 
     public abstract String getName();
 
-	public abstract void close();
+    public abstract void close();
+
+    public abstract void closeCacheEnvironment();
 
 }
