@@ -511,6 +511,30 @@ final public class SleepycatIndexedMap implements PersistentMap {
 							+ clFrom.getCanonicalName());
 		}
 
+		if (clFrom == Double.class || clFrom == Long.class
+				|| clFrom == Integer.class || clFrom == Short.class
+				|| clFrom == Float.class
+				|| clFrom == java.math.BigDecimal.class
+				|| obj instanceof java.lang.Number) {
+			java.lang.Number bd = (java.lang.Number) obj;
+			if (cl == Integer.class)
+				return bd.intValue();
+			if (cl == Double.class)
+				return bd.doubleValue();
+			if (cl == Short.class)
+				return bd.shortValue();
+			if (cl == Long.class)
+				return bd.longValue();
+			if (cl == Float.class)
+				return bd.floatValue();
+			if (cl == java.math.BigDecimal.class) {
+				if (clFrom == Float.class || clFrom == Double.class)
+					return new java.math.BigDecimal(bd.doubleValue());
+				return new java.math.BigDecimal(bd.longValue());
+
+			}
+		}
+
 		try {
 			if (cl == Integer.class) {
 				return (Integer) obj;
