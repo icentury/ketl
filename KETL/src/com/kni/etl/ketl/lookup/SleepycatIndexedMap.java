@@ -259,6 +259,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
     private Class[] mValueTypes;
     private Database myClassDb, myDatabase;
     private DatabaseConfig myDbConfig;
+	private int mKeyLength;
     private static List mValidCacheList;
 
     public SleepycatIndexedMap(String pName, int pSize, Integer pPersistanceID, String pCacheDir, Class[] pKeyTypes,
@@ -274,6 +275,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
         this.mValueTypes = pValueTypes;
         this.mKeyIsArray = pKeyTypes.length == 1 ? false : true;
         this.mValueFields = pValueFields;
+        this.mKeyLength = this.mKeyTypes.length;
 
         if (this.mKeyIsArray == false) {
             Class cl = pKeyTypes[0];
@@ -480,7 +482,93 @@ final public class SleepycatIndexedMap implements PersistentMap {
         return this.mValuesIsArray==false?new Object[] {byteArrayToObject(res, 0, res.length)}:byteArrayToObject(res, 0, res.length);
     }
 
-    private DatabaseEntry getKey(Object val) throws IOException {
+    private Object castKey(Object[] key) throws IOException {
+		if (key == null)
+			return null;
+
+		for (int i = 0; i < mKeyLength; i++) {
+			key[i] = castKeyElement(key[i], this.mKeyTypes[i]);
+		}
+
+		return key;
+	}
+    
+    private  Object castKeyElement(Object obj, Class cl)
+			throws IOException {
+
+		if (obj == null)
+			return null;
+
+		Class clFrom = obj.getClass();
+
+		if (cl == clFrom) {
+			return obj;
+		}
+
+		if (cl.isArray()) {
+			throw new IOException(
+					"Key cannot be cast to an Array, incoming class "
+							+ clFrom.getCanonicalName());
+		}
+
+		try {
+			if (cl == Integer.class) {
+				return (Integer) obj;
+			}
+
+			if (cl == String.class) {
+				return (String) obj;
+			}
+
+			if (cl == java.sql.Timestamp.class) {
+				return (java.sql.Timestamp) obj;
+			}
+
+			if (cl == java.math.BigDecimal.class) {
+				return (java.math.BigDecimal) obj;
+			}
+
+			if (cl == java.sql.Date.class) {
+				return (java.sql.Date) obj;
+			}
+
+			if (cl == java.sql.Time.class) {
+				return (java.sql.Time) obj;
+			}
+
+			if (cl == Short.class) {
+				return (Short) obj;
+			}
+			
+			if (cl == Long.class) {
+				return (Long) obj;
+			}
+			
+			if (cl == Float.class) {
+				return (Float) obj;
+			}
+			
+			if (cl == Double.class) {
+				return (Double) obj;
+			}
+		} catch (ClassCastException e) {
+			throw new IOException("Cache '"+this.getName()+"' error: Class of incoming key "
+					+ clFrom.getCanonicalName()
+					+ " cannot be cast to expected to data type "
+					+ cl.getCanonicalName() + ", " + e.getMessage());
+		}
+
+		throw new IOException("Cache '"+this.getName()+"' error: Class of incoming key "
+				+ clFrom.getCanonicalName()
+				+ " cannot be cast to expected to data type "
+				+ cl.getCanonicalName());
+
+	}
+
+	private DatabaseEntry getKey(Object val) throws IOException {
+    	
+		val = this.castKey((Object[]) val);
+		
         if (this.mKeyBinding == null)
             return new DatabaseEntry(objToByteArray((val)));
 
