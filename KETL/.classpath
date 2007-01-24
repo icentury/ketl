@@ -16,8 +16,8 @@
 	<classpathentry kind="lib" path="C:/development/hypersonic/hsqldb_1_8_0_7/hsqldb/lib/hsqldb.jar" sourcepath="C:/development/hypersonic/hsqldb_1_8_0_7/hsqldb/src"/>
 	<classpathentry kind="lib" path="C:/development/Netezza/nzjdbc.jar"/>
 	<classpathentry kind="lib" path="C:/development/Lib/mysql-connector-java-3.1.12/mysql-connector-java-3.1.12-bin.jar" sourcepath="src"/>
-	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.6.0/lib/tools.jar"/>
 	<classpathentry kind="lib" path="lib/postgresql.jar"/>
-	<classpathentry kind="lib" path="lib/je-3.2.13.jar"/>
+	<classpathentry kind="lib" path="lib/je-3.2.13.jar" sourcepath="C:/development/je-3.2.13/src"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.5.0_09/lib/tools.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
