@@ -409,7 +409,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 			// Create the DatabaseEntry for the data. Use the EntryBinding
 			// object
 			// that was just created to populate the DatabaseEntry
-			DatabaseEntry theData = new DatabaseEntry(objToByteArray(pValue));
+			DatabaseEntry theData = new DatabaseEntry(objToByteArray(this.mValuesIsArray?pValue:((Object[])pValue)[0]));
 
 			// Put it as normal
 			if (myDatabase.putNoOverwrite(null, theKey, theData) == OperationStatus.SUCCESS)
