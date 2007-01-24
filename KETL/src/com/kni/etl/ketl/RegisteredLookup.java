@@ -93,4 +93,8 @@ public class RegisteredLookup implements Externalizable {
     public boolean corrupt() {
         return this.corrupt;
     }
+
+    public void closeCaches() {
+        this.lookup.closeCacheEnvironment();
+    }
 }

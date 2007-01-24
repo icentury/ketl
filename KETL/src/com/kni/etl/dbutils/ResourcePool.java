@@ -607,14 +607,28 @@ public class ResourcePool {
     public static synchronized void releaseAllLookups() {
         Collection tmp = _getLookup().values();
 
+        RegisteredLookup lkLast = null;
+        // check cache for random lookups
         for (Object o : tmp) {
             RegisteredLookup lk = (RegisteredLookup) o;
             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Writing lookup "
                     + lk.getName());
             lk.flush();    		
-            lk.close();
-        }    
+        }
+        
         syncLookupsToDisc();
+        
+        for (Object o : tmp) {
+            RegisteredLookup lk = (RegisteredLookup) o;
+            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Writing lookup "
+                    + lk.getName());
+            lk.close();
+            lkLast = lk;
+        }
+        
+        if(lkLast != null) lkLast.closeCaches();
+        
+        
     }
 
     public static synchronized boolean releaseLookup(String lookupName) {
