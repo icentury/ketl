@@ -17,6 +17,47 @@ public class SleepycatSimpleTest extends TestCase {
     }
     PersistentMap map = this.getMap();
  
+    public void testPutSQLTimestamp() {
+        int i;
+        map.clear();
+        for (i = 0; i < 50000; i++) {
+            Object[] key = new Object[] { i };
+
+            java.sql.Timestamp tms = new java.sql.Timestamp(34000+i);
+            tms.setNanos(123);
+            
+            map.put(key, new Object[] {tms , new Float(43) });
+
+            // Long l = (Long) map.get(key,"a");
+            // Float f = (Float) map.get(key,"b");
+
+            if (i > 0 & i % 50000 == 0) {
+                System.out.println("Inserts: " + i);
+            }
+        }
+
+        map.commit(true);
+        
+        int hits = 0;
+        for (i = 0; i < 1000000; i++) {
+
+        	Object[] key = new Object[] { i };
+
+           
+            if (i > 0 & i % 50000 == 0) {
+                System.out.println("Lookups: " + i + ", Hits: " + hits);
+            }
+            Object obj;
+            if ((obj = map.get(key, "a")) != null)
+                hits++;
+            obj = null;
+        }
+
+        System.out.println("Lookups: " + i);
+        map.clear();
+
+    }
+
     
     public void testPutBigDecimal() {
         int i;
@@ -39,7 +80,7 @@ public class SleepycatSimpleTest extends TestCase {
         int hits = 0;
         for (i = 0; i < 1000000; i++) {
 
-            Object[] key = new Object[] {  new BigDecimal(34.4553+i), new Float(43) };
+        	Object[] key = new Object[] { i };
 
            
             if (i > 0 & i % 50000 == 0) {
