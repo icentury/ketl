@@ -156,7 +156,7 @@ public class ETLThreadManager {
                     + ((ETLStep) es).getErrorCount() + ", timing: " + es.getTiming() + "\n");
         }
 
-        jsJobStatus.setExtendedMessage("Total records read: " + recordReaderCount + ", Total records writter: "
+        jsJobStatus.setExtendedMessage("Total records read: " + recordReaderCount + ", Total records written: "
                 + recordWriterCount);
 
         return sb.toString();
