@@ -3,14 +3,13 @@
 	<GLOBAL>
 		<OPTION NAME="PARAMETERSTART">${</OPTION>
 		<OPTION NAME="PARAMETEREND">}</OPTION>
-		<OPTION NAME="VERSION">2.0.36 production</OPTION>
+		<OPTION NAME="VERSION">2.0.37 production</OPTION>
 		<OPTION NAME="MAXERRORMESSAGELENGTH">800</OPTION>
 		<OPTION NAME="CACHEPATH">log</OPTION>
 		<OPTION NAME="BADRECORDPATH">log</OPTION>
-		<OPTION NAME="INMEMORYCACHESIZE">1mb</OPTION>		
-		<!-- <OPTION NAME="LOOKUPCLASS">com.kni.etl.ketl.lookup.RawPerstIndexedMap</OPTION>		
-		<OPTION NAME="LOOKUPCLASS">com.kni.etl.ketl.lookup.HSQLDBIndexedMap</OPTION>		
-		<OPTION NAME="LOOKUPCLASS">com.kni.etl.ketl.lookup.SleepycatIndexedMap</OPTION>		-->
+		<OPTION NAME="INMEMORYCACHESIZE">1mb</OPTION>			
+	    <!-- <OPTION NAME="LOOKUPCLASS">com.kni.etl.ketl.lookup.HSQLDBIndexedMap</OPTION>		-->
+		<OPTION NAME="LOOKUPCLASS">com.kni.etl.ketl.lookup.SleepycatIndexedMap</OPTION>		
 	</GLOBAL>
 	
 	<STEP CLASS="com.kni.etl.ketl.transformation.DimensionTransformation">
