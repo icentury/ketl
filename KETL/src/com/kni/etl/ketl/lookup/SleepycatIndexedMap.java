@@ -32,7 +32,6 @@ import com.kni.etl.stringtools.NumberFormatter;
 import com.kni.util.Bytes;
 import com.sleepycat.bind.ByteArrayBinding;
 import com.sleepycat.bind.tuple.*;
-import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.collections.StoredMap;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
@@ -139,6 +138,8 @@ final public class SleepycatIndexedMap implements PersistentMap {
 		mSize = pSize;
 		mPersistanceID = pPersistanceID;
 		mName = pName;
+		this.dataDb = mName;
+		this.classDb = mName + "classDb";		
 		this.mCacheDir = pCacheDir;
 		this.mKeyTypes = pKeyTypes;
 		this.mValueTypes = pValueTypes;
@@ -176,6 +177,8 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	}
 
 	private boolean dbClearPending = false;
+	private String dataDb;
+	private String classDb;
 
 	public void clear() {
 		// reinitialize the cache
@@ -223,24 +226,27 @@ final public class SleepycatIndexedMap implements PersistentMap {
 
 	public synchronized void deleteCache() {
 
-		if (myDatabase != null) {
+		
 			try {
+			if (myDatabase != null) {
 				this.myDatabase.sync();
 				this.myClassDb.sync();
-				String nm = myDatabase.getDatabaseName();
 				myDatabase.close();
-				myEnvironment.removeDatabase(null, nm);
-
-				nm = this.myClassDb.getDatabaseName();
 				myClassDb.close();
-				myEnvironment.removeDatabase(null, nm);
-			} catch (DatabaseException e) {
-				throw new KETLError(e);
-			} finally {
-				myDatabase = null;
-				myClassDb = null;
 			}
+
+			List dbs = myEnvironment.getDatabaseNames();
+			if (dbs.contains(dataDb))
+				myEnvironment.removeDatabase(null, dataDb);
+			if (dbs.contains(classDb))
+				myEnvironment.removeDatabase(null, classDb);
+		} catch (DatabaseException e) {
+			throw new KETLError(e);
+		} finally {
+			myDatabase = null;
+			myClassDb = null;
 		}
+		
 	}
 
 	public Set entrySet() {
@@ -277,14 +283,8 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	}
 
 	private String getCacheDirectory() {
-		File fDir;
-		if (this.mPersistanceID == null)
-			fDir = new File(mCacheDir + File.separator + "KETL." + mName
-					+ "cache");
-		else
-			fDir = new File(mCacheDir + File.separator + "KETL." + mName + "."
-					+ this.mPersistanceID + ".cache");
-
+		File fDir = new File(mCacheDir + File.separator + "KETL." + "cache");
+		
 		if (fDir.exists() && fDir.isDirectory())
 			return fDir.getAbsolutePath();
 		else if (fDir.exists() == false) {
@@ -301,8 +301,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 
 	void init() {
 
-		this.deleteCache();
-
+		
 		if (myEnvironment == null) {
 			try {
 				configureEnvironment();
@@ -310,7 +309,9 @@ final public class SleepycatIndexedMap implements PersistentMap {
 				throw new KETLError(dbe);
 			}
 		}
-
+		
+		this.deleteCache();
+		
 		if (this.myDbConfig == null) {
 			myDbConfig = new DatabaseConfig();
 			myDbConfig.setAllowCreate(true);
@@ -318,8 +319,8 @@ final public class SleepycatIndexedMap implements PersistentMap {
 		}
 
 		try {
-			myDatabase = myEnvironment.openDatabase(null, mName, myDbConfig);
-			myClassDb = myEnvironment.openDatabase(null, mName + "classDb",
+			myDatabase = myEnvironment.openDatabase(null, this.dataDb, myDbConfig);
+			myClassDb = myEnvironment.openDatabase(null, this.classDb,
 					myDbConfig);
 			List ls = myEnvironment.getDatabaseNames();
 			ResourcePool.LogMessage(Thread.currentThread(),
@@ -351,11 +352,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 
 	private void configureEnvironment() throws DatabaseException {
 
-		File dir = new File(this.getCacheDirectory());
-
-		if (dir.exists())
-			deleteDir(dir);
-
+		
 		EnvironmentConfig envConfig = new EnvironmentConfig();
 		envConfig.setAllowCreate(true);
 		myEnvironment = new Environment(new File(this.getCacheDirectory()),
