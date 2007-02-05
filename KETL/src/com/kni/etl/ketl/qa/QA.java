@@ -26,16 +26,12 @@ public abstract class QA {
     /**
      * @param eStep
      * @param nXMLConfig
-     * @throws KETLThreadException 
+     * @throws KETLThreadException
      */
     public void initialize(ETLStep eStep, Node nXMLConfig) throws KETLThreadException {
         step = eStep;
         nQADefinition = nXMLConfig;
+
     }
 
-    abstract public void postCompleteCheck();
-
-    abstract public void postInitializeCheck();
-
-    abstract public void prePutNextRecordCheck(Object[] rr);
 }

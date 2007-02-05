@@ -14,6 +14,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -29,8 +30,8 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLEvent;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.ETLTrigger;
+import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
-import com.kni.etl.ketl_v1.DataItem;
 import com.kni.etl.util.XMLHelper;
 
 /**
@@ -38,7 +39,12 @@ import com.kni.etl.util.XMLHelper;
  */
 public abstract class QAEventGenerator extends QA {
 
-    public static String[] abrevs = { null, "k", "mb", "gb", "tb" };
+    final static String[] abrevs = { null, "k", "mb", "gb", "tb" };
+    static final String[] timeAbrevs = { null, "d", "m", "s", "h" };
+    static final int[] timeSizes = { 1, 86400, 1, 60, 60 * 60 };
+    static final BigDecimal[] sizes = { new BigDecimal("1"), new BigDecimal("1024"), new BigDecimal("1048576"),
+            new BigDecimal("1073741824"), new BigDecimal("1099511627776") };
+
     public static final String AMOUNT_TAG = "AMOUNT";
     static int BYTE_POS = 0;
     public final static String DATE_ATTRIB = "DATE";
@@ -91,8 +97,6 @@ public abstract class QAEventGenerator extends QA {
     public static final String SIZE_ATTRIB = "SIZE";
     public static final String SIZE_TAG = "SIZE";
     public static final String AGGREGATE_SIZE_TAG = "AGGREGATESIZE";
-    static BigDecimal[] sizes = { new BigDecimal("1"), new BigDecimal("1024"), new BigDecimal("1048576"),
-            new BigDecimal("1073741824"), new BigDecimal("1099511627776") };
     public final static String STEP_ATTRIB = "STEP_NAME";
     public final static String STRUCTURE_TAG = "STRUCTURE";
     public final static String VALUE_TAG = "VALUE";
@@ -127,6 +131,57 @@ public abstract class QAEventGenerator extends QA {
         }
 
         return null;
+    }
+
+    public static Integer convertToSeconds(String size) {
+        if (size == null) {
+            return null;
+        }
+
+        try {
+            // if pure number then its days, convert to seconds
+            return Integer.parseInt(size) * 86400;
+
+        } catch (NumberFormatException e) {
+            // couldn't convert directly therefore check for abbreviations
+            for (int i = 1; i < QAEventGenerator.timeAbrevs.length; i++) {
+                String tmp = size.substring(size.length() - QAEventGenerator.timeAbrevs[i].length());
+
+                if (tmp.equalsIgnoreCase(QAEventGenerator.timeAbrevs[i])) {
+                    try {
+                        Integer val = Integer.parseInt(size.substring(0, size.length()
+                                - QAEventGenerator.timeAbrevs[i].length()));
+
+                        return val * QAEventGenerator.timeSizes[i];
+                    } catch (NumberFormatException e1) {
+                        return null;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    public static char timeResolution(String size) {
+        if (size == null) {
+            return 'd';
+        }
+
+        try {
+            // if pure number then its days, convert to seconds
+            return 'd';
+
+        } catch (NumberFormatException e) {
+            // couldn't convert directly therefore check for abbreviations
+            for (int i = 1; i < QAEventGenerator.timeAbrevs.length; i++) {
+                String tmp = size.substring(size.length() - QAEventGenerator.timeAbrevs[i].length());
+
+                if (tmp.equalsIgnoreCase(QAEventGenerator.timeAbrevs[i])) {
+                    return QAEventGenerator.timeAbrevs[i].charAt(0);
+                }
+            }
+        }
+        return 'd';
     }
 
     public String getQAType() {
@@ -182,33 +237,22 @@ public abstract class QAEventGenerator extends QA {
     String mstrQAName = null;
     boolean mbLogOnWarning = false;
 
-    public QAEventGenerator() {
-        super();
-    }
-
-    abstract ETLEvent completeCheck();
-
-    protected final void fireEvent(ETLEvent event) {
-        ETLTrigger[] aetTriggers = null;
+    protected final void fireEvent(ETLEvent event) throws KETLQAException {
+        List aetTriggers = null;
 
         if ((event != null) && (step != null) && ((aetTriggers = step.getTriggers()) != null)) {
-            int len = aetTriggers.length;
 
             event.setReturnCode(this.miErrorCode);
 
-            for (int i = 0; i < len; i++) {
-                // TODO: Pre-Cache event mappings
-                if (aetTriggers[i].getEvent().equalsIgnoreCase(event.getEventName())) {
+            for (Object o : aetTriggers) {
+                ETLTrigger trigger = (ETLTrigger) o;
+                if (trigger.getEvent().equalsIgnoreCase(event.getEventName())) {
                     this.mbEventFired = true;
-                    aetTriggers[i].execute(event);
+                    trigger.execute(event);
                 }
             }
         }
     }
-
-    abstract int getCheckLevel();
-
-    abstract ETLEvent getItemCheck(DataItem di);
 
     abstract void getParameters();
 
@@ -238,6 +282,8 @@ public abstract class QAEventGenerator extends QA {
 
         mstrQAName = XMLHelper.getAttributeAsString(this.nQADefinition.getParentNode().getAttributes(), "NAME", null);
         this.setQAName();
+
+        ResourcePool.LogMessage(eStep, ResourcePool.INFO_MESSAGE, "Initializing QA test " + this.toString());
 
         miErrorCode = XMLHelper.getAttributeAsInt(this.nQADefinition.getAttributes(), ERROR_CODE_ATTRIB, 1);
 
@@ -317,40 +363,9 @@ public abstract class QAEventGenerator extends QA {
         getParameters();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
     public String toString() {
         return this.getClass().getName() + "[" + mstrQAName + "]";
     }
-
-    abstract ETLEvent InitializeCheck();
-
-    public final void postCompleteCheck() {
-        fireEvent(completeCheck());
-    }
-
-    public void postGetItemCheck(DataItem di) {
-        fireEvent(getItemCheck(di));
-    }
-
-    public void postInitializeCheck() {
-        fireEvent(InitializeCheck());
-    }
-
-    public void prePutItemCheck(DataItem di) {
-        fireEvent(putItemCheck(di));
-    }
-
-    public void prePutNextRecordCheck(Object[] rr) {
-        fireEvent(putNextRecordCheck(rr));
-    }
-
-    abstract ETLEvent putItemCheck(DataItem di);
-
-    abstract ETLEvent putNextRecordCheck(Object[] rr);
 
     public final void setXMLHistory(String strXML) {
         NamedNodeMap nm = this.nQADefinition.getAttributes();

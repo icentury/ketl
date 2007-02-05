@@ -204,6 +204,7 @@ public abstract class ETLReader extends ETLStep {
                 switch (code) {
                 case ETLReaderCore.SUCCESS:
                     this.mRecordCounter++;
+                    this.recordCheck(o,null);                    
                     if ((this.mbSamplingEnabled == false || (this.mRecordCounter++ % this.mSamplingRate == 0)))
                         batch[resultLength++] = o;
                     else
@@ -220,6 +221,7 @@ public abstract class ETLReader extends ETLStep {
                     throw new KETLReadException("Invalid return code, check previous error message", code);
                 }
             } catch (KETLReadException e) {
+                this.recordCheck(o,e);            
                 this.incrementErrorCount(e, 1, this.mRecordCounter);
             }
         }

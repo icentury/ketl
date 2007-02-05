@@ -401,6 +401,8 @@ public abstract class ETLTransform extends ETLStep {
                         this.mExpectedOutputDataTypes, this.mOutputRecordWidth);
                 
             } catch (KETLTransformException e) {
+                this.recordCheck(result,e);                    
+                
                 this.incrementErrorCount(e, res[i], 1);
                 code = ETLTransformCore.SKIP_RECORD;
             }
@@ -410,6 +412,7 @@ public abstract class ETLTransform extends ETLStep {
                 
                 if(this.mMonitor) ResourcePool.LogMessage(this,ResourcePool.DEBUG_MESSAGE,"[" + (count++)+"][OUT][" + i + "]" + java.util.Arrays.toString(result));
 
+                this.recordCheck(result,null);
                 
                 if (resultLength == outputArraySize) {
                     outputArraySize = outputArraySize + ((outputArraySize + 2) / 2);
@@ -417,6 +420,7 @@ public abstract class ETLTransform extends ETLStep {
                     System.arraycopy(data, 0, newResult, 0, resultLength);
                     data = newResult;
                 }
+                                
                 data[resultLength++] = result;
                 break;
             case ETLTransformCore.SKIP_RECORD:

@@ -58,6 +58,28 @@ public class ETLThreadManager {
         duplicateCheck.add(es);
     }
 
+    public synchronized ETLWorker getStep(ETLWorker sourceStep, String name) throws KETLThreadException {
+        for (Object o : this.threads) {
+            WorkerThread wt = (WorkerThread) o;
+
+            if (wt.step.getName().equals(name)) {
+                if (wt.step.partitions == 1)
+                    return wt.step;
+
+                if (wt.step.partitions == sourceStep.partitions && wt.step.partitionID == sourceStep.partitionID)
+                    return wt.step;
+
+                if (wt.step.partitions != sourceStep.partitions) {
+                    throw new KETLThreadException(
+                            "Cannot get target step if parallism is greater than 1 and does not match source step, check steps Source: "
+                                    + sourceStep.getName() + ",Target: " + wt.step.getName(), sourceStep);
+                }
+            }
+        }
+
+        throw new KETLThreadException("Could not find step " + name, sourceStep);
+    }
+
     public ManagedBlockingQueue requestQueue(int queueSize) {
         return new ManagedBlockingQueueImpl(queueSize);
     }
@@ -91,11 +113,11 @@ public class ETLThreadManager {
 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "- Initializing core managers");
         for (Object o : this.threads) {
-        	try {
-				((WorkerThread) o).step.initialize(mkjExecutor);
-			} catch (Throwable e) {
-				throw new KETLThreadException(e.getMessage(), e);
-			}
+            try {
+                ((WorkerThread) o).step.initialize(mkjExecutor);
+            } catch (Throwable e) {
+                throw new KETLThreadException(e.getMessage(), e);
+            }
         }
 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
@@ -113,13 +135,13 @@ public class ETLThreadManager {
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Threads initialized");
     }
 
-    public void monitor(int sleepTime) throws Exception {
+    public void monitor(int sleepTime) throws Throwable {
         this.monitor(sleepTime, sleepTime);
     }
 
     boolean detailed = true;
 
-    public void monitor(int sleepTime, int maxTime) throws Exception {
+    public void monitor(int sleepTime, int maxTime) throws Throwable {
         this.monitor(sleepTime, maxTime, null);
     }
 
@@ -173,16 +195,16 @@ public class ETLThreadManager {
     }
 
     public static String getStackTrace(Throwable aThrowable) {
-         Writer result = new StringWriter();
-         PrintWriter printWriter = new PrintWriter(result);
+        Writer result = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(result);
         aThrowable.printStackTrace(printWriter);
         return result.toString();
-      }
-    
+    }
+
     public void close(ETLJob eJob) {
         StringBuilder sb = new StringBuilder();
         boolean errorsOccured = false;
-        Exception cause = this.mkjExecutor.getCurrentETLJob().getStatus().getException();
+        Throwable cause = this.mkjExecutor.getCurrentETLJob().getStatus().getException();
 
         if (cause != null) {
             sb.append("\n\nCause: " + cause.toString() + "\n" + getStackTrace(cause));
@@ -208,9 +230,9 @@ public class ETLThreadManager {
                         String extMsg = "";
 
                         sb.append("Step - " + ((ETLStep) wt.step).toString() + "\n");
-                        
+
                         if (tmp[0] instanceof Exception) {
-                            if(tmp[0] == cause){
+                            if (tmp[0] == cause) {
                                 sb.append("\t" + x + " - see cause\n\n");
                                 continue;
                             }
@@ -248,9 +270,9 @@ public class ETLThreadManager {
         return this.mkjExecutor;
     }
 
-    public void monitor(int sleepTime, int maxTime, ETLJobStatus jsJobStatus) throws Exception {
+    public void monitor(int sleepTime, int maxTime, ETLJobStatus jsJobStatus) throws Throwable {
         boolean state = true;
-        Exception failureException = null;
+        Throwable failureException = null;
         boolean interruptAllThreads = false;
         while (state) {
             state = false;
@@ -327,23 +349,17 @@ public class ETLThreadManager {
                         if (es.isWaiting())
                             sb.append("\t" + ((WorkerThread) o).thread.getName() + ": Waiting for " + es.waitingFor()
                                     + "\n");
-                        
+
                         else
-                            sb
-									.append("\t"
-											+ ((WorkerThread) o).thread
-													.getName()
-											+ ": "
-											+ es.getRecordsProcessed()
-											+ ", errors: "
-											+ ((ETLStep) es).getErrorCount()
-											+ (es.getTiming() == null
-													|| es.getTiming().equals(
-															"N/A") ? ""
-													: ", timing: "
-															+ es.getTiming())
-											+ (((WorkerThread) o).thread.isAlive() ? ""
-													: ", Complete") + "\n");
+                            sb.append("\t"
+                                    + ((WorkerThread) o).thread.getName()
+                                    + ": "
+                                    + es.getRecordsProcessed()
+                                    + ", errors: "
+                                    + ((ETLStep) es).getErrorCount()
+                                    + (es.getTiming() == null || es.getTiming().equals("N/A") ? "" : ", timing: "
+                                            + es.getTiming())
+                                    + (((WorkerThread) o).thread.isAlive() ? "" : ", Complete") + "\n");
                     }
                     if (this.mkjExecutor != null && this.mkjExecutor.getCurrentETLJob() != null) {
                         this.mkjExecutor.getCurrentETLJob().getStatus().setExtendedMessage(sb.toString());
@@ -385,10 +401,10 @@ public class ETLThreadManager {
 
     public int countOfStepThreadsAlive(ETLStep writer) {
         int cnt = 0;
-        for(Object o:this.threads){
-            WorkerThread wrk = (WorkerThread)o;
-            
-            if(wrk.thread.isAlive() && wrk.step.mstrName.endsWith(writer.getName()))
+        for (Object o : this.threads) {
+            WorkerThread wrk = (WorkerThread) o;
+
+            if (wrk.thread.isAlive() && wrk.step.mstrName.endsWith(writer.getName()))
                 cnt++;
         }
         return cnt;

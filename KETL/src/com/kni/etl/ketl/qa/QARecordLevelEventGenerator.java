@@ -10,87 +10,39 @@
  */
 package com.kni.etl.ketl.qa;
 
+import org.w3c.dom.Node;
+
 import com.kni.etl.ketl.ETLEvent;
+import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.exceptions.KETLThreadException;
+import com.kni.etl.ketl.reader.ETLReader;
+import com.kni.etl.ketl.transformation.ETLTransformation;
+import com.kni.etl.ketl.writer.ETLWriter;
 
 /**
  * @author nwakefield Creation Date: Jul 8, 2003
  */
 public abstract class QARecordLevelEventGenerator extends QAEventGenerator {
 
-    /**
-     * @param eStep
-     * @param nXMLConfig
-     */
+    public static final int SUCCESS = 0;
+    public static final int ERROR = -1;
+
     public QARecordLevelEventGenerator() {
         super();
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QA#postInitializeCheck()
-     */
-    public final void postInitializeCheck() {
+    abstract ETLEvent completeCheck();
+
+    @Override
+    public void initialize(ETLStep eStep, Node nXMLConfig) throws KETLThreadException {
+
+        if (!(eStep instanceof ETLReader || eStep instanceof ETLWriter || eStep instanceof ETLTransformation))
+            throw new KETLThreadException("QA test does not support class " + this.getClass().getCanonicalName(), eStep);
+
+        super.initialize(eStep, nXMLConfig);
+
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QA#prePutNextRecordCheck()
-     */
-    public final void prePutNextRecordCheck(Object[] rr) {
-        super.prePutNextRecordCheck(rr);
-    }
+    abstract ETLEvent recordCheck(Object[] rr, Exception e);
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QAEventGenerator#getCheckLevel()
-     */
-    final int getCheckLevel() {
-        return RECORD;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QA#postGetItemCheck(int)
-     */
-    final public void postGetItemCheck(int iItemPos) {
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QA#prePutItemCheck(int)
-     */
-    final public void prePutItemCheck(int iItemPos) {
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QAEventGenerator#getItemCheck(int)
-     */
-    final ETLEvent getItemCheck(int iItemPos) {
-        return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QAEventGenerator#InitializeCheck()
-     */
-    final ETLEvent InitializeCheck() {
-        return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QAEventGenerator#putItemCheck(int)
-     */
-    final ETLEvent putItemCheck(int iItemPos) {
-        return null;
-    }
 }

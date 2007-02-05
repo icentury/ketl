@@ -51,9 +51,9 @@ public class ETLJobStatus extends ETLStatus {
         return astrStatusMessages;
     }
 
-    Exception mException;
+    Throwable mException;
 
-    public void setException(Exception e) {
+    public void setException(Throwable e) {
         // prevent duplicate stack trace
         if (this.mException != null && e == mException)
             return;
@@ -61,7 +61,7 @@ public class ETLJobStatus extends ETLStatus {
         mException = e;        
     }
 
-    public Exception getException() {
+    public Throwable getException() {
         return mException;
     }
 }

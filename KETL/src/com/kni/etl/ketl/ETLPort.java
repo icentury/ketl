@@ -23,6 +23,8 @@ import com.kni.etl.util.XMLHelper;
  */
 public abstract class ETLPort {
 
+    protected boolean mbQAItemsExist = false;
+
     public static final String NAME_ATTRIB = "NAME";
     public static final String OBJECT_TYPE_ATTRIB = "OBJECTTYPE";
     public String mstrName;
@@ -79,6 +81,10 @@ public abstract class ETLPort {
             this.instantiateConstant();
         }
 
+        if (this.mesStep.getQACollection().addQAForItem(this, xmlConfig)) {
+            this.mbQAItemsExist  = true;
+        }
+        
         ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Creating "
                 + (this instanceof ETLInPort ? "IN" : "OUT") + " port " + this.mesStep.getName() + "."
                 + this.getPortName());

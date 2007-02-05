@@ -131,7 +131,7 @@ public abstract class ETLJobExecutor extends Thread {
         return jesStatus;
     }
 
-    private static int exit(int code, Exception e, boolean pExitCleanly) {
+    private static int exit(int code, Throwable e, boolean pExitCleanly) {
         if (pExitCleanly)
             return code;
 
@@ -356,7 +356,7 @@ public abstract class ETLJobExecutor extends Thread {
                     kj.setAction(XMLHelper.outputXML(node));
 
                     if (jobName == null) {
-                        kj.setJobID(XMLHelper.getAttributeAsString(node.getAttributes(), "NAME", null));
+                        kj.setJobID(XMLHelper.getAttributeAsString(node.getAttributes(), "ID", XMLHelper.getAttributeAsString(node.getAttributes(), "NAME", null)));
                     }
                     else {
                         kj.setJobID(jobName);

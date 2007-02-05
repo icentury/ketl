@@ -20,11 +20,11 @@ import com.kni.etl.SourceFieldDefinition;
  */
 public interface QAForFileReader {
 
-    public static String QA_SIZE_CLASSNAME = "com.kni.etl.ketl.qa.QANIOFileSize";
-    public static String QA_STRUCTURE_CLASSNAME = "com.kni.etl.ketl.qa.QANIOFileStructure";
-    public static String QA_AMOUNT_CLASSNAME = "com.kni.etl.ketl.qa.QANIOFileAmount";
+    public static String QA_SIZE_CLASSNAME = "com.kni.etl.ketl.qa.QAFileSize";
+    public static String QA_STRUCTURE_CLASSNAME = null;
+    public static String QA_AMOUNT_CLASSNAME = "com.kni.etl.ketl.qa.QAFileAmount";
     public static String QA_VALUE_CLASSNAME = "com.kni.etl.ketl.qa.QAValue";
-    public static String QA_AGE_CLASSNAME = "com.kni.etl.ketl.qa.QANIOFileAge";
+    public static String QA_AGE_CLASSNAME = "com.kni.etl.ketl.qa.QAFileAge";
     public static String QA_ITEM_CHECK_CLASSNAME = "com.kni.etl.ketl.qa.QAItem";
     public static String QA_RECORD_CHECK_CLASSNAME = "com.kni.etl.ketl.qa.QARecord";
 

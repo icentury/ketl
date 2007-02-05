@@ -78,12 +78,14 @@ public abstract class ETLWriter extends ETLStep {
                 if(this.mMonitor) ResourcePool.LogMessage(this,ResourcePool.DEBUG_MESSAGE,"[" + count+"]" + java.util.Arrays.toString(o[i]));
                 int res = core.putNextRecord(o[i], this.mExpectedDataTypes, this.mRecordWidth);
                 if (res > 0) {
+                    this.recordCheck(o[i],null);                                        
                     count += res;
                 }
                 else if (res < 0) {
                     throw new KETLWriteException("Unknown error, see previous messages");
                 }
             } catch (KETLWriteException e) {
+                this.recordCheck(o[i],e);                                    
                 this.incrementErrorCount(e, o[i], this.getRecordsProcessed() + i + 1);
             }
         }

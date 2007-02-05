@@ -526,13 +526,26 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return true;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.BaseFileReader#getOpenFiles()
-     */
+    private ArrayList completeFileList = null;
+
     public ArrayList getOpenFiles() {
-        return maFiles;
+
+        if (completeFileList == null) {
+            ArrayList files = new ArrayList();
+            for (int i = 0; i < this.maParameters.size(); i++) {
+                String[] fileNames = FileTools.getFilenames(this.getParameterValue(i, SEARCHPATH));
+
+                if (fileNames != null) {
+                    for (int x = 0; x < fileNames.length; x++) {
+                        files.add(fileNames[x]);
+                    }
+
+                }
+            }
+            completeFileList = files;
+        }
+
+        return this.completeFileList;
     }
 
     /*
@@ -895,10 +908,10 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 
     @Override
     protected void close(boolean success) {
-        
-        if(this.mvReadyFiles == null)
+
+        if (this.mvReadyFiles == null)
             return;
-        
+
         for (Object o : mvReadyFiles) {
             ManagedFastInputChannel rf = (ManagedFastInputChannel) o;
             try {

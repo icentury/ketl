@@ -55,7 +55,8 @@ public class KETLJobExecutor extends ETLJobExecutor {
             Object[] ports = ((Step) steps[i]).getUnassignedChannels();
             if (ports != null) {
                 throw new KETLThreadException("Step '" + ((Step) steps[i]).getName() + "' channel(s) "
-                        + Arrays.toString(ports) + " has not been assigned, please remove step or channel", Thread.currentThread());
+                        + Arrays.toString(ports) + " has not been assigned, please remove step or channel", Thread
+                        .currentThread());
             }
         }
     }
@@ -207,8 +208,8 @@ public class KETLJobExecutor extends ETLJobExecutor {
                         + partitions, this);
 
             step.setThreadGroup(ETLThreadGroup.newInstance(null, ETLThreadManager.getThreadingType((Element) step
-                        .getConfig()), step, instancePartitions, em));
-            
+                    .getConfig()), step, instancePartitions, em));
+
             readySources.put(step.getName(), step);
             pendingInstantiation.remove(step);
         }
@@ -430,17 +431,17 @@ public class KETLJobExecutor extends ETLJobExecutor {
                     throw (Exception) e.getCause();
                 }
                 em.start();
-                
-                if(this.mbCommandLine)
+
+                if (this.mbCommandLine)
                     em.monitor(10, 1000);
                 else
-                    em.monitor(10,100,jsJobStatus);
-                
+                    em.monitor(10, 100, jsJobStatus);
+
             } catch (KETLQAException e) {
                 jsJobStatus.setErrorCode(e.getErrorCode()); // BRIAN: NEED TO SET UP KETL
 
                 // JOB ERROR CODES
-                jsJobStatus.setErrorMessage("Fatal QA error executing step '" + e.getSourceThread().getName() + "'.");
+                jsJobStatus.setErrorMessage("Fatal QA error executing step '" + e.getETLStep().getName() + "'.");
                 jsJobStatus.setException(e);
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
 
@@ -450,10 +451,11 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 // KETL
 
                 // JOB ERROR CODES
-                jsJobStatus.setErrorMessage("Fatal error executing "+(e.getSourceObject() instanceof ETLStep?"step":"")+" '" + e.getSourceObject().toString() + "'.");
+                jsJobStatus.setErrorMessage("Fatal error executing "
+                        + (e.getSourceObject() instanceof ETLStep ? "step" : "") + " '"
+                        + e.getSourceObject().toString() + "'.");
                 jsJobStatus.setException(e);
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
-
 
                 return false;
             } catch (KETLReadException e) {
@@ -464,7 +466,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 jsJobStatus.setErrorMessage("Fatal error executing read step '" + e.getSourceThread().getName() + "'.");
                 jsJobStatus.setException(e);
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
-
 
                 return false;
             } catch (KETLTransformException e) {
@@ -477,7 +478,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 jsJobStatus.setException(e);
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
 
-
                 return false;
             } catch (KETLWriteException e) {
                 jsJobStatus.setErrorCode(EngineConstants.OTHER_ERROR_EXIT_CODE); // BRIAN: NEED TO SET UP
@@ -489,9 +489,8 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 jsJobStatus.setException(e);
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
 
-
                 return false;
-            } catch (Exception e) {
+            } catch (Throwable e) {
 
                 jsJobStatus.setErrorCode(6); // BRIAN: NEED TO SET UP KETL
 
@@ -504,7 +503,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 return false;
             }
 
-            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,em.finalStatus(jsJobStatus));
+            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, em.finalStatus(jsJobStatus));
 
             return true;
         } finally {
@@ -516,24 +515,24 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
     }
 
-    String dumpExceptionCause(Exception pException) {
+    String dumpExceptionCause(Throwable pException) {
 
-    	StringBuilder res = new StringBuilder(pException.getMessage()==null?"N/A":pException.getMessage());
+        StringBuilder res = new StringBuilder(pException.getMessage() == null ? "N/A" : pException.getMessage());
         Throwable e1 = pException.getCause();
         if (e1 != null && e1 instanceof SQLException) {
             SQLException e = ((SQLException) e1).getNextException();
-            
-            if(e!= null){
-            do {
-                res.append("\n\tCaused by: " + e.getMessage());
-                if (e == e.getNextException())
-                    e = null;
-                else
-                    e = e.getNextException();
-            } while(e!= null);
+
+            if (e != null) {
+                do {
+                    res.append("\n\tCaused by: " + e.getMessage());
+                    if (e == e.getNextException())
+                        e = null;
+                    else
+                        e = e.getNextException();
+                } while (e != null);
             }
         }
-        
+
         return res.toString();
     }
 
@@ -868,6 +867,34 @@ public class KETLJobExecutor extends ETLJobExecutor {
         if (em != null) {
             em.close(this.ejCurrentJob);
         }
+        // clear QA tests
+        this.mqaCollections.clear();
         em = null;
+    }
+
+    private Map mqaCollections = new HashMap();
+
+    private void registerQACollection(String name, QACollection collection) throws KETLThreadException {
+
+        if (this.mqaCollections.put(name, collection) != null)
+            throw new KETLThreadException("QA Collection " + name + " already exists, report bug", Thread
+                    .currentThread());
+
+    }
+
+    QACollection getQACollection(String name, ETLStep step, Node xmlConfig) throws KETLThreadException {
+
+        synchronized (this.mqaCollections) {
+            QACollection res = (QACollection) this.mqaCollections.get(name);
+
+            if (res == null) {
+                res = new QACollection(step, xmlConfig);
+                this.registerQACollection(name, res);
+                return res;
+            }
+
+            return res;
+        }
+
     }
 }

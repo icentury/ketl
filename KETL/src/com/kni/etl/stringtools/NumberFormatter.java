@@ -52,7 +52,7 @@ public class NumberFormatter
             for (int i = 1; i < abrevs.length; i++) {
                 String tmp = size.substring(size.length() - abrevs[i].length());
 
-                if (tmp.equalsIgnoreCase(QAEventGenerator.abrevs[i])) {
+                if (tmp.equalsIgnoreCase(abrevs[i])) {
                     try {
                         tmp = size.substring(0, size.length() - abrevs[i].length());
 

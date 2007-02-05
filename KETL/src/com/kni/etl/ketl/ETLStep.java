@@ -27,7 +27,9 @@ import com.kni.etl.EngineConstants;
 import com.kni.etl.ParameterList;
 import com.kni.etl.SharedCounter;
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
+import com.kni.etl.ketl.qa.QACollection;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.ETLWorker;
 import com.kni.etl.util.XMLHelper;
@@ -39,18 +41,20 @@ import com.kni.etl.util.XMLHelper;
 public abstract class ETLStep extends ETLWorker {
 
     private ETLJob mJob;
+
     @Override
     final protected void interruptExecution() throws InterruptedException {
-        if(this.mJob.isKilled()) {
+        if (this.mJob.isKilled()) {
             throw new InterruptedException("Job has been killed");
-        } else if(this.mJob.isPaused()){
-            setWaiting("Pause to be released");            
-            while(this.mJob.isPaused()){
+        }
+        else if (this.mJob.isPaused()) {
+            setWaiting("Pause to be released");
+            while (this.mJob.isPaused()) {
                 Thread.sleep(1000);
             }
-            setWaiting(null);            
+            setWaiting(null);
             this.interruptExecution();
-        }                
+        }
     }
 
     final static String[] TAGS_NOT_SUPPORTING_PARAMETERS = { "FILTER", "OUT" };
@@ -156,13 +160,13 @@ public abstract class ETLStep extends ETLWorker {
 
                     for (int i = 0; i < this.mOutPorts.length; i++) {
                         if (this.mOutPorts[i].isConstant() == false) {
-                        	try {
-                            outCols[this.mOutPorts[i].getPortIndex()] = this.mOutPorts[i].mstrName;
-                        	} catch(Exception e){
-                        		// TODO: Wrong column mapping, review code
-                        		outCols[i] = "Error resolving column name";
-                        	}
-                        } 
+                            try {
+                                outCols[this.mOutPorts[i].getPortIndex()] = this.mOutPorts[i].mstrName;
+                            } catch (Exception e) {
+                                // TODO: Wrong column mapping, review code
+                                outCols[i] = "Error resolving column name";
+                            }
+                        }
                     }
                     for (int i = 0; i < outCols.length; i++) {
                         if (outCols[i] != null)
@@ -443,17 +447,53 @@ public abstract class ETLStep extends ETLWorker {
     protected static int DEFAULT_ERRORLIMIT = 0;
     private int miErrorLimit = 0;
 
+    private QACollection mqacQACollection;
+
+    private List mvTriggers = new ArrayList();
+
     @Override
     public int complete() throws KETLThreadException {
         this.mbLastThreadToComplete = this._isLastThreadToComplete();
-        return super.complete();       
+
+        if (this.isLastThreadToEnterCompletePhase())
+            this.mqacQACollection.completeCheck();
+
+        return super.complete();
     }
-    
+
+    final protected void recordCheck(Object[] di, Exception e) throws KETLQAException {
+        this.mqacQACollection.recordCheck(di, e);
+        this.mqacQACollection.itemChecks(di, e);
+    }
+
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
 
-        this.mbFirstThreadToStart = this._isFirstThreadToStart();
+        // Get child nodes...
+        try {
+            NodeList nl = xmlConfig.getChildNodes();
+
+            for (int i = 0; i < nl.getLength(); i++) {
+                Node node = nl.item(i);
+
+                if (node.getNodeName().compareTo(TRIGGER_TAG) == 0) {
+                    if (addTrigger(node) == null) {
+                        return -4;
+                    }
+                }
+                else {
+                    // Add other children as needed
+                }
+            }
+        } catch (Exception e) {
+            ResourcePool.LogMessage(this, e.getMessage());
+            return -1;
+        }
         
+        this.mbFirstThreadToStart = this._isFirstThreadToStart();
+        // initialize any qa for this step
+        this.mqacQACollection = getQACollection(xmlConfig);
+
         this.getStepTemplates(this.getClass());
 
         batchSize = XMLHelper.getAttributeAsInt(xmlConfig.getParentNode().getParentNode().getAttributes(),
@@ -479,7 +519,39 @@ public abstract class ETLStep extends ETLWorker {
          */
         this.mErrorCounter = this.getJobExecutor().ejCurrentJob.getErrorCounter(this.getName());
 
+      
+
+        if (this.isFirstThreadToEnterInitializePhase())
+            this.mqacQACollection.initializeCheck();
+
         return 0;
+    }
+
+    protected ETLTrigger addTrigger(Node xmlNode) throws KETLThreadException {
+        ETLTrigger tTrigger = new ETLTrigger(this);
+
+        // Call the initialize() method ourselves to get any errors in the config...
+        if (tTrigger.initialize(xmlNode, this) != 0) {
+            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "unable to create trigger in step '"
+                    + this.getName() + "'.");
+
+            return null;
+        }
+
+        mvTriggers.add(tTrigger);
+
+        return tTrigger;
+    }
+
+    private QACollection getQACollection(Node xmlConfig) throws KETLThreadException {
+        return this.getJobExecutor().getQACollection(this.getName(), this, xmlConfig);
+    }
+
+    protected QACollection getQACollection() throws KETLThreadException {
+
+        if (this.mqacQACollection == null)
+            this.mqacQACollection = this.getQACollection(this.getXMLConfig());
+        return this.mqacQACollection;
     }
 
     public void recordToLog(Object entry, boolean info) {
@@ -489,15 +561,15 @@ public abstract class ETLStep extends ETLWorker {
 
         java.util.Date dt = new java.util.Date();
         ArrayList log = (ArrayList) this.getJobExecutor().ejCurrentJob.getLog(this.getName());
-        this.getJobExecutor().ejCurrentJob.logJobMessage("[" + dt.toString()+ "]" + entry);
-        if(info)
-        	return;
+        this.getJobExecutor().ejCurrentJob.logJobMessage("[" + dt.toString() + "]" + entry);
+        if (info)
+            return;
         // cannot have more than a 100 in memory
         if (log.size() > 100) {
             log.remove(0);
         }
 
-        if (log.contains(entry) == false) {        	
+        if (log.contains(entry) == false) {
             log.add(new Object[] { entry, dt });
         }
     }
@@ -524,16 +596,16 @@ public abstract class ETLStep extends ETLWorker {
         return this.mErrorCounter.value();
     }
 
-    public Exception getLastException(){
+    public Exception getLastException() {
         return this.mLastError;
     }
-    
+
     private Exception mLastError = null;
 
     private boolean mbFirstThreadToStart = false;
 
-    private boolean mbLastThreadToComplete =  false;
-    
+    private boolean mbLastThreadToComplete = false;
+
     protected void incrementErrorCount(Exception e, int i, int recordCounter) throws Exception {
 
         this.mLastError = e;
@@ -546,30 +618,83 @@ public abstract class ETLStep extends ETLWorker {
 
     }
 
+    protected void incrementErrorCount(ETLEvent event, int i) throws KETLQAException {
+
+        if (this.mErrorCounter.increment(i) > this.miErrorLimit) {
+            throw new KETLQAException("Step halted, QA failed, see below for details: " + event.mstrMessage, event,
+                    this);
+        }
+
+    }
+
     @Override
     public boolean success() {
-                
+
         SharedCounter cnt = this.getJobExecutor().ejCurrentJob.getErrorCounter(this.getName());
 
         int res = cnt.value();
-        if (res > this.miErrorLimit){
-            if(this.getJobExecutor().getCurrentETLJob().getStatus().getException()==null)
+        if (res > this.miErrorLimit) {
+            if (this.getJobExecutor().getCurrentETLJob().getStatus().getException() == null)
                 this.mkjExecutor.getCurrentETLJob().getStatus().setException(this.mLastError);
             return false;
-            
+
         }
 
         return true;
     }
 
-    public ETLTrigger[] getTriggers() {
-        // TODO Auto-generated method stub
-        return null;
+    private boolean mbCaseCheckPerformedAlready = false;
+
+    protected boolean matchesEventHandler(String strHandler, String strRequiredHandler) {
+        if (strHandler.equals(strRequiredHandler)) {
+            return true;
+        }
+
+        if ((mbCaseCheckPerformedAlready == false) && strHandler.equalsIgnoreCase(strRequiredHandler)) {
+            ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Event handler is \"" + strHandler
+                    + "\" and event generated is \"" + strRequiredHandler + "\" possible case error in XML");
+            mbCaseCheckPerformedAlready = true;
+        }
+
+        return false;
     }
 
-    public int handleEvent(String mstrHandler, ETLEvent event) {
-        // TODO Auto-generated method stub
+    public int handleEvent(String strHandler, ETLEvent event) throws KETLQAException {
+        if (matchesEventHandler(strHandler, LOG_MESSAGE_HANDLER)) {
+            return handleLogMessage(event);
+        }
+        else if (matchesEventHandler(strHandler, FATAL_ERROR_HANDLER)) {
+            return handleFatalError(event);
+        }
+        else if (matchesEventHandler(strHandler, LOG_ERROR_HANDLER)) {
+            return handleErrorMessage(event);
+        }
+
         return 0;
+    }
+
+    public int handleLogMessage(ETLEvent event) {
+        // to DB
+        ResourcePool.LogMessage(event.getETLStep(), ResourcePool.EVENT_MESSAGE_TYPE, ResourcePool.INFO_MESSAGE,
+                event.mstrMessage, event.getExtendedMessage(), true);
+
+        // to stdout
+        ResourcePool.LogMessage(event.getETLStep(), ResourcePool.EVENT_MESSAGE_TYPE, ResourcePool.INFO_MESSAGE,
+                event.mstrMessage, event.getExtendedMessage(), false);
+
+        return 1;
+    }
+
+    public int handleErrorMessage(ETLEvent event) throws KETLQAException {
+        this.incrementErrorCount(event, 1);
+
+        return 1;
+    }
+
+    public int handleFatalError(ETLEvent event) throws KETLQAException {
+        ResourcePool.LogMessage(event.getETLStep(), ResourcePool.EVENT_MESSAGE_TYPE, ResourcePool.FATAL_MESSAGE,
+                event.mstrMessage, event.getExtendedMessage(), true);
+        throw new KETLQAException("Step halted, QA failed, see below for details: " + event.mstrMessage, event, this);
     }
 
     private boolean _isFirstThreadToStart() {
@@ -583,34 +708,42 @@ public abstract class ETLStep extends ETLWorker {
     }
 
     private boolean _isLastThreadToComplete() {
-                
+
         ETLJob kj = this.mkjExecutor.getCurrentETLJob();
 
         SharedCounter cnt = kj.getCounter("SHUTDOWN" + this.getName());
-        if (cnt.increment(1) == this.partitions){
+        if (cnt.increment(1) == this.partitions) {
             return true;
         }
         return false;
     }
-    
+
     public boolean isFirstThreadToEnterInitializePhase() {
         return mbFirstThreadToStart;
     }
 
-    public boolean isLastThreadToEnterCompletePhase() {                
+    public boolean isLastThreadToEnterCompletePhase() {
         return mbLastThreadToComplete;
     }
 
-
     public void logException(KETLThreadException exception) {
         this.mLastError = exception;
-        
+
         this.recordToLog(exception, false);
-        
-        if(this.mErrorCounter == null)
+
+        if (this.mErrorCounter == null)
             this.mErrorCounter = this.getJobExecutor().ejCurrentJob.getErrorCounter(this.getName());
-        
+
         this.mErrorCounter.increment(1);
+    }
+
+    public List getTriggers() {
+        return this.mvTriggers;
+    }
+
+    public ETLStep getTargetStep(String mstrTargetStep) throws KETLThreadException {
+        return (ETLStep) this.getThreadManager().getStep(this, mstrTargetStep);
+
     }
 
 }

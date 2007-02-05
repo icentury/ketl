@@ -17,8 +17,11 @@ import org.w3c.dom.NodeList;
 
 import com.kni.etl.Metadata;
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.ETLEvent;
 import com.kni.etl.ketl.ETLPort;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.exceptions.KETLQAException;
+import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
 
 /**
@@ -27,7 +30,7 @@ import com.kni.etl.util.XMLHelper;
 public class QACollection extends QA {
 
     public static String QA = "QA";
-    ArrayList aItemsToCheck = null;
+    QAItemLevelEventGenerator aItemsToCheck[] = null;
     QAInitializeLevelEventGenerator[] initializeLevel = null;
     QARecordLevelEventGenerator[] recordLevel = null;
 
@@ -51,8 +54,6 @@ public class QACollection extends QA {
             addQAForStep(sQAName);
         }
 
-        // get item checks
-        this.aItemsToCheck = new ArrayList();
     }
 
     final public boolean addQAForItem(ETLPort eiItem, Node xmlNode) {
@@ -88,18 +89,18 @@ public class QACollection extends QA {
                     qaObject.initialize(this.step, eiItem, n);
 
                     if (qaObject != null) {
-                        switch (qaObject.getCheckLevel()) {
-                        case QAEventGenerator.ITEM:
-                            this.aItemsToCheck.add(qaObject);
-                            qaItems.add(qaObject);
-
-                            break;
-
-                        default:
-                            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "QA check level not supported, for class " + sQAClass);
-
-                            break;
+                        if (this.aItemsToCheck == null) {
+                            this.aItemsToCheck = new QAItemLevelEventGenerator[1];
+                            this.aItemsToCheck[0] = (QAItemLevelEventGenerator) qaObject;
                         }
+                        else {
+                            QAItemLevelEventGenerator[] tmp = new QAItemLevelEventGenerator[this.aItemsToCheck.length + 1];
+                            System.arraycopy(this.aItemsToCheck, 0, tmp, 0, this.aItemsToCheck.length);
+                            this.aItemsToCheck = tmp;
+
+                            this.aItemsToCheck[this.aItemsToCheck.length - 1] = (QAItemLevelEventGenerator) qaObject;
+                        }
+                        qaItems.add(qaObject);
                     }
                 } catch (Exception e) {
                     ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "QA collection could not create class "
@@ -162,8 +163,7 @@ public class QACollection extends QA {
                     qaObject.initialize(this.step, n);
 
                     if (qaObject != null) {
-                        switch (qaObject.getCheckLevel()) {
-                        case QAEventGenerator.INITIALIZE:
+                        if (qaObject instanceof QAInitializeLevelEventGenerator) {
 
                             if (this.initializeLevel == null) {
                                 this.initializeLevel = new QAInitializeLevelEventGenerator[1];
@@ -177,9 +177,8 @@ public class QACollection extends QA {
                                 this.initializeLevel[this.initializeLevel.length - 1] = (QAInitializeLevelEventGenerator) qaObject;
                             }
 
-                            break;
-
-                        case QAEventGenerator.RECORD:
+                        }
+                        else if (qaObject instanceof QARecordLevelEventGenerator) {
 
                             if (this.recordLevel == null) {
                                 this.recordLevel = new QARecordLevelEventGenerator[1];
@@ -191,15 +190,11 @@ public class QACollection extends QA {
                                 this.recordLevel = tmp;
                                 this.recordLevel[this.recordLevel.length - 1] = (QARecordLevelEventGenerator) qaObject;
                             }
-
-                            break;
-
-                        default:
+                        }
+                        else
                             ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE,
                                     "QA check level not supported, for class " + sQAClass);
 
-                            break;
-                        }
                     }
                 } catch (Exception e) {
                     ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "QA collection could not create class "
@@ -230,18 +225,14 @@ public class QACollection extends QA {
         return aQANodes[0];
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QA#postCompleteCheck()
-     */
-    public void postCompleteCheck() {
+    public void completeCheck() throws KETLQAException {
         Metadata md = ResourcePool.getMetadata();
 
         if (recordLevel != null) {
             for (int i = recordLevel.length - 1; i >= 0; i--) {
-                recordLevel[i].postCompleteCheck();
-
+                ETLEvent res = recordLevel[i].completeCheck();
+                if (res != null)
+                    recordLevel[i].fireEvent(res);
                 if (md != null) {
                     recordHistory(md, recordLevel[i]);
                 }
@@ -249,18 +240,18 @@ public class QACollection extends QA {
         }
 
         if (this.aItemsToCheck != null) {
-            for (int i = aItemsToCheck.size() - 1; i >= 0; i--) {
-                ((QAEventGenerator) aItemsToCheck.get(i)).postCompleteCheck();
-
+            for (int i = aItemsToCheck.length - 1; i >= 0; i--) {
+                ETLEvent res = aItemsToCheck[i].completeCheck();
+                if (res != null)
+                    aItemsToCheck[i].fireEvent(res);
                 if (md != null) {
-                    recordHistory(md, (QAEventGenerator) aItemsToCheck.get(i));
+                    recordHistory(md, aItemsToCheck[i]);
                 }
             }
         }
 
         if (initializeLevel != null) {
             for (int i = initializeLevel.length - 1; i >= 0; i--) {
-                initializeLevel[i].postCompleteCheck();
 
                 if (md != null) {
                     recordHistory(md, initializeLevel[i]);
@@ -269,18 +260,15 @@ public class QACollection extends QA {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.qa.QA#postInitializeCheck()
-     */
-    public void postInitializeCheck() {
+    public void initializeCheck() throws KETLThreadException {
         if (initializeLevel == null) {
             return;
         }
 
         for (int i = initializeLevel.length - 1; i >= 0; i--) {
-            initializeLevel[i].postInitializeCheck();
+            ETLEvent res = initializeLevel[i].InitializeCheck();
+            if (res != null)
+                initializeLevel[i].fireEvent(res);
         }
     }
 
@@ -289,13 +277,15 @@ public class QACollection extends QA {
      * 
      * @see com.kni.etl.ketl.qa.QA#postPutNextRecordCheck()
      */
-    public void prePutNextRecordCheck(Object[] rr) {
+    public void recordCheck(Object[] rr, Exception e) throws KETLQAException {
         if (recordLevel == null) {
             return;
         }
 
         for (int i = recordLevel.length - 1; i >= 0; i--) {
-            recordLevel[i].prePutNextRecordCheck(rr);
+            ETLEvent res = recordLevel[i].recordCheck(rr, e);
+            if (res != null)
+                recordLevel[i].fireEvent(res);
         }
     }
 
@@ -311,5 +301,17 @@ public class QACollection extends QA {
 
     public String toString() {
         return ("QA Collection for step " + this.step);
+    }
+
+    public void itemChecks(Object[] di, Exception e) throws KETLQAException {
+        if (this.aItemsToCheck != null) {
+            for (int i = aItemsToCheck.length - 1; i >= 0; i--) {
+                ETLEvent res = aItemsToCheck[i].itemCheck(di, e);
+                if (res != null)
+                    aItemsToCheck[i].fireEvent(res);
+
+            }
+        }
+
     }
 }

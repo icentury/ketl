@@ -12,6 +12,7 @@ public class DatabaseColumnDefinition extends ColumnDefinition {
     public static int UPDATE_TRIGGER_COLUMN = 1 << 2;
     public static int UPDATE_COLUMN = 1 << 3;
     public static int INSERT_COLUMN = 1 << 4;
+    public static int HASH_COLUMN = 1 << 5;
 
     private String mAlternateInsertValue = null;
     private String mAlternateUpdateValue = null;
@@ -94,6 +95,7 @@ public class DatabaseColumnDefinition extends ColumnDefinition {
         tmp.append("SK = " + this.hasProperty(SRC_UNIQUE_KEY) + "\n");
         tmp.append("IN = " + this.hasProperty(INSERT_COLUMN) + "\n");
         tmp.append("UP = " + this.hasProperty(UPDATE_COLUMN) + "\n");
+        tmp.append("HC = " + this.hasProperty(HASH_COLUMN) + "\n");
         tmp.append("UT = " + this.hasProperty(UPDATE_TRIGGER_COLUMN));
 
         return tmp.toString();

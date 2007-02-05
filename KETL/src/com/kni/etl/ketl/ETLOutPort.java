@@ -9,10 +9,13 @@ import com.kni.etl.util.XMLHelper;
 
 public class ETLOutPort extends ETLPort {
 
+    
     public ETLOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
         super(esOwningStep, esSrcStep);
         // TODO Auto-generated constructor stub
     }
+
+
 
     public String getChannel() {
         return ((Element) this.getXMLConfig()).getAttribute("CHANNEL");

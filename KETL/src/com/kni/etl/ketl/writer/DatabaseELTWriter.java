@@ -83,6 +83,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     private static final String ALTERNATE_VALUE_SUB = "${PARAM}";
     public static final String BATCH_ATTRIB = "BATCHDATA";
     public static final String HANDLER_ATTRIB = "HANDLER";
+    public static final String HASH_COLUMN_ATTRIB = "HASHCOLUMN";
+    public static final String HASH_COMPARE_ONLY_ATTRIB = "HASHCOMPAREONLY";
     private static final int BULK = 2;
     public static final String COMMITSIZE_ATTRIB = "COMMITSIZE";
     public static final String COMPARE_ATTRIB = "COMPARE";
@@ -231,6 +233,22 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             super(esOwningStep, esSrcStep);
         }
 
+    }
+
+    private DatabaseColumnDefinition defineHashColumn(String name) {
+        DatabaseColumnDefinition dcdNewColumn = new DatabaseColumnDefinition(null, name, java.sql.Types.INTEGER);
+
+        dcdNewColumn.setProperty(DatabaseColumnDefinition.HASH_COLUMN);
+        dcdNewColumn.setProperty(DatabaseColumnDefinition.INSERT_COLUMN);
+        dcdNewColumn.setProperty(DatabaseColumnDefinition.UPDATE_COLUMN);
+        dcdNewColumn.setProperty(DatabaseColumnDefinition.UPDATE_TRIGGER_COLUMN);
+
+        dcdNewColumn.exists = false;
+
+        mvColumns.add(0, dcdNewColumn);
+        mvColumnIndex.put(dcdNewColumn.getColumnName(null, mDBCase), dcdNewColumn);
+
+        return dcdNewColumn;
     }
 
     abstract protected String buildInBatchSQL(String pTable) throws Exception;
@@ -769,6 +787,10 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     private boolean mbReplaceMode;
     private String mFirstSK;
     private boolean mManageIndexes;
+    private String mHashColumn;
+    private DatabaseColumnDefinition mHashColumnDefinition;
+    private int[] miHashFields;
+    private boolean mHashCompareOnly;
 
     protected String getIDQuote() {
         if (this.idQuoteEnabled)
@@ -803,7 +825,9 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
         this.mbReinitOnError = XMLHelper.getAttributeAsBoolean(nmAttrs, "RECONNECTONERROR", true);
         this.mbReplaceMode = XMLHelper.getAttributeAsBoolean(nmAttrs, "REPLACEROWS", false);
-
+        
+        
+        
         this.mStreamChanges = XMLHelper.getAttributeAsBoolean(nmAttrs, STREAM_ATTRIB, this.mStreamChanges);
         this.mManageIndexes = XMLHelper.getAttributeAsBoolean(nmAttrs, "MANAGEINDEXES", false);
 
@@ -824,6 +848,16 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             this.mType = UPSERT;
             this.mHandleDuplicateKeys = XMLHelper.getAttributeAsBoolean(nmAttrs, HANDLE_DUPLICATES_ATTRIB,
                     this.mHandleDuplicateKeys);
+            
+            this.mHashColumn = XMLHelper.getAttributeAsString(nmAttrs, HASH_COLUMN_ATTRIB, null);
+            
+            if(this.mHashColumn != null)
+                this.mHashCompareOnly = XMLHelper.getAttributeAsBoolean(nmAttrs, HASH_COMPARE_ONLY_ATTRIB, false);
+
+            if (this.mHashColumn != null) {
+                this.mHashColumnDefinition = this.defineHashColumn(this.mHashColumn);
+            }
+
         }
         else if (tmpType.equalsIgnoreCase("BULK"))
             this.mType = BULK;
@@ -832,7 +866,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             this.mcDBConnection = ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword,
                     strPreSQL, true);
 
-            this.mcDBConnection.setAutoCommit(false);            
+            this.mcDBConnection.setAutoCommit(false);
             this.mDBType = this.mcDBConnection.getMetaData().getDatabaseProductName();
             this.mUsedConnections.add(this.mcDBConnection);
 
@@ -850,7 +884,6 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             }
             else if (md.storesMixedCaseIdentifiers()) {
                 this.mDBCase = MIXED_CASE;
-
             }
         } catch (Exception e) {
             throw new KETLThreadException(e, this);
@@ -874,11 +907,24 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             this.mStatementSeperator = null;
 
         // Convert the vector we've been building into a more common array...
-        madcdColumns = (DatabaseColumnDefinition[]) mvColumns.toArray(new DatabaseColumnDefinition[0]);
+        this.madcdColumns = (DatabaseColumnDefinition[]) mvColumns.toArray(new DatabaseColumnDefinition[0]);
 
         // get column datatype from the database
         try {
             getColumnDataTypes();
+
+            if (this.mHashColumnDefinition != null && this.mHashColumnDefinition.exists == false) {
+                String template = this.getStepTemplate(mDBType, "ADDHASHCOLUMN", true);
+
+                template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrSchemaName
+                        + this.mstrTableName);
+                template = EngineConstants.replaceParameterV2(template, "COLUMNNAME", this.mstrSchemaName
+                        + this.mHashColumn);
+
+                throw new KETLThreadException("Hash column does not exist in target table, expected column "
+                        + this.mHashColumnDefinition.getColumnName(getIDQuote(), this.mDBCase)
+                        + ", execute the following SQL command to add the hash column '" + template + "'", this);
+            }
 
             int joinKey = -1, bestJoinKey = -1;
             if (this.mPrimaryKeySpecified) {
@@ -904,7 +950,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             String updColFormat = this.getStepTemplate(mDBType, "UPDATECOLUMNFORMAT", true);
 
             ArrayList fieldPopulationOrder = new ArrayList();
-
+            ArrayList hashFields = new ArrayList();
             int cntJoinColumns = 0, cntInsertColumns = 0, cntUpdateTriggers = 0, cntUpdateCols = 0, cntBestJoinColumns = 0, allColumnCount = 0;
 
             for (int i = 0; i < madcdColumns.length; i++) {
@@ -930,11 +976,12 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                                 .getColumnName(getIDQuote(), this.mDBCase));
 
                         if (madcdColumns[i].getAlternateUpdateValue() == null) {
-                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN",
-                                    "${SOURCETABLENAME}." + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN", "${SOURCETABLENAME}."
+                                    + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
                         }
                         else {
-                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN", madcdColumns[i].getAlternateUpdateValue());
+                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN", madcdColumns[i]
+                                    .getAlternateUpdateValue());
                         }
 
                         updateColumns.append(tmp);
@@ -942,27 +989,45 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                     }
 
                     if (this.madcdColumns[i].hasProperty(DatabaseColumnDefinition.UPDATE_TRIGGER_COLUMN)) {
-                        if (cntUpdateTriggers > 0) {
-                            updateTriggers.append(" OR ");
-                        }
-                        cntUpdateTriggers++;
 
-                        updateTriggers.append("((${DESTINATIONTABLENAME}.");
-                        updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                        updateTriggers.append(" != ${SOURCETABLENAME}.");
-                        updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                        updateTriggers.append(") OR (");
-                        updateTriggers.append("${DESTINATIONTABLENAME}.");
-                        updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                        updateTriggers.append(" is null and ${SOURCETABLENAME}.");
-                        updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                        updateTriggers.append(" is not null");
-                        updateTriggers.append(") OR (");
-                        updateTriggers.append("${DESTINATIONTABLENAME}.");
-                        updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                        updateTriggers.append(" is not null and ${SOURCETABLENAME}.");
-                        updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                        updateTriggers.append(" is null))");
+                        if (this.mHashColumn == null)
+                            hashFields.add(i);
+                        else if (i != 0)
+                            hashFields.add(new Integer(i - 1));
+
+                        
+                        if (this.mHashColumn == null || (this.mHashCompareOnly && i == 0)
+                                || (this.mHashCompareOnly == false)) {
+                            if (cntUpdateTriggers > 0) {
+                                updateTriggers.append(" OR ");
+                            }
+                            cntUpdateTriggers++;
+
+                            
+                            updateTriggers.append("((${DESTINATIONTABLENAME}.");
+                            updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                            updateTriggers.append(" != ${SOURCETABLENAME}.");
+                            updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                            updateTriggers.append(") OR (");
+
+                            if (i == 0 && this.mHashColumn != null) {
+                                updateTriggers.append("${DESTINATIONTABLENAME}."
+                                        + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase) + " is null))");
+                            }
+                            else {
+                                updateTriggers.append("${DESTINATIONTABLENAME}.");
+                                updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                updateTriggers.append(" is null and ${SOURCETABLENAME}.");
+                                updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                updateTriggers.append(" is not null");
+                                updateTriggers.append(") OR (");
+                                updateTriggers.append("${DESTINATIONTABLENAME}.");
+                                updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                updateTriggers.append(" is not null and ${SOURCETABLENAME}.");
+                                updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                updateTriggers.append(" is null))");
+                            }
+                        }
                     }
                 }
 
@@ -1025,8 +1090,10 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 allColumnCount++;
                 allColumns.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
                 insertValues.append('?');
-                fieldPopulationOrder.add(new Integer(i));
 
+                // if hash column then first column is hash column so offset columns by 1
+                fieldPopulationOrder.add(this.mHashColumnDefinition == null ? new Integer(i) : i == 0 ? new Integer(-1)
+                        : new Integer(i - 1));
             }
 
             if (this.mHandleDuplicateKeys) {
@@ -1037,6 +1104,11 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             miFieldPopulationOrder = new int[fieldPopulationOrder.size()];
             for (int i = 0; i < fieldPopulationOrder.size(); i++) {
                 miFieldPopulationOrder[i] = ((Integer) fieldPopulationOrder.get(i)).intValue();
+            }
+
+            miHashFields = new int[hashFields.size()];
+            for (int i = 0; i < hashFields.size(); i++) {
+                miHashFields[i] = ((Integer) hashFields.get(i)).intValue();
             }
 
             msUpdateColumns = updateColumns.toString();
@@ -1197,28 +1269,36 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 }
                 else {
                     Class datumClass;
-                    ETLInPort port = this.mInPorts[this.miFieldPopulationOrder[i - 1]];
-                    int idx = -1;
-                    if (port.isConstant())
-                        datumClass = port.getPortClass();
+
+                    int fieldID = this.miFieldPopulationOrder[i - 1];
+
+                    if (fieldID == -1 && this.mHashColumn != null) {
+                        this.stmt.setParameterFromClass(i, Integer.class, getHashCode(pInputRecords), maxCharLength,
+                                null);
+                    }
                     else {
-                        idx = port.getSourcePortIndex();
-                        datumClass = pExpectedDataTypes[idx];
-                    }
+                        ETLInPort port = this.mInPorts[fieldID];
+                        int idx = -1;
+                        if (port.isConstant())
+                            datumClass = port.getPortClass();
+                        else {
+                            idx = port.getSourcePortIndex();
+                            datumClass = pExpectedDataTypes[idx];
+                        }
 
-                    try {
-                        this.stmt.setParameterFromClass(i, datumClass, port.isConstant() ? port.getConstantValue()
-                                : pInputRecords[idx], maxCharLength, port.getXMLConfig());
-                    } catch (ClassCastException e1) {
-                        throw new KETLWriteException("Error with port "
-                                + port.mstrName
-                                + " expected datatype "
-                                + datumClass.getCanonicalName()
-                                + " incoming datatype was "
-                                + (port.isConstant() ? port.getPortClass() : pInputRecords[idx].getClass()
-                                        .getCanonicalName()));
+                        try {
+                            this.stmt.setParameterFromClass(i, datumClass, port.isConstant() ? port.getConstantValue()
+                                    : pInputRecords[idx], maxCharLength, port.getXMLConfig());
+                        } catch (ClassCastException e1) {
+                            throw new KETLWriteException("Error with port "
+                                    + port.mstrName
+                                    + " expected datatype "
+                                    + datumClass.getCanonicalName()
+                                    + " incoming datatype was "
+                                    + (port.isConstant() ? port.getPortClass() : pInputRecords[idx].getClass()
+                                            .getCanonicalName()));
+                        }
                     }
-
                 }
 
             }
@@ -1289,17 +1369,26 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                             }
                             else {
                                 Class datumClass;
-                                ETLInPort port = this.mInPorts[this.miFieldPopulationOrder[i - 1]];
-                                int idx = -1;
-                                if (port.isConstant())
-                                    datumClass = port.getPortClass();
-                                else {
-                                    idx = port.getSourcePortIndex();
-                                    datumClass = this.getExpectedDataTypes()[idx];
-                                }
+                                int fieldID = this.miFieldPopulationOrder[i - 1];
 
-                                this.stmt.setParameterFromClass(i, datumClass, port.isConstant() ? port
-                                        .getConstantValue() : record[idx], maxCharLength, port.getXMLConfig());
+                                if (fieldID == -1 && this.mHashColumn != null) {
+                                    this.stmt.setParameterFromClass(i, Integer.class, getHashCode(record),
+                                            maxCharLength, null);
+
+                                }
+                                else {
+                                    ETLInPort port = this.mInPorts[fieldID];
+                                    int idx = -1;
+                                    if (port.isConstant())
+                                        datumClass = port.getPortClass();
+                                    else {
+                                        idx = port.getSourcePortIndex();
+                                        datumClass = this.getExpectedDataTypes()[idx];
+                                    }
+
+                                    this.stmt.setParameterFromClass(i, datumClass, port.isConstant() ? port
+                                            .getConstantValue() : record[idx], maxCharLength, port.getXMLConfig());
+                                }
                             }
                         }
 
@@ -1334,6 +1423,28 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
         return result;
 
+    }
+
+    private int getHashCode(Object[] record) {
+
+        if (record == null)
+            return 0;
+
+        int result = 1;
+
+        for (int i = 0; i < this.miHashFields.length; i++) {
+            ETLInPort port = this.mInPorts[this.miHashFields[i]];
+            int hash;
+            if (port.isConstant())
+                hash = port.getConstantValue().hashCode();
+            else {
+                Object obj = record[port.getSourcePortIndex()];
+                hash = obj == null ? 0 : obj.hashCode();
+            }
+
+            result = 31 * result + hash;
+        }
+        return result;
     }
 
     long mLowMemoryThreashold = -1;
@@ -1475,8 +1586,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         if (this.isLastThreadToEnterCompletePhase()) {
             // wait for all other threads to complete
             this.setWaiting("all other threads in group to complete");
-            while (this.getThreadManager().countOfStepThreadsAlive(this)>1) {
-                try {                    
+            while (this.getThreadManager().countOfStepThreadsAlive(this) > 1) {
+                try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     throw new KETLError(e);

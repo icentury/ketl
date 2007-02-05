@@ -216,7 +216,7 @@ public class ResourcePool {
     /*
      * Handle to catch exceptions rather than using printstacktrace eventually these will log to the metadata
      */
-    public static synchronized void LogException(Exception pException, Object pSource) {
+    public static synchronized void LogException(Throwable pException, Object pSource) {
         // temp measure
         ETLStep es = null;
 
