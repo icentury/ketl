@@ -61,33 +61,32 @@ public class ResourcePool {
         ResourcePool.LogMessage(Thread.currentThread().getName(), strMessage);
     }
 
-    private final static int UNKNOWN_MESSAGE_TYPE = -1;
+    private final static int DEFAULT_ERROR_CODE = -1;
     private final static int UNKNOWN_MESSAGE_LEVEL = -1;
     public final static int FATAL_MESSAGE = 1;
     public final static int DEBUG_MESSAGE = 4;
     public final static int INFO_MESSAGE = 0;
     public final static int ERROR_MESSAGE = 2;
     public final static int WARNING_MESSAGE = 3;
-    public final static int EVENT_MESSAGE_TYPE = 0;
-
+    
     /*
      * Handle to catch messages rather than using system.out eventually these will log to the metadata
      */
     public static synchronized void LogMessage(Object oSource, String strMessage) {
-        ResourcePool.LogMessage(oSource, UNKNOWN_MESSAGE_TYPE, UNKNOWN_MESSAGE_LEVEL, strMessage, null, false);
+        ResourcePool.LogMessage(oSource, DEFAULT_ERROR_CODE, UNKNOWN_MESSAGE_LEVEL, strMessage, null, false);
     }
 
     /*
      * Handle to catch messages rather than using system.out eventually these will log to the metadata
      */
     public static synchronized void LogMessage(Object oSource, int iLevel, String strMessage) {
-        ResourcePool.LogMessage(oSource, UNKNOWN_MESSAGE_TYPE, iLevel, strMessage, null, false);
+        ResourcePool.LogMessage(oSource, DEFAULT_ERROR_CODE, iLevel, strMessage, null, false);
     }
 
     /*
      * Handle to catch messages rather than using system.out eventually these will log to the metadata and
      */
-    public static synchronized void LogMessage(Object oSource, int iType, int iLevel, String strMessage,
+    public static synchronized void LogMessage(Object oSource, int iErrorCode, int iLevel, String strMessage,
             String strExtendedDetails, boolean bToDB) {
 
         ETLStep eStep = null;
@@ -121,7 +120,7 @@ public class ResourcePool {
 
         if (bToDB) {
             if (ResourcePool.getMetadata() != null) {
-                ResourcePool.getMetadata().recordJobMessage(eJob, eStep, iType, iLevel, strMessage, strExtendedDetails,
+                ResourcePool.getMetadata().recordJobMessage(eJob, eStep, iErrorCode, iLevel, strMessage, strExtendedDetails,
                         true);
             }
         }
@@ -134,33 +133,7 @@ public class ResourcePool {
             else
                 sourceDesc.append(oSource.toString());
 
-            String lvl;
-            switch (iLevel) {
-            case DEBUG_MESSAGE:
-                lvl = "DEBUG";
-
-                break;
-            case FATAL_MESSAGE:
-                lvl = "FATAL";
-
-                break;
-
-            case ERROR_MESSAGE:
-                lvl = "ERROR";
-
-                break;
-
-            case WARNING_MESSAGE:
-                lvl = "WARNING";
-
-                break;
-
-            case INFO_MESSAGE:
-                lvl = "INFO";
-                break;
-            default:
-                lvl = "UNKNOWN";
-            }
+            String lvl = getAlertLevelName(iLevel);
 
             if ((logger == null) || (System.getProperty("log4j.configuration") == null)) {
                 logger = null;
@@ -211,6 +184,37 @@ public class ResourcePool {
                 }
             }
         }
+    }
+
+    public static String getAlertLevelName(int iLevel) {
+        String lvl;
+        switch (iLevel) {
+        case DEBUG_MESSAGE:
+            lvl = "DEBUG";
+
+            break;
+        case FATAL_MESSAGE:
+            lvl = "FATAL";
+
+            break;
+
+        case ERROR_MESSAGE:
+            lvl = "ERROR";
+
+            break;
+
+        case WARNING_MESSAGE:
+            lvl = "WARNING";
+
+            break;
+
+        case INFO_MESSAGE:
+            lvl = "INFO";
+            break;
+        default:
+            lvl = "UNKNOWN";
+        }
+        return lvl;
     }
 
     /*

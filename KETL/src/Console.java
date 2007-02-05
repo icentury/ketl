@@ -282,7 +282,7 @@ public class Console {
                     md.importJob(job);
                 }
             } catch (org.xml.sax.SAXException e) {
-                ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Parsing XML document, "
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Parsing XML document, "
                         + e.toString());
 
                 System.exit(EngineConstants.INVALID_XML_EXIT_CODE);
@@ -332,7 +332,7 @@ public class Console {
                     md.importParameterList(parameterList);
                 }
             } catch (org.xml.sax.SAXException e) {
-                ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Parsing XML document, "
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Parsing XML document, "
                         + e.toString());
 
                 System.exit(EngineConstants.INVALID_XML_EXIT_CODE);
@@ -1281,5 +1281,10 @@ public class Console {
 
     private String unknownCommand(String pCommand) {
         return ("Error unknown command: " + pCommand);
+    }
+
+    @Override
+    public String toString() {
+        return "Console";
     }
 }

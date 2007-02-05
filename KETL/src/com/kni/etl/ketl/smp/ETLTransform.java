@@ -15,6 +15,7 @@ import org.w3c.dom.Node;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLInPort;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
 import com.kni.etl.util.ExternalSort;
@@ -383,8 +384,9 @@ public abstract class ETLTransform extends ETLStep {
      * @param o
      * @return
      * @throws KETLTransformException
+     * @throws KETLQAException 
      */
-    final Object[][] transformBatch(Object[][] res, int length) throws KETLTransformException {
+    final Object[][] transformBatch(Object[][] res, int length) throws KETLTransformException, KETLQAException {
         int resultLength = 0;
         int outputArraySize = length;
         boolean newDataArray = true;
@@ -459,7 +461,7 @@ public abstract class ETLTransform extends ETLStep {
         return data;
     }
 
-    final private void transformFromQueue() throws InterruptedException, KETLTransformException {
+    final private void transformFromQueue() throws InterruptedException, KETLTransformException, KETLQAException {
 
         while (true) {
             this.interruptExecution();
@@ -505,7 +507,7 @@ public abstract class ETLTransform extends ETLStep {
     }
 
     private void transformFromSort() throws IOException, ClassNotFoundException, InterruptedException,
-            KETLTransformException {
+            KETLTransformException, KETLQAException {
         boolean readData = true;
         while (true) {
             this.interruptExecution();

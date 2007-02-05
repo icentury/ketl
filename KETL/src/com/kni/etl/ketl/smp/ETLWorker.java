@@ -950,7 +950,7 @@ abstract public class ETLWorker implements Runnable {
             }
             else if (this instanceof ETLStep) {
                 ETLStep step = (ETLStep) this;
-                step.getJobExecutor().getCurrentETLJob().getStatus().setException(new Exception(e));
+                step.getJobExecutor().getCurrentETLJob().getStatus().setException(e);
                 step.getJobExecutor().getCurrentETLJob().getStatus().setErrorMessage(e.getMessage());
             }
             this.interruptAllSteps();

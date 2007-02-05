@@ -13,6 +13,7 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLOutPort;
 import com.kni.etl.ketl.ETLPort;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLReadException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
@@ -191,7 +192,7 @@ public abstract class ETLReader extends ETLStep {
     private int mSamplingRate;
     private int count=0;
 
-    final protected Object[][] getNextBatch() throws KETLReadException {
+    final protected Object[][] getNextBatch() throws KETLReadException, KETLQAException {
         Object[][] batch = new Object[this.batchSize][];
         int resultLength = 0;
         for (int i = 0; i < this.batchSize; i++) {

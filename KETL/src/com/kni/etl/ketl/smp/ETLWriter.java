@@ -15,6 +15,7 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLInPort;
 import com.kni.etl.ketl.ETLPort;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
 import com.kni.etl.util.XMLHelper;
@@ -71,7 +72,7 @@ public abstract class ETLWriter extends ETLStep {
     final protected void initializeOutports(ETLPort[] outPortNodes) throws KETLThreadException {
     }
 
-    final protected int putNextBatch(Object[][] o, int length) throws KETLWriteException {
+    final protected int putNextBatch(Object[][] o, int length) throws KETLWriteException, KETLQAException {
         int count = 0;
         for (int i = 0; i < length; i++) {
             try {
@@ -99,7 +100,7 @@ public abstract class ETLWriter extends ETLStep {
 
     private WriterBatchManager mBatchManager;
 
-    final protected void executeWorker() throws InterruptedException, KETLWriteException {
+    final protected void executeWorker() throws InterruptedException, KETLWriteException, KETLQAException {
         int res;
         while (true) {
             this.interruptExecution();

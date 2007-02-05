@@ -116,6 +116,8 @@ public class ETLThreadManager {
             try {
                 ((WorkerThread) o).step.initialize(mkjExecutor);
             } catch (Throwable e) {
+                if(e instanceof KETLThreadException)
+                    throw (KETLThreadException) e;
                 throw new KETLThreadException(e.getMessage(), e);
             }
         }
@@ -248,7 +250,7 @@ public class ETLThreadManager {
 
                         if (ResourcePool.getMetadata() != null) {
                             ResourcePool.getMetadata().recordJobMessage(eJob, (ETLStep) wt.step,
-                                    ResourcePool.ERROR_MESSAGE, -1, msg, extMsg, false, dt);
+                                    eJob.getStatus().getErrorCode(),ResourcePool.ERROR_MESSAGE,  msg, extMsg, false, dt);
 
                         }
                     }

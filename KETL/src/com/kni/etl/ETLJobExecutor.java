@@ -18,6 +18,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.exceptions.KETLQAException;
+import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
 import com.kni.util.ArgumentParserUtil;
 
@@ -135,7 +137,13 @@ public abstract class ETLJobExecutor extends Thread {
         if (pExitCleanly)
             return code;
 
-        throw e == null ? new RuntimeException("Exit code: " + code) : (e instanceof RuntimeException? (RuntimeException)e:new RuntimeException(e));
+        if (e == null)
+            throw new RuntimeException("Exit code: " + code);
+        else if (e instanceof RuntimeException)
+            throw (RuntimeException) e;
+        else {
+            throw new RuntimeException(e);
+        }
     }
 
     public static void execute(String[] args, ETLJobExecutor pETLJobExecutor, boolean pExitCleanly) {
@@ -214,8 +222,8 @@ public abstract class ETLJobExecutor extends Thread {
                 }
             }
         } catch (Exception e1) {
-            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, "Metadata not available, check KETLServers.xml - "
-                    + e1.getMessage() + ", ");
+            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+                    "Metadata not available, check KETLServers.xml - " + e1.getMessage() + ", ");
             ResourcePool.setMetadata(null);
         }
 
@@ -356,22 +364,22 @@ public abstract class ETLJobExecutor extends Thread {
                     kj.setAction(XMLHelper.outputXML(node));
 
                     if (jobName == null) {
-                        kj.setJobID(XMLHelper.getAttributeAsString(node.getAttributes(), "ID", XMLHelper.getAttributeAsString(node.getAttributes(), "NAME", null)));
+                        kj.setJobID(XMLHelper.getAttributeAsString(node.getAttributes(), "ID", XMLHelper
+                                .getAttributeAsString(node.getAttributes(), "NAME", null)));
                     }
                     else {
                         kj.setJobID(jobName);
                     }
 
-                    
                     lStartTime = System.currentTimeMillis();
                     je.executeJob(kj);
                     lEndTime = System.currentTimeMillis();
 
                     try {
-						kj.cleanup();
-					} catch (Exception e) {
-					}
-                    
+                        kj.cleanup();
+                    } catch (Exception e) {
+                    }
+
                     if (kj.getStatus().getErrorCode() != 0) {
                         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Job failed ("
                                 + kj.getStatus().getErrorCode() + ") : " + kj.getStatus().getErrorMessage());
@@ -391,9 +399,14 @@ public abstract class ETLJobExecutor extends Thread {
                     + e.toString());
             return (exit(EngineConstants.INVALID_XML_EXIT_CODE, e, pExitCleanly));
         } catch (RuntimeException e) {
-            
-            ResourcePool.LogException(e.getCause()==null?e:(Exception) e.getCause(), null);
-            return (exit(EngineConstants.OTHER_ERROR_EXIT_CODE, e, pExitCleanly));
+            Throwable t = e.getCause() == null ? e : (Exception) e.getCause();
+
+            int exitCode = EngineConstants.OTHER_ERROR_EXIT_CODE;
+            if (t instanceof KETLQAException)
+                exitCode = ((KETLQAException) t).getErrorCode();
+            else
+                ResourcePool.LogException(e.getCause() == null ? e : (Exception) e.getCause(), null);
+            return (exit(exitCode, e, pExitCleanly));
         } catch (Exception e) {
             ResourcePool.LogException(e, null);
             return (exit(EngineConstants.OTHER_ERROR_EXIT_CODE, e, pExitCleanly));

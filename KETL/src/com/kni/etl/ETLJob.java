@@ -847,23 +847,32 @@ public class ETLJob {
             }
         }
     }
+
+    private void flushLog() throws IOException {
+        if (moDump != null) {
+            this.mDumpWriter.flush();
+            this.moDumpBuffer.flush();
+            this.moDump.flush();
+        }
+    }
+
     private void closeLog() {
         if (this.mLoggerFailed == false && this.moDump != null) {
             try {
-                if(moDump != null){
-                this.mDumpWriter.flush();
-                this.mDumpWriter.close();
-                this.moDumpBuffer.close();
-                this.moDump.close();
-                this.moDump = null;
+                if (moDump != null) {
+                    this.mDumpWriter.flush();
+                    this.mDumpWriter.close();
+                    this.moDumpBuffer.close();
+                    this.moDump.close();
+                    this.moDump = null;
                 }
                 if (this.isSuccessful()) {
                     File fDel = new File(this.mDumpFile);
                     fDel.delete();
                 }
-                else 
-                    ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
-                            "Job details logged to " + this.mDumpFile);
+                else
+                    ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Job details logged to "
+                            + this.mDumpFile);
             } catch (IOException e) {
                 this.mLoggerFailed = true;
                 System.err.println("Job logging failed: " + e.toString());
@@ -871,8 +880,9 @@ public class ETLJob {
             }
         }
     }
-    
-    public String getDumpFile() {
+
+    public String getDumpFile() throws IOException {
+        this.flushLog();
         return this.mDumpFile;
     }
 

@@ -41,7 +41,7 @@ public abstract class QAEventGenerator extends QA {
 
     final static String[] abrevs = { null, "k", "mb", "gb", "tb" };
     static final String[] timeAbrevs = { null, "d", "m", "s", "h" };
-    static final int[] timeSizes = { 1, 86400, 1, 60, 60 * 60 };
+    static final int[] timeSizes = { 1, 86400, 60, 1, 60 * 60 };
     static final BigDecimal[] sizes = { new BigDecimal("1"), new BigDecimal("1024"), new BigDecimal("1048576"),
             new BigDecimal("1073741824"), new BigDecimal("1099511627776") };
 
@@ -167,11 +167,7 @@ public abstract class QAEventGenerator extends QA {
             return 'd';
         }
 
-        try {
-            // if pure number then its days, convert to seconds
-            return 'd';
 
-        } catch (NumberFormatException e) {
             // couldn't convert directly therefore check for abbreviations
             for (int i = 1; i < QAEventGenerator.timeAbrevs.length; i++) {
                 String tmp = size.substring(size.length() - QAEventGenerator.timeAbrevs[i].length());
@@ -180,7 +176,7 @@ public abstract class QAEventGenerator extends QA {
                     return QAEventGenerator.timeAbrevs[i].charAt(0);
                 }
             }
-        }
+        
         return 'd';
     }
 

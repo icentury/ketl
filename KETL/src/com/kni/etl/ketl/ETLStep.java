@@ -675,11 +675,11 @@ public abstract class ETLStep extends ETLWorker {
 
     public int handleLogMessage(ETLEvent event) {
         // to DB
-        ResourcePool.LogMessage(event.getETLStep(), ResourcePool.EVENT_MESSAGE_TYPE, ResourcePool.INFO_MESSAGE,
+        ResourcePool.LogMessage(event.getETLStep(), event.getReturnCode(), ResourcePool.INFO_MESSAGE,
                 event.mstrMessage, event.getExtendedMessage(), true);
 
         // to stdout
-        ResourcePool.LogMessage(event.getETLStep(), ResourcePool.EVENT_MESSAGE_TYPE, ResourcePool.INFO_MESSAGE,
+        ResourcePool.LogMessage(event.getETLStep(),event.getReturnCode(), ResourcePool.INFO_MESSAGE,
                 event.mstrMessage, event.getExtendedMessage(), false);
 
         return 1;
@@ -692,7 +692,7 @@ public abstract class ETLStep extends ETLWorker {
     }
 
     public int handleFatalError(ETLEvent event) throws KETLQAException {
-        ResourcePool.LogMessage(event.getETLStep(), ResourcePool.EVENT_MESSAGE_TYPE, ResourcePool.FATAL_MESSAGE,
+        ResourcePool.LogMessage(event.getETLStep(), event.getReturnCode(), ResourcePool.FATAL_MESSAGE,
                 event.mstrMessage, event.getExtendedMessage(), true);
         throw new KETLQAException("Step halted, QA failed, see below for details: " + event.mstrMessage, event, this);
     }

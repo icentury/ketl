@@ -17,7 +17,7 @@ import com.kni.etl.ketl.ETLStep;
  * @author nicholas.wakefield TODO To change the template for this generated type comment go to Window - Preferences -
  *         Java - Code Style - Code Templates
  */
-public class KETLQAException extends KETLError {
+public class KETLQAException extends KETLThreadException {
 
     /**
      *
@@ -30,6 +30,7 @@ public class KETLQAException extends KETLError {
      * @param message
      */
     public KETLQAException(String message, ETLEvent etlEvent, ETLStep etlStep) {
+        super(message,etlStep);
         this.etlEvent = etlEvent;
         this.etlStep = etlStep;
     }
