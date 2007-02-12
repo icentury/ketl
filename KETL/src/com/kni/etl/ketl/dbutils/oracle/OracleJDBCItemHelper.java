@@ -45,5 +45,21 @@ public class OracleJDBCItemHelper extends JDBCItemHelper {
             super.setParameterFromClass(pPreparedStatement, parameterIndex, pClass, pDataItem, maxCharLength,
                     pXMLConfig);
     }
+    
+    
+    public String getJavaType(int pSQLType, int pLength, int pPrecision, int pScale) {
+                      
+        switch (pSQLType) {
+        case oracle.jdbc.OracleTypes.RAW:
+            return Byte[].class.getCanonicalName();
+        case oracle.jdbc.OracleTypes.BLOB:
+            return Byte[].class.getCanonicalName();
+        case oracle.jdbc.OracleTypes.CLOB:
+            return String.class.getCanonicalName();
+        default:
+            return super.getJavaType(pSQLType, pLength, pPrecision, pScale);
+        }
+    }
+
 
 }

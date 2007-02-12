@@ -103,9 +103,29 @@ final public class JDBCReader extends ETLReader implements DefaultReaderCore, QA
 
     public JDBCReader(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
+        
+        
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+        
+       
     }
 
+    private void instantiateHelper(Node pXMLConfig) throws KETLThreadException {
+        if(this.jdbcHelper != null) return;
+        
+        String hdl = XMLHelper.getAttributeAsString(pXMLConfig.getAttributes(), "HANDLER", null);
+        
+        if (hdl == null)
+            this.jdbcHelper = new JDBCItemHelper();
+        else {
+            try {
+                Class cl = Class.forName(hdl);
+                this.jdbcHelper = (JDBCItemHelper) cl.newInstance();
+            } catch (Exception e) {
+                throw new KETLThreadException("HANDLER class not found", e, this);
+            }
+        }
+    }
     protected boolean alwaysOverrideOuts() {
         return true;
     }
@@ -154,62 +174,9 @@ final public class JDBCReader extends ETLReader implements DefaultReaderCore, QA
 
     private String getJavaType(int pSQLType, int pLength, int pPrecision, int pScale) {
 
-        switch (pSQLType) {
-        case java.sql.Types.BIGINT:
-            return Long.class.getCanonicalName();
-        case java.sql.Types.BINARY:
-            return Byte[].class.getCanonicalName();
-        case java.sql.Types.BIT:
-            return Integer.class.getCanonicalName();
-        case java.sql.Types.CHAR:
-            return String.class.getCanonicalName();
-        case java.sql.Types.DATE:
-            return java.sql.Timestamp.class.getCanonicalName();
-        case java.sql.Types.DOUBLE:
-            return Double.class.getCanonicalName();
-        case java.sql.Types.FLOAT:
-            return Float.class.getCanonicalName();
-        case java.sql.Types.INTEGER:
-            return Integer.class.getCanonicalName();
-        case java.sql.Types.LONGVARBINARY:
-            return java.sql.Blob.class.getCanonicalName();
-        case java.sql.Types.LONGVARCHAR:
-            return java.sql.Clob.class.getCanonicalName();
-        case java.sql.Types.DECIMAL:
-        case java.sql.Types.NUMERIC:
-            if (pScale == 0 && pPrecision > 0) {
-                if (pPrecision < 5)
-                    return Short.class.getCanonicalName();
-                else if (pPrecision < 10)
-                    return Integer.class.getCanonicalName();
-                else if (pPrecision < 20)
-                    return Long.class.getCanonicalName();
-                else
-                    return Double.class.getCanonicalName();
-            }
-            if (pScale > 0) {
-                return Double.class.getCanonicalName();
-            }
-            return java.math.BigDecimal.class.getCanonicalName();
-        case java.sql.Types.REAL:
-            return Float.class.getCanonicalName();
-        case java.sql.Types.SMALLINT:
-            return Short.class.getCanonicalName();
-        case java.sql.Types.TIME:
-            return java.sql.Time.class.getCanonicalName();
-        case java.sql.Types.TIMESTAMP:
-            return java.sql.Timestamp.class.getCanonicalName();
-        case java.sql.Types.TINYINT:
-            return Byte.class.getCanonicalName();
-        case java.sql.Types.VARBINARY:
-            return Byte[].class.getCanonicalName();
-        case java.sql.Types.VARCHAR:
-            return String.class.getCanonicalName();
-        case java.sql.Types.BOOLEAN:
-            return Boolean.class.getCanonicalName();
-        default:
-            return Object.class.getCanonicalName();
-        }
+       
+            return this.jdbcHelper.getJavaType(pSQLType, pLength, pPrecision, pScale);
+       
     }
 
     @Override
@@ -423,22 +390,11 @@ final public class JDBCReader extends ETLReader implements DefaultReaderCore, QA
             resolveParameters();
         }
 
-        String hdl = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(), "HANDLER", null);
         mFetchSize = XMLHelper.getAttributeAsInt(xmlSourceNode.getAttributes(), "FETCHSIZE", this.batchSize * 2);
-
-        if (hdl == null)
-            this.jdbcHelper = new JDBCItemHelper();
-        else {
-            try {
-                Class cl = Class.forName(hdl);
-                this.jdbcHelper = (JDBCItemHelper) cl.newInstance();
-            } catch (Exception e) {
-                throw new KETLThreadException("HANDLER class not found", e, this);
-            }
-        }
-
         mSQLSample = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(), SQL_SAMPLE_ATTRIB, "");
-
+        
+        instantiateHelper(xmlSourceNode);
+        
         // remove the queries not destined for this partition
         Object[] items = this.mSQLStatements.toArray();
         this.mSQLStatements.clear();
@@ -456,6 +412,8 @@ final public class JDBCReader extends ETLReader implements DefaultReaderCore, QA
      */
     protected void overrideOuts() throws KETLThreadException {
         super.overrideOuts();
+        
+        instantiateHelper(this.getXMLConfig());
 
         if (mbParametersResolved == false) {
             this.resolveParameters();

@@ -117,7 +117,21 @@ public class JDBCItemHelper {
             if (pDataItem == null)
                 pPreparedStatement.setNull(parameterIndex, java.sql.Types.NUMERIC);
             else
-                pPreparedStatement.setBigDecimal(parameterIndex, (BigDecimal)pDataItem);
+                pPreparedStatement.setBigDecimal(parameterIndex, (BigDecimal) pDataItem);
+        }
+        else if (pClass == java.sql.Clob.class) {
+            if (pDataItem == null)
+                pPreparedStatement.setNull(parameterIndex, java.sql.Types.CLOB);
+            else {
+                pPreparedStatement.setClob(parameterIndex, (java.sql.Clob) pDataItem);
+            }
+        }
+        else if (pClass == java.sql.Blob.class) {
+            if (pDataItem == null)
+                pPreparedStatement.setNull(parameterIndex, java.sql.Types.BLOB);
+            else {
+                pPreparedStatement.setBlob(parameterIndex, (java.sql.Blob) pDataItem);
+            }
         }
         else if (pDataItem == null) {
             pPreparedStatement.setNull(parameterIndex, java.sql.Types.JAVA_OBJECT);
@@ -203,6 +217,68 @@ public class JDBCItemHelper {
             result = null;
 
         return result;
+    }
+
+    public String getJavaType(int pSQLType, int pLength, int pPrecision, int pScale) {
+
+        switch (pSQLType) {
+        case java.sql.Types.BIGINT:
+            return Long.class.getCanonicalName();
+        case java.sql.Types.BINARY:
+        case java.sql.Types.BLOB:
+                return Byte[].class.getCanonicalName();
+        case java.sql.Types.BIT:
+            return Integer.class.getCanonicalName();
+        case java.sql.Types.CHAR:
+            return String.class.getCanonicalName();
+        case java.sql.Types.DATE:
+            return java.sql.Timestamp.class.getCanonicalName();
+        case java.sql.Types.DOUBLE:
+            return Double.class.getCanonicalName();
+        case java.sql.Types.FLOAT:
+            return Float.class.getCanonicalName();
+        case java.sql.Types.INTEGER:
+            return Integer.class.getCanonicalName();
+        case java.sql.Types.LONGVARBINARY:
+            return java.sql.Blob.class.getCanonicalName();
+        case java.sql.Types.LONGVARCHAR:
+            return java.sql.Clob.class.getCanonicalName();
+        case java.sql.Types.DECIMAL:
+        case java.sql.Types.NUMERIC:
+            if (pScale == 0 && pPrecision > 0) {
+                if (pPrecision < 5)
+                    return Short.class.getCanonicalName();
+                else if (pPrecision < 10)
+                    return Integer.class.getCanonicalName();
+                else if (pPrecision < 20)
+                    return Long.class.getCanonicalName();
+                else
+                    return Double.class.getCanonicalName();
+            }
+            if (pScale > 0) {
+                return Double.class.getCanonicalName();
+            }
+            return java.math.BigDecimal.class.getCanonicalName();
+        case java.sql.Types.REAL:
+            return Float.class.getCanonicalName();
+        case java.sql.Types.SMALLINT:
+            return Short.class.getCanonicalName();
+        case java.sql.Types.TIME:
+            return java.sql.Time.class.getCanonicalName();
+        case java.sql.Types.TIMESTAMP:
+            return java.sql.Timestamp.class.getCanonicalName();
+        case java.sql.Types.TINYINT:
+            return Byte.class.getCanonicalName();
+        case java.sql.Types.VARBINARY:
+            return Byte[].class.getCanonicalName();
+        case java.sql.Types.CLOB:
+        case java.sql.Types.VARCHAR:
+                return String.class.getCanonicalName();
+        case java.sql.Types.BOOLEAN:
+            return Boolean.class.getCanonicalName();
+        default:
+            return Object.class.getCanonicalName();
+        }
     }
 
 }
