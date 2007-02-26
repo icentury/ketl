@@ -19,6 +19,7 @@ public class JobExecutingTest extends ETLReader implements DefaultReaderCore {
 			ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
+		
 	}
 
 	@Override
