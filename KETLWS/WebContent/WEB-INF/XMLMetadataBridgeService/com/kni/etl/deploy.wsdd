@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!-- Use this file to deploy some handlers/chains and services      --><!-- Two ways to do this:                                           --><!--   java org.apache.axis.client.AdminClient deploy.wsdd          --><!--      after the axis server is running                          --><!-- or                                                             --><!--   java org.apache.axis.utils.Admin client|server deploy.wsdd   --><!--      from the same directory that the Axis engine runs         --><deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+
+  <!-- Services from XMLMetadataBridgeService WSDL service -->
+
+  <service name="XMLMetadataBridge" provider="java:RPC" style="rpc" use="encoded">
+      <parameter name="wsdlTargetNamespace" value="http://etl.kni.com"/>
+      <parameter name="wsdlServiceElement" value="XMLMetadataBridgeService"/>
+      <parameter name="wsdlServicePort" value="XMLMetadataBridge"/>
+      <parameter name="className" value="com.kni.etl.XMLMetadataBridge"/>
+      <parameter name="wsdlPortType" value="XMLMetadataBridge"/>
+      <parameter name="typeMappingVersion" value="1.2"/>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getJob" qname="operNS:getJob" returnQName="getJobReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pProjectID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pJobID" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getProjects" qname="operNS:getProjects" returnQName="getProjectsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLastModified" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="updateJob" qname="operNS:updateJob" returnQName="updateJobReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pProjectID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pJobXML" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pForceOverwrite" type="tns:boolean"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="handleError" qname="operNS:handleError" returnQName="handleErrorReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="e" type="tns:anyType"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" name="configure" qname="operNS:configure" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pKETLPath" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pKETLConfigFile" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="scheduleJob" qname="operNS:scheduleJob" returnQName="scheduleJobReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pProjectID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pJobID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pMonth" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pMonthOfYear" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pDay" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pDayOfWeek" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pDayOfMonth" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pHour" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pHourOfDay" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pMinute" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pMinuteOfHour" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pDescription" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pOnceOnlyDate" type="tns:dateTime"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pEnableDate" type="tns:dateTime"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pDisableDate" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="addServer" qname="operNS:addServer" returnQName="addServerReturn" returnType="rtns:boolean" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pUsername" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pPassword" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pJDBCDriver" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pURL" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pMDPrefix" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pPassphrase" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="removeServer" qname="operNS:removeServer" returnQName="removeServerReturn" returnType="rtns:boolean" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" name="releaseLock" qname="operNS:releaseLock" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLockID" type="tns:int"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="deleteLoad" qname="operNS:deleteLoad" returnQName="deleteLoadReturn" returnType="rtns:boolean" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLoadID" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="executeJob" qname="operNS:executeJob" returnQName="executeJobReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pProjectID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pJobID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pIgnoreDependencies" type="tns:boolean"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pAllowMultiple" type="tns:boolean"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getCurrentDBTimeStamp" qname="operNS:getCurrentDBTimeStamp" returnQName="getCurrentDBTimeStampReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getExecutionErrors" qname="operNS:getExecutionErrors" returnQName="getExecutionErrorsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLoadID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pExecID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLastModified" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getLoads" qname="operNS:getLoads" returnQName="getLoadsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLastModified" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getJobErrors" qname="operNS:getJobErrors" returnQName="getJobErrorsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pJobName" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLastModified" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getJobStatus" qname="operNS:getJobStatus" returnQName="getJobStatusReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pJobExecutionID" type="tns:int"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getLoadErrors" qname="operNS:getLoadErrors" returnQName="getLoadErrorsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLoadID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLastModified" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getLoadJobs" qname="operNS:getLoadJobs" returnQName="getLoadJobsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLoadID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLastModified" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getProjectJobs" qname="operNS:getProjectJobs" returnQName="getProjectJobsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pProjectID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLastModified" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getServerClusterDetails" qname="operNS:getServerClusterDetails" returnQName="getServerClusterDetailsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pRootServerID" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getConnected" qname="operNS:getConnected" returnQName="getConnectedReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getServerList" qname="operNS:getServerList" returnQName="getServerListReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="clientHashedUser" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="clientHashedPwsd" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="refreshLoadStatus" qname="operNS:refreshLoadStatus" returnQName="refreshLoadStatusReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLoadID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLastRefreshDate" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="refreshLock" qname="operNS:refreshLock" returnQName="refreshLockReturn" returnType="rtns:boolean" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLockID" type="tns:int"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="refreshProjectStatus" qname="operNS:refreshProjectStatus" returnQName="refreshProjectStatusReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pProjectID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLastRefreshDate" type="tns:dateTime"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="setExecutionStatus" qname="operNS:setExecutionStatus" returnQName="setExecutionStatusReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLoadID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pExecID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pStatus" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="setJobStatus" qname="operNS:setJobStatus" returnQName="setJobStatusReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pProjectID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pJobID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pLoadID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pJobExecutionID" type="tns:int"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pState" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="addJobsAndParams" qname="operNS:addJobsAndParams" returnQName="addJobsAndParamsReturn" returnType="rtns:string" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="xmlFile" type="tns:string"/>
+      </operation>
+      <operation xmlns:operNS="http://etl.kni.com" xmlns:rtns="http://www.w3.org/2001/XMLSchema" name="getLock" qname="operNS:getLock" returnQName="getLockReturn" returnType="rtns:int" soapAction="">
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pServerID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pProjectID" type="tns:string"/>
+        <parameter xmlns:tns="http://www.w3.org/2001/XMLSchema" qname="pForceOverwrite" type="tns:boolean"/>
+      </operation>
+      <parameter name="allowedMethods" value="refreshLock getJobErrors releaseLock getJob getServerList getCurrentDBTimeStamp removeServer updateJob scheduleJob refreshLoadStatus getLoads getLoadJobs setExecutionStatus addJobsAndParams getExecutionErrors setJobStatus getProjectJobs getLoadErrors getServerClusterDetails getConnected executeJob deleteLoad addServer handleError configure getJobStatus getLock refreshProjectStatus getProjects"/>
+
+  </service>
+</deployment>

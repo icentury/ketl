@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Configurations>
+	<APP_WEB_SERVICE_URL>http://localhost:8080/KETLWS/services/XMLMetadataBridge</APP_WEB_SERVICE_URL>
+	<APP_WEB_SERVICE_SERVER>jimsDB</APP_WEB_SERVICE_SERVER>
+	<APP_WEB_SERVICE_USER>ketlmd</APP_WEB_SERVICE_USER>
+	<JOB_TYPE_IMAGES>
+	  <IMAGE KEY="EMPTYJOB">images\empty.bmp</IMAGE>
+	  <IMAGE KEY="SQL">images\sql.gif</IMAGE>
+	  <IMAGE KEY="KETL">images\xml.bmp</IMAGE>
+	  <IMAGE KEY="OSJOB">images\os.gif</IMAGE>
+	  <IMAGE KEY="XMLSESSIONIZER">images\KNI.jpg</IMAGE>
+	</JOB_TYPE_IMAGES>
+	<JOB_STATUS_IMAGES>
+		<IMAGE KEY="None"></IMAGE>
+		<IMAGE KEY="Wait">images\Waiting.png</IMAGE>
+		<IMAGE KEY="Execute">images\Play.png</IMAGE>
+		<IMAGE KEY="Fail">images\Failed.png</IMAGE>
+		<IMAGE KEY="Success">images\Success.png</IMAGE>
+		<IMAGE KEY="Pause">images\Pause.png</IMAGE>
+		<IMAGE KEY="Skip">images\Skip.png</IMAGE>
+		<IMAGE KEY="Cancel">images\Cancel.png</IMAGE>
+		<IMAGE KEY="Transition">images\Transition.png</IMAGE>
+	</JOB_STATUS_IMAGES>
+	<JOB_BOLD_COLOR>
+		<COLOR KEY="NONE"></COLOR>
+		<COLOR KEY="FORWARD">FF00CC</COLOR>
+		<COLOR KEY="BACKWARD">99FF00</COLOR>
+		<COLOR KEY="SELECTED">FFCC00</COLOR>
+	</JOB_BOLD_COLOR>
+</Configurations>

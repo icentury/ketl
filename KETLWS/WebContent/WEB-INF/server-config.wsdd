@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deployment xmlns="http://xml.apache.org/axis/wsdd/" xmlns:java="http://xml.apache.org/axis/wsdd/providers/java">
+ <globalConfiguration>
+  <parameter name="sendMultiRefs" value="true"/>
+  <parameter name="disablePrettyXML" value="true"/>
+  <parameter name="adminPassword" value="admin"/>
+  <parameter name="attachments.Directory" value="C:\Program Files\Eclipse\workspace\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\webapps\KETLWS\WEB-INF\attachments"/>
+  <parameter name="dotNetSoapEncFix" value="true"/>
+  <parameter name="enableNamespacePrefixOptimization" value="true"/>
+  <parameter name="sendXMLDeclaration" value="true"/>
+  <parameter name="attachments.implementation" value="org.apache.axis.attachments.AttachmentsImpl"/>
+  <parameter name="sendXsiTypes" value="true"/>
+  <requestFlow>
+<!-- NOTE: you must comment out this WSDoAllReceiver to redeploy the WS -->
+<!-- removing wss4j for now
+   <handler type="java:org.apache.ws.axis.security.WSDoAllReceiver">
+    <parameter name="passwordCallbackClass" value="PWCallback"/>
+    <parameter name="action" value="UsernameToken Timestamp"/>
+   </handler>
+ -->
+   <handler type="java:org.apache.axis.handlers.JWSHandler">
+    <parameter name="scope" value="session"/>
+   </handler>
+   <handler type="java:org.apache.axis.handlers.JWSHandler">
+    <parameter name="scope" value="request"/>
+    <parameter name="extension" value=".jwr"/>
+   </handler>
+  </requestFlow>
+ </globalConfiguration>
+ <handler name="LocalResponder" type="java:org.apache.axis.transport.local.LocalResponder"/>
+ <handler name="URLMapper" type="java:org.apache.axis.handlers.http.URLMapper"/>
+ <handler name="Authenticate" type="java:org.apache.axis.handlers.SimpleAuthenticationHandler"/>
+ <service name="AdminService" provider="java:MSG">
+  <parameter name="allowedMethods" value="AdminService"/>
+  <parameter name="enableRemoteAdmin" value="false"/>
+  <parameter name="className" value="org.apache.axis.utils.Admin"/>
+  <namespace>http://xml.apache.org/axis/wsdd/</namespace>
+ </service>
+ <service name="Version" provider="java:RPC">
+  <parameter name="allowedMethods" value="getVersion"/>
+  <parameter name="className" value="org.apache.axis.Version"/>
+ </service>
+ <service name="XMLMetadataBridge" provider="java:RPC">
+  <operation name="getJob" qname="ns1:getJob" returnQName="getJobReturn" returnType="xsd:string" soapAction="" xmlns:ns1="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pProjectID" type="xsd:int"/>
+   <parameter name="pJobID" type="xsd:string"/>
+  </operation>
+  <operation name="getProjects" qname="ns2:getProjects" returnQName="getProjectsReturn" returnType="xsd:string" soapAction="" xmlns:ns2="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pLastModified" type="xsd:dateTime"/>
+  </operation>
+  <operation name="updateJob" qname="ns3:updateJob" returnQName="updateJobReturn" returnType="xsd:string" soapAction="" xmlns:ns3="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pProjectID" type="xsd:string"/>
+   <parameter name="pJobXML" type="xsd:string"/>
+   <parameter name="pForceOverwrite" type="xsd:boolean"/>
+  </operation>
+  <operation name="handleError" qname="ns4:handleError" returnQName="handleErrorReturn" returnType="xsd:string" soapAction="" xmlns:ns4="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="e" type="xsd:anyType"/>
+  </operation>
+  <operation name="configure" qname="ns5:configure" soapAction="" xmlns:ns5="http://etl.kni.com">
+   <parameter name="pKETLPath" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+   <parameter name="pKETLConfigFile" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+  </operation>
+  <operation name="scheduleJob" qname="ns6:scheduleJob" returnQName="scheduleJobReturn" returnType="xsd:string" soapAction="" xmlns:ns6="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pProjectID" type="xsd:int"/>
+   <parameter name="pJobID" type="xsd:string"/>
+   <parameter name="pMonth" type="xsd:int"/>
+   <parameter name="pMonthOfYear" type="xsd:int"/>
+   <parameter name="pDay" type="xsd:int"/>
+   <parameter name="pDayOfWeek" type="xsd:int"/>
+   <parameter name="pDayOfMonth" type="xsd:int"/>
+   <parameter name="pHour" type="xsd:int"/>
+   <parameter name="pHourOfDay" type="xsd:int"/>
+   <parameter name="pMinute" type="xsd:int"/>
+   <parameter name="pMinuteOfHour" type="xsd:int"/>
+   <parameter name="pDescription" type="xsd:string"/>
+   <parameter name="pOnceOnlyDate" type="xsd:dateTime"/>
+   <parameter name="pEnableDate" type="xsd:dateTime"/>
+   <parameter name="pDisableDate" type="xsd:dateTime"/>
+  </operation>
+  <operation name="addServer" qname="ns7:addServer" returnQName="addServerReturn" returnType="xsd:boolean" soapAction="" xmlns:ns7="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pUsername" type="xsd:string"/>
+   <parameter name="pPassword" type="xsd:string"/>
+   <parameter name="pJDBCDriver" type="xsd:string"/>
+   <parameter name="pURL" type="xsd:string"/>
+   <parameter name="pMDPrefix" type="xsd:string"/>
+   <parameter name="pPassphrase" type="xsd:string"/>
+  </operation>
+  <operation name="removeServer" qname="ns8:removeServer" returnQName="removeServerReturn" returnType="xsd:boolean" soapAction="" xmlns:ns8="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+  </operation>
+  <operation name="releaseLock" qname="ns9:releaseLock" soapAction="" xmlns:ns9="http://etl.kni.com">
+   <parameter name="pServerID" type="xsd:string" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+   <parameter name="pLockID" type="xsd:int" xmlns:xsd="http://www.w3.org/2001/XMLSchema"/>
+  </operation>
+  <operation name="deleteLoad" qname="ns10:deleteLoad" returnQName="deleteLoadReturn" returnType="xsd:boolean" soapAction="" xmlns:ns10="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pLoadID" type="xsd:string"/>
+  </operation>
+  <operation name="executeJob" qname="ns11:executeJob" returnQName="executeJobReturn" returnType="xsd:string" soapAction="" xmlns:ns11="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pProjectID" type="xsd:int"/>
+   <parameter name="pJobID" type="xsd:string"/>
+   <parameter name="pIgnoreDependencies" type="xsd:boolean"/>
+   <parameter name="pAllowMultiple" type="xsd:boolean"/>
+  </operation>
+  <operation name="getCurrentDBTimeStamp" qname="ns12:getCurrentDBTimeStamp" returnQName="getCurrentDBTimeStampReturn" returnType="xsd:string" soapAction="" xmlns:ns12="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+  </operation>
+  <operation name="getExecutionErrors" qname="ns13:getExecutionErrors" returnQName="getExecutionErrorsReturn" returnType="xsd:string" soapAction="" xmlns:ns13="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pLoadID" type="xsd:int"/>
+   <parameter name="pExecID" type="xsd:int"/>
+   <parameter name="pLastModified" type="xsd:dateTime"/>
+  </operation>
+  <operation name="getLoads" qname="ns14:getLoads" returnQName="getLoadsReturn" returnType="xsd:string" soapAction="" xmlns:ns14="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pLastModified" type="xsd:dateTime"/>
+  </operation>
+  <operation name="getJobErrors" qname="ns15:getJobErrors" returnQName="getJobErrorsReturn" returnType="xsd:string" soapAction="" xmlns:ns15="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pJobName" type="xsd:string"/>
+   <parameter name="pLastModified" type="xsd:dateTime"/>
+  </operation>
+  <operation name="getJobStatus" qname="ns16:getJobStatus" returnQName="getJobStatusReturn" returnType="xsd:string" soapAction="" xmlns:ns16="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pJobExecutionID" type="xsd:int"/>
+  </operation>
+  <operation name="getLoadErrors" qname="ns17:getLoadErrors" returnQName="getLoadErrorsReturn" returnType="xsd:string" soapAction="" xmlns:ns17="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pLoadID" type="xsd:int"/>
+   <parameter name="pLastModified" type="xsd:dateTime"/>
+  </operation>
+  <operation name="getLoadJobs" qname="ns18:getLoadJobs" returnQName="getLoadJobsReturn" returnType="xsd:string" soapAction="" xmlns:ns18="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pLoadID" type="xsd:int"/>
+   <parameter name="pLastModified" type="xsd:dateTime"/>
+  </operation>
+  <operation name="getProjectJobs" qname="ns19:getProjectJobs" returnQName="getProjectJobsReturn" returnType="xsd:string" soapAction="" xmlns:ns19="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pProjectID" type="xsd:int"/>
+   <parameter name="pLastModified" type="xsd:dateTime"/>
+  </operation>
+  <operation name="getServerClusterDetails" qname="ns20:getServerClusterDetails" returnQName="getServerClusterDetailsReturn" returnType="xsd:string" soapAction="" xmlns:ns20="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pRootServerID" type="xsd:string"/>
+  </operation>
+  <operation name="getConnected" qname="ns21:getConnected" returnQName="getConnectedReturn" returnType="xsd:string" soapAction="" xmlns:ns21="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+  </operation>
+  <operation name="getServerList" qname="ns22:getServerList" returnQName="getServerListReturn" returnType="xsd:string" soapAction="" xmlns:ns22="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="clientHashedUser" type="xsd:string"/>
+   <parameter name="clientHashedPwsd" type="xsd:string"/>
+  </operation>
+  <operation name="refreshLoadStatus" qname="ns23:refreshLoadStatus" returnQName="refreshLoadStatusReturn" returnType="xsd:string" soapAction="" xmlns:ns23="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pLoadID" type="xsd:int"/>
+   <parameter name="pLastRefreshDate" type="xsd:dateTime"/>
+  </operation>
+  <operation name="refreshLock" qname="ns24:refreshLock" returnQName="refreshLockReturn" returnType="xsd:boolean" soapAction="" xmlns:ns24="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pLockID" type="xsd:int"/>
+  </operation>
+  <operation name="refreshProjectStatus" qname="ns25:refreshProjectStatus" returnQName="refreshProjectStatusReturn" returnType="xsd:string" soapAction="" xmlns:ns25="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pProjectID" type="xsd:string"/>
+   <parameter name="pLastRefreshDate" type="xsd:dateTime"/>
+  </operation>
+  <operation name="setExecutionStatus" qname="ns26:setExecutionStatus" returnQName="setExecutionStatusReturn" returnType="xsd:string" soapAction="" xmlns:ns26="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pLoadID" type="xsd:int"/>
+   <parameter name="pExecID" type="xsd:int"/>
+   <parameter name="pStatus" type="xsd:string"/>
+  </operation>
+  <operation name="setJobStatus" qname="ns27:setJobStatus" returnQName="setJobStatusReturn" returnType="xsd:string" soapAction="" xmlns:ns27="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pProjectID" type="xsd:string"/>
+   <parameter name="pJobID" type="xsd:string"/>
+   <parameter name="pLoadID" type="xsd:int"/>
+   <parameter name="pJobExecutionID" type="xsd:int"/>
+   <parameter name="pState" type="xsd:string"/>
+  </operation>
+  <operation name="addJobsAndParams" qname="ns28:addJobsAndParams" returnQName="addJobsAndParamsReturn" returnType="xsd:string" soapAction="" xmlns:ns28="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="xmlFile" type="xsd:string"/>
+  </operation>
+  <operation name="getLock" qname="ns29:getLock" returnQName="getLockReturn" returnType="xsd:int" soapAction="" xmlns:ns29="http://etl.kni.com" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <parameter name="pServerID" type="xsd:string"/>
+   <parameter name="pProjectID" type="xsd:string"/>
+   <parameter name="pForceOverwrite" type="xsd:boolean"/>
+  </operation>
+  <parameter name="allowedMethods" value="refreshLock getJobErrors releaseLock getJob getServerList getCurrentDBTimeStamp removeServer updateJob scheduleJob refreshLoadStatus getLoads getLoadJobs setExecutionStatus addJobsAndParams getExecutionErrors setJobStatus getProjectJobs getLoadErrors getServerClusterDetails getConnected executeJob deleteLoad addServer handleError configure getJobStatus getLock refreshProjectStatus getProjects"/>
+  <parameter name="typeMappingVersion" value="1.2"/>
+  <parameter name="wsdlPortType" value="XMLMetadataBridge"/>
+  <parameter name="className" value="com.kni.etl.XMLMetadataBridge"/>
+  <parameter name="wsdlServicePort" value="XMLMetadataBridge"/>
+  <parameter name="wsdlTargetNamespace" value="http://etl.kni.com"/>
+  <parameter name="wsdlServiceElement" value="XMLMetadataBridgeService"/>
+ </service>
+ <transport name="http">
+  <requestFlow>
+   <handler type="URLMapper"/>
+   <handler type="java:org.apache.axis.handlers.http.HTTPAuthHandler"/>
+  </requestFlow>
+  <parameter name="qs:list" value="org.apache.axis.transport.http.QSListHandler"/>
+  <parameter name="qs:wsdl" value="org.apache.axis.transport.http.QSWSDLHandler"/>
+  <parameter name="qs.list" value="org.apache.axis.transport.http.QSListHandler"/>
+  <parameter name="qs.method" value="org.apache.axis.transport.http.QSMethodHandler"/>
+  <parameter name="qs.wsdl" value="org.apache.axis.transport.http.QSWSDLHandler"/>
+ </transport>
+ <transport name="local">
+  <responseFlow>
+   <handler type="LocalResponder"/>
+  </responseFlow>
+ </transport>
+</deployment>

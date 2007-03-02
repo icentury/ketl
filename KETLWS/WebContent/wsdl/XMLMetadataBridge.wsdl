@@ -1,0 +1,1250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://etl.kni.com" xmlns:apachesoap="http://xml.apache.org/xml-soap" xmlns:impl="http://etl.kni.com" xmlns:intf="http://etl.kni.com" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns1="http://lang.java" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsdlsoap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<!--WSDL created by Apache Axis version: 1.3
+Built on Oct 05, 2005 (05:23:37 EDT)-->
+
+   <wsdl:message name="getServerListRequest">
+
+      <wsdl:part name="clientHashedUser" type="xsd:string"/>
+
+      <wsdl:part name="clientHashedPwsd" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getConnectedRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="refreshLockRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLockID" type="xsd:int"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLoadJobsResponse">
+
+      <wsdl:part name="getLoadJobsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLockResponse">
+
+      <wsdl:part name="getLockReturn" type="xsd:int"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="configureRequest">
+
+      <wsdl:part name="pKETLPath" type="xsd:string"/>
+
+      <wsdl:part name="pKETLConfigFile" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="setJobStatusRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pProjectID" type="xsd:string"/>
+
+      <wsdl:part name="pJobID" type="xsd:string"/>
+
+      <wsdl:part name="pLoadID" type="xsd:int"/>
+
+      <wsdl:part name="pJobExecutionID" type="xsd:int"/>
+
+      <wsdl:part name="pState" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="handleErrorResponse">
+
+      <wsdl:part name="handleErrorReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getExecutionErrorsResponse">
+
+      <wsdl:part name="getExecutionErrorsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getProjectJobsRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pProjectID" type="xsd:int"/>
+
+      <wsdl:part name="pLastModified" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getCurrentDBTimeStampResponse">
+
+      <wsdl:part name="getCurrentDBTimeStampReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="executeJobRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pProjectID" type="xsd:int"/>
+
+      <wsdl:part name="pJobID" type="xsd:string"/>
+
+      <wsdl:part name="pIgnoreDependencies" type="xsd:boolean"/>
+
+      <wsdl:part name="pAllowMultiple" type="xsd:boolean"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="scheduleJobRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pProjectID" type="xsd:int"/>
+
+      <wsdl:part name="pJobID" type="xsd:string"/>
+
+      <wsdl:part name="pMonth" type="xsd:int"/>
+
+      <wsdl:part name="pMonthOfYear" type="xsd:int"/>
+
+      <wsdl:part name="pDay" type="xsd:int"/>
+
+      <wsdl:part name="pDayOfWeek" type="xsd:int"/>
+
+      <wsdl:part name="pDayOfMonth" type="xsd:int"/>
+
+      <wsdl:part name="pHour" type="xsd:int"/>
+
+      <wsdl:part name="pHourOfDay" type="xsd:int"/>
+
+      <wsdl:part name="pMinute" type="xsd:int"/>
+
+      <wsdl:part name="pMinuteOfHour" type="xsd:int"/>
+
+      <wsdl:part name="pDescription" type="xsd:string"/>
+
+      <wsdl:part name="pOnceOnlyDate" type="xsd:dateTime"/>
+
+      <wsdl:part name="pEnableDate" type="xsd:dateTime"/>
+
+      <wsdl:part name="pDisableDate" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getServerClusterDetailsResponse">
+
+      <wsdl:part name="getServerClusterDetailsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="refreshLoadStatusRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLoadID" type="xsd:int"/>
+
+      <wsdl:part name="pLastRefreshDate" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getJobErrorsResponse">
+
+      <wsdl:part name="getJobErrorsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLoadsResponse">
+
+      <wsdl:part name="getLoadsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getProjectsResponse">
+
+      <wsdl:part name="getProjectsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="removeServerResponse">
+
+      <wsdl:part name="removeServerReturn" type="xsd:boolean"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="setExecutionStatusResponse">
+
+      <wsdl:part name="setExecutionStatusReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="releaseLockRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLockID" type="xsd:int"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getCurrentDBTimeStampRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getJobStatusRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pJobExecutionID" type="xsd:int"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLoadsRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLastModified" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="removeServerRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getProjectsRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLastModified" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getJobStatusResponse">
+
+      <wsdl:part name="getJobStatusReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="addServerResponse">
+
+      <wsdl:part name="addServerReturn" type="xsd:boolean"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="refreshProjectStatusRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pProjectID" type="xsd:string"/>
+
+      <wsdl:part name="pLastRefreshDate" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="refreshLoadStatusResponse">
+
+      <wsdl:part name="refreshLoadStatusReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="setJobStatusResponse">
+
+      <wsdl:part name="setJobStatusReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="scheduleJobResponse">
+
+      <wsdl:part name="scheduleJobReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getJobRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pProjectID" type="xsd:int"/>
+
+      <wsdl:part name="pJobID" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getServerClusterDetailsRequest">
+
+      <wsdl:part name="pRootServerID" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getJobErrorsRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pJobName" type="xsd:string"/>
+
+      <wsdl:part name="pLastModified" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getConnectedResponse">
+
+      <wsdl:part name="getConnectedReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getJobResponse">
+
+      <wsdl:part name="getJobReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="refreshProjectStatusResponse">
+
+      <wsdl:part name="refreshProjectStatusReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLoadJobsRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLoadID" type="xsd:int"/>
+
+      <wsdl:part name="pLastModified" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="updateJobResponse">
+
+      <wsdl:part name="updateJobReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLockRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pProjectID" type="xsd:string"/>
+
+      <wsdl:part name="pForceOverwrite" type="xsd:boolean"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLoadErrorsResponse">
+
+      <wsdl:part name="getLoadErrorsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getServerListResponse">
+
+      <wsdl:part name="getServerListReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="addJobsAndParamsRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="xmlFile" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="handleErrorRequest">
+
+      <wsdl:part name="e" type="xsd:anyType"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="executeJobResponse">
+
+      <wsdl:part name="executeJobReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="refreshLockResponse">
+
+      <wsdl:part name="refreshLockReturn" type="xsd:boolean"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="deleteLoadRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLoadID" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getLoadErrorsRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLoadID" type="xsd:int"/>
+
+      <wsdl:part name="pLastModified" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="deleteLoadResponse">
+
+      <wsdl:part name="deleteLoadReturn" type="xsd:boolean"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="releaseLockResponse">
+
+   </wsdl:message>
+
+   <wsdl:message name="addJobsAndParamsResponse">
+
+      <wsdl:part name="addJobsAndParamsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="updateJobRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pProjectID" type="xsd:string"/>
+
+      <wsdl:part name="pJobXML" type="xsd:string"/>
+
+      <wsdl:part name="pForceOverwrite" type="xsd:boolean"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="configureResponse">
+
+   </wsdl:message>
+
+   <wsdl:message name="getExecutionErrorsRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLoadID" type="xsd:int"/>
+
+      <wsdl:part name="pExecID" type="xsd:int"/>
+
+      <wsdl:part name="pLastModified" type="xsd:dateTime"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="addServerRequest">
+
+      <wsdl:part name="pUsername" type="xsd:string"/>
+
+      <wsdl:part name="pPassword" type="xsd:string"/>
+
+      <wsdl:part name="pJDBCDriver" type="xsd:string"/>
+
+      <wsdl:part name="pURL" type="xsd:string"/>
+
+      <wsdl:part name="pMDPrefix" type="xsd:string"/>
+
+      <wsdl:part name="pPassphrase" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="setExecutionStatusRequest">
+
+      <wsdl:part name="pServerID" type="xsd:string"/>
+
+      <wsdl:part name="pLoadID" type="xsd:int"/>
+
+      <wsdl:part name="pExecID" type="xsd:int"/>
+
+      <wsdl:part name="pStatus" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:message name="getProjectJobsResponse">
+
+      <wsdl:part name="getProjectJobsReturn" type="xsd:string"/>
+
+   </wsdl:message>
+
+   <wsdl:portType name="XMLMetadataBridge">
+
+      <wsdl:operation name="getJob" parameterOrder="pServerID pProjectID pJobID">
+
+         <wsdl:input message="impl:getJobRequest" name="getJobRequest"/>
+
+         <wsdl:output message="impl:getJobResponse" name="getJobResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getProjects" parameterOrder="pServerID pLastModified">
+
+         <wsdl:input message="impl:getProjectsRequest" name="getProjectsRequest"/>
+
+         <wsdl:output message="impl:getProjectsResponse" name="getProjectsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="updateJob" parameterOrder="pServerID pProjectID pJobXML pForceOverwrite">
+
+         <wsdl:input message="impl:updateJobRequest" name="updateJobRequest"/>
+
+         <wsdl:output message="impl:updateJobResponse" name="updateJobResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="handleError" parameterOrder="e">
+
+         <wsdl:input message="impl:handleErrorRequest" name="handleErrorRequest"/>
+
+         <wsdl:output message="impl:handleErrorResponse" name="handleErrorResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="configure" parameterOrder="pKETLPath pKETLConfigFile">
+
+         <wsdl:input message="impl:configureRequest" name="configureRequest"/>
+
+         <wsdl:output message="impl:configureResponse" name="configureResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="scheduleJob" parameterOrder="pServerID pProjectID pJobID pMonth pMonthOfYear pDay pDayOfWeek pDayOfMonth pHour pHourOfDay pMinute pMinuteOfHour pDescription pOnceOnlyDate pEnableDate pDisableDate">
+
+         <wsdl:input message="impl:scheduleJobRequest" name="scheduleJobRequest"/>
+
+         <wsdl:output message="impl:scheduleJobResponse" name="scheduleJobResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="addServer" parameterOrder="pUsername pPassword pJDBCDriver pURL pMDPrefix pPassphrase">
+
+         <wsdl:input message="impl:addServerRequest" name="addServerRequest"/>
+
+         <wsdl:output message="impl:addServerResponse" name="addServerResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="removeServer" parameterOrder="pServerID">
+
+         <wsdl:input message="impl:removeServerRequest" name="removeServerRequest"/>
+
+         <wsdl:output message="impl:removeServerResponse" name="removeServerResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="releaseLock" parameterOrder="pServerID pLockID">
+
+         <wsdl:input message="impl:releaseLockRequest" name="releaseLockRequest"/>
+
+         <wsdl:output message="impl:releaseLockResponse" name="releaseLockResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="deleteLoad" parameterOrder="pServerID pLoadID">
+
+         <wsdl:input message="impl:deleteLoadRequest" name="deleteLoadRequest"/>
+
+         <wsdl:output message="impl:deleteLoadResponse" name="deleteLoadResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="executeJob" parameterOrder="pServerID pProjectID pJobID pIgnoreDependencies pAllowMultiple">
+
+         <wsdl:input message="impl:executeJobRequest" name="executeJobRequest"/>
+
+         <wsdl:output message="impl:executeJobResponse" name="executeJobResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getCurrentDBTimeStamp" parameterOrder="pServerID">
+
+         <wsdl:input message="impl:getCurrentDBTimeStampRequest" name="getCurrentDBTimeStampRequest"/>
+
+         <wsdl:output message="impl:getCurrentDBTimeStampResponse" name="getCurrentDBTimeStampResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getExecutionErrors" parameterOrder="pServerID pLoadID pExecID pLastModified">
+
+         <wsdl:input message="impl:getExecutionErrorsRequest" name="getExecutionErrorsRequest"/>
+
+         <wsdl:output message="impl:getExecutionErrorsResponse" name="getExecutionErrorsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLoads" parameterOrder="pServerID pLastModified">
+
+         <wsdl:input message="impl:getLoadsRequest" name="getLoadsRequest"/>
+
+         <wsdl:output message="impl:getLoadsResponse" name="getLoadsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getJobErrors" parameterOrder="pServerID pJobName pLastModified">
+
+         <wsdl:input message="impl:getJobErrorsRequest" name="getJobErrorsRequest"/>
+
+         <wsdl:output message="impl:getJobErrorsResponse" name="getJobErrorsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getJobStatus" parameterOrder="pServerID pJobExecutionID">
+
+         <wsdl:input message="impl:getJobStatusRequest" name="getJobStatusRequest"/>
+
+         <wsdl:output message="impl:getJobStatusResponse" name="getJobStatusResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLoadErrors" parameterOrder="pServerID pLoadID pLastModified">
+
+         <wsdl:input message="impl:getLoadErrorsRequest" name="getLoadErrorsRequest"/>
+
+         <wsdl:output message="impl:getLoadErrorsResponse" name="getLoadErrorsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLoadJobs" parameterOrder="pServerID pLoadID pLastModified">
+
+         <wsdl:input message="impl:getLoadJobsRequest" name="getLoadJobsRequest"/>
+
+         <wsdl:output message="impl:getLoadJobsResponse" name="getLoadJobsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getProjectJobs" parameterOrder="pServerID pProjectID pLastModified">
+
+         <wsdl:input message="impl:getProjectJobsRequest" name="getProjectJobsRequest"/>
+
+         <wsdl:output message="impl:getProjectJobsResponse" name="getProjectJobsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getServerClusterDetails" parameterOrder="pRootServerID">
+
+         <wsdl:input message="impl:getServerClusterDetailsRequest" name="getServerClusterDetailsRequest"/>
+
+         <wsdl:output message="impl:getServerClusterDetailsResponse" name="getServerClusterDetailsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getConnected" parameterOrder="pServerID">
+
+         <wsdl:input message="impl:getConnectedRequest" name="getConnectedRequest"/>
+
+         <wsdl:output message="impl:getConnectedResponse" name="getConnectedResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getServerList" parameterOrder="clientHashedUser clientHashedPwsd">
+
+         <wsdl:input message="impl:getServerListRequest" name="getServerListRequest"/>
+
+         <wsdl:output message="impl:getServerListResponse" name="getServerListResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="refreshLoadStatus" parameterOrder="pServerID pLoadID pLastRefreshDate">
+
+         <wsdl:input message="impl:refreshLoadStatusRequest" name="refreshLoadStatusRequest"/>
+
+         <wsdl:output message="impl:refreshLoadStatusResponse" name="refreshLoadStatusResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="refreshLock" parameterOrder="pServerID pLockID">
+
+         <wsdl:input message="impl:refreshLockRequest" name="refreshLockRequest"/>
+
+         <wsdl:output message="impl:refreshLockResponse" name="refreshLockResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="refreshProjectStatus" parameterOrder="pServerID pProjectID pLastRefreshDate">
+
+         <wsdl:input message="impl:refreshProjectStatusRequest" name="refreshProjectStatusRequest"/>
+
+         <wsdl:output message="impl:refreshProjectStatusResponse" name="refreshProjectStatusResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="setExecutionStatus" parameterOrder="pServerID pLoadID pExecID pStatus">
+
+         <wsdl:input message="impl:setExecutionStatusRequest" name="setExecutionStatusRequest"/>
+
+         <wsdl:output message="impl:setExecutionStatusResponse" name="setExecutionStatusResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="setJobStatus" parameterOrder="pServerID pProjectID pJobID pLoadID pJobExecutionID pState">
+
+         <wsdl:input message="impl:setJobStatusRequest" name="setJobStatusRequest"/>
+
+         <wsdl:output message="impl:setJobStatusResponse" name="setJobStatusResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="addJobsAndParams" parameterOrder="pServerID xmlFile">
+
+         <wsdl:input message="impl:addJobsAndParamsRequest" name="addJobsAndParamsRequest"/>
+
+         <wsdl:output message="impl:addJobsAndParamsResponse" name="addJobsAndParamsResponse"/>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLock" parameterOrder="pServerID pProjectID pForceOverwrite">
+
+         <wsdl:input message="impl:getLockRequest" name="getLockRequest"/>
+
+         <wsdl:output message="impl:getLockResponse" name="getLockResponse"/>
+
+      </wsdl:operation>
+
+   </wsdl:portType>
+
+   <wsdl:binding name="XMLMetadataBridgeSoapBinding" type="impl:XMLMetadataBridge">
+
+      <wsdlsoap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+
+      <wsdl:operation name="getJob">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getJobRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getJobResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getProjects">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getProjectsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getProjectsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="updateJob">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="updateJobRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="updateJobResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="handleError">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="handleErrorRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="handleErrorResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="configure">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="configureRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="configureResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="scheduleJob">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="scheduleJobRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="scheduleJobResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="addServer">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="addServerRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="addServerResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="removeServer">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="removeServerRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="removeServerResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="releaseLock">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="releaseLockRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="releaseLockResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="deleteLoad">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="deleteLoadRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="deleteLoadResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="executeJob">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="executeJobRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="executeJobResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getCurrentDBTimeStamp">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getCurrentDBTimeStampRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getCurrentDBTimeStampResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getExecutionErrors">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getExecutionErrorsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getExecutionErrorsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLoads">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getLoadsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getLoadsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getJobErrors">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getJobErrorsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getJobErrorsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getJobStatus">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getJobStatusRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getJobStatusResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLoadErrors">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getLoadErrorsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getLoadErrorsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLoadJobs">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getLoadJobsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getLoadJobsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getProjectJobs">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getProjectJobsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getProjectJobsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getServerClusterDetails">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getServerClusterDetailsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getServerClusterDetailsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getConnected">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getConnectedRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getConnectedResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getServerList">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getServerListRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getServerListResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="refreshLoadStatus">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="refreshLoadStatusRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="refreshLoadStatusResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="refreshLock">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="refreshLockRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="refreshLockResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="refreshProjectStatus">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="refreshProjectStatusRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="refreshProjectStatusResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="setExecutionStatus">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="setExecutionStatusRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="setExecutionStatusResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="setJobStatus">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="setJobStatusRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="setJobStatusResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="addJobsAndParams">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="addJobsAndParamsRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="addJobsAndParamsResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+      <wsdl:operation name="getLock">
+
+         <wsdlsoap:operation soapAction=""/>
+
+         <wsdl:input name="getLockRequest">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:input>
+
+         <wsdl:output name="getLockResponse">
+
+            <wsdlsoap:body encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="http://etl.kni.com" use="encoded"/>
+
+         </wsdl:output>
+
+      </wsdl:operation>
+
+   </wsdl:binding>
+
+   <wsdl:service name="XMLMetadataBridgeService">
+
+      <wsdl:port binding="impl:XMLMetadataBridgeSoapBinding" name="XMLMetadataBridge">
+
+         <wsdlsoap:address location="http://localhost:8080/KETLWS/services/XMLMetadataBridge"/>
+
+      </wsdl:port>
+
+   </wsdl:service>
+
+</wsdl:definitions>
