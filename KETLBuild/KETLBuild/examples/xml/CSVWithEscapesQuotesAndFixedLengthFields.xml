@@ -1,0 +1,35 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	  <PARAMETER_LIST NAME="testData">
+		    <PARAMETER NAME="SEARCHPATH">examples/data/CSVWithEscapesQuotesAndFixedLengthFields.txt</PARAMETER>
+      </PARAMETER_LIST>
+	 
+	
+       <JOB ID="CSVEscQuoteFixedLen" NAME="CSVEscQuoteFixedLen" PROJECT="TEST" TYPE="KETL">
+            <ACTION>
+                  <STEP NAME="Status" RECORD_DELIMITER="#0A#0D" IOBUFFER="8196" CLASS="com.kni.etl.ketl.reader.NIOFileReader" CHARACTERSET="UTF-8" DELIMITER="," PARAMETER_LIST="testData" SKIPLINES="1">
+                         <OUT NAME="txn_createeffectiveuser" QUOTESTART="#22" QUOTEEND="#22" DATATYPE="STRING" ESCAPECHARACTER="/"/>
+                         <OUT NAME="src_createeventid" FIXEDLENGTH="5" DATATYPE="FLOAT"/>
+                         <OUT NAME="txn_createeventtimestamp" DATATYPE="DATE" FORMATSTRING="yyyy/MM/dd HH:mm"/>
+                         <OUT NAME="txn_createeventtypeid" QUOTESTART="#22" QUOTEEND="#22" DATATYPE="STRING" ESCAPECHARACTER="/"/>
+                         <OUT NAME="txn_createrealuser" QUOTESTART="#22" QUOTEEND="#22" DATATYPE="STRING" ESCAPECHARACTER="/"/>
+                         <OUT NAME="src_effectiveend" DATATYPE="DATE" FORMATSTRING="yyyy/MM/dd HH:mm"/>
+                         <OUT NAME="src_effectivestart" DATATYPE="DATE" FORMATSTRING="yyyy/MM/dd HH:mm"/>
+                         <OUT NAME="src_institutionid" DATATYPE="FLOAT"/>
+                         <OUT NAME="src_institutionkeyid" DATATYPE="FLOAT"/>
+                         <OUT NAME="src_officialname" QUOTESTART="#22" QUOTEEND="#22" DATATYPE="STRING" ESCAPECHARACTER="/"/>
+                         <OUT NAME="txn_replaceeffectiveuser" QUOTESTART="#22" QUOTEEND="#22" DATATYPE="STRING" ESCAPECHARACTER="/"/>
+                         <OUT NAME="src_replacementeventid" DATATYPE="FLOAT"/>
+                         <OUT NAME="txn_replaceeventtimestamp" DATATYPE="DATE" FORMATSTRING="yyyy/MM/dd HH:mm"/>
+                         <OUT NAME="txn_replaceeventtypeid" QUOTESTART="#22" QUOTEEND="#22" DATATYPE="STRING" ESCAPECHARACTER="/"/>
+                         <OUT NAME="txn_replacerealuser" QUOTESTART="#22" QUOTEEND="#22" DATATYPE="STRING" ESCAPECHARACTER="/"/>
+                         <OUT NAME="src_shortname" QUOTESTART="#22" QUOTEEND="#22" DATATYPE="STRING" ESCAPECHARACTER="/"/>
+                   </STEP>
+
+                   <STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.NullWriter">
+                        <IN>Status.*</IN>                        
+                  </STEP>
+            </ACTION>
+      </JOB>
+</ETL>

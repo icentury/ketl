@@ -1,0 +1,63 @@
+<?xml-stylesheet type="text/xsl" href="F:\Development\XML\JobLoader\job_parameter_values.xsl"?>
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	<JOB  ID="Empty1" PROJECT="TEST" TYPE="EMPTYJOB">
+		<EMPTY>
+			Do nothing
+		</EMPTY>
+	</JOB>
+
+	<JOB  ID="SeqGenerator1" PROJECT="TEST" TYPE="KETL">
+		<ACTION AUTOTUNEINCREMENT="1000000">
+			<STEP TIMING="TRUE" NAME="Reader" VALUES="1000000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1"/>
+				<OUT DATATYPE="DOUBLE" NAME="DBL2"/>
+				<OUT DATATYPE="DOUBLE" NAME="DBL3"/>
+				<OUT DATATYPE="DOUBLE" NAME="DBL4"/>
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+			
+		</ACTION>
+	</JOB>
+
+	<JOB ID="SQL" PROJECT="TEST" TYPE="SQL" PARAMETER_LIST="targetDB" >
+		<SQL>
+			<STATEMENT>select 1</STATEMENT>
+		</SQL>
+	</JOB>
+
+	<JOB ID="OS" PROJECT="TEST" TYPE="OSJOB">
+		<OSJOB>date</OSJOB>
+	</JOB>
+	
+	<JOB  ID="Empty2" PROJECT="TEST" TYPE="EMPTYJOB">
+		<EMPTY>
+			Do nothing
+		</EMPTY>
+	</JOB>
+	
+	<JOB ID="SeqGenerator2" PROJECT="TEST" TYPE="KETL">
+		<ACTION AUTOTUNEINCREMENT="1000000">
+			<STEP TIMING="TRUE" NAME="Reader" VALUES="1000000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1"/>
+				<OUT DATATYPE="DOUBLE" NAME="DBL2"/>
+				<OUT DATATYPE="DOUBLE" NAME="DBL3"/>
+				<OUT DATATYPE="DOUBLE" NAME="DBL4"/>
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+			
+		</ACTION>
+	</JOB>
+
+</ETL>

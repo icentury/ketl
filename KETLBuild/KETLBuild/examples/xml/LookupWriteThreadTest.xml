@@ -1,0 +1,72 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	  <PARAMETER_LIST NAME="testData">
+		    		    <PARAMETER NAME="SEARCHPATH">examples/data/CSV.txt</PARAMETER>
+		    		    <PARAMETER NAME="COUNTRYDBPATH">C:\development\GeoIPJava-1.1.7\GeoIP.dat</PARAMETER>
+		    		    <PARAMETER NAME="CITYDBPATH">C:\development\GeoIPJava-1.1.7\GeoLiteCity.dat</PARAMETER>
+      </PARAMETER_LIST>
+	 
+	
+       <JOB ID="LookupDataTypeTest"  NAME="CSVWithEscapesAndQuotes" PROJECT="TEST" TYPE="KETL">
+            <ACTION PARRALLISM="1" >
+					<STEP NAME="Source" PARRALLISM="1" VALUES="2500000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+						<OUT DATATYPE="INTEGER" NAME="dInteger" />
+						<OUT DATATYPE="DOUBLE" NAME="dDouble"/>
+						<OUT DATATYPE="LONG" NAME="dLong"/>
+					</STEP>
+
+                   <STEP NAME="Transform"  CLASS="com.kni.etl.ketl.transformation.DynamicTransformation" PARAMETER_LIST="testData">
+                        <IN>Source.dInteger</IN>                        
+                        <IN>Source.dDouble</IN>                        
+                        <IN>Source.dLong</IN>                        
+                        <OUT NAME="dInteger">${dInteger}</OUT>
+                        <OUT NAME="dDouble">${dDouble}</OUT>
+                        <OUT NAME="dLong" >${dLong}</OUT>
+                        <OUT NAME="dSQLTimestamp" DATATYPE="java.sql.Timestamp">new java.sql.Timestamp(${dLong})</OUT>
+                        <OUT NAME="dSQLTime" DATATYPE="java.sql.Time">new java.sql.Time(${dLong}*200000000)</OUT>
+                        <OUT NAME="dSQLDate" DATATYPE="java.sql.Date">new java.sql.Date(${dLong})</OUT>
+                  </STEP>
+
+
+                   <STEP FLOWTYPE="FANOUT" NAME="TestLookup" PERSISTENCE="LOAD" CLASS="com.kni.etl.ketl.writer.LookupWriter">
+                        <IN>Transform.*</IN>                        
+                        <IN VALUE="3" >Transform.dSQLTimestamp</IN>                        
+                        <IN VALUE="2" >Transform.dLong</IN>                        
+                        <IN VALUE="1" >Transform.dSQLTime</IN>                        
+                        <IN KEY="1">Transform.dSQLDate</IN>                        
+                  </STEP>
+                  
+          
+                    <STEP NAME="Source2"  PARRALLISM="1"  VALUES="2500000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+						<OUT DATATYPE="INTEGER" NAME="dInteger" />
+						<OUT DATATYPE="DOUBLE" NAME="dDouble"/>
+						<OUT DATATYPE="LONG" NAME="dLong"/>
+					</STEP>
+
+                   <STEP NAME="Transform2"  CLASS="com.kni.etl.ketl.transformation.DynamicTransformation" PARAMETER_LIST="testData">
+                        <IN>Source2.dInteger</IN>                        
+                        <IN>Source2.dDouble</IN>                        
+                        <IN>Source2.dLong</IN>                        
+                        <OUT NAME="dInteger">${dInteger}</OUT>
+                        <OUT NAME="dDouble">${dDouble}</OUT>
+                        <OUT NAME="dLong" >${dLong}</OUT>
+                        <OUT NAME="dSQLTimestamp" DATATYPE="java.sql.Timestamp">new java.sql.Timestamp(${dLong})</OUT>
+                        <OUT NAME="dSQLTime" DATATYPE="java.sql.Time">new java.sql.Time(${dLong}*200000000)</OUT>
+                        <OUT NAME="dSQLDate" DATATYPE="java.sql.Date">new java.sql.Date(${dLong})</OUT>
+                  </STEP>
+
+
+                   <STEP FLOWTYPE="FANOUT"  NAME="TestLookup2" PERSISTENCE="LOAD" CLASS="com.kni.etl.ketl.writer.LookupWriter">
+                        <IN>Transform2.*</IN>                        
+                        <IN VALUE="3" >Transform2.dSQLTimestamp</IN>                        
+                        <IN VALUE="2" >Transform2.dLong</IN>                        
+                        <IN VALUE="1" >Transform2.dSQLTime</IN>                        
+                        <IN KEY="1">Transform2.dSQLDate</IN>                        
+                  </STEP>
+                  
+              
+                  
+            </ACTION>
+      </JOB>
+</ETL>

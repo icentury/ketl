@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/axis.jar"/>
+	<classpathentry kind="lib" path="lib/axis-ant.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="lib" path="lib/hsqldb.jar"/>
+	<classpathentry kind="lib" path="lib/jaxrpc.jar"/>
+	<classpathentry kind="lib" path="lib/junit.jar"/>
+	<classpathentry kind="lib" path="lib/KETL.jar" sourcepath="/KETL/src"/>
+	<classpathentry kind="lib" path="lib/KETLGeoIP.jar"/>
+	<classpathentry kind="lib" path="lib/KETLOracleExt.jar"/>
+	<classpathentry kind="lib" path="lib/KETLPostGreExt.jar"/>
+	<classpathentry kind="lib" path="lib/KETLSOAPExt.jar"/>
+	<classpathentry kind="lib" path="lib/KETLXMLExt.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
+	<classpathentry kind="lib" path="lib/postgresql.jar"/>
+	<classpathentry kind="lib" path="lib/saaj.jar"/>
+	<classpathentry kind="lib" path="lib/saxon8.jar"/>
+	<classpathentry kind="lib" path="lib/saxon8-dom.jar"/>
+	<classpathentry kind="lib" path="lib/saxon8-xpath.jar"/>
+	<classpathentry kind="lib" path="lib/KETLGPLExtensions.jar" sourcepath="/KETLGPL"/>
+	<classpathentry kind="lib" path="lib/perst15.jar" sourcepath="C:/development/perst/src15"/>
+	<classpathentry kind="lib" path="C:/oracle/product/10.2.0/client/jdbc/lib/ojdbc14.jar"/>
+	<classpathentry kind="lib" path="lib/commons-discovery-0.2.jar"/>
+	<classpathentry kind="lib" path="lib/wsdl4j-1.5.1.jar"/>
+	<classpathentry kind="lib" path="C:/development/Lib/mysql-connector-java-3.1.12/mysql-connector-java-3.1.12-bin.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.6.0/lib/tools.jar"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>

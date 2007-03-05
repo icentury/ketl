@@ -1,0 +1,2285 @@
+<?xml version="1.0"?>
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+<!--- Job: TRUNC_TMP_NEW_HOSTS-->
+<JOB DESCRIPTION="SEE NAME" ID="TRUNC_TMP_NEW_HOSTS" NAME="TRUNCATE TABLE TMP_NEW_HOSTS" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<EMPTY></EMPTY>
+</JOB>
+
+<!--- Job: AGG_TBL_LD-->
+<JOB DESCRIPTION="Wrapper job for loading aggregate tables" ID="AGG_TBL_LD" NAME="Aggregate Table Load" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>DLY_AGG_TBL_LD</DEPENDS_ON>
+<DEPENDS_ON>WKLY_AGG_TBL_LD</DEPENDS_ON>
+<DEPENDS_ON>WKLY_PART_TBL_LD</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: DEL_SESSION_LU-->
+<JOB DESCRIPTION="SEE NAME" ID="DEL_SESSION_LU" NAME="DELETE SESSIONS OLDER THAN DEFINED NUMBER OF DAYS" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM SESSION_LU
+WHERE END_TIMESTAMP &lt; (CURRENT_TIMESTAMP - interval '365 day')
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DEL_STG_OPEN_SESS_PG-->
+<JOB DESCRIPTION="SEE NAME" ID="DEL_STG_OPEN_SESS_PG" NAME="DELETE STAGE OPEN SESSION LAST PAGE" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+TRUNCATE STG_OPN_SESS_LST_PG
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: FILE_LU-->
+<JOB DESCRIPTION="SEE NAME" ID="FILE_LU" NAME="PAGEVIEW_AGG" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>ANL_TMP_HIT_SUBSET</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO FILE_LU(FILE_ID,FILE_TYPE,FILE_URL_STRING,FILE_DESC)
+SELECT nextval('seq_file_id') as FILE_ID,
+	   FILE_TYPE,
+	   FILE_URL_STRING,
+	   case when file_type = 'SCREENSIZE'
+		then replace(getvariablevalue(FILE_URL_STRING,'width'),'=','') || ' x ' || replace(getvariablevalue(FILE_URL_STRING,'height'),'=','') end
+  FROM
+   (select distinct
+   		   file_type,
+		   file_url_string
+	  from TMP_HIT_SUBSET A) A
+ WHERE FILE_URL_STRING NOT IN (SELECT FILE_URL_STRING FROM FILE_LU)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: TRUNC_TMP_HIT-->
+<JOB DESCRIPTION="TRUNCATES TMP_HIT TABLE" ID="TRUNC_TMP_HIT" NAME="TRUNCATE TMP_HIT" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+TRUNCATE TABLE TMP_HIT
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_HRG_ST_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_hrg_st_agg" ID="WK_HRG_ST_AGG_ANL" NAME="Week-HourGroup-State-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_HRG_ST_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_hrg_st_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PVG_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_pvg_agg all data for those weeks with new data in wsaf" ID="WK_PVG_AGG_INS" NAME="Week-PageviewGroup-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_PVG_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_pvg_agg (
+	week_year_id,
+	site_id,
+	pg_vw_per_visit_grp,
+	user_cnt_summ,
+	visit_cnt_summ)
+SELECT fa.week_year_id as week_year_id,
+	slu.site_id as site_id,
+	slu.pg_vw_per_visit_grp as pg_vw_per_visit_grp,
+	count(distinct slu.persistant_cookie_id) as user_cnt_summ,
+	count(distinct slu.session_id) as visit_cnt_summ
+FROM	stg_wsaf_agg fa
+	  inner join stg_sess_agg slu
+		on fa.session_id = slu.session_id
+GROUP BY fa.week_year_id,
+	slu.site_id,
+	slu.pg_vw_per_visit_grp
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: ANALYZE_TMP_SESSION-->
+<JOB DESCRIPTION="SEE NAME" ID="ANALYZE_TMP_SESSION" NAME="ANALYZE TEMP SESSION" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>CRT_TMP_SESSION_IDX</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+ANALYZE TMP_SESSION
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: ANL_STG_OPEN_SESSION-->
+<JOB DESCRIPTION="SEE NAME" ID="ANL_STG_OPEN_SESSION" NAME="ANALYZE STAGE OPEN SESSION" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>INS_STG_OPEN_SESSION</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+ANALYZE STG_OPEN_SESSION
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: ANL_STG_OPEN_SESS_PG-->
+<JOB DESCRIPTION="SEE NAME" ID="ANL_STG_OPEN_SESS_PG" NAME="ANALYZE STAGE OPEN SESSION LAST PAGE" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>INS_STG_OPEN_SESS_PG</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+ANALYZE STG_OPN_SESS_LST_PG
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: ANL_TMP_HIT_SUBSET-->
+<JOB DESCRIPTION="SEE NAME" ID="ANL_TMP_HIT_SUBSET" NAME="PAGEVIEW_AGG" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>CRT_TMP_HIT_SUBSET</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+ANALYZE TMP_HIT_SUBSET
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: ANL_TMP_NEW_SESSION-->
+<JOB DESCRIPTION="SEE NAME" ID="ANL_TMP_NEW_SESSION" NAME="DROP TMP_NEW_SESSION" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>INS_TMP_NEW_SESSION</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+ANALYZE TMP_NEW_SESSION
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: ANL_TMP_SESS_REF_URL-->
+<JOB DESCRIPTION="SEE NAME" ID="ANL_TMP_SESS_REF_URL" NAME="CREATE TEMP SESSION REFERRER_URLS" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>CRT_TMP_SESS_REF_URL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+ANALYZE temp_session_referrer_url
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU" NAME="INSERT NEW BROWSERS" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>ANALYZE_TMP_SESSION</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO browser_lu(BROWSER_ID, BROWSER_DESC)
+  SELECT maxid + NEXTVAL('SEQ_BROWSER_ID'),browser_desc
+   FROM (SELECT SUBSTR(REPLACE(REPLACE(browser,COALESCE(substring(browser FROM '{.*}'),''),''),'; ;',';'),0,250) AS browser_desc
+        FROM tmp_session
+    WHERE browser &lt;&gt; '-'
+  GROUP BY
+       SUBSTR(REPLACE(REPLACE(browser,COALESCE(substring(browser FROM '{.*}'),''),''),'; ;',';'),0,250)) a,
+  (SELECT NEXTVAL('SEQ_BROWSER_ID') AS nv, (COALESCE(MAX (browser_id), 1) - CURRVAL('SEQ_BROWSER_ID')) AS maxid
+             FROM browser_lu) b
+ WHERE browser_desc NOT IN (SELECT browser_desc FROM browser_lu)
+   AND browser_desc IS NOT NULL
+   UNION ALL
+   (SELECT -1,'NA' FROM browser_lu WHERE NOT EXISTS (SELECT 1 FROM browser_lu WHERE browser_id = -1) LIMIT 1)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU_NAME-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU_NAME" NAME="Browser Name Analysis" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>BROWSER_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+  update browser_lu
+     set browser_name = case when lower(browser_desc) like '%msie%'
+	                           or lower(browser_desc) like '%internet explorer%' then 'Microsoft Internet Explorer'
+							 when lower(browser_desc) like '%opera%' then 'Opera'
+							 when lower(browser_desc) like '%konqueror%' then 'Konqueror'
+							 when lower(browser_desc) like '%galeon%' then 'Galeon'
+							 when lower(browser_desc) like '%lotus notes%' then 'Lotus Notes'
+							 when lower(browser_desc) like '%lynx%' then 'Lynx'
+							 when lower(browser_desc) like '%frontpage%' then 'Frontpage'
+							 when lower(browser_desc) like '%omniweb%' then 'OmniWeb'
+							 when lower(browser_desc) like '%up.link%' or
+							      lower(browser_desc) like '%up.brows%' then 'Cellphone UP Link'
+							 when lower(browser_desc) like '%netscape%'
+	                           or lower(browser_desc) like '%mozilla%' then 'Netscape'
+			  when lower(browser_desc) like '%java%' then 'Java Unknown' else 'Unknown' end
+			  where browser_name = 'Unknown' or browser_name is null
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU_OS-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU_OS" NAME="Browser OS Analysis" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>BROWSER_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+  update browser_lu
+     set os_version = case when lower(browser_desc) like '%win%95%' then 'Windows 95'
+              when lower(browser_desc) like '%win%98%' then 'Windows 98'
+              when lower(browser_desc) like '%win%2000%' then 'Windows 2000'
+              when lower(browser_desc) like '%win%nt%5.0%' then 'Windows 2000'
+              when lower(browser_desc) like '%win%nt%5.1%' then 'Windows 2000 SP1'
+              when lower(browser_desc) like '%win%3.1%' then 'Windows 3.1'
+              when lower(browser_desc) like '%win%ce%' then 'Windows CE'
+              when lower(browser_desc) like '%win%xp%' then 'Windows XP'
+              when lower(browser_desc) like '%win%me%' then 'Windows ME'
+              when lower(browser_desc) like '%win%nt%' then 'Windows NT'
+              when lower(browser_desc) like '%win%9x%' then 'Windows 9x'
+              when lower(browser_desc) like '%linux%2.4%' then 'Linux 2.4.x'
+              when lower(browser_desc) like '%linux%2.3%' then 'Linux 2.3.x'
+              when lower(browser_desc) like '%linux%2.2%' then 'Linux 2.2.x'
+              when lower(browser_desc) like '%linux%2.1%' then 'Linux 2.1.x'
+              when lower(browser_desc) like '%linux%2.0%' then 'Linux 2.0.x'
+              when lower(browser_desc) like '%mac%ppc%' then 'Macintosh Power PC'
+              when lower(browser_desc) like '%mac%power%' then 'Macintosh Power PC'
+              when lower(browser_desc) like '%mac%68%' then 'Macintosh Motorola'
+              when lower(browser_desc) like '%mac%' then 'Macintosh Unknown'
+              when lower(browser_desc) like '%sun%unix%' then 'SunOS Unix'
+              when lower(browser_desc) like '%hp%open%' then 'HP Openview Unix'
+              when lower(browser_desc) like '%hp%' then 'HP Openview Unix'
+              when lower(browser_desc) like '%unix%aix%' then 'AIX Unix'
+              when lower(browser_desc) like '%sony%cmd%' then 'Sony Phone'
+              when lower(browser_desc) like '%x win%' then 'X Windows Unix'
+              when lower(browser_desc) like '%unix%' then 'Unix Unknown'
+              when lower(browser_desc) like '%linux%' then 'Linux'
+              when lower(browser_desc) like '%ericss%' then 'Ericsson Phone'
+			  when lower(browser_desc) like '%win%' then 'Windows Unknown'
+			  when lower(browser_desc) like '%aol%' then 'AOL Unknown'
+			  when lower(browser_desc) like '%msn%' then 'MSN Unknown'
+			  when lower(browser_desc) like '%freebsd%' then 'Free BSD Unix'
+			  when lower(browser_desc) like '%sunos%' then 'SunOS Unix'
+			  when lower(browser_desc) like '%nokia%' then 'Nokia Phone'
+			  when lower(browser_desc) like '%solaris%' then 'SunOS Unix'
+			  when lower(browser_desc) like '%alpha%' then 'DEC Alpha'
+			  when lower(browser_desc) like '%amstrad%' then 'Amstrad'
+			  when lower(browser_desc) like '%frontpage%' then 'Windows Unknown'
+			  when lower(browser_desc) like '%irix%' then 'IRIX'
+			  when lower(browser_desc) like '%risc%' then 'RISC Unknown'
+			  when lower(browser_desc) like '%x11%' then 'Unix Unknown'
+			  when lower(browser_desc) like '%msie%' then 'Windows Unknown'
+			  when lower(browser_desc) like '%java%' then 'Java Unknown' else 'Unknown' end
+where os_version is null
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU_SPIDER-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU_SPIDER" NAME="Browser Name Analysis" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>BROWSER_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+update browser_lu set possible_spider = 1
+ where (lower(browser_desc) like '%crawl%'
+    or lower(browser_desc) like '%spider%'
+    or lower(browser_desc) like '%spyder%'
+    or lower(browser_desc) like '%google%'
+    or lower(browser_desc) like '%aspseek%'
+    or lower(browser_desc) like '%harvest%'
+    or lower(browser_desc) like '%search%'
+    or lower(browser_desc) like '%deadlink%'
+    or lower(browser_desc) like '%indexer%'
+    or lower(browser_desc) like '%sitecheck%'
+    or lower(browser_desc) like '%bot%'
+    or lower(browser_desc) like '%scooter%'
+    or lower(browser_desc) like '%webcopier%'
+    or lower(browser_desc) like '%webstripper%'
+    or lower(browser_desc) like '%wget%'
+    or lower(browser_desc) like '%yandex%'
+    or lower(browser_desc) like '%xenu%'
+    or lower(browser_desc) like '%ad munch%')
+    and possible_spider is null
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU_TIDY-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU_TIDY" NAME="Browser cleanup" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>BROWSER_LU_NAME</DEPENDS_ON>
+<DEPENDS_ON>BROWSER_LU_OS</DEPENDS_ON>
+<DEPENDS_ON>BROWSER_LU_SPIDER</DEPENDS_ON>
+<DEPENDS_ON>BROWSER_LU_TYPE</DEPENDS_ON>
+<DEPENDS_ON>BROWSER_LU_VERSION_4</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="TRUE">
+VACUUM BROWSER_LU
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU_TYPE-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU_TYPE" NAME="Browser Name Analysis" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>BROWSER_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+update browser_lu
+  set mozilla_type = replace((case when lower(browser_desc) like 'mozilla%'
+				  then substr(browser_desc,0,(case when position(' ' in browser_desc) &gt; 11 then 11 else 9 end))
+				  else 'Unknown' end),'(','')
+where mozilla_type is null
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU_VERSION_1-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU_VERSION_1" NAME="Browser Name Analysis" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>BROWSER_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+update browser_lu
+   set browser_version = replace(replace(substr(browser_desc,position('MSIE' in browser_Desc)+5,case when substr(browser_Desc,position('MSIE' in browser_Desc)+7,1) = '0' then 4 else 3 end),';',''),')','')
+where browser_desc like '%MSIE%' and (browser_version is null or browser_version = 'Unknown')
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU_VERSION_2-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU_VERSION_2" NAME="Browser Name Analysis" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>BROWSER_LU_VERSION_1</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+update browser_lu set browser_version =  substr(mozilla_type,position('/' in mozilla_type)+1)
+where browser_name like 'Netscape'
+and position('/' in mozilla_type) &gt; 1 and (browser_version is null or browser_version = 'Unknown')
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU_VERSION_3-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU_VERSION_3" NAME="Browser Name Analysis" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>BROWSER_LU_VERSION_2</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+update browser_lu
+   set browser_version = substring((browser_desc||' ') from '^.*?[/ ](.*)[/ ]')
+where browser_name like 'Opera' and (browser_version is null or browser_version = 'Unknown')
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: BROWSER_LU_VERSION_4-->
+<JOB DESCRIPTION="SEE NAME" ID="BROWSER_LU_VERSION_4" NAME="Browser Name Analysis" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>BROWSER_LU_VERSION_3</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+update browser_lu
+   set browser_version = 'Unknown'
+where browser_version is null
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: CRT_TMP_HIT_SUBSET-->
+<JOB DESCRIPTION="SEE NAME" ID="CRT_TMP_HIT_SUBSET" NAME="PAGEVIEW_AGG" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<WAITS_ON>DROP_TMP_HIT_SUBSET</WAITS_ON>
+<DEPENDS_ON>TMP_HIT</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">    
+CREATE TABLE TMP_HIT_SUBSET AS 		
+   select	temp_session_id,
+		a13.file_type,
+		cleanGetRequest(a12.get_request) as file_url_string,
+		date_trunc('day',activity_dt) as date_desc,
+		a12.status as status_code_id,
+		a12.bytes_sent
+     from TMP_HIT a12, STG_FILES_TO_MONITOR a13
+    where a12.get_request similar to a13.file_match_string    
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: HIT_SUBSET_FA-->
+<JOB DESCRIPTION="SEE NAME" ID="HIT_SUBSET_FA" NAME="HIT_SUBSET_FA" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>FILE_LU</DEPENDS_ON>
+<DEPENDS_ON>INS_TMP_NEW_SESSION</DEPENDS_ON>
+<DEPENDS_ON>CRT_TMP_HIT_SUBSET</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">    
+INSERT INTO HIT_SUBSET_FA(SESSION_ID,SITE_ID,STATUS_CODE_ID,DATE_ID,FILE_ID, BYTES_SENT)  		
+ select	a15.session_id,
+		a15.site_id,
+		a12.status_code_id,
+		a13.date_id,
+		a14.file_id,
+		a12.bytes_sent
+   FROM TMP_HIT_SUBSET a12
+	    inner join DATE_LU a13 on a12.date_desc = a13.DATE_DESC
+	    inner join FILE_LU a14 on a12.file_url_string = a14.file_url_string
+	    inner join TMP_NEW_SESSION a15 on a12.temp_session_id = a15.temp_session_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: CRT_TMP_SESSION_IDX-->
+<JOB DESCRIPTION="SEE NAME" ID="CRT_TMP_SESSION_IDX" NAME="CREATE TEMP SESSION INDEX" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>TMP_SESSION</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+CREATE UNIQUE INDEX IDX_HIT_S ON TMP_SESSION(TEMP_SESSION_ID)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: CRT_TMP_SESS_REF_URL-->
+<JOB DESCRIPTION="PostGreSQL version is slow due to lack of first value support" ID="CRT_TMP_SESS_REF_URL" NAME="CREATE TEMP SESSION REFERRER_URLS" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<WAITS_ON>DROP_TMP_SESS_REF_URL</WAITS_ON>
+<DEPENDS_ON>TMP_HIT</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+CREATE TABLE temp_session_referrer_url(TEMP_SESSION_ID,
+        REFERRER_URL,SERVER_NAME)
+AS
+SELECT TEMP_SESSION_ID,
+       MAX(LOWER(COALESCE(NULLIF(SUBSTR(REFERRER_URL,0,POSITION('?' in REFERRER_URL)),''),REFERRER_URL))),
+	   MAX(SERVER_NAME)
+  FROM TMP_HIT  a
+ WHERE (TEMP_SESSION_ID,ACTIVITY_DT)
+        in (SELECT TEMP_SESSION_ID,MIN(ACTIVITY_DT)
+	      FROM TMP_HIT
+	     WHERE CLEANSED IS NOT NULL
+	     GROUP BY TEMP_SESSION_ID)
+   AND CLEANSED IS NOT NULL
+   AND NULLIF(REFERRER_URL,'') IS NOT NULL
+   AND REFERRER_URL &lt;&gt; '-'
+  GROUP BY TEMP_SESSION_ID
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DATE_LU-->
+<JOB DESCRIPTION="PostGreSQL-compatible" ID="DATE_LU" NAME="INSERT NEW DATES" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE"> 
+INSERT INTO DATE_LU(DATE_ID,DATE_DESC,MONTH_NBR,WEEK_NBR,WEEK_YEAR_ID,YEAR_NBR,QTR_NBR,DAY_OF_WEEK_NBR,WEEK_DESC)
+SELECT	 DATE_ID
+	,START_DATE + interval '1 day' * date_id as DATE_DESC
+	,cast(extract('month' from START_DATE + interval '1 day' * date_id) as int2) as MONTH_NBR
+	,cast(TO_CHAR(cast(START_DATE + 3 + interval '1 day' * date_id - interval '1 days' * (cast(extract(dow from START_DATE + interval '1 day' * date_id) + 6 as int) % 7) as date) ,'IW') as int2) as WEEK_NBR
+	,cast(TO_CHAR(cast(START_DATE + 3 + interval '1 day' * date_id - interval '1 days' * (cast(extract(dow from START_DATE + interval '1 day' * date_id) + 6 as int) % 7) as date) ,'YYYYIW') as int4) as WEEK_YEAR_ID
+	,cast(extract('year' from START_DATE + interval '1 day' * date_id) as int2) as YEAR_NBR
+	,cast(extract('quarter' from START_DATE + interval '1 day' * date_id) as int2) as QTR_NBR
+	,cast(TO_CHAR(START_DATE + interval '1 day' * (date_id-1),'D') as int2) as DAY_OF_WEEK_NBR
+	,     TO_CHAR(cast(START_DATE + interval '1 day' * date_id - interval '1 days' * (cast(extract(dow from START_DATE + interval '1 day' * date_id) + 6 as int) % 7) as date),'dd-Mon-yyyy') as WEEK_DESC
+  FROM 
+	(SELECT generate_series as DATE_ID, DATE '1998-12-31' as START_DATE
+	 FROM	generate_series(1,6000)
+	 GROUP BY 1,2) A 
+WHERE NOT EXISTS (SELECT 1 FROM DATE_LU B WHERE A.DATE_ID = B.DATE_ID)
+  AND ((START_DATE + interval '1 day' * date_id) &lt; (current_date + interval '365 day') OR DATE_ID = 9999)
+UNION
+SELECT DATE_ID,
+DATE_DESC,
+cast(extract('month' from DATE_DESC) as int2) as MONTH_NBR,
+cast(TO_CHAR(DATE_DESC,'IW') as int2) as WEEK_NBR,
+cast(TO_CHAR(DATE_DESC,'YYYYIW') as int4) as WEEK_YEAR_ID,
+cast(extract('year' from DATE_DESC) as int2) as YEAR_NBR,
+cast(extract('quarter' from DATE_DESC) as int2) as QTR_NBR,
+cast(TO_CHAR(DATE_DESC - interval '1 day','D') as int2) as DAY_OF_WEEK_NBR,
+TO_CHAR(DATE_DESC - interval '6 day','dd-Mon-yyyy') as WEEK_DESC
+  FROM 
+(SELECT 0 as DATE_ID, DATE '1950-01-01' as DATE_DESC) A
+ WHERE NOT EXISTS (SELECT 1 
+                     FROM DATE_LU B
+		    WHERE A.DATE_ID = B.DATE_ID)
+UNION
+SELECT -1 as DATE_ID,
+NULL as DATE_DESC,
+-1 as MONTH_NBR,
+-1 as WEEK_NBR,
+-1 as WEEK_YEAR_ID,
+-1 as YEAR_NBR,
+-1 as QTR_NBR,
+-1 as DAY_OF_WEEK_NBR,
+'-1' as WEEK_DESC
+ WHERE NOT EXISTS (SELECT 1 
+                     FROM DATE_LU B
+		    WHERE -1 = B.DATE_ID)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DAY_CLICKSTREAM_NEXT_AGG-->
+<JOB DESCRIPTION="SEE NAME" ID="DAY_CLICKSTREAM_NEXT_AGG" NAME="PAGEVIEW_AGG" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>TRUNC_TMP_CLICKSTREAM_NEXT</DEPENDS_ON>
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+insert into day_clickstream_next(site_id,date_id,page_id,page_1_id,page_2_id,page_3_id,page_4_id,cnt)
+SELECT	site_id,
+	date_id,
+	page_id as page_id,
+	page_1_id as page_1_id,
+	page_2_id as page_2_id,
+	page_3_id as page_3_id,
+	page_4_id as page_4_id,
+	count(*) as cnt
+FROM	tmp_clickstream_next
+GROUP BY site_id, date_id, page_id, page_1_id, page_2_id, page_3_id, page_4_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DAY_CLICKSTREAM_PREV_AGG-->
+<JOB DESCRIPTION="SEE NAME" ID="DAY_CLICKSTREAM_PREV_AGG" NAME="PAGEVIEW_AGG" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>TRUNC_TMP_CLICKSTREAM_PREV</DEPENDS_ON>
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+insert into day_clickstream_prev(site_id,date_id,page_id,prev_page_1_id,prev_page_2_id,prev_page_3_id,prev_page_4_id,cnt)
+SELECT	site_id,
+	date_id,
+	page_id as page_id,
+	coalesce(prev_page_1_id,-2) as prev_page_1_id,
+	coalesce(prev_page_2_id,-2) as prev_page_2_id,
+	coalesce(prev_page_3_id,-2) as prev_page_3_id,
+	coalesce(prev_page_4_id,-2) as prev_page_4_id,
+	count(*) as cnt
+FROM	tmp_clickstream_prev
+GROUP BY site_id, date_id, page_id, coalesce(prev_page_1_id,-2), coalesce(prev_page_2_id,-2), coalesce(prev_page_3_id,-2), coalesce(prev_page_4_id,-2)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DAY_HIT_SUBSET_AGG-->
+<JOB DESCRIPTION="SEE NAME" ID="DAY_HIT_SUBSET_AGG" NAME="PAGEVIEW_AGG" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>ANALYZE_TMP_SESSION</DEPENDS_ON>
+<DEPENDS_ON>DATE_LU</DEPENDS_ON>
+<DEPENDS_ON>FILE_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">    
+INSERT INTO DAY_HIT_SUBSET_AGG(site_id,date_id,file_id,hits,users,visits)
+SELECT COALESCE(a16.site_id,-1),
+	   a13.date_id,a14.file_id,
+	   count(*),
+	   count(distinct a15.persistant_identifier),
+	   count(distinct a15.temp_session_id)
+  FROM (TMP_HIT_SUBSET a12
+	inner join DATE_LU a13 on a12.date_desc = a13.DATE_DESC
+	inner join FILE_LU a14 on a12.file_url_string = a14.file_url_string
+	inner join TMP_SESSION a15 on a12.temp_session_id = a15.temp_session_id
+	left join DIM_SITE a16 on a15.SOURCE_FILE like '%'||a16.DOMAIN_NAME||'%')
+	left join DAY_HIT_SUBSET_AGG TGT 
+		on	(	(coalesce(a16.site_id,-1) = TGT.site_id)
+			 and	(a13.date_id = TGT.date_id)
+			 and 	(a14.file_id = TGT.file_id)
+			)
+    WHERE TGT.DATE_ID is null
+ GROUP BY a16.site_id,a13.date_id,a14.file_id	
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DEL_STG_OPEN_SESSION-->
+<JOB DESCRIPTION="SEE NAME" ID="DEL_STG_OPEN_SESSION" NAME="DELETE STAGE OPEN SESSION" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+TRUNCATE STG_OPEN_SESSION
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DEL_TMP_NEW_SESSION-->
+<JOB DESCRIPTION="SEE NAME" ID="DEL_TMP_NEW_SESSION" NAME="TRUNCATE TMP_NEW_SESSION" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+TRUNCATE TMP_NEW_SESSION
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DEL_WEB_SITE_ACTIVITY_FA-->
+<JOB DESCRIPTION="SEE NAME" ID="DEL_WEB_SITE_ACTIVITY_FA" NAME="DELETE PAGEVIEWS OLDER THAN A WEEK" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>DATE_LU</DEPENDS_ON>
+<DEPENDS_ON>TIME_OF_DAY_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM WEB_SITE_ACTIVITY_FA
+WHERE DATE_ID &lt; (SELECT DATE_ID FROM DATE_LU WHERE DATE_DESC = CURRENT_DATE - interval '365 day')
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DLY_AGG_TBL_LD-->
+<JOB DESCRIPTION="Wrapper job for loading day-level aggregate tables" ID="DLY_AGG_TBL_LD" NAME="Daily Aggregate Table Load" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>DY_BR_VMG_AGG</DEPENDS_ON>
+<DEPENDS_ON>DY_BR_VMG_PVG_AGG</DEPENDS_ON>
+<DEPENDS_ON>DY_ST_AGG</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: DROP_TMP_HIT_SUBSET-->
+<JOB DESCRIPTION="SEE NAME" ID="DROP_TMP_HIT_SUBSET" NAME="PAGEVIEW_AGG" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DROP TABLE TMP_HIT_SUBSET
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DROP_TMP_SESSION_IDX-->
+<JOB DESCRIPTION="DROP TEMP SESSION INDEX" ID="DROP_TMP_SESSION_IDX" NAME="DROP TMP SESSION INDEX" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DROP INDEX IDX_HIT_S
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DROP_TMP_SESS_REF_URL-->
+<JOB DESCRIPTION="SEE NAME" ID="DROP_TMP_SESS_REF_URL" NAME="DROP TEMP SESSION REFERRER_URL" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DROP TABLE temp_session_referrer_url
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_BR_VMG_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading dy_br_vmg_agg" ID="DY_BR_VMG_AGG" NAME="Day-Browser-VisitMinuteGroup-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>DY_BR_VMG_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: DY_BR_VMG_AGG_ANL-->
+<JOB DESCRIPTION="analyze dy_br_vmg_agg" ID="DY_BR_VMG_AGG_ANL" NAME="Day-Browser-VisitMinuteGroup-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>DY_BR_VMG_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze dy_br_vmg_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_BR_VMG_AGG_DEL-->
+<JOB DESCRIPTION="Delete from dy_br_vmg_agg all data for those days with new data in wsaf" ID="DY_BR_VMG_AGG_DEL" NAME="Day-Browser-VisitMinuteGroup-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM dy_br_vmg_agg where date_id in (select distinct date_id from stg_date_list where week_only=0)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_BR_VMG_AGG_INS-->
+<JOB DESCRIPTION="Insert into dy_br_vmg_agg all data for those days with new data in wsaf" ID="DY_BR_VMG_AGG_INS" NAME="Day-Browser-VisitMinuteGroup-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>DY_BR_VMG_AGG_DEL</DEPENDS_ON>
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO dy_br_vmg_agg (
+	date_id,
+	browser_id,
+	visit_dur_min_grp,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_vw_cnt_summ,
+	pg_hit_cnt_summ,
+	rpt_visit_cnt_summ)
+SELECT	fa.date_id as date_id,
+	fa.browser_id as browser_id,
+	fa.visit_dur_min_grp as visit_dur_min_grp,
+	fa.site_id as site_id,
+	count(distinct fa.persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	count(*) as pg_vw_cnt_summ,
+	sum(fa.total_page_hits_cnt) as pg_hit_cnt_summ,
+	count(distinct (case when fa.repeat_visitor=1 then fa.session_id else null end)) as rpt_visit_cnt_summ
+FROM 	stg_wsaf_agg fa
+WHERE date_id in (select distinct date_id from stg_date_list where week_only=0)
+GROUP BY fa.date_id, fa.browser_id, fa.visit_dur_min_grp, fa.site_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_BR_VMG_PVG_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading dy_br_vmg_pvg_agg" ID="DY_BR_VMG_PVG_AGG" NAME="Day-Browser-VisitMinuteGroup-PageViewGroup-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>DY_BR_VMG_PVG_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: DY_BR_VMG_PVG_AGG_ANL-->
+<JOB DESCRIPTION="analyze dy_br_vmg_pvg_agg" ID="DY_BR_VMG_PVG_AGG_ANL" NAME="Day-Browser-VisitMinuteGroup-PageViewGroup-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>DY_BR_VMG_PVG_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze dy_br_vmg_pvg_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_BR_VMG_PVG_AGG_DEL-->
+<JOB DESCRIPTION="Delete from dy_br_vmg_pvg_agg all data for those days with new data in wsaf" ID="DY_BR_VMG_PVG_AGG_DEL" NAME="Day-Browser-VisitMinuteGroup-PageViewGroup-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM dy_br_vmg_pvg_agg where date_id in (select distinct date_id from stg_date_list where week_only=0)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_BR_VMG_PVG_AGG_INS-->
+<JOB DESCRIPTION="Insert into dy_br_vmg_pvg_agg all data for those days with new data in wsaf" ID="DY_BR_VMG_PVG_AGG_INS" NAME="Day-Browser-VisitMinuteGroup-PageViewGroup-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>DY_BR_VMG_PVG_AGG_DEL</DEPENDS_ON>
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<DEPENDS_ON>STG_SESS_AGG</DEPENDS_ON>
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO dy_br_vmg_pvg_agg (
+	date_id,
+	browser_id,
+	visit_dur_min_grp,
+	site_id,
+	pg_vw_per_visit_grp,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_hit_cnt_summ)
+SELECT	fa.date_id as date_id,
+	slu.browser_id as browser_id,
+	slu.visit_dur_min_grp as visit_dur_min_grp,
+	slu.site_id as site_id,
+	slu.pg_vw_per_visit_grp as pg_vw_per_visit_grp,
+	count(distinct slu.persistant_cookie_id) as user_cnt_summ,
+	count(distinct slu.session_id) as visit_cnt_summ,
+	sum(fa.total_page_hits_cnt) as pg_hit_cnt_summ
+FROM stg_sess_agg slu
+	inner join stg_wsaf_agg fa
+		on slu.session_id = fa.session_id
+WHERE fa.date_id in (select distinct date_id from stg_date_list where week_only=0)
+GROUP BY fa.date_id,
+	slu.browser_id,
+	slu.visit_dur_min_grp,
+	slu.site_id,
+	slu.pg_vw_per_visit_grp
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_FL_STAT_PART-->
+<JOB DESCRIPTION="Insert into dy_fl_stat_part" ID="DY_FL_STAT_PART" NAME="Day-File-Status-Partition Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>ANALYZE_TMP_SESSION</DEPENDS_ON>
+<DEPENDS_ON>DATE_LU</DEPENDS_ON>
+<DEPENDS_ON>FILE_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO DY_FL_STAT_PART(site_id,date_id,file_id,status_code_id,hits)
+SELECT COALESCE(a16.site_id,-1),
+	   a13.date_id,
+	   a14.file_id,
+	   coalesce(a12.status_code_id,-1),
+	   count(*)
+  FROM (TMP_HIT_SUBSET a12
+	inner join DATE_LU a13 on a12.date_desc = a13.DATE_DESC
+	inner join FILE_LU a14 on a12.file_url_string = a14.file_url_string
+	inner join TMP_SESSION a15 on a12.temp_session_id = a15.temp_session_id
+	left join DIM_SITE a16 on a15.SOURCE_FILE like '%'||a16.DOMAIN_NAME||'%')
+	left join DY_FL_STAT_PART TGT
+		on	(	(coalesce(a16.site_id,-1) = TGT.site_id)
+			 and	(a13.date_id = TGT.date_id)
+			 and 	(a14.file_id = TGT.file_id)
+			 and	(coalesce(a12.status_code_id,-1) = TGT.status_code_id)
+			)
+  WHERE TGT.date_id is null
+ GROUP BY coalesce(a16.site_id,-1), a13.date_id, a14.file_id,coalesce(a12.status_code_id,-1)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_ST_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading dy_st_agg" ID="DY_ST_AGG" NAME="Day-State-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>DY_ST_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: DY_ST_AGG_ANL-->
+<JOB DESCRIPTION="analyze dy_st_agg" ID="DY_ST_AGG_ANL" NAME="Day-State-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>DY_ST_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze dy_st_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_ST_AGG_DEL-->
+<JOB DESCRIPTION="Delete from dy_st_agg all data for those days with new data in wsaf" ID="DY_ST_AGG_DEL" NAME="Day-State-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM dy_st_agg where date_id in (select distinct date_id from stg_date_list where week_only=0)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: DY_ST_AGG_INS-->
+<JOB DESCRIPTION="Insert into dy_st_agg all data for those days with new data in wsaf" ID="DY_ST_AGG_INS" NAME="Day-State-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>DY_ST_AGG_DEL</DEPENDS_ON>
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO dy_st_agg (
+	date_id,
+	state,
+	country,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_vw_cnt_summ,
+	rpt_visit_cnt_summ,
+	visit_dur_sec_summ)
+SELECT date_id as date_id,
+	state as state,
+	country as country,
+	site_id as site_id,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	sum(1::int4) as pg_vw_cnt_summ,
+	count(distinct (case when repeat_visitor = 1 then session_id end)) as rpt_visit_cnt_summ,
+	sum(visit_dur_sec_summ) as visit_dur_sec_summ
+FROM stg_wsaf_agg
+WHERE date_id in (select distinct date_id from stg_date_list where week_only=0)
+GROUP BY date_id,
+	state,
+	country,
+	site_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: FS_SESSIONIZE_WEBLOG-->
+<JOB DESCRIPTION="SEE NAME" ID="FS_SESSIONIZE_WEBLOG" NAME="Sessionize weblogs" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="XMLSESSIONIZER">
+<WAITS_ON>DROP_TMP_SESSION_IDX</WAITS_ON>
+<DEPENDS_ON>FETCH_WEBLOGS</DEPENDS_ON>
+<DEPENDS_ON>TRUNC_TMP_HIT</DEPENDS_ON>
+<DEPENDS_ON>TRUNC_TMP_SESSION</DEPENDS_ON>
+<SESSIONIZER BATCHCOMMITSIZE="3000" PARALLISM="3" PEAKSESSIONSANHOUR="4000" RESTART="TRUE" SKIPINSERTS="false" SMP="TRUE" STOREOPENSESSIONS="TRUE" TIMEOUT="1800" WAITQUEUESIZE="5" WEBSERVERTYPE="APACHE">
+			<LOG_FILES>
+				<LOG_FILE DELIMITER=" " IOBUFFER="80000" IOTYPE="MAPPED" MAXLINELENGTH="14096" NAME="WeblogApache" PARAMETER_LIST="myLogFiles">
+					<OUT DATATYPE="STRING" NAME="REMOTE_HOST" OBJECTTYPE="IP_ADDRESS"/>
+					<OUT DATATYPE="STRING" DEFAULTVALUE="N/A" NAME="CANONICAL_SERVER_NAME" NULLIF="-" OBJECTTYPE="SERVER_NAME"/>
+					<OUT DATATYPE="STRING" NAME="REMOTE_USER" NULLIF="-" OBJECTTYPE="REMOTE_USER"/>
+					<OUT DATATYPE="DATE" FORMATSTRING="dd/MMM/yyyy:HH:mm:ss Z" NAME="COMMON_LOG_DATETIME" OBJECTTYPE="HIT_DATE_TIME" QUOTEEND="]" QUOTESTART="[" READORDER="ASC" READORDERSEQUENCE="1"/>
+					<OUT DATATYPE="STRING" ESCAPECHARACTER="\" NAME="FIRST_LINE_OF_REQUEST" NULLIF="-" OBJECTTYPE="URL_REQUEST" QUOTEEND="&quot;" QUOTESTART="&quot;"/>
+					<OUT DATATYPE="INTEGER" NAME="STATUS" OBJECTTYPE="HTML_ERROR_CODE"/>
+					<OUT DATATYPE="DOUBLE" NAME="BYTES_SENT" OBJECTTYPE="BYTES_SENT"/>
+					<OUT DATATYPE="STRING" ESCAPECHARACTER="\" NAME="REFERRER" NULLIF="-" OBJECTTYPE="REFERRER_URL" QUOTEEND="&quot;" QUOTESTART="&quot;"/>
+					<OUT DATATYPE="STRING" ESCAPECHARACTER="\" NAME="USER_AGENT" OBJECTTYPE="USER_AGENT" PARTITIONKEY="TRUE" QUOTEEND="&quot;" QUOTESTART="&quot;"/>
+					</LOG_FILE>
+				</LOG_FILES>
+			<IDENTIFIERS>
+	
+	<IDENTIFIER_SET PRIORITY="1" TIMEOUT="1800" TYPE="IP_BROWSER">
+					<IDENTIFIER OBJECTTYPE="IP_ADDRESS"/>
+					<IDENTIFIER OBJECTTYPE="USER_AGENT"/>
+					</IDENTIFIER_SET>
+	
+	</IDENTIFIERS>
+			<DESTINATION>
+				<SESSION CLASS="com.kni.etl.sessionizer.PGCopySessionDatabaseWriter" PARAMETER_LIST="myDestinationDB" TABLENAME="TMP_SESSION">
+					<SESSION_IN NAME="TEMP_SESSION_ID" SOURCE="TEMP_SESSION_ID"/>
+					<SESSION_IN NAME="BROWSER" SOURCE="BROWSER"/>
+					<SESSION_IN NAME="FIRST_SESSION_ACTIVITY" SOURCE="FIRST_SESSION_ACTIVITY"/>
+					<SESSION_IN NAME="IP_ADDRESS" SOURCE="IP_ADDRESS"/>
+					<SESSION_IN NAME="LAST_SESSION_ACTIVITY" SOURCE="LAST_SESSION_ACTIVITY"/>
+					<SESSION_IN NAME="REFERRER" SOURCE="REFERRER"/>
+					<SESSION_IN NAME="REPEAT_VISITOR" SOURCE="REPEAT_VISITOR"/>
+					<SESSION_IN NAME="HITS" SOURCE="HITS"/>
+					<SESSION_IN NAME="PAGEVIEWS" SOURCE="PAGEVIEWS"/>
+					</SESSION>
+				<HIT CLASS="com.kni.etl.sessionizer.PGCopyHitDatabaseWriter" PAGESONLY="TRUE" PARAMETER_LIST="myDestinationDB" TABLENAME="TMP_HIT">
+					<HIT_IN NAME="ACTIVITY_DT" SOURCE="ACTIVITY_DATE_TIME"/>
+					<HIT_IN NAME="BYTES_SENT" SOURCE="BYTES_SENT"/>
+					<HIT_IN NAME="SERVER_NAME" SOURCE="SERVER_NAME"/>
+					<HIT_IN NAME="CLEANSED" SOURCE="CLEANSED"/>
+					<HIT_IN NAME="GET_REQUEST" SOURCE="GET_REQUEST"/>
+					<HIT_IN NAME="STATUS" SOURCE="HTML_ERROR_CODE"/>
+					<HIT_IN NAME="REFERRER_URL" SOURCE="REFERRER_URL"/>
+					<HIT_IN NAME="TEMP_SESSION_ID" SOURCE="TEMP_SESSION_ID"/>
+					</HIT>
+				</DESTINATION>
+			<PAGE_DEFINITIONS>			    			    
+			    <PAGE_DEFINITION DIRECTORY="*" HOSTNAME="*" PRIORITY="1" PROTOCOL="*" TEMPLATE="*.gif" VALID="FALSE"/>			    			    
+			    <PAGE_DEFINITION DIRECTORY="*" HOSTNAME="*" PRIORITY="2" PROTOCOL="*" TEMPLATE="*.jpg" VALID="FALSE"/>			    			    
+			    <PAGE_DEFINITION DIRECTORY="*" HOSTNAME="*" PRIORITY="3" PROTOCOL="*" TEMPLATE="*.ico" VALID="FALSE"/>			    			    
+			    <PAGE_DEFINITION DIRECTORY="*" HOSTNAME="*" PRIORITY="4" PROTOCOL="*" TEMPLATE="*.jpeg" VALID="FALSE"/>			   			    
+			    <PAGE_DEFINITION DIRECTORY="*" HOSTNAME="*" PRIORITY="5" PROTOCOL="*" TEMPLATE="*.css" VALID="FALSE"/>			   			    
+			    <PAGE_DEFINITION DIRECTORY="*" HOSTNAME="*" PRIORITY="6" PROTOCOL="*" TEMPLATE="*.js" VALID="FALSE"/>			    			    
+			    <PAGE_DEFINITION DIRECTORY="*" HOSTNAME="*" PRIORITY="7" PROTOCOL="*" TEMPLATE="*.png" VALID="FALSE"/>			   			    
+			    <PAGE_DEFINITION DIRECTORY="*" HOSTNAME="*" PRIORITY="6" PROTOCOL="*" STATUSCODES="200,201,202,203,204,205,206" TEMPLATE="*"/>			    			    
+			    </PAGE_DEFINITIONS>
+			</SESSIONIZER>
+</JOB>
+
+<!--- Job: TRUNC_TMP_SESSION-->
+<JOB DESCRIPTION="TRUNCATES TMP_SESSION TABLE" ID="TRUNC_TMP_SESSION" NAME="TRUNCATE TMP_SESSION" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+TRUNCATE TABLE TMP_SESSION
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: GEOGRAPHY_LU-->
+<JOB DESCRIPTION="SEE NAME" ID="GEOGRAPHY_LU" NAME="INSERT NEW COUNTRIES AND STATES" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>ANALYZE_TMP_SESSION</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO geography_lu
+SELECT distinct coalesce(sess.country,'Unknown') as country,
+		coalesce(sess.state,'Unknown') as state
+FROM tmp_session sess
+  LEFT JOIN geography_lu geog
+	ON	(	(coalesce(sess.country,'Unknown')=geog.country)
+		 AND	(coalesce(sess.state,'Unknown')=geog.state)
+		)
+where geog.country is null
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: INS_PERS_IDS-->
+<JOB DESCRIPTION="SEE NAME" ID="INS_PERS_IDS" NAME="INSERT PERSISTANT NEW PERSISTANT IDENTIFIERS" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>ANALYZE_TMP_SESSION</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO STG_PERS_ID_LIST(PERSISTANT_IDENTIFIER,FIRST_SESSION_DT)
+SELECT COALESCE(PERSISTANT_IDENTIFIER,'NA'),
+       CASE WHEN PERSISTANT_IDENTIFIER = '-' THEN TO_DATE('01-DEC-2099','DD-MON-YYYY') ELSE  MIN(DATE_TRUNC('Day', FIRST_SESSION_ACTIVITY)) END
+  FROM TMP_SESSION A
+WHERE NOT EXISTS (SELECT 1 FROM STG_PERS_ID_LIST WHERE PERSISTANT_IDENTIFIER = COALESCE(A.PERSISTANT_IDENTIFIER,'NA'))
+GROUP BY PERSISTANT_IDENTIFIER
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: INS_STG_OPEN_SESSION-->
+<JOB DESCRIPTION="SEE NAME" ID="INS_STG_OPEN_SESSION" NAME="INSERT INTO STAGE OPEN SESSION" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<WAITS_ON>DEL_STG_OPEN_SESSION</WAITS_ON>
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO STG_OPEN_SESSION(
+  SESSION_ID              ,
+  TEMP_SESSION_ID        ,
+  FIRST_SESSION_ACTIVITY,
+  LAST_SESSION_ACTIVITY   ,
+  REPEAT_VISITOR         ,
+  COOKIE_ID             ,
+  COOKIE_FLAG          ,
+  IP_ADDRESS          ,
+  REFERRER_URL       ,
+  REFERRER_SITE     ,
+  BROWSER_ID,
+  SERVER_DESC     ,
+  SERVER_ADDRESS,
+  PAGE_VIEWS,
+  HITS,
+  PERSISTANT_IDENTIFIER,
+  COUNTRY,
+  STATE,
+  site_id,
+  SESSION_EXTENSION_CNT
+  )
+SELECT
+  SESSION_ID              ,
+  TEMP_SESSION_ID        ,
+  FIRST_SESSION_ACTIVITY,
+  LAST_SESSION_ACTIVITY   ,
+  REPEAT_VISITOR         ,
+  COOKIE_ID             ,
+  COOKIE_FLAG          ,
+  IP_ADDRESS          ,
+  REFERRER_URL       ,
+  REFERRER_SITE     ,
+  BROWSER_ID,
+  SERVER_DESC     ,
+  SERVER_ADDRESS,
+  PAGE_VIEWS,
+  HITS,
+  PERSISTANT_IDENTIFIER,
+  COUNTRY,
+  STATE,
+  site_id,
+  SESSION_EXTENSION_CNT + 1 as SESSION_EXTENSION_CNT
+FROM tmp_new_session
+WHERE last_session_activity is null
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: INS_STG_OPEN_SESS_PG-->
+<JOB DESCRIPTION="SEE NAME" ID="INS_STG_OPEN_SESS_PG" NAME="INSERT INTO STAGE OPEN SESSION LAST PAGE" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>ANL_STG_OPEN_SESSION</DEPENDS_ON>
+<DEPENDS_ON>DEL_STG_OPEN_SESS_PG</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+insert into stg_opn_sess_lst_pg
+select fa.*, tmp.temp_session_id, tmp.first_session_activity
+from web_site_activity_fa fa
+inner join stg_open_session tmp
+on fa.session_id = tmp.session_id
+where exit_page_flag=1
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: INS_TMP_NEW_SESSION-->
+<JOB DESCRIPTION="SEE NAME" ID="INS_TMP_NEW_SESSION" NAME="INSERT INTO TMP NEW SESSION" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>ANL_TMP_SESS_REF_URL</DEPENDS_ON>
+<DEPENDS_ON>BROWSER_LU</DEPENDS_ON>
+<DEPENDS_ON>DEL_TMP_NEW_SESSION</DEPENDS_ON>
+<DEPENDS_ON>INS_DIM_SITE</DEPENDS_ON>
+<DEPENDS_ON>INS_PERS_IDS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO TMP_NEW_SESSION(
+  SESSION_ID              ,
+  TEMP_SESSION_ID        ,
+  FIRST_SESSION_ACTIVITY,
+  LAST_SESSION_ACTIVITY   ,
+  REPEAT_VISITOR         ,
+  COOKIE_ID             ,
+  COOKIE_FLAG          ,
+  IP_ADDRESS          ,
+  REFERRER_URL       ,
+  REFERRER_SITE     ,
+  BROWSER_ID,
+  SERVER_DESC     ,
+  SERVER_ADDRESS,
+  PAGE_VIEWS,
+  HITS,
+  PERSISTANT_IDENTIFIER,
+  COUNTRY,
+  STATE,
+  site_id,
+  SESSION_EXTENSION_CNT
+  )
+SELECT COALESCE(G.SESSION_ID,NEXTVAL('seq_session_id')) AS SESSION_ID,
+ A.TEMP_SESSION_ID,
+ A.FIRST_SESSION_ACTIVITY AS FIRST_SESSION_ACTIVITY,
+ A.LAST_SESSION_ACTIVITY AS LAST_SESSION_ACTIVITY,
+ CASE WHEN DATE_TRUNC('DAY', A.FIRST_SESSION_ACTIVITY) &lt;= B.FIRST_SESSION_DT THEN NULL ELSE 1 END AS REPEAT_VISITOR,
+ B.PERSISTANT_IDENTIFIER AS COOKIE_ID,
+ CASE WHEN B.PERSISTANT_IDENTIFIER NOT IN ('NA','-') THEN 1 ELSE NULL END AS COOKIE_FLAG,
+ A.IP_ADDRESS AS IP_ADDRESS,
+ C.REFERRER_URL AS REFERRER_URL,
+ SUBSTR(C.referrer_url||'/',0,position('/' IN SUBSTR(C.referrer_url||'/',8,250))+8) AS REFERRER_SITE,
+ COALESCE(D.BROWSER_ID,-1) AS BROWSER_ID,
+ COALESCE(F.DOMAIN_NAME,'-1') AS SERVER_DESC,
+ COALESCE(F.DOMAIN_NAME,'-1') AS SERVER_ADDRESS,
+ A.PAGEVIEWS,
+ A.HITS,
+ A.PERSISTANT_IDENTIFIER,
+ A.COUNTRY,
+ A.STATE,
+ COALESCE(F.site_id,-1),
+ COALESCE(G.SESSION_EXTENSION_CNT,0) AS SESSION_EXTENSION_CNT
+  FROM TMP_SESSION A
+  LEFT OUTER JOIN STG_OPEN_SESSION G
+   ON (A.TEMP_SESSION_ID=G.TEMP_SESSION_ID)
+  LEFT OUTER JOIN STG_PERS_ID_LIST B
+   ON (COALESCE(A.PERSISTANT_IDENTIFIER,'NA') = B.PERSISTANT_IDENTIFIER)
+  LEFT OUTER JOIN temp_session_referrer_url C
+   ON (A.TEMP_SESSION_ID = C.TEMP_SESSION_ID)
+  LEFT OUTER JOIN BROWSER_LU D
+   ON (SUBSTR(REPLACE(REPLACE(a.browser,COALESCE(substring(a.browser FROM '{.*}'),''),''),'; ;',';'),0,250) = D.BROWSER_DESC)
+  LEFT OUTER JOIN DIM_SITE F
+   ON (C.SERVER_NAME = F.DOMAIN_NAME)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: IP_ADDRESS_LU-->
+<JOB DESCRIPTION="insert translated ips" ID="IP_ADDRESS_LU" NAME="insert translated ips" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>TMP_SESSION</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO IP_ADDRESS_LU(IP_ADDRESS)
+ SELECT DISTINCT IP_ADDRESS
+   FROM TMP_SESSION a
+  WHERE NOT EXISTS (SELECT 1 FROM IP_ADDRESS_LU b WHERE a.IP_ADDRESS = b.IP_ADDRESS)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: RESOLVE_IP_ADDRESSES-->
+<JOB DESCRIPTION="Used to resolve IP addresses to hostnames" ID="RESOLVE_IP_ADDRESSES" NAME="RESOLVE_IPS_TO_HOSTNAMES" PARAMETER_LIST="myDestinationDB" PROJECT="Resolve IPs" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="KETL">
+<ACTION>
+			<STEP BATCHSIZE="10" CLASS="com.kni.etl.ketl.reader.JDBCReader" NAME="IPS" PARAMETER_LIST="myDestinationDB">
+					<IN>&quot;SELECT ip_address,hostname
+						   FROM ip_address_lu 
+						  WHERE hostname is null&quot;</IN>
+					<OUT NAME="IP_ADDRESS"/>
+					<OUT NAME="HOSTNAME"/>
+					</STEP>
+			<STEP CLASS="com.kni.etl.ketl.transformation.DNSTransform" LOOKUPTYPE="COMPLETE" NAME="Transform1" THREADS="2" xDNSSERVER="200.0.4.6,127.0.0.1">
+				<IN>IPS.IP_ADDRESS</IN>
+				<OUT NAME="HOSTNAME"/>
+				</STEP>
+			<STEP CLASS="com.kni.etl.ketl.writer.JDBCWriter" NAME="Upsert_IP_ADDRESS" PARAMETER_LIST="myDestinationDB" TABLE="IP_ADDRESS_LU">
+				<IN NAME="IP_ADDRESS" PK="TRUE" SK="TRUE" UPDATE="FALSE">IPS.IP_ADDRESS</IN>
+				<IN IF_NULL="NA" NAME="HOSTNAME" UPDATE="TRUE">Transform1.HOSTNAME</IN>
+				</STEP>
+			</ACTION>
+</JOB>
+
+
+<JOB DESCRIPTION="Used to resolve page titles" ID="RESOLVE_PAGE_TITLES" NAME="RESOLVE_PAGE_TITLES" PARAMETER_LIST="myDestinationDB" PROJECT="Resolve Page Titles" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="KETL">
+		<ACTION>
+			<STEP BATCHSIZE="10" NAME="Weblog" CLASS="com.kni.etl.ketl.reader.JDBCReader" PARAMETER_LIST="myDestinationDB">
+					<IN>"select page_id,'http://!@#SITENAME#@!'||url_string from page_lu where page_desc is null"</IN>
+				<OUT NAME="PAGE_ID"/>
+				<OUT NAME="URL_STRING"/>				
+			</STEP>
+
+
+			<STEP NAME="Transform1" CLASS="com.kni.etl.ketl.transformation.ResolveURLTitleTransform" THREADS="1">
+				<IN>Weblog.URL_STRING</IN>
+				<OUT NAME="TITLE" />
+			</STEP>
+ 
+	
+			<STEP NAME="Upsert_PAGE_LU" CLASS="com.kni.etl.ketl.writer.JDBCWriter" PARAMETER_LIST="myDestinationDB" TABLE="PAGE_LU">
+				<IN NAME="PAGE_ID" SK="TRUE" PK="TRUE">Weblog.PAGE_ID</IN>
+				<IN NAME="PAGE_DESC" UPDATE="TRUE">Transform1.TITLE</IN>
+			</STEP>		 			
+		</ACTION>
+</JOB>
+
+<!--- Job: PAGE_LU-->
+<JOB DESCRIPTION="Adds new static pages to PAGE_LU" ID="PAGE_LU" NAME="Load PAGE_LU" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>TMP_HIT</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+-- Add new static pages...we add them as unclassified so we can classify them during our update pass (we need to reclassify old pages anyways)
+INSERT INTO PAGE_LU (PAGE_ID, URL_STRING,URL_PATH,url_path_1,url_path_2,url_path_3,url_path_4,url_page)
+select nextval('SEQ_PAGE_ID') as PAGE_ID
+	,get_request as URL_STRING
+	,coalesce(substring(get_request from '.+/'),'/') as URL_PATH
+	,coalesce(substring(get_request from '.+?/'),'- NA -') as url_path_1
+	,coalesce(substring(get_request from '.+?/.+?/'),'- NA -') as url_path_2
+	,coalesce(substring(get_request from '.+?/.+?/.+?/'),'- NA -') as url_path_3
+	,coalesce(substring(get_request from '.+?/.+?/.+?/.+?/'),'- NA -') as url_path_4
+	,coalesce(substring(get_request from '.+/(.*)'),'- NA -') as url_page
+	  from (select distinct replace(trim(substring(get_request from '[ ].*[ ]')),'//','/') as get_request
+	                   from TMP_HIT t
+                      where t.CLEANSED IS NOT NULL
+					    AND t.get_request IS NOT NULL
+						and not exists (select 1
+                                          from PAGE_LU
+                                         where URL_STRING = replace(trim(substring(get_request from '[ ].*[ ]')),'//','/'))) page,
+	       (select COALESCE(max(PAGE_ID), 0) as MAX_ID
+	          from PAGE_LU) max_pg_id
+	union all
+	select -2,'No Page',null,null,null,null,null,null where not exists (select 1 from page_lu where page_id = -2)
+	union all
+	select -1,'NA',null,null,null,null,null,null where not exists (select 1 from page_lu where page_id = -1)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: SESSION_LU-->
+<JOB DESCRIPTION="Update those sessions in session_lu that were extended from the past to the current logs" ID="SESSION_LU" NAME="SESSION_LU_UPD" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SESSION_LU_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+UPDATE SESSION_LU
+SET
+  END_TIMESTAMP=tmp.LAST_SESSION_ACTIVITY,
+  SESSION_COOKIE_ID=tmp.COOKIE_ID,
+  PERSISTANT_COOKIE_ID=tmp.PERSISTANT_IDENTIFIER,
+  COOKIE_OK_FLAG=tmp.COOKIE_FLAG,
+  IP_ADDRESS=tmp.IP_ADDRESS,
+  REFERRER_URL_STRING=tmp.REFERRER_URL,
+  REFERRER_DESC=tmp.REFERRER_SITE,
+  BROWSER_ID=tmp.BROWSER_ID,
+  SERVER_DESC=tmp.SERVER_DESC,
+  SERVER_ADDRESS=tmp.SERVER_ADDRESS,
+  site_id=tmp.site_id,
+  COUNTRY=tmp.COUNTRY,
+  STATE=tmp.STATE
+FROM TMP_NEW_SESSION tmp
+WHERE tmp.session_extension_cnt&gt;0
+  and tmp.SESSION_ID = SESSION_LU.session_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: SESSION_LU_INS-->
+<JOB DESCRIPTION="Insert new sessions from the logs into the session_lu table" ID="SESSION_LU_INS" NAME="SESSION_LU_INS" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>ANL_TMP_NEW_SESSION</DEPENDS_ON>
+<DEPENDS_ON>DEL_SESSION_LU</DEPENDS_ON>
+<DEPENDS_ON>DEL_WEB_SITE_ACTIVITY_FA</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT /*+ APPEND */ INTO SESSION_LU(
+  SESSION_ID              ,
+  START_TIMESTAMP,
+  END_TIMESTAMP  ,
+  REPEAT_VISITOR         ,
+  SESSION_COOKIE_ID             ,
+  PERSISTANT_COOKIE_ID,
+  COOKIE_OK_FLAG          ,
+  IP_ADDRESS          ,
+  REFERRER_URL_STRING       ,
+  REFERRER_DESC,
+  BROWSER_ID       ,
+  SERVER_DESC     ,
+  SERVER_ADDRESS,
+  site_id,
+  COUNTRY,STATE)
+SELECT
+  SESSION_ID              ,
+  FIRST_SESSION_ACTIVITY,
+  LAST_SESSION_ACTIVITY   ,
+  REPEAT_VISITOR         ,
+  COOKIE_ID             ,
+  PERSISTANT_IDENTIFIER ,
+  COOKIE_FLAG          ,
+  IP_ADDRESS          ,
+  REFERRER_URL       ,
+  REFERRER_SITE     ,
+  BROWSER_ID,
+  SERVER_DESC     ,
+  SERVER_ADDRESS,
+  site_id,
+  COUNTRY,
+  STATE
+FROM TMP_NEW_SESSION
+WHERE session_extension_cnt=0
+  union all
+  select -1,null, null,1,null,null,null, null, null,  null,  -1,  null,  null,-1,null,null
+     where not exists (select 1 from session_lu where session_id = -1)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: SET_PGPOOL_ETL_MODE-->
+<JOB DESCRIPTION="Setting pgPool to ETL mode causes all SELECT queries to go to the backup database, and all ETL queries to go to the primary database." ID="SET_PGPOOL_ETL_MODE" NAME="Set pgPool to ETL mode" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>HOURLY_DISABLE</DEPENDS_ON>
+<EMPTY/>
+</JOB>
+
+<!--- Job: SET_PGPOOL_MIRROR-->
+<JOB DESCRIPTION="Setting pgPool to Mirror mode causes the primary database to be replicated on the slave database." ID="SET_PGPOOL_MIRROR" NAME="Set pgPool to Mirror mode" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>AGG_TBL_LD</DEPENDS_ON>
+<DEPENDS_ON>ANL_STG_OPEN_SESS_PG</DEPENDS_ON>
+<DEPENDS_ON>BROWSER_LU_TIDY</DEPENDS_ON>
+<DEPENDS_ON>DAY_CLICKSTREAM_NEXT_AGG</DEPENDS_ON>
+<DEPENDS_ON>DAY_CLICKSTREAM_PREV_AGG</DEPENDS_ON>
+<DEPENDS_ON>DAY_HIT_SUBSET_AGG</DEPENDS_ON>
+<DEPENDS_ON>DEL_SESSION_LU</DEPENDS_ON>
+<DEPENDS_ON>DEL_WEB_SITE_ACTIVITY_FA</DEPENDS_ON>
+<DEPENDS_ON>DY_FL_STAT_PART</DEPENDS_ON>
+<DEPENDS_ON>GEOGRAPHY_LU</DEPENDS_ON>
+<DEPENDS_ON>IP_ADDRESS_LU</DEPENDS_ON>
+<EMPTY>pgmaster --mirrordb --replicated</EMPTY>
+</JOB>
+
+<!--- Job: STG_DATE_LIST-->
+<JOB DESCRIPTION="Wrapper job for loading stg_date_list" ID="STG_DATE_LIST" NAME="Stage Date List" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>STG_DATE_LIST_ANL</DEPENDS_ON>
+<EMPTY>
+do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: STG_DATE_LIST_ANL-->
+<JOB DESCRIPTION="Analyze stg_date_list" ID="STG_DATE_LIST_ANL" NAME="Stage Date List Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST_UPD</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze stg_date_list
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: STG_DATE_LIST_DEL-->
+<JOB DESCRIPTION="Truncate table stg_date_list" ID="STG_DATE_LIST_DEL" NAME="Stage Date List Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+truncate stg_date_list
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: STG_DATE_LIST_INS-->
+<JOB DESCRIPTION="Insert into Stage Date List the list of date IDs for days and weeks containing new data in WSAF" ID="STG_DATE_LIST_INS" NAME="Stage Date List Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>DATE_LU</DEPENDS_ON>
+<DEPENDS_ON>STG_DATE_LIST_DEL</DEPENDS_ON>
+<DEPENDS_ON>TMP_HIT</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO stg_date_list(date_id,week_only,week_year_id)
+SELECT dt_wk.date_id AS date_id,
+	(CASE WHEN dt_wk.date_id BETWEEN min_date_id AND max_date_id THEN 0 ELSE 1 END) AS week_only,
+	dt_wk.week_year_id AS week_year_id
+FROM	(SELECT	get_date_id(MIN(activity_dt)) AS min_date_id
+	   ,	get_date_id(MAX(activity_dt)) AS max_date_id
+	 FROM tmp_hit
+	) tmp
+  inner join
+	(SELECT get_date_id(TO_DATE(week_year_id,'YYYYIW')) AS first_of_week, get_date_id(TO_DATE(week_year_id,'YYYYIW')+6) AS last_of_week, date_id, week_year_id
+	 FROM date_lu dlu
+	 WHERE date_id BETWEEN get_date_id(CURRENT_DATE - 365) AND get_date_id(CURRENT_DATE + 1)
+	) dt_wk
+		ON	(	    ((tmp.min_date_id) &lt;= dt_wk.last_of_week)
+			 AND	((tmp.max_date_id) &gt;= dt_wk.first_of_week)
+			)
+--
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: STG_DATE_LIST_UPD-->
+<JOB DESCRIPTION="Update Stage Date List by setting week_only to 2 for those date IDs with data already in stg_wsaf_agg, so that we do not reload them" ID="STG_DATE_LIST_UPD" NAME="Stage Date List Update" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+update stg_date_list
+set week_only = 2						-- 2 -&gt; Do not need to load, because already loaded and valid.
+where date_id in (select distinct date_id from stg_wsaf_agg)
+and week_only = 1						-- 1 -&gt; Need to load, because not currently present.
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: STG_SESS_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading table stg_sess_agg" ID="STG_SESS_AGG" NAME="Stage Session Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>STG_SESS_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: STG_SESS_AGG_ANL-->
+<JOB DESCRIPTION="analyze stg_sess_agg" ID="STG_SESS_AGG_ANL" NAME="Stage Session Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_SESS_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze stg_sess_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: STG_SESS_AGG_DEL-->
+<JOB DESCRIPTION="Truncate stg_sess_agg" ID="STG_SESS_AGG_DEL" NAME="Stage Session Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+truncate stg_sess_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: STG_SESS_AGG_INS-->
+<JOB DESCRIPTION="Insert into stg_sess_agg the session-level data from stg_wsaf_agg" ID="STG_SESS_AGG_INS" NAME="Stage Session Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_SESS_AGG_DEL</DEPENDS_ON>
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+insert into stg_sess_agg (
+	session_id, 		first_page_id, 		last_page_id,	 	ip_address, 		browser_id,		pg_vw_per_visit,
+	pg_vw_per_visit_grp,	visit_dur_min, 		visit_dur_min_grp, 	referrer_desc,		state,			country,
+	site_id,			persistant_cookie_id,	pg_byt_summ,		pg_hit_cnt_summ,	repeat_visitor,		visit_dur_sec_summ,
+	load_id
+)
+select	stg.session_id,
+	max(case when stg.page_sequence_id=1 then stg.page_id else -1 end) as first_page_id,	-- first page of session
+	max(case when stg.exit_page_flag=1 then stg.page_id else -1 end) as last_page_id,	-- last page of session
+ 	max(stg.ip_address) as ip_address,							-- does not change over session
+ 	max(stg.browser_id) as browser_id,							-- does not change over session
+	max(stg.page_sequence_id) as pg_vw_per_visit,					-- page views per visit
+	(case	when max(stg.page_sequence_id) between 1::int4 and 6::int4 then max(stg.page_sequence_id)
+		when max(stg.page_sequence_id) between 7::int4 and 42::int4 then floor((max(stg.page_sequence_id) - 1::int4) / 6::int4) + 6::int4
+		when max(stg.page_sequence_id) &gt; 42::int4 then 13::int4
+		else 0::int4 end) as pg_vw_per_visit_grp,				-- page views per visit (grouped)
+ 	max(stg.visit_dur_min) as visit_dur_min,						-- does not change over session
+ 	max(stg.visit_dur_min_grp) as visit_dur_min_grp,					-- does not change over session
+ 	max(stg.referrer_desc) as referrer_desc,						-- does not change over session
+	max(stg.state) as state,								-- does not change over session
+	max(stg.country) as country,							-- does not change over session
+	max(stg.site_id) as site_id,								-- does not change over session
+	max(stg.persistant_cookie_id) as persistant_cookie_id,				-- does not change over session
+	sum(stg.total_page_bytes) as pg_byt_summ,						-- page bytes summary
+	sum(stg.total_page_hits_cnt) as pg_hit_cnt_summ,					-- page hits summary
+	max(stg.repeat_visitor) as repeat_visitor,						-- does not change over session
+	max(stg.visit_dur_sec_summ) as visit_dur_sec_summ,					-- does not change over session
+	max(stg.load_id)
+from	stg_wsaf_agg stg
+	inner join session_lu slu
+		on stg.session_id = slu.session_id
+group by stg.session_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: STG_WSAF_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading table stg_wsaf_agg" ID="STG_WSAF_AGG" NAME="Stage WSAF Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>STG_WSAF_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: STG_WSAF_AGG_ANL-->
+<JOB DESCRIPTION="analyze stg_wsaf_agg" ID="STG_WSAF_AGG_ANL" NAME="Stage WSAF Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze stg_wsaf_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: STG_WSAF_AGG_DEL-->
+<JOB DESCRIPTION="Truncate stg_wsaf_agg, or delete those dates that are no longer needed or have been modified" ID="STG_WSAF_AGG_DEL" NAME="Stage WSAF Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+select trunc_wsaf_stg()
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: STG_WSAF_AGG_INS-->
+<JOB DESCRIPTION="Insert into stg_wsaf_agg data for those dates that are in stg_date_list, but are not in stg_wsaf_agg" ID="STG_WSAF_AGG_INS" NAME="Stage WSAF Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SESSION_LU</DEPENDS_ON>
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<DEPENDS_ON>STG_WSAF_AGG_DEL</DEPENDS_ON>
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE"> 
+insert into stg_wsaf_agg (
+	date_id,week_year_id,hour_grp_nbr,page_id,session_id,ip_address,browser_id,visit_dur_min,
+	visit_dur_min_grp,referrer_desc,state,country,site_id,status_code_id,page_sequence_id,exit_page_flag,
+	persistant_cookie_id,total_page_bytes,total_page_hits_cnt,repeat_visitor,visit_dur_sec_summ,load_id
+)
+select	wsaf.date_id as date_id
+	,cast(TO_CHAR(cast(DATE '1998-12-31' + 3 + interval '1 day' * wsaf.date_id - interval '1 days' * (cast(extract(dow from DATE '1998-12-31' + interval '1 day' * wsaf.date_id) + 6 as int) % 7) as date) ,'YYYYIW') as int4) as week_year_id
+	,floor(wsaf.time_id / 10800) as hour_grp_nbr
+	,wsaf.page_id as page_id
+	,wsaf.session_id as session_id
+	,slu.ip_address as ip_address
+	,slu.browser_id as browser_id
+	,coalesce((floor(extract(epoch from slu.end_timestamp - slu.start_timestamp)) / 60::int4),-1) as visit_dur_min
+	,coalesce((case 	when extract( 'epoch' from (slu.end_timestamp - slu.start_timestamp)) &lt;= 120 then 1
+				when extract( 'epoch' from (slu.end_timestamp - slu.start_timestamp)) &lt; 300 then 2
+				when extract( 'epoch' from (slu.end_timestamp - slu.start_timestamp)) &lt; 600 then 3
+				when extract( 'epoch' from (slu.end_timestamp - slu.start_timestamp)) &lt; 900 then 4
+				when extract( 'epoch' from (slu.end_timestamp - slu.start_timestamp)) &lt; 1800 then 5
+				when extract( 'epoch' from (slu.end_timestamp - slu.start_timestamp)) &gt;= 1800 then 6
+				else 7 end),-1) as visit_dur_min_grp
+	,slu.referrer_desc as referrer_desc
+	,slu.state as state
+	,slu.country as country
+	,wsaf.site_id as site_id
+	,wsaf.status_code_id as status_code_id
+	,wsaf.page_sequence_id as page_sequence_id
+	,wsaf.exit_page_flag as exit_page_flag
+	,slu.persistant_cookie_id as persistant_cookie_id
+	,wsaf.total_page_bytes as total_page_bytes
+	,wsaf.total_page_hits_cnt as total_page_hits_cnt
+	,slu.repeat_visitor as repeat_visitor
+	,(floor(extract(epoch from slu.end_timestamp - slu.start_timestamp))) as visit_dur_sec_summ
+	,get_job_id(-1)
+from web_site_activity_fa wsaf
+	 inner join session_lu slu
+		on wsaf.session_id = slu.session_id
+where wsaf.session_id &lt;&gt; -1
+  and exists (select dt_lst.date_id 
+                from stg_date_list dt_lst 
+               where wsaf.date_id = dt_lst.date_id 
+                 and dt_lst.week_only &lt; 2)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: TIME_OF_DAY_LU-->
+<JOB DESCRIPTION="PostGreSQL-compatible" ID="TIME_OF_DAY_LU" NAME="INSERT NEW TIME OF DAYS," PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE"> 
+INSERT INTO TIME_OF_DAY_LU(TIME_ID,HOUR_NBR,MINUTE_NBR,SECOND_NBR) 
+SELECT TIME_ID, 
+	   cast(extract('hour' from TIME '00:00:00' + (interval '1 second' * time_id)) as int2)  as HOUR_NBR, 
+	   cast(extract('minute' from TIME '00:00:00' + (interval '1 second' * time_id)) as int2) as MINUTE_NBR, 
+	   cast(extract('second' from TIME '00:00:00' + (interval '1 second' * time_id)) as int2) as SECOND_NBR 
+FROM	(SELECT generate_series as TIME_ID 
+	 FROM generate_series(0,86399) 
+	 GROUP BY 1 
+	) time_id_list 
+WHERE NOT EXISTS (SELECT 1 
+                    FROM TIME_OF_DAY_LU B 
+				   WHERE time_id_list.TIME_ID = B.TIME_ID) 
+UNION 
+SELECT -1 as TIME_ID, 
+	   -1 as HOUR_NBR, 
+	   -1 as MINUTE_NBR, 
+	   -1 as SECOND_NBR 
+WHERE NOT EXISTS (SELECT 1 
+                    FROM TIME_OF_DAY_LU B 
+				   WHERE TIME_ID = -1) 
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: TMP_HIT-->
+<JOB DESCRIPTION="Do not release table for update until referrers have been gathered" ID="TMP_HIT" NAME="TMP_HIT" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>FS_SESSIONIZE_WEBLOG</DEPENDS_ON>
+<EMPTY>
+Pass Through for tmp_hit
+</EMPTY>
+</JOB>
+
+<!--- Job: TMP_SESSION-->
+<JOB DESCRIPTION="SEE NAME" ID="TMP_SESSION" NAME="TMP_HIT" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>FS_SESSIONIZE_WEBLOG</DEPENDS_ON>
+<EMPTY>
+Pass Through for tmp_session
+</EMPTY>
+</JOB>
+
+<!--- Job: TRUNC_TMP_CLICKSTREAM_NEXT-->
+<JOB DESCRIPTION="TRUNCATES TMP_CLICKSTREAM_NEXT TABLE" ID="TRUNC_TMP_CLICKSTREAM_NEXT" NAME="TRUNCATE TMP_CLICKSTREAM_NEXT" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+TRUNCATE TABLE tmp_clickstream_next
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: TRUNC_TMP_CLICKSTREAM_PREV-->
+<JOB DESCRIPTION="TRUNCATES TMP_CLICKSTREAM_PREV TABLE" ID="TRUNC_TMP_CLICKSTREAM_PREV" NAME="TRUNCATE TMP_CLICKSTREAM_PREV" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_ETL_MODE</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+TRUNCATE TABLE tmp_clickstream_prev
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WEB_SITE_ACTIVITY_FA_LD-->
+<JOB DESCRIPTION="SEE NAME" ID="WEB_SITE_ACTIVITY_FA_LD" NAME="LOAD PAGEVIEWS" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD_P1</DEPENDS_ON>
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD_P2</DEPENDS_ON>
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD_P3</DEPENDS_ON>
+<DEPENDS_ON>WEB_SITE_ACTIVITY_FA_LD_P4</DEPENDS_ON>
+<EMPTY>
+passthrough job for web activity
+</EMPTY>
+</JOB>
+
+<!--- Job: WEB_SITE_ACTIVITY_FA_LD_P1-->
+<JOB DESCRIPTION="SEE NAME" ID="WEB_SITE_ACTIVITY_FA_LD_P1" NAME="load web site activity" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>PAGE_LU</DEPENDS_ON>
+<DEPENDS_ON>SESSION_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+select LOAD_WEB_ACTIVITY_PARTITIONED (-1,0,4)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WEB_SITE_ACTIVITY_FA_LD_P2-->
+<JOB DESCRIPTION="SEE NAME" ID="WEB_SITE_ACTIVITY_FA_LD_P2" NAME="load web site activity" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>PAGE_LU</DEPENDS_ON>
+<DEPENDS_ON>SESSION_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+select LOAD_WEB_ACTIVITY_PARTITIONED (-1,1,4)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WEB_SITE_ACTIVITY_FA_LD_P3-->
+<JOB DESCRIPTION="SEE NAME" ID="WEB_SITE_ACTIVITY_FA_LD_P3" NAME="load web site activity" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>PAGE_LU</DEPENDS_ON>
+<DEPENDS_ON>SESSION_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+select LOAD_WEB_ACTIVITY_PARTITIONED (-1,2,4)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WEB_SITE_ACTIVITY_FA_LD_P4-->
+<JOB DESCRIPTION="SEE NAME" ID="WEB_SITE_ACTIVITY_FA_LD_P4" NAME="load web site activity" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>PAGE_LU</DEPENDS_ON>
+<DEPENDS_ON>SESSION_LU</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+select LOAD_WEB_ACTIVITY_PARTITIONED (-1,3,4)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WKLY_AGG_TBL_LD-->
+<JOB DESCRIPTION="Wrapper job for loading week-level aggregate tables" ID="WKLY_AGG_TBL_LD" NAME="Weekly Aggregate Table Load" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_BR_HRG_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_HRG_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_HRG_ST_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_ST_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_IP_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_PG_BR_STAT_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_PVG_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_REF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_VMG_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_VMG_ST_AGG</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WKLY_PART_TBL_LD-->
+<JOB DESCRIPTION="Wrapper job for loading week-level partition tables" ID="WKLY_PART_TBL_LD" NAME="Weekly Partition Table Load" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_PG_EXPG_PART</DEPENDS_ON>
+<DEPENDS_ON>WK_PG_SEQ_PART</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_BR_HRG_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_br_hrg_agg" ID="WK_BR_HRG_AGG" NAME="Week-Browser-HourGroup-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_BR_HRG_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_BR_HRG_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_br_hrg_agg" ID="WK_BR_HRG_AGG_ANL" NAME="Week-Browser-HourGroup-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_BR_HRG_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_br_hrg_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_BR_HRG_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_br_hrg_agg all data for those weeks with new data in wsaf" ID="WK_BR_HRG_AGG_DEL" NAME="Week-Browser-HourGroup-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_br_hrg_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_BR_HRG_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_br_hrg_agg all data for those weeks with new data in wsaf" ID="WK_BR_HRG_AGG_INS" NAME="Week-Browser-HourGroup-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_BR_HRG_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_br_hrg_agg (
+	week_year_id,
+	browser_id,
+	hour_grp_nbr,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_vw_cnt_summ)
+SELECT week_year_id as week_year_id,
+	browser_id as browser_id,
+	hour_grp_nbr as hour_grp_nbr,
+	site_id as site_id,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	sum(1::int4) as pg_vw_cnt_summ
+FROM stg_wsaf_agg
+GROUP BY week_year_id,
+	browser_id,
+	hour_grp_nbr,
+	site_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_HRG_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_hrg_agg" ID="WK_HRG_AGG" NAME="Week-HourGroup-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_HRG_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_HRG_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_hrg_agg" ID="WK_HRG_AGG_ANL" NAME="Week-HourGroup-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_HRG_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_hrg_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_HRG_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_hrg_agg all data for those weeks with new data in wsaf" ID="WK_HRG_AGG_DEL" NAME="Week-HourGroup-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_hrg_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_HRG_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_hrg_agg all data for those weeks with new data in wsaf" ID="WK_HRG_AGG_INS" NAME="Week-HourGroup-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_HRG_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_hrg_agg (
+	week_year_id,
+	hour_grp_nbr,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_vw_cnt_summ)
+SELECT week_year_id as week_year_id,
+	hour_grp_nbr as hour_grp_nbr,
+	site_id as site_id,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	sum(1::int4) as pg_vw_cnt_summ
+FROM stg_wsaf_agg
+GROUP BY week_year_id,
+	hour_grp_nbr,
+	site_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_HRG_ST_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_hrg_st_agg" ID="WK_HRG_ST_AGG" NAME="Week-HourGroup-State-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_HRG_ST_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+
+
+<!--- Job: WK_HRG_ST_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_hrg_st_agg all data for those weeks with new data in wsaf" ID="WK_HRG_ST_AGG_DEL" NAME="Week-HourGroup-State-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_hrg_st_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_HRG_ST_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_hrg_st_agg all data for those weeks with new data in wsaf" ID="WK_HRG_ST_AGG_INS" NAME="Week-HourGroup-State-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_HRG_ST_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_hrg_st_agg (
+	week_year_id,
+	hour_grp_nbr,
+	state,
+	country,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_vw_cnt_summ,
+	rpt_visit_cnt_summ,
+	visit_dur_sec_summ)
+SELECT week_year_id as week_year_id,
+	hour_grp_nbr as hour_grp_nbr,
+	state as state,
+	country as country,
+	site_id as site_id,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	sum(1::int4) as pg_vw_cnt_summ,
+	count(distinct (case when repeat_visitor = 1 then session_id end)) as rpt_visit_cnt_summ,
+	sum(visit_dur_sec_summ) as visit_dur_sec_summ
+FROM stg_wsaf_agg
+GROUP BY week_year_id,
+	hour_grp_nbr,
+	state,
+	country,
+	site_id
+</STATEMENT></SQL>
+</JOB>
+
+
+
+
+<!--- Job: WK_HRG_ST_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_st_agg" ID="WK_ST_AGG" NAME="Week-State-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_ST_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+
+<!--- Job: WK_HRG_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_st_agg" ID="WK_ST_AGG_ANL" NAME="Week-State-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_ST_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_st_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_HRG_ST_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_st_agg all data for those weeks with new data in wsaf" ID="WK_ST_AGG_DEL" NAME="Week-State-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_st_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_HRG_ST_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_st_agg all data for those weeks with new data in wsaf" ID="WK_ST_AGG_INS" NAME="Week-State-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_ST_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_st_agg (
+	week_year_id,
+	state,
+	country,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_vw_cnt_summ,
+	rpt_visit_cnt_summ,
+	visit_dur_sec_summ)
+SELECT week_year_id as week_year_id,
+	state as state,
+	country as country,
+	site_id as site_id,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	sum(1::int4) as pg_vw_cnt_summ,
+	count(distinct (case when repeat_visitor = 1 then session_id end)) as rpt_visit_cnt_summ,
+	sum(visit_dur_sec_summ) as visit_dur_sec_summ
+FROM stg_wsaf_agg
+GROUP BY week_year_id,
+	state,
+	country,
+	site_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_IP_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_ip_agg" ID="WK_IP_AGG" NAME="Week-IPAddress-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_IP_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_IP_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_ip_agg" ID="WK_IP_AGG_ANL" NAME="Week-IPAddress-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_IP_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_ip_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_IP_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_ip_agg all data for those weeks with new data in wsaf" ID="WK_IP_AGG_DEL" NAME="Week-IPAddress-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_ip_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_IP_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_ip_agg all data for those weeks with new data in wsaf" ID="WK_IP_AGG_INS" NAME="Week-IPAddress-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_IP_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_ip_agg (
+	week_year_id,
+	ip_address,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_vw_cnt_summ)
+SELECT week_year_id as week_year_id,
+	ip_address as ip_address,
+	site_id as site_id,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	sum(1::int4) as pg_vw_cnt_summ
+FROM stg_wsaf_agg
+GROUP BY week_year_id,
+	ip_address,
+	site_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PG_BR_STAT_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_pg_br_stat_agg" ID="WK_PG_BR_STAT_AGG" NAME="Week-Page-Browser-Status-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_PG_BR_STAT_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_PG_BR_STAT_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_pg_br_stat_agg" ID="WK_PG_BR_STAT_AGG_ANL" NAME="Week-Page-Browser-Status-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_PG_BR_STAT_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_pg_br_stat_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PG_BR_STAT_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_pg_br_stat_agg all data for those weeks with new data in wsaf" ID="WK_PG_BR_STAT_AGG_DEL" NAME="Week-Page-Browser-Status-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_pg_br_stat_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PG_BR_STAT_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_pg_br_stat_agg all data for those weeks with new data in wsaf" ID="WK_PG_BR_STAT_AGG_INS" NAME="Week-Page-Browser-Status-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_PG_BR_STAT_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_pg_br_stat_agg (
+	week_year_id,
+	page_id,
+	browser_id,
+	site_id,
+	status_code_id,
+	pg_vw_cnt_summ)
+SELECT week_year_id as week_year_id,
+	page_id as page_id,
+	browser_id as browser_id,
+	site_id as site_id,
+	status_code_id as status_code_id,
+	sum(1::int4) as pg_vw_cnt_summ
+FROM stg_wsaf_agg
+GROUP BY week_year_id,
+	page_id,
+	browser_id,
+	site_id,
+	status_code_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PG_EXPG_PART-->
+<JOB DESCRIPTION="Wrapper job for loading wk_pg_expg_part" ID="WK_PG_EXPG_PART" NAME="Week-Page-ExitPageFlag-Partition" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_PG_EXPG_PART_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_PG_EXPG_PART_ANL-->
+<JOB DESCRIPTION="analyze wk_pg_expg_part" ID="WK_PG_EXPG_PART_ANL" NAME="Week-Page-ExitPageFlag-Partition Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_PG_EXPG_PART_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_pg_expg_part
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PG_EXPG_PART_DEL-->
+<JOB DESCRIPTION="Delete from wk_pg_expg_part all data for those weeks with new data in wsaf" ID="WK_PG_EXPG_PART_DEL" NAME="Week-Page-ExitPageFlag-Partition Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_pg_expg_part where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PG_EXPG_PART_INS-->
+<JOB DESCRIPTION="Insert into wk_pg_expg_part all data for those weeks with new data in wsaf" ID="WK_PG_EXPG_PART_INS" NAME="Week-Page-ExitPageFlag-Partition Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_PG_EXPG_PART_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_pg_expg_part (
+	week_year_id,
+	page_id,
+	site_id,
+	exit_page_flag,
+	user_cnt_summ,
+	visit_cnt_summ,
+	rpt_visit_cnt_summ,
+	visit_dur_sec_summ,
+	pg_vw_cnt_summ)
+SELECT week_year_id as week_year_id,
+	page_id as page_id,
+	site_id as site_id,
+	exit_page_flag as exit_page_flag,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+    count(distinct (case when repeat_visitor = 1 then session_id end)) as rpt_visit_cnt_summ,
+	sum(visit_dur_sec_summ) as visit_dur_sec_summ,	
+	sum(1::int4) as pg_vw_cnt_summ
+FROM stg_wsaf_agg
+WHERE exit_page_flag = 1
+GROUP BY week_year_id,
+	page_id,
+	site_id,
+	exit_page_flag
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PG_SEQ_PART-->
+<JOB DESCRIPTION="Wrapper job for loading wk_pg_seq_part" ID="WK_PG_SEQ_PART" NAME="Week-Page-Sequence-Partition" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_PG_SEQ_PART_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_PG_SEQ_PART_ANL-->
+<JOB DESCRIPTION="analyze wk_pg_seq_part" ID="WK_PG_SEQ_PART_ANL" NAME="Week-Page-Sequence-Partition Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_PG_SEQ_PART_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_pg_seq_part
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PG_SEQ_PART_DEL-->
+<JOB DESCRIPTION="Delete from wk_pg_seq_part all data for those weeks with new data in wsaf" ID="WK_PG_SEQ_PART_DEL" NAME="Week-Page-Sequence-Partition Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_pg_seq_part where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PG_SEQ_PART_INS-->
+<JOB DESCRIPTION="Insert into wk_pg_seq_part all data for those weeks with new data in wsaf" ID="WK_PG_SEQ_PART_INS" NAME="Week-Page-Sequence-Partition Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_PG_SEQ_PART_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_pg_seq_part (
+	week_year_id,
+	page_id,
+	site_id,
+	page_sequence_id,
+	pg_vw_cnt_summ,
+	user_cnt_summ,
+	visit_cnt_summ)
+SELECT week_year_id as week_year_id,
+	page_id as page_id,
+	site_id as site_id,
+	page_sequence_id as page_sequence_id,
+	sum(1::int4) as pg_vw_cnt_summ,
+    count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ	
+FROM stg_wsaf_agg
+WHERE page_sequence_id = 1
+GROUP BY week_year_id,
+	page_id,
+	site_id,
+	page_sequence_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PVG_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_pvg_agg" ID="WK_PVG_AGG" NAME="Week-PageviewGroup-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_PVG_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_PVG_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_pvg_agg" ID="WK_PVG_AGG_ANL" NAME="Week-PageviewGroup-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_PVG_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_pvg_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_PVG_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_pvg_agg all data for those weeks with new data in wsaf" ID="WK_PVG_AGG_DEL" NAME="Week-PageviewGroup-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_pvg_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_REF_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_ref_agg" ID="WK_REF_AGG" NAME="Week-Referrer-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_REF_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_REF_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_ref_agg" ID="WK_REF_AGG_ANL" NAME="Week-Referrer-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_REF_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_ref_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_REF_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_ref_agg all data for those weeks with new data in wsaf" ID="WK_REF_AGG_DEL" NAME="Week-Referrer-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_ref_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_REF_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_ref_agg all data for those weeks with new data in wsaf" ID="WK_REF_AGG_INS" NAME="Week-Referrer-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_REF_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_ref_agg (
+	week_year_id,
+	referrer_desc,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_vw_cnt_summ)
+SELECT week_year_id as week_year_id,
+	referrer_desc as referrer_desc,
+	site_id as site_id,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	sum(1::int4) as pg_vw_cnt_summ
+FROM stg_wsaf_agg
+GROUP BY week_year_id,
+	referrer_desc,
+	site_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_VMG_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_vmg_agg" ID="WK_VMG_AGG" NAME="Week-VisitMinuteGroup-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_VMG_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_VMG_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_vmg_agg" ID="WK_VMG_AGG_ANL" NAME="Week-VisitMinuteGroup-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_VMG_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_vmg_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_VMG_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_vmg_agg all data for those weeks with new data in wsaf" ID="WK_VMG_AGG_DEL" NAME="Week-VisitMinuteGroup-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_vmg_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_VMG_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_vmg_agg all data for those weeks with new data in wsaf" ID="WK_VMG_AGG_INS" NAME="Week-VisitMinuteGroup-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_VMG_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_vmg_agg (
+	week_year_id,
+	visit_dur_min_grp,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	visit_dur_sec_summ)
+SELECT week_year_id as week_year_id,
+	visit_dur_min_grp as visit_dur_min_grp,
+	site_id as site_id,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	sum(visit_dur_sec_summ) as visit_dur_sec_summ
+FROM stg_wsaf_agg
+GROUP BY week_year_id,
+	visit_dur_min_grp,
+	site_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_VMG_ST_AGG-->
+<JOB DESCRIPTION="Wrapper job for loading wk_vmg_st_agg" ID="WK_VMG_ST_AGG" NAME="Week-VisitMinuteGroup-State-Aggregate" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>WK_VMG_ST_AGG_ANL</DEPENDS_ON>
+<EMPTY>
+Do nothing
+</EMPTY>
+</JOB>
+
+<!--- Job: WK_VMG_ST_AGG_ANL-->
+<JOB DESCRIPTION="analyze wk_vmg_st_agg" ID="WK_VMG_ST_AGG_ANL" NAME="Week-VisitMinuteGroup-State-Aggregate Analyze" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>WK_VMG_ST_AGG_INS</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+analyze wk_vmg_st_agg
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_VMG_ST_AGG_DEL-->
+<JOB DESCRIPTION="Delete from wk_vmg_st_agg all data for those weeks with new data in wsaf" ID="WK_VMG_ST_AGG_DEL" NAME="Week-VisitMinuteGroup-State-Aggregate Delete" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_DATE_LIST</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+DELETE FROM wk_vmg_st_agg where week_year_id in (select distinct week_year_id from stg_date_list)
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WK_VMG_ST_AGG_INS-->
+<JOB DESCRIPTION="Insert into wk_vmg_st_agg all data for those weeks with new data in wsaf" ID="WK_VMG_ST_AGG_INS" NAME="Week-VisitMinuteGroup-State-Aggregate Insert" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>STG_WSAF_AGG</DEPENDS_ON>
+<DEPENDS_ON>WK_VMG_ST_AGG_DEL</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+INSERT INTO wk_vmg_st_agg (
+	week_year_id,
+	visit_dur_min_grp,
+	state,
+	country,
+	site_id,
+	user_cnt_summ,
+	visit_cnt_summ,
+	pg_vw_cnt_summ,
+	rpt_visit_cnt_summ,
+	visit_dur_sec_summ)
+SELECT week_year_id as week_year_id,
+	visit_dur_min_grp as visit_dur_min_grp,
+	state as state,
+	country as country,
+	site_id as site_id,
+	count(distinct persistant_cookie_id) as user_cnt_summ,
+	count(distinct session_id) as visit_cnt_summ,
+	sum(1::int4) as pg_vw_cnt_summ,
+	count(distinct (case when repeat_visitor = 1 then session_id end)) as rpt_visit_cnt_summ,
+	sum(visit_dur_sec_summ) as visit_dur_sec_summ
+FROM stg_wsaf_agg
+GROUP BY week_year_id,
+	visit_dur_min_grp,
+	state,
+	country,
+	site_id
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: WH_LOADED-->
+<JOB DESCRIPTION="SEE NAME" ID="WH_LOADED" NAME="Warehouse Loaded" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="EMPTYJOB">
+<DEPENDS_ON>HIT_SUBSET_FA</DEPENDS_ON>
+<DEPENDS_ON>HOURLY_ENABLE</DEPENDS_ON>
+<DEPENDS_ON>AGG_TBL_LD</DEPENDS_ON>
+<DEPENDS_ON>ANL_STG_OPEN_SESS_PG</DEPENDS_ON>
+<DEPENDS_ON>BROWSER_LU_TIDY</DEPENDS_ON>
+<DEPENDS_ON>DAY_CLICKSTREAM_NEXT_AGG</DEPENDS_ON>
+<DEPENDS_ON>DAY_CLICKSTREAM_PREV_AGG</DEPENDS_ON>
+<DEPENDS_ON>DAY_HIT_SUBSET_AGG</DEPENDS_ON>
+<DEPENDS_ON>DEL_SESSION_LU</DEPENDS_ON>
+<DEPENDS_ON>DEL_WEB_SITE_ACTIVITY_FA</DEPENDS_ON>
+<DEPENDS_ON>DY_FL_STAT_PART</DEPENDS_ON>
+<DEPENDS_ON>GEOGRAPHY_LU</DEPENDS_ON>
+<DEPENDS_ON>IP_ADDRESS_LU</DEPENDS_ON>
+<EMPTY></EMPTY>
+</JOB>
+
+<!--- Job: WEB_ACTIVITY-->
+<JOB DESCRIPTION="SEE NAME" ID="RUN_REPORTS" NAME="RUN Reports" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="KETL">
+<DEPENDS_ON>WH_LOADED</DEPENDS_ON>
+		<ACTION>
+			<STEP NAME="ReportMeta" CLASS="com.kni.etl.ketl.reader.JDBCReader" PARAMETER_LIST="myMetadataDB">
+				<IN>"select rmid,'!@#REPORTPATH#@!'||filename,params,data_interval from report_meta"</IN>
+				<OUT NAME="RMID"/>
+				<OUT NAME="FILENAME"/>				
+				<OUT NAME="PARAMS"/>				
+				<OUT NAME="DATA_INTERVAL"/>				
+			</STEP>
+
+		    <STEP NAME="WHInfo" CLASS="com.kni.etl.ketl.transformation.LookupTransformation" PARAMETER_LIST="myDestinationDB"
+		          TABLE="MAX_LOAD_DATE_LU">
+				<IN NAME="DATA_INTERVAL">ReportMeta.DATA_INTERVAL</IN>
+				<OUT NAME="DATE_DESC"/>
+			</STEP>
+			 	
+			<!-- Object type and name do not have to be the same, the just happen to be this time -->			
+			<STEP NAME="GenerateReports" CLASS="com.kni.etl.ketl.writer.JasperReportWriter" 
+			      PARAMETER_LIST="myDestinationDB" THREADS="2" ERRORLIMIT="2">
+				<IN NAME="RMID" OBJECTTYPE="RMID">ReportMeta.RMID</IN>
+				<IN NAME="FILEPATH" OBJECTTYPE="FILEPATH">ReportMeta.FILENAME</IN>
+				<IN NAME="PARAMS" OBJECTTYPE="PARAMS" >ReportMeta.PARAMS</IN>
+				<IN NAME="INTERVAL" OBJECTTYPE="INTERVAL">ReportMeta.DATA_INTERVAL</IN>
+				<IN NAME="DATE" OBJECTTYPE="DATE">WHInfo.DATE_DESC</IN>
+			</STEP>					
+		</ACTION>
+</JOB>
+
+<!--- Job: WH_LOADED-->
+<JOB DESCRIPTION="SEE NAME" ID="WEB_ACTIVITY" NAME="ROOT_JOB" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="OSJOB">
+<DEPENDS_ON>RUN_REPORTS</DEPENDS_ON>
+<OSJOB>!@#KETLDIR#@!/scripts/postDailyLoad.sh !@#DATADIR#@!</OSJOB>
+</JOB>
+
+
+<!--- Job: FETCH_WEBLOGS-->
+<JOB DESCRIPTION="Check for files every 5 minutes" DISABLE_ALERTING="Y" ID="FETCH_WEBLOGS" NAME="Get weblogs" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="100" SECONDS_BEFORE_RETRY="30" TYPE="OSJOB">
+<OSJOB>!@#KETLDIR#@!/scripts/dailyFileHandler.sh !@#DATADIR#@! !@#EXPECTED_FILES#@!</OSJOB>
+</JOB>
+
+<!--- Job: HOURLY_DISABLE-->
+<JOB DESCRIPTION="This job blocks the hourly ETL jobs from running." ID="HOURLY_DISABLE" NAME="Disable hourly ETL" PARAMETER_LIST="myMetadataDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+update job_schedule
+set next_run_date = DATE '3000-01-01' 
+where job_id = 'WEB_ACTIVITY_HOURLY'
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: HOURLY_ENABLE-->
+<JOB DESCRIPTION="This job permits the hourly ETL jobs to run." ID="HOURLY_ENABLE" NAME="Enable hourly ETL" PARAMETER_LIST="myMetadataDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>SET_PGPOOL_MIRROR</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+update job_schedule
+set next_run_date = current_date
+where job_id = 'WEB_ACTIVITY_HOURLY'
+</STATEMENT></SQL>
+</JOB>
+
+<!--- Job: INS_DIM_SITE-->
+<JOB DESCRIPTION="PostGreSQL-compatible" ID="INS_DIM_SITE" NAME="INSERT NEW SITES" PARAMETER_LIST="myDestinationDB" PROJECT="Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<DEPENDS_ON>TMP_HIT</DEPENDS_ON>
+<SQL><STATEMENT AUTOCOMMIT="FALSE">
+insert into DIM_SITE (site_id, site_name, domain_name, insert_dttm)
+select 	nextval('seq_site_id') as site_id,
+	initcap(replace(replace(replace(server_name,'!@#SITENAME#@!',''),'.com',''),'www.','')) as site_name,
+	server_name as domain_name,
+	TimeOfDay()::timestamptz as insert_dttm
+from	(select distinct server_name from tmp_hit t where cleansed is not null and server_name &lt;&gt; '!@#SITENAME#@!' and not exists (select 1 from DIM_SITE where domain_name = t.server_name)) srvr
+union all
+select	-1 as site_id,
+	'Default'::text as site_name,
+	cast(null as text) as domain_name,
+	TimeOfDay()::timestamptz as insert_dttm
+where not exists (select 1 from DIM_SITE where site_id = -1)
+union all
+select 0 as site_id,
+	initcap(replace(replace('!@#SITENAME#@!','.com',''),'www.','')) as site_name,
+	'!@#SITENAME#@!'::text as domain_name,
+	TimeOfDay()::timestamptz as insert_dttm
+where not exists (select 1 from DIM_SITE where site_id = 0)
+</STATEMENT></SQL>
+</JOB>
+
+<JOB DESCRIPTION="Truncate all tables, leaving seed tables populated" ID="TRUNCATE_WH" NAME="Truncate Warehouse" PARAMETER_LIST="myDestinationDB" PROJECT="Truncate Web Statistics" RETRY_ATTEMPTS="0" SECONDS_BEFORE_RETRY="0" TYPE="SQL">
+<SQL>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_st_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_pg_seq_part</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate day_clickstream_prev</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate file_lu</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_hit_hourly_a</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_hit_hourly_b</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate pmt_tmp_hit_hourly</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate pmt_tmp_session_hourly</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_downloads</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_session_hourly_a</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_session_hourly_b</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate browser_lu</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate date_lu</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate day_hit_subset_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate dim_site</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate dy_fl_stat_part</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate geography_lu</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate ip_address_lu</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate page_lu</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate session_lu</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate stg_pers_id_list</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate time_of_day_lu</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate day_clickstream_next</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate dy_br_vmg_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate dy_br_vmg_pvg_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate dy_st_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate stg_wsaf_agg_1</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate stg_wsaf_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate web_site_activity_fa</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_br_hrg_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_hrg_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_hrg_st_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_ip_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_pg_br_stat_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_pvg_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_ref_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_vmg_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_vmg_st_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate hit_subset_fa</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_new_session</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate stg_sess_agg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate stg_date_list</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_clickstream_next</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_clickstream_prev</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate temp_session_referrer_url</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_hit_subset</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate stg_opn_sess_lst_pg</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate stg_open_session</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate wk_pg_expg_part</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_hit</STATEMENT>
+<STATEMENT AUTOCOMMIT="TRUE">truncate tmp_session</STATEMENT>
+</SQL>
+</JOB>
+
+</ETL>

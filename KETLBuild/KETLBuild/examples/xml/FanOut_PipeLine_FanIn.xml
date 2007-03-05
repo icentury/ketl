@@ -1,0 +1,40 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	  <PARAMETER_LIST NAME="testData">
+		    <PARAMETER NAME="ROOT" PARAMETER_LIST="search*"/>
+      </PARAMETER_LIST>
+      
+	  <PARAMETER_LIST NAME="search1">
+		    <PARAMETER NAME="SEARCHPATH">examples/data/BadCSV.txt</PARAMETER>
+      </PARAMETER_LIST>
+      
+	  <PARAMETER_LIST NAME="search2">
+		    <PARAMETER NAME="SEARCHPATH">examples/data/BadCSV.txt</PARAMETER>
+      </PARAMETER_LIST>
+	 
+	
+       <JOB ID="FanOut" PARRALLISM="4" NAME="FanOut" PROJECT="TEST" TYPE="KETL">
+            <ACTION>
+                  <STEP NAME="Status" ALLOWINVALIDLASTRECORD="TRUE" PARRALLISM="1" ALLOWDUPLICATES="TRUE"  SAMPLEEVERY="1" RECORD_DELIMITER="#0A#0D" IOBUFFER="8196" CLASS="com.kni.etl.ketl.reader.NIOFileReader" CHARACTERSET="UTF-8" DELIMITER="," PARAMETER_LIST="testData">
+                         <OUT NAME="int" DATATYPE="INTEGER"/>
+                         <OUT NAME="double" DATATYPE="DOUBLE"/>
+                         <OUT NAME="int2" DATATYPE="INTEGER"/>
+                   </STEP>
+
+					<STEP NAME="Aggregate"  CLASS="com.kni.etl.ketl.transformation.DynamicTransformation">
+							<IN>Status.int</IN>
+							<IN>Status.double</IN>
+							<IN>Status.int2</IN>
+							<OUT>${int}</OUT>
+							<OUT>${double}</OUT>
+							<OUT>${int2}</OUT>							
+					</STEP>
+                				   
+                   <STEP NAME="Writer" xFLOWTYPE="FANIN" CLASS="com.kni.etl.ketl.writer.NullWriter">
+                        <IN>Aggregate.*</IN>                        
+                  </STEP>
+
+            </ACTION>
+      </JOB>
+</ETL>

@@ -1,0 +1,58 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	
+
+  	  <PARAMETER_LIST NAME="source">
+		<PARAMETER NAME="USER">TEST</PARAMETER>
+		<PARAMETER NAME="PASSWORD">TEST</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:orcl</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+	  </PARAMETER_LIST>
+
+	  <PARAMETER_LIST NAME="geoPaths">
+		    		    <PARAMETER NAME="SEARCHPATH">examples/data/CSV.txt</PARAMETER>
+		    		    <PARAMETER NAME="COUNTRYDBPATH">C:\development\GeoIPJava-1.1.7\GeoIP.dat</PARAMETER>
+		    		    <PARAMETER NAME="CITYDBPATH">C:\development\GeoIPJava-1.1.7\GeoLiteCity.dat</PARAMETER>
+      </PARAMETER_LIST>
+      
+       <JOB ID="JDBCGETIP" BATCHSIZE="200" PARRALLISM="2" NAME="JDBCGETIP" PROJECT="TEST" TYPE="KETL">
+            <ACTION>
+                  <STEP TIMING="TRUE" NAME="source" PARRALLISM="1" PARAMETER_LIST="source"  CLASS="com.kni.etl.ketl.reader.JDBCReader">
+                         <IN>"select ip_address_desc from big_demo_wh.ip_address_lu where rownum &lt; 20000"</IN>
+                         <OUT NAME="IP"/>
+                   </STEP>
+
+                   <STEP TIMING="TRUE" NAME="geo"  CLASS="com.kni.etl.ketl.transformation.geoip.GeoIPTransformation" FLOWTYPE="FANOUT" PARAMETER_LIST="geoPaths">
+                        <IN NAME="IP">source.IP</IN>                        
+                        <OUT NAME="CITY" TYPE="CITY" FIELD="CITY">IP</OUT>
+                        <OUT NAME="POSTALCODE" TYPE="CITY" FIELD="POSTALCODE">IP</OUT>
+                        <OUT NAME="REGION" TYPE="CITY" FIELD="REGION">IP</OUT>
+                        <OUT NAME="IP">${IP}</OUT>
+                  </STEP>
+
+                   <STEP TIMING="TRUE" NAME="IPLookup" PERSISTENCE="LOAD" CLASS="com.kni.etl.ketl.writer.LookupWriter">
+                        <IN VALUE="3" >geo.CITY</IN>                        
+                        <IN VALUE="2" >geo.POSTALCODE</IN>                        
+                        <IN VALUE="1" >geo.REGION</IN>                        
+                        <IN KEY="1">geo.IP</IN>                        
+                  </STEP>
+                  
+                  <STEP TIMING="TRUE" NAME="Status2" PARRALLISM="1" PARAMETER_LIST="source"  CLASS="com.kni.etl.ketl.reader.JDBCReader">
+                         <IN>"select ip_address_desc from big_demo_wh.ip_address_lu where rownum &lt; 100000"</IN>
+                         <OUT NAME="IP"/>
+                   </STEP>
+                   
+                   <STEP TIMING="TRUE" NAME="Trans" FLOWTYPE="FANOUT" CLASS="com.kni.etl.ketl.transformation.DynamicTransformation" >
+                        <IN NAME="IP">Status2.IP</IN>                        
+                        <OUT NAME="CITY" DATATYPE="STRING">lookup("IPLookup",${IP},"CITY")</OUT>
+                        <OUT NAME="POSTALCODE" DATATYPE="STRING">lookup("IPLookup",${IP},"POSTALCODE")</OUT>
+                        <OUT>${IP}</OUT>
+                  </STEP>
+
+                   <STEP TIMING="TRUE" NAME="Dump" CLASS="com.kni.etl.ketl.writer.NullWriter">
+                        <IN>Trans.*</IN>                        
+                  </STEP>
+            </ACTION>
+      </JOB>
+</ETL>

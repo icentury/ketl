@@ -1,0 +1,47 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	 
+
+  	  <PARAMETER_LIST NAME="destination">
+		<PARAMETER NAME="USER">TEST</PARAMETER>
+		<PARAMETER NAME="PASSWORD">TEST</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@200.0.4.123:1521:prd2ora</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+		<PARAMETER NAME="CONNECTIONSTRING">prd2ora</PARAMETER>
+	  </PARAMETER_LIST>
+
+	   <!-- CREATE TABLE DATE_DIMENSION (DATE_SURROGATE_KEY
+    NUMBER(9) NOT NULL, DATE_DESCRIPTION DATE, DAY_OF_MONTH
+    NUMBER, DAY_OF_WEEK NUMBER, DAY_OF_YEAR NUMBER, 
+    MONTH_OF_YEAR NUMBER, YEAR NUMBER) -->
+    
+       <JOB ID="DateIntoSQLLoader"  NAME="CSVWithEscapesAndQuotes" PROJECT="TEST" TYPE="KETL">
+            <ACTION PARRALLISM="2">
+		    <!--  Sequence generator is used to generate the natural key and the date surrogate key -->
+			<STEP PARRALLISM="1" TIMING="TRUE" NAME="Reader" VALUES="2000000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="DATE_SURROGATE_KEY" />
+				<OUT DATATYPE="DATE" NAME="DATE_DESCRIPTION" STARTVALUE="2000-01-01" FORMATSTRING="yyyy-MM-dd"/>
+			</STEP>
+
+			<!-- The dynamic transform is used now to extract date parts from the natural key  -->
+ 			<STEP FLOWTYPE="FANOUT" NAME="Transform" CLASS="com.kni.etl.ketl.transformation.DynamicTransformation" PARAMETER_LIST="testData">
+                        <IN>Reader.DATE_SURROGATE_KEY</IN>                        
+                        <IN>Reader.DATE_DESCRIPTION</IN>                        
+                        <OUT NAME="YEAR" DATATYPE="INTEGER">getDatePart(${DATE_DESCRIPTION},Calendar.YEAR)</OUT>
+                        <OUT NAME="MONTH_OF_YEAR" DATATYPE="INTEGER">getDatePart(${DATE_DESCRIPTION},Calendar.MONTH)</OUT>
+                        <OUT NAME="DAY_OF_MONTH" DATATYPE="INTEGER">getDatePart(${DATE_DESCRIPTION},Calendar.DAY_OF_MONTH)</OUT>
+                        <OUT NAME="DAY_OF_WEEK" DATATYPE="INTEGER">getDatePart(${DATE_DESCRIPTION},Calendar.DAY_OF_WEEK)</OUT>
+                        <OUT NAME="DAY_OF_YEAR" DATATYPE="INTEGER">getDatePart(${DATE_DESCRIPTION},Calendar.DAY_OF_YEAR)</OUT>
+						<OUT>*</OUT>                                                
+            </STEP>
+            
+            
+            <STEP NAME="Target" COMMITSIZE="30000" CLASS="com.kni.etl.ketl.writer.SQLLoaderELTWriter"  PARAMETER_LIST="destination" TABLE="DATE_DIMENSION">
+				<IN>Transform.*</IN>				
+				<POSTSQL>insert into DATE_DIMENSION(DATE_SURROGATE_KEY) VALUES(-1)</POSTSQL>
+				<!-- Enable for oracle <POSTSQL>analyze table DATE_DIMENSION compute statistics</POSTSQL>-->
+            </STEP>
+           </ACTION>
+      </JOB>
+</ETL>

@@ -1,0 +1,53 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	  <PARAMETER_LIST NAME="testData">
+		    <PARAMETER NAME="ROOT" PARAMETER_LIST="search*"/>
+      </PARAMETER_LIST>
+      
+	  <PARAMETER_LIST NAME="search1">
+		    <PARAMETER NAME="SEARCHPATH">examples/data/CSV.txt</PARAMETER>
+      </PARAMETER_LIST>
+      
+	  <PARAMETER_LIST NAME="search2">
+		    <PARAMETER NAME="SEARCHPATH">examples/data/CSV.txt</PARAMETER>
+      </PARAMETER_LIST>
+	 
+	<PARAMETER_LIST NAME="destination">
+		<PARAMETER NAME="USER">postgres</PARAMETER>
+		<PARAMETER NAME="PASSWORD">postgres</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:postgresql://localhost/postgres</PARAMETER>
+		<PARAMETER NAME="DRIVER">org.postgresql.Driver</PARAMETER>
+		<PARAMETER NAME="PRESQL">set search_path = 'demo'</PARAMETER>				
+    </PARAMETER_LIST>	 
+	
+       <JOB ID="DimensionTransform" PARRALLISM="1" NAME="CSVWithEscapesAndQuotes" PROJECT="TEST" TYPE="KETL">
+            <ACTION>
+                  <STEP NAME="Source" ALLOWDUPLICATES="TRUE" SAMPLEEVERY="1" IOBUFFER="8196" CLASS="com.kni.etl.ketl.reader.NIOFileReader" CHARACTERSET="UTF-8" DELIMITER="," PARAMETER_LIST="testData">
+                         <REGEXPR ID="1">12</REGEXPR>
+                         <OUT NAME="int" DATATYPE="INTEGER"/>
+                         <OUT NAME="double" DATATYPE="DOUBLE"/>
+                         <OUT NAME="string" DATATYPE="STRING"/>
+                         <OUT NAME="date" DATATYPE="DATE" FORMATSTRING="dd/MM/yyyy" NULLIF="10/14/2005"/>
+                         <OUT NAME="timestamp" DATATYPE="DATE" FORMATSTRING="dd/MM/yyyy HH:mm:ss"/>
+                   </STEP>
+
+				   <STEP NAME="Transform" CLASS="com.kni.etl.ketl.transformation.DimensionTransformation" TABLE="DIM_LU" PARAMETER_LIST="destination">
+                        <IN INSERT="TRUE" NAME="VALUE2">Source.double</IN> 
+                        <IN SK="1" NAME="SK1_COL">Source.int</IN> 
+                        <IN SK="2" NAME="SK2_COL">Source.string</IN> 
+                        <IN INSERT="TRUE" NAME="insrt_dt">Source.timestamp</IN> 
+                        <IN UPDATE="TRUE" NAME="update_dt">Source.timestamp</IN> 
+                        <IN>Source.date</IN> 
+						<OUT NAME="sk1">${SK1_COL}</OUT>
+						<OUT NAME="sk2">${SK2_COL}</OUT>
+					 	<OUT NAME="pk_col" PK="TRUE"/>
+					 	<OUT NAME="date">${date}</OUT>						
+				   </STEP>
+				   
+                   <STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.NullWriter">
+                        <IN>Transform.*</IN>                        
+                  </STEP>
+            </ACTION>
+      </JOB>
+</ETL>
