@@ -93,7 +93,8 @@ CREATE TABLE job (
     seconds_before_retry integer,
     disable_alerting character varying(1),
     "action" text,
-    old_action2 bytea
+    old_action2 bytea,
+    last_update_date timestamp without time zone
 );
 
 
@@ -194,7 +195,8 @@ CREATE TABLE job_log (
     dm_load_id integer NOT NULL,
     retry_attempts integer,
     execution_date timestamp without time zone,
-    server_id integer
+    server_id integer,
+    last_update_date timestamp without time zone
 );
 
 
@@ -219,7 +221,8 @@ CREATE TABLE job_log_hist (
     dm_load_id integer NOT NULL,
     retry_attempts integer,
     execution_date timestamp without time zone,
-    server_id integer
+    server_id integer,
+    last_update_date timestamp without time zone
 );
 
 
@@ -314,7 +317,9 @@ CREATE TABLE job_schedule (
     next_run_date timestamp without time zone,
     schedule_desc character varying(255),
     minute_of_hour integer,
-    "minute" integer
+    "minute" integer,
+    start_run_date timestamp without time zone,
+    stop_run_date timestamp without time zone
 );
 
 
@@ -1119,7 +1124,23 @@ INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES (
 INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
 '12', 'Waiting to be retried'); 
 INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
+'10', 'Cancelled'); 
+INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
 '15', 'Paused'); 
+INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
+'16', 'Waiting to pause'); 
+INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
+'17', 'Waiting to skip'); 
+INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
+'18', 'Attempt pause'); 
+INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
+'19', 'Resume'); 
+INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
+'20', 'Pending Closure Skip'); 
+INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
+'21', 'Skipped'); 
+INSERT INTO JOB_STATUS ( STATUS_ID, STATUS_DESC ) VALUES ( 
+'22', 'Attempt cancel'); 
 
  
 
@@ -1179,3 +1200,34 @@ INSERT INTO report_meta (rmid, name, description, filename, report_type, params,
 INSERT INTO report_meta (rmid, name, description, filename, report_type, params, data_interval) VALUES (20, 'Access By Country For Week', NULL, 'WeeklyGeographicActivity.jrxml', 'PREDEF', NULL, 'Weekly');
 INSERT INTO report_meta (rmid, name, description, filename, report_type, params, data_interval) VALUES (21, 'Access By Country For All Weeks', NULL, 'CumulativeGeographicActivity.jrxml', 'PREDEF', NULL, 'Cumulative');
 
+CREATE OR REPLACE FUNCTION moddate()
+  RETURNS "trigger" AS
+$BODY$
+     BEGIN
+         -- Check that empname and salary are given
+         NEW.last_update_date  := current_timestamp;
+         RETURN NEW;
+     END;
+$BODY$
+  LANGUAGE 'plpgsql' VOLATILE;
+  
+ALTER FUNCTION moddate() OWNER TO ketlmd;
+
+CREATE TRIGGER moddate
+  BEFORE INSERT OR UPDATE
+  ON job
+  FOR EACH ROW
+  EXECUTE PROCEDURE moddate();
+  
+CREATE TRIGGER moddate
+  BEFORE INSERT OR UPDATE
+  ON job_log
+  FOR EACH ROW
+  EXECUTE PROCEDURE moddate();
+  
+CREATE TRIGGER moddate
+  BEFORE INSERT OR UPDATE
+  ON job_log_hist
+  FOR EACH ROW
+  EXECUTE PROCEDURE moddate();
+ 
