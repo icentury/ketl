@@ -14,15 +14,12 @@ import java.math.BigDecimal;
 
 import com.kni.util.ResizingArray;
 
-
 /**
- * @author nwakefield
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
+ *         Generation&gt;Code and Comments
  */
-public class KETLJobStatus extends ETLJobStatus
-{
+public class KETLJobStatus extends ETLJobStatus {
+
     ResizingArray errorCount;
     ResizingArray insertCount;
     ResizingArray updateCount;
@@ -31,78 +28,74 @@ public class KETLJobStatus extends ETLJobStatus
     public static int NON_PARTITIONED = 0;
     int stepID = 0;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.ETLStatus#getErrorMessage()
      */
-    class LongMutable
-    {
+    class LongMutable {
+
         public long value = 0;
     }
 
-    public synchronized String getErrorMessage()
-    {
+    public synchronized String getErrorMessage() {
         return super.getErrorMessage();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.ETLStatus#getStatusMessage()
      */
-    public String getStatusMessage()
-    {
+    public String getStatusMessage() {
         return super.getStatusMessage();
     }
 
-    public synchronized int generateStepIdentifier()
-    {
+    public synchronized int generateStepIdentifier() {
         return stepID++;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.ETLStatus#getStatusMessageForCode(int)
      */
-    public String getStatusMessageForCode(int iStatusCode)
-    {
+    public String getStatusMessageForCode(int iStatusCode) {
         return super.getStatusMessageForCode(iStatusCode);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.ETLStatus#getWarningMessage()
      */
-    public synchronized String getWarningMessage()
-    {
+    public synchronized String getWarningMessage() {
         return super.getWarningMessage();
     }
 
-    public synchronized void incrementErrorCount(int pStep, int pPartition, long pAmount)
-    {
+    public synchronized void incrementErrorCount(int pStep, int pPartition, long pAmount) {
         this.errorCount = incrementCount(pStep, pPartition, pAmount, this.errorCount);
     }
 
-    public synchronized void incrementInsertCount(int pStep, int pPartition, long pAmount)
-    {
+    public synchronized void incrementInsertCount(int pStep, int pPartition, long pAmount) {
         this.insertCount = incrementCount(pStep, pPartition, pAmount, this.insertCount);
     }
 
-    public synchronized void incrementUpdateCount(int pStep, int pPartition, long pAmount)
-    {
+    public synchronized void incrementUpdateCount(int pStep, int pPartition, long pAmount) {
         this.updateCount = incrementCount(pStep, pPartition, pAmount, this.updateCount);
     }
 
-    public synchronized void incrementBatchCount(int pStep, int pPartition, long pAmount)
-    {
+    public synchronized void incrementBatchCount(int pStep, int pPartition, long pAmount) {
         this.batchCount = incrementCount(pStep, pPartition, pAmount, this.batchCount);
     }
 
-    public synchronized String getXMLSynchronized()
-    {
+    public synchronized String getXMLSynchronized() {
         return null;
     }
 
-    private ResizingArray incrementCount(int pStep, int pPartition, long pAmount, ResizingArray pCounter)
-    {
+    private ResizingArray incrementCount(int pStep, int pPartition, long pAmount, ResizingArray pCounter) {
         // step counters not defined create it for all steps
-        if (pCounter == null)
-        {
+        if (pCounter == null) {
             pCounter = new ResizingArray(pStep + 1);
         }
 
@@ -110,8 +103,7 @@ public class KETLJobStatus extends ETLJobStatus
         ResizingArray pStepArray = (ResizingArray) pCounter.get(pStep);
 
         // if step not defined then create step array
-        if (pStepArray == null)
-        {
+        if (pStepArray == null) {
             pCounter.add(pStep, new ResizingArray(pPartition + 1));
             pStepArray = (ResizingArray) pCounter.get(pStep);
         }
@@ -120,8 +112,7 @@ public class KETLJobStatus extends ETLJobStatus
         LongMutable val = (LongMutable) pStepArray.get(pPartition);
 
         // not defined create counter for partition within step
-        if (val == null)
-        {
+        if (val == null) {
             val = new LongMutable();
             pStepArray.add(pPartition, val);
         }
@@ -131,29 +122,23 @@ public class KETLJobStatus extends ETLJobStatus
         return pCounter;
     }
 
-    private long getTotalCount(ResizingArray pCounter)
-    {
+    private long getTotalCount(ResizingArray pCounter) {
         // step counters not defined create it for all steps
-        if (pCounter == null)
-        {
+        if (pCounter == null) {
             return 0;
         }
 
         long res = 0;
 
         // get step array with step counters
-        for (int i = 0; i < pCounter.size(); i++)
-        {
+        for (int i = 0; i < pCounter.size(); i++) {
             ResizingArray pStepArray = (ResizingArray) pCounter.get(i);
 
-            if (pStepArray != null)
-            {
-                for (int p = 0; p < pStepArray.size(); p++)
-                {
+            if (pStepArray != null) {
+                for (int p = 0; p < pStepArray.size(); p++) {
                     LongMutable val = (LongMutable) pStepArray.get(p);
 
-                    if (val != null)
-                    {
+                    if (val != null) {
                         res = res + val.value;
                     }
                 }
@@ -163,23 +148,19 @@ public class KETLJobStatus extends ETLJobStatus
         return res;
     }
 
-    public synchronized long getTotalErrorCount()
-    {
+    public synchronized long getTotalErrorCount() {
         return getTotalCount(this.errorCount);
     }
 
-    public synchronized long getTotalInsertCount()
-    {
+    public synchronized long getTotalInsertCount() {
         return getTotalCount(this.insertCount);
     }
 
-    public synchronized long getTotalBatchCount()
-    {
+    public synchronized long getTotalBatchCount() {
         return getTotalCount(this.batchCount);
     }
 
-    public synchronized long getTotalUpdateCount()
-    {
+    public synchronized long getTotalUpdateCount() {
         return getTotalCount(this.updateCount);
     }
 }

@@ -14,7 +14,8 @@ public class ETLJobStatus extends ETLStatus {
     private static java.lang.String[] astrStatusMessages = { "Scheduled", "Executing", "Failed, pending closure",
             "Successful", "Ready to run", "Waiting for children", "Failed", "Successful, pending closure",
             "Queued for execution", "Cancelled, pending closure", "Cancelled", "Rejected", "Waiting to be retried",
-            "Waiting to be restarted", "Critical failure, pausing load", "Paused" };
+            "Waiting to be restarted", "Critical failure, pausing load", "Paused", "Waiting to pause",
+            "Waiting to skip", "Attempt pause", "Resume", "Skipped, pending closure", "Skipped", "Attempt kill" };
     public final static int SCHEDULED = 0;
     public final static int WAITING_FOR_CHILDREN = 5;
     public final static int READY_TO_RUN = 4; // Previously called WAITING_TO_BE_EXECUTED
@@ -33,6 +34,14 @@ public class ETLJobStatus extends ETLStatus {
     public final static int PAUSED = 15;
     public final static int DO_NOT_SEND_EMAIL_ERROR_CODE = 99;
     public final static int CRITICAL_FAILURE_ERROR_CODE = 100;
+
+    public final static int WAITING_TO_PAUSE = 16;
+    public final static int WAITING_TO_SKIP = 17;
+    public final static int ATTEMPT_PAUSE = 18;
+    public final static int RESUME = 19; // must handle job interrupt & start of job
+    public final static int PENDING_CLOSURE_SKIP = 20;
+    public final static int SKIPPED = 21;
+    public final static int ATTEMPT_CANCEL = 22;
 
     /**
      * ETLJobStatus constructor comment.
@@ -58,7 +67,7 @@ public class ETLJobStatus extends ETLStatus {
         if (this.mException != null && e == mException)
             return;
 
-        mException = e;        
+        mException = e;
     }
 
     public Throwable getException() {

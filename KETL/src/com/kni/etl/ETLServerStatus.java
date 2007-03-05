@@ -4,14 +4,13 @@
 
 package com.kni.etl;
 
-
 /**
- * Insert the type's description here.
- * Creation date: (5/7/2002 7:43:28 PM)
+ * Insert the type's description here. Creation date: (5/7/2002 7:43:28 PM)
+ * 
  * @author: Administrator
  */
-public class ETLServerStatus extends ETLStatus
-{
+public class ETLServerStatus extends ETLStatus {
+
     public final static int SERVER_SHUTDOWN = 3;
     public final static int SERVER_SHUTTING_DOWN = 2;
     public final static int SERVER_ALIVE = 1;
@@ -21,8 +20,7 @@ public class ETLServerStatus extends ETLStatus
     /**
      * ETLServerStatus constructor comment.
      */
-    public ETLServerStatus()
-    {
+    public ETLServerStatus() {
         super();
     }
 }

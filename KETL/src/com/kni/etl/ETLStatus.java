@@ -86,6 +86,15 @@ public class ETLStatus {
     }
 
     /**
+     * Insert the method's description here. Creation date: (5/3/2002 12:31:11 PM)
+     * 
+     * @return int
+     */
+    public synchronized String getExtendedMessage() {
+        return strExtendedMessage;
+    }
+
+    /**
      * Insert the method's description here. Creation date: (5/4/2002 4:43:42 PM)
      * 
      * @return java.lang.String
@@ -206,9 +215,9 @@ public class ETLStatus {
     }
 
     public synchronized void setExtendedMessage(java.lang.String newExtendedMessage) {
-        if(strExtendedMessage != null && strExtendedMessage.equals(newExtendedMessage))
+        if (strExtendedMessage != null && strExtendedMessage.equals(newExtendedMessage))
             return;
-        
+
         strExtendedMessage = newExtendedMessage;
         messageChanged = true;
     }
@@ -242,7 +251,6 @@ public class ETLStatus {
         mExecutionDate = pExecutionDate;
     }
 
-    
     /**
      * @return Returns the server.
      */
@@ -250,7 +258,6 @@ public class ETLStatus {
         return miServer;
     }
 
-    
     /**
      * @param pServer The server to set.
      */

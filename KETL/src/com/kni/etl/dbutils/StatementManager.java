@@ -169,6 +169,12 @@ public class StatementManager {
                     if (node != null && node.getNodeName() != null && pTag != null
                             && node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().compareTo(pTag) == 0) {
                         sql = XMLHelper.getTextContent(node);
+                        
+                        if(sql == null || sql.length()==0){
+                            ResourcePool
+                            .LogMessage(step, ResourcePool.WARNING_MESSAGE,
+                                    pTag + " cannot be empty, possible XML parsing exception");
+                        }
 
                         boolean runQueryPerPartition = XMLHelper.getAttributeAsBoolean(node.getAttributes(),
                                 "PERPARTITION", false);

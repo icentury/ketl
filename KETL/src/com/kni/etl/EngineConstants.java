@@ -266,7 +266,7 @@ public class EngineConstants {
                     try {
                         Class.forName(tmp);
                         EngineConstants.LOOKUPCLASS = XMLHelper.getTextContent(e);
-                    } catch (Exception e1) {
+                    } catch (Throwable e1) {
                         lookForAlternative = true;
                         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "LOOKUPCLASS "
                                 + tmp + " could not be found, looking for alternative");
@@ -285,7 +285,7 @@ public class EngineConstants {
                             Class.forName(lookupsOptions[i][1]);
 
                             EngineConstants.LOOKUPCLASS = lookupsOptions[i][0];
-                            
+
                             if (lookForAlternative)
                                 ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
                                         "LOOKUPCLASS defaulted to " + EngineConstants.LOOKUPCLASS);
@@ -300,11 +300,11 @@ public class EngineConstants {
                     }
 
                 }
-                
-                if(EngineConstants.LOOKUPCLASS != null && lookForAlternative == false)
-                    ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
-                            "Cache engine " + EngineConstants.LOOKUPCLASS);
-                
+
+                if (EngineConstants.LOOKUPCLASS != null && lookForAlternative == false)
+                    ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Cache engine "
+                            + EngineConstants.LOOKUPCLASS);
+
                 e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "PARAMETEREND");
                 if (e != null) {
                     XMLHelper.getTextContent(e);

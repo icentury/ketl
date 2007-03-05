@@ -4,18 +4,15 @@
 
 package com.kni.etl;
 
-
 /**
- * Insert the type's description here.
- * Creation date: (5/7/2002 10:50:31 AM)
+ * Insert the type's description here. Creation date: (5/7/2002 10:50:31 AM)
+ * 
  * @author: Administrator
  */
-public class ETLJobExecutorStatus extends ETLStatus
-{
-    private static java.lang.String[] astrStatusMessages = 
-        {
-            "Initializing", "Ready", "Working", "Error", "Shutting Down", "Terminated"
-        };
+public class ETLJobExecutorStatus extends ETLStatus {
+
+    private static java.lang.String[] astrStatusMessages = { "Initializing", "Ready", "Working", "Error",
+            "Shutting Down", "Terminated" };
     public final static int INITIALIZING = 0; // Starting up
     public final static int READY = 1; // Ready to receive a job
     public final static int WORKING = 2; // Currently processing a job
@@ -26,18 +23,16 @@ public class ETLJobExecutorStatus extends ETLStatus
     /**
      * ETLJobExecutorStatus constructor comment.
      */
-    public ETLJobExecutorStatus()
-    {
+    public ETLJobExecutorStatus() {
         super();
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/7/2002 11:07:53 AM)
+     * Insert the method's description here. Creation date: (5/7/2002 11:07:53 AM)
+     * 
      * @return java.lang.String[]
      */
-    public String[] getStatusMessages()
-    {
+    public String[] getStatusMessages() {
         return astrStatusMessages;
     }
 }

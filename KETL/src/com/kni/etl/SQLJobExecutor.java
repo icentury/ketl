@@ -33,18 +33,19 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
     Connection dbConnection = null;
 
-    private void wrapExecution(Statement stmt,String curSQL,boolean debug) throws SQLException {
-    	long start = (System.currentTimeMillis()-1);
-    	if(debug)
-            ResourcePool.LogMessage(this,ResourcePool.DEBUG_MESSAGE,"Executing statement: " + curSQL);
-        
-    	stmt.execute(curSQL);
+    private void wrapExecution(Statement stmt, String curSQL, boolean debug) throws SQLException {
+        long start = (System.currentTimeMillis() - 1);
+        if (debug)
+            ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Executing statement: " + curSQL);
 
-    	if(debug)
-            ResourcePool.LogMessage(this,ResourcePool.DEBUG_MESSAGE,"Execution time(Seconds): " + (((double)(System.currentTimeMillis() - start))/(double)1000));
-        
-    	
+        stmt.execute(curSQL);
+
+        if (debug)
+            ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Execution time(Seconds): "
+                    + (((double) (System.currentTimeMillis() - start)) / (double) 1000));
+
     }
+
     /**
      * Insert the method's description here. Creation date: (5/4/2002 5:37:52 PM)
      * 
@@ -84,15 +85,16 @@ public class SQLJobExecutor extends ETLJobExecutor {
         try {
             Statement stmt = dbConnection.createStatement();
 
-            boolean defaultDebug =  sjJob.mSQLNode==null?false:XMLHelper.getAttributeAsBoolean(sjJob.mSQLNode.getAttributes(), "DEBUG", false);
-            
+            boolean defaultDebug = sjJob.mSQLNode == null ? false : XMLHelper.getAttributeAsBoolean(sjJob.mSQLNode
+                    .getAttributes(), "DEBUG", false);
+
             if (sjJob.mSQLNode == null) {
                 // a little safety measure, defaults to 10000 or specified value
                 this.getStatus().setExtendedMessage("Running statement 1 of 1");
 
                 stmt.setMaxRows(sjJob.getMaxRows());
                 curSQL = sjJob.getSQL();
-                wrapExecution(stmt,curSQL,false);
+                wrapExecution(stmt, curSQL, false);
                 curSQL = null;
                 sjJob.setResultSet(stmt.getResultSet());
                 sjJob.setUpdateCount(stmt.getUpdateCount());
@@ -136,10 +138,10 @@ public class SQLJobExecutor extends ETLJobExecutor {
                                 SQLJob.WRITEBACK_PARAMETER, null);
                         boolean critical = XMLHelper.getAttributeAsBoolean(n.getAttributes(), "CRITICAL", true);
                         boolean debug = XMLHelper.getAttributeAsBoolean(n.getAttributes(), "DEBUG", defaultDebug);
-                        
+
                         curSQL = sjJob.resolveParameters(XMLHelper.getTextContent(n));
                         try {
-                            wrapExecution(stmt,curSQL,debug);
+                            wrapExecution(stmt, curSQL, debug);
 
                             curSQL = null;
                             if (paramName != null) {

@@ -11,11 +11,11 @@ import com.kni.etl.stringtools.FastSimpleDateFormat;
 
 /**
  * Insert the type's description here. Creation date: (3/26/2002 1:29:29 PM)
- *
+ * 
  * @author: Administrator
  */
-public class SourceFieldDefinition
-{
+public class SourceFieldDefinition {
+
     public int MaxLength;
     public int FixedLength = 0;
     public int AverageLength = 0;
@@ -25,7 +25,7 @@ public class SourceFieldDefinition
     public Character escapeChar = null;
     public Class DataType;
     public boolean PartitionField = false;
-    public boolean mEscapeDoubleQuotes = false;    
+    public boolean mEscapeDoubleQuotes = false;
     public java.lang.String FormatString;
     public FastSimpleDateFormat DateFormatter = null;
     public ParsePosition position = null;
@@ -59,16 +59,14 @@ public class SourceFieldDefinition
     /**
      * SourceFieldDefinition constructor comment.
      */
-    public SourceFieldDefinition()
-    {
+    public SourceFieldDefinition() {
         super();
 
         /* field ends at delimiter */
         MaxLength = -1;
 
         /*
-         * 1 = String, 2 = int, 3 = date, 4 = double, 5 = char, 6 = char array
-         * of maxlength
+         * 1 = String, 2 = int, 3 = date, 4 = double, 5 = char, 6 = char array of maxlength
          */
         DataType = null;
 
@@ -79,168 +77,142 @@ public class SourceFieldDefinition
         ReadOrderSequence = -1;
     }
 
-    public final byte[] getDelimiterAsBytes()
-    {
+    public final byte[] getDelimiterAsBytes() {
         return this.bDelimiter;
     }
 
-    public final char[] getDelimiterAsChars()
-    {
+    public final char[] getDelimiterAsChars() {
         return this.cDelimiter;
     }
 
-    public final byte[] getQuoteEndAsBytes()
-    {
+    public final byte[] getQuoteEndAsBytes() {
         return this.bQuoteEnd;
     }
 
-    public final char[] getQuoteEndAsChars()
-    {
+    public final char[] getQuoteEndAsChars() {
         return this.cQuoteEnd;
     }
 
-    public final void setQuoteEnd(java.lang.String pQuoteEnd)
-    {
+    public final void setQuoteEnd(java.lang.String pQuoteEnd) {
         quoteEnd = pQuoteEnd;
 
-        if (quoteEnd != null)
-        {
+        if (quoteEnd != null) {
             hasQuotes = true;
             quoteEndLength = quoteEnd.length();
             this.bQuoteEnd = this.getQuoteEnd().getBytes();
             this.cQuoteEnd = this.getQuoteEnd().toCharArray();
         }
-        else
-        {
+        else {
             quoteEndLength = 0;
             this.bQuoteEnd = null;
             this.cQuoteEnd = null;
         }
     }
 
-    public final java.lang.String getQuoteEnd()
-    {
+    public final java.lang.String getQuoteEnd() {
         return quoteEnd;
     }
 
     public final void setEscapeDoubleQuotes(boolean arg0) {
         this.mEscapeDoubleQuotes = arg0;
     }
-    
+
     public final boolean escapeDoubleQuotes() {
         return this.mEscapeDoubleQuotes;
     }
-    
-    public final void setEscapeCharacter(String pEscChar)
-    {
-        if (pEscChar == null || pEscChar.length()==0)
-        {
+
+    public final void setEscapeCharacter(String pEscChar) {
+        if (pEscChar == null || pEscChar.length() == 0) {
             return;
         }
 
         this.escapeCharacter = pEscChar.toCharArray();
         this.escapeChar = escapeCharacter[0];
 
-        if ((this.escapeCharacter != null) && (this.escapeCharacter.length > 1))
-        {
-            ResourcePool.LogMessage(this,ResourcePool.WARNING_MESSAGE,
-                "Escape character can only be a single character not " + pEscChar + ", default to null");
+        if ((this.escapeCharacter != null) && (this.escapeCharacter.length > 1)) {
+            ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE,
+                    "Escape character can only be a single character not " + pEscChar + ", default to null");
         }
     }
 
-    public final int getQuoteEndLength()
-    {
+    public final int getQuoteEndLength() {
         return quoteEndLength;
     }
 
-    public final void setDelimiter(java.lang.String delimiter)
-    {
+    public final void setDelimiter(java.lang.String delimiter) {
         Delimiter = delimiter;
 
-        if (delimiter != null)
-        {
+        if (delimiter != null) {
             DelimeterLength = delimiter.length();
             this.bDelimiter = this.getDelimiter().getBytes();
             this.cDelimiter = this.getDelimiter().toCharArray();
         }
-        else
-        {
+        else {
             DelimeterLength = 0;
             this.bDelimiter = null;
             this.cDelimiter = null;
         }
     }
 
-    public final java.lang.String getDelimiter()
-    {
+    public final java.lang.String getDelimiter() {
         return Delimiter;
     }
 
-    public final int getDelimiterLength()
-    {
+    public final int getDelimiterLength() {
         return DelimeterLength;
     }
 
-    public final byte[] getQuoteStartAsBytes()
-    {
+    public final byte[] getQuoteStartAsBytes() {
         return this.bQuoteStart;
     }
 
-    public final char[] getQuoteStartAsChars()
-    {
+    public final char[] getQuoteStartAsChars() {
         return this.cQuoteStart;
     }
 
-    public final void setQuoteStart(java.lang.String pQuoteStart)
-    {
+    public final void setQuoteStart(java.lang.String pQuoteStart) {
         quoteStart = pQuoteStart;
 
-        if (quoteStart != null)
-        {
+        if (quoteStart != null) {
             hasQuotes = true;
             quoteStartLength = quoteStart.length();
             this.bQuoteStart = this.getQuoteStart().getBytes();
             this.cQuoteStart = this.getQuoteStart().toCharArray();
         }
-        else
-        {
+        else {
             quoteStartLength = 0;
             this.bQuoteStart = null;
             this.cQuoteStart = null;
         }
     }
 
-    public final java.lang.String getQuoteStart()
-    {
+    public final java.lang.String getQuoteStart() {
         return quoteStart;
     }
 
-    public final int getQuoteStartLength()
-    {
+    public final int getQuoteStartLength() {
         return quoteStartLength;
     }
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see java.lang.Object#toString()
      */
-    public String toString()
-    {
-        return "data type = " + DataType.getCanonicalName() + ", max length = " + MaxLength +
-        ", delimeter = " + Delimiter + ", fixed width = " + FixedLength + ", format string = " + FormatString +
-        ", read order = " + ReadOrder + ", read sequence = " + ReadOrderSequence + ", default value = " + DefaultValue +
-        ", null if = " + NullIf + ", trim = " + TrimValue + ", object type = " +
-        EngineConstants.resolveObjectIDToName(ObjectType);
+    public String toString() {
+        return "data type = " + DataType.getCanonicalName() + ", max length = " + MaxLength + ", delimeter = "
+                + Delimiter + ", fixed width = " + FixedLength + ", format string = " + FormatString
+                + ", read order = " + ReadOrder + ", read sequence = " + ReadOrderSequence + ", default value = "
+                + DefaultValue + ", null if = " + NullIf + ", trim = " + TrimValue + ", object type = "
+                + EngineConstants.resolveObjectIDToName(ObjectType);
     }
 
     /**
      * @param string
      */
-    public void setNullIf(String string)
-    {
-        this.NullIf = string;   
-        if(string != null)
+    public void setNullIf(String string) {
+        this.NullIf = string;
+        if (string != null)
             this.NullIfCharArray = string.toCharArray();
     }
 }

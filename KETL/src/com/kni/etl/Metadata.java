@@ -1,13 +1,7 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Kinetic Networks, Inc. All Rights Reserved.
  */
 
-/*
- * Created on Mar 12, 2003
- *
- * To change this generated comment go to
- * Window>Preferences>Java>Code Generation>Code and Comments
- */
 package com.kni.etl;
 
 import java.io.File;
@@ -29,6 +23,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.TimeZone;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -270,8 +265,8 @@ public class Metadata {
                             + " SELECT load_id, start_job_id, start_date, project_id, end_date, ignored_parents, failed, 1  FROM  "
                             + tablePrefix
                             + loadTableName()
-                            + " A where start_date >= coalesce(?,start_date) and load_id = coalesce(?,load_id) and load_id not in (select load_id from "
-                            + tablePrefix + "JOB_LOG)");
+                            + " A where start_date >= coalesce(?,start_date) and load_id = coalesce(?,load_id) and load_id in (select load_id from "
+                            + tablePrefix + "JOB_LOG_HIST) order by start_job_id, start_date desc");
 
             if (pStartDate == null) {
                 m_stmt.setNull(1, Types.TIMESTAMP);
@@ -440,12 +435,28 @@ public class Metadata {
             // Make metadata connection alive.
             refreshMetadataConnection();
 
+            // test to see if column exist
+            String JOB_LOG_LAST_UPDATE_COL = "start_date";
+            if (columnExists("JOB_LOG", "LAST_UPDATE_DATE"))
+                JOB_LOG_LAST_UPDATE_COL = "LAST_UPDATE_DATE";
+            String JOB_LOG_HIST_LAST_UPDATE_COL = "start_date";
+            if (columnExists("JOB_LOG_HIST", "LAST_UPDATE_DATE"))
+                JOB_LOG_HIST_LAST_UPDATE_COL = "LAST_UPDATE_DATE";
+
             String sql = "SELECT  job_id,start_date,status_id,end_date,message,dm_load_id,retry_attempts,execution_date,server_id FROM  "
-                    + tablePrefix + "JOB_LOG A where start_date >= coalesce(?,start_date) and load_id = ?";
+                    + tablePrefix
+                    + "JOB_LOG A where "
+                    + JOB_LOG_LAST_UPDATE_COL
+                    + " >= coalesce(?,"
+                    + JOB_LOG_LAST_UPDATE_COL + ") and load_id = ?";
             if (pExecID > 0)
                 sql += " and dm_load_id = ?";
             sql += " union all SELECT  job_id,start_date,status_id,end_date,message,dm_load_id,retry_attempts,execution_date,server_id FROM  "
-                    + tablePrefix + "JOB_LOG_HIST A where start_date >= coalesce(?,start_date) and load_id = ?";
+                    + tablePrefix
+                    + "JOB_LOG_HIST A where "
+                    + JOB_LOG_HIST_LAST_UPDATE_COL
+                    + " >= coalesce(?,"
+                    + JOB_LOG_HIST_LAST_UPDATE_COL + ") and load_id = ?";
             if (pExecID > 0)
                 sql += " and dm_load_id = ?";
 
@@ -516,10 +527,20 @@ public class Metadata {
             // Make metadata connection alive.
             refreshMetadataConnection();
 
+            // test to see if column exist
+            String JOB_LOG_LAST_UPDATE_SQL = "";
+            if (columnExists("JOB", "LAST_UPDATE_DATE"))
+                JOB_LOG_LAST_UPDATE_SQL = " and LAST_UPDATE_DATE >= coalesce(?,LAST_UPDATE_DATE) ";
+
             m_stmt = metadataConnection.prepareStatement("SELECT  job_id FROM  " + tablePrefix
-                    + "JOB A where project_id = ?");
+                    + "JOB A where project_id = ?" + JOB_LOG_LAST_UPDATE_SQL);
 
             m_stmt.setInt(1, pProjectID);
+            if (JOB_LOG_LAST_UPDATE_SQL.length() > 0)
+                if (pStartDate == null)
+                    m_stmt.setNull(2, Types.TIMESTAMP);
+                else
+                    m_stmt.setTimestamp(2, new Timestamp(pStartDate.getTime()));
 
             m_rs = m_stmt.executeQuery();
 
@@ -582,7 +603,7 @@ public class Metadata {
             }
 
             if ((sAlertingDisabled == null) || (sAlertingDisabled.compareTo("Y") != 0)) {
-                m_stmt = metadataConnection.prepareStatement("select hostname,login,pwd,from_address	from  "
+                m_stmt = metadataConnection.prepareStatement("select hostname,login,pwd,from_address    from  "
                         + tablePrefix + "mail_server_detail");
                 m_rs = m_stmt.executeQuery();
 
@@ -732,7 +753,7 @@ public class Metadata {
             }
 
             if ((sAlertingDisabled == null) || (sAlertingDisabled.compareTo("Y") != 0)) {
-                m_stmt = metadataConnection.prepareStatement("select hostname,login,pwd,from_address	from  "
+                m_stmt = metadataConnection.prepareStatement("select hostname,login,pwd,from_address    from  "
                         + tablePrefix + "mail_server_detail");
                 m_rs = m_stmt.executeQuery();
 
@@ -1101,6 +1122,7 @@ public class Metadata {
      */
     public void closeMetadata() {
         synchronized (this.oLock) {
+            columnExists.clear();
             if (metadataConnection == null) {
                 return;
             }
@@ -3680,6 +3702,7 @@ public class Metadata {
         }
 
         if (metadataConnection == null) {
+            columnExists.clear();
             Class.forName(JDBCDriver);
 
             metadataConnection = DriverManager.getConnection(JDBCURL, Username, Password);
@@ -3725,8 +3748,36 @@ public class Metadata {
         }
     }
 
-    final protected String loadTableName() {
-        return this.mResolvedLoadTableName == null ? "LOAD" : this.mResolvedLoadTableName;
+    protected HashMap columnExists = new HashMap();
+
+    protected boolean columnExists(String pTablename, String pColumn) throws Exception {
+        boolean found = false;
+        synchronized (this.oLock) {
+
+            String key = pTablename + (char) 0 + pColumn;
+
+            Object res = columnExists.get(key);
+            if (res != null)
+                return (Boolean) res;
+
+            refreshMetadataConnection();
+            Statement stmt = metadataConnection.createStatement();
+
+            try {
+                ResultSet rs = stmt.executeQuery("SELECT count(" + pColumn + ") FROM " + tablePrefix + pTablename);
+                found = true;
+                rs.close();
+            } catch (Exception e) {
+                found = false;
+            }
+
+            if (stmt != null) {
+                stmt.close();
+            }
+
+            columnExists.put(key, found);
+        }
+        return found;
     }
 
     /**
@@ -3946,6 +3997,8 @@ public class Metadata {
                 case ETLJobStatus.WAITING_TO_BE_RETRIED:
                 case ETLJobStatus.PENDING_CLOSURE_FAILED:
                 case ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL:
+                case ETLJobStatus.PENDING_CLOSURE_SKIP:
+                case ETLJobStatus.PENDING_CLOSURE_CANCELLED:
                     m_stmt = metadataConnection.prepareStatement("UPDATE  " + tablePrefix + "JOB_LOG SET END_DATE = "
                             + currentTimeStampSyntax + ", STATUS_ID = ?,MESSAGE =  ? WHERE DM_LOAD_ID = ?"); //$NON-NLS-1$
 
@@ -4379,26 +4432,50 @@ public class Metadata {
      * @return Returns a new schedule id or -1 if failed.
      * @author dnguyen 2006-07-27
      */
-    public int scheduleJob(String pJobID, int pMonth, int pMonthOfYear, int pDay, int pDayOfWeek, int pDayOfMonth,
-            int pHour, int pHourOfDay, int pMinute, int pMinuteOfHour, String pDescription, Date pOnceOnlyDate,
-            Date pEnableDate, Date pDisableDate) throws SQLException, java.lang.Exception {
+    public int scheduleJob(String pJobID, ETLJobSchedule pSched) throws SQLException, java.lang.Exception {
 
         // TODO create a class for the scheduler
         if (pJobID.length() == 0)
             return -1;
-        Statement m_stmt_sel = null;
+        if (!pSched.isScheduleValidated())
+            return -1;
+        PreparedStatement m_stmt_sel = null;
         PreparedStatement m_stmt_add = null;
         ResultSet m_rs = null;
 
-        // TODO finish & test these validations
-        // setJobScheduleDefaults(pMonth, pMonthOfYear, pDay, pDayOfWeek,
-        // pDayOfMonth, pHour, pHourOfDay, pMinute,
-        // pMinuteOfHour, pOnceOnlyDate);
+        int pMonth = pSched.getMonth();
+        int pMonthOfYear = pSched.getMonthOfYear();
+        int pDay = pSched.getDay();
+        int pDayOfWeek = pSched.getDayOfWeek();
+        int pDayOfMonth = pSched.getDayOfMonth();
+        int pHour = pSched.getHour();
+        int pHourOfDay = pSched.getHourOfDay();
+        int pMinute = pSched.getMinute();
+        int pMinuteOfHour = pSched.getMinuteOfHour();
+        String pDescription = pSched.getDescription();
+        Date pOnceOnlyDate = pSched.getOnceOnlyDate();
+        Date pEnableDate = pSched.getEnableDate();
+        Date pDisableDate = pSched.getDisableDate();
+        Date pNextRunDate = null;
+
         // TODO add pEnableDate & pDisableDate
-        // TODO calc the next_run_date from the pEnableDate, etc.
+
+        Calendar cal = Calendar.getInstance(TimeZone.getDefault());
+        Date pNow = cal.getTime();
         if (pOnceOnlyDate != null)
-            pMonth = 12; // this is a hack to keep the server from creating
-        // infinite loads.
+            pNextRunDate = pOnceOnlyDate;
+        else if (pNextRunDate == null) {
+            // if this value is not set, the job will never run. Default to enable right now & run at next interval
+            if (pEnableDate.before(pNow))
+                pEnableDate = pNow;
+            // 1st, call this function w/o any increments (e.g. the schedule may be later this year)
+            pNextRunDate = getNextDate(pEnableDate, -1, pMonthOfYear, -1, pDayOfWeek, pDayOfMonth, -1, pHourOfDay, -1,
+                    pMinuteOfHour);
+            // 2nd, test if this date is in the past, then add the increments
+            if (pNextRunDate.before(pNow))
+                pNextRunDate = getNextDate(pEnableDate, pMonth, pMonthOfYear, pDay, pDayOfWeek, pDayOfMonth, pHour,
+                        pHourOfDay, pMinute, pMinuteOfHour);
+        }
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
@@ -4409,13 +4486,11 @@ public class Metadata {
             if (pMonth > 0)
                 sql += " AND month=" + pMonth;
             if (pMonthOfYear >= 0 && pMonthOfYear <= 11)
-                sql += " AND month_of_year=" + pMonthOfYear; // in the xth
-            // month of the
-            // year 0-11
+                sql += " AND month_of_year=" + pMonthOfYear; // in the xth month of the year 0-11
             if (pDay > 0)
                 sql += " AND day=" + pDay; // every x days
-            if (pDayOfWeek >= 1 && pDayOfWeek <= 7)
-                sql += " AND day_of_week=" + pDayOfWeek; // 1-7 for Sun-Sat
+            if (pDayOfWeek >= 0 && pDayOfWeek <= 6)
+                sql += " AND day_of_week=" + pDayOfWeek; // 0-6 for Sun-Sat
             // NOTE: front end should test for end of month, leap year, etc.
             if (pDayOfMonth >= 1 && pDayOfMonth <= 31)
                 sql += " AND day_of_month=" + pDayOfMonth;
@@ -4427,9 +4502,14 @@ public class Metadata {
                 sql += " AND minute=" + pMinute; // every x minutes
             if (pMinuteOfHour >= 0 && pMinuteOfHour <= 59)
                 sql += " AND minute_of_hour=" + pMinuteOfHour;// 0-59
+            if (pOnceOnlyDate != null) {
+                sql += " AND next_run_date=?";
+            }
 
-            m_stmt_sel = metadataConnection.createStatement();
-            m_rs = m_stmt_sel.executeQuery(sql);
+            m_stmt_sel = metadataConnection.prepareStatement(sql);
+            if (pOnceOnlyDate != null)
+                m_stmt_sel.setTimestamp(1, new Timestamp(pNextRunDate.getTime()));
+            m_rs = m_stmt_sel.executeQuery();
             if (m_rs.next()) {
                 int sched_id = m_rs.getInt(1);
                 ResourcePool.LogMessage(Thread.currentThread().getName(), ResourcePool.ERROR_MESSAGE,
@@ -4465,13 +4545,11 @@ public class Metadata {
             m_stmt_add.setNull(11, java.sql.Types.TIMESTAMP);
             m_stmt_add.setString(12, "");
 
-            // .second set the option selected -- this maps to java api 1.5
-            // Calendar object
+            // .second set the option selected -- this maps to java api 1.5 Calendar object
             if (pMonth > 0)
                 m_stmt_add.setInt(2, pMonth); // every x months
             if (pMonthOfYear >= 0 && pMonthOfYear <= 11)
-                m_stmt_add.setInt(3, pMonthOfYear); // in the xth month of the
-            // year 0-11
+                m_stmt_add.setInt(3, pMonthOfYear); // in the xth month of the year 0-11
             if (pDay > 0)
                 m_stmt_add.setInt(4, pDay); // every x days
             if (pDayOfWeek >= 1 && pDayOfWeek <= 7)
@@ -4487,8 +4565,8 @@ public class Metadata {
                 m_stmt_add.setInt(9, pMinute); // every x minutes
             if (pMinuteOfHour >= 0 && pMinuteOfHour <= 59)
                 m_stmt_add.setInt(10, pMinuteOfHour);// 0-59
-            if (pOnceOnlyDate != null)
-                m_stmt_add.setTimestamp(11, new Timestamp(pOnceOnlyDate.getTime()));
+            if (pNextRunDate != null)
+                m_stmt_add.setTimestamp(11, new Timestamp(pNextRunDate.getTime()));
             if (pDescription.length() > 0)
                 m_stmt_add.setString(12, pDescription);
             m_stmt_add.executeUpdate();
@@ -4498,7 +4576,9 @@ public class Metadata {
 
             // C.get & return the new schedule_id
             try {
-                m_rs = m_stmt_sel.executeQuery(sql);
+                if (pOnceOnlyDate != null)
+                    m_stmt_sel.setTimestamp(1, new Timestamp(pNextRunDate.getTime()));
+                m_rs = m_stmt_sel.executeQuery();
                 if (m_rs.next()) {
                     int sched_id = m_rs.getInt(1);
                     return sched_id;
@@ -4668,6 +4748,73 @@ public class Metadata {
             errors.toArray(tmp);
             return tmp;
         }
+    }
+
+    public Date getCurrentDBTimeStamp() throws Exception {
+        synchronized (this.oLock) {
+            // Make metadata connection alive.
+            refreshMetadataConnection();
+
+            Date currDate = null;
+            metadataConnection.commit();
+            PreparedStatement stmt = metadataConnection.prepareStatement("SELECT " + currentTimeStampSyntax + " FROM "
+                    + this.tablePrefix + "SERVER_STATUS WHERE STATUS_ID = 1");
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next())
+                currDate = rs.getTimestamp(1);
+            rs.close();
+
+            if (stmt != null)
+                stmt.close();
+            return currDate;
+        }
+    }
+
+    public boolean deleteLoad(String pLoadIDs) throws SQLException, java.lang.Exception {
+        // pLoadIDs must be separated by commas
+        PreparedStatement m_stmt = null;
+
+        // if rows in the job_log tables are deleted, the execution id (dm_load_id)
+        // reference is lost, so we have to delete the history too
+        String[] errorTables = { "job_error", "job_error_hist" };
+        String[] loadTables = { "job_log", "job_log_hist", "load" };
+
+        synchronized (this.oLock) {
+            // Make metadata connection alive.
+            refreshMetadataConnection();
+
+            // TODO: make sure there's nothing executing right now or there's a load end date
+
+            for (int i = 0; i < errorTables.length; i++) {
+                m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix + errorTables[i]
+                        + " WHERE dm_load_id IN (SELECT dm_load_id FROM " + tablePrefix
+                        + "job_log WHERE load_id in (?) UNION SELECT dm_load_id FROM " + tablePrefix
+                        + "job_log_hist WHERE load_id in (?))");
+                m_stmt.setString(1, pLoadIDs);
+                m_stmt.setString(2, pLoadIDs);
+                m_stmt.executeUpdate();
+                if (m_stmt != null)
+                    m_stmt.close();
+            }
+
+            for (int i = 0; i < loadTables.length; i++) {
+                m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix + loadTables[i]
+                        + " WHERE load_id in (?)");
+                m_stmt.setString(1, pLoadIDs);
+                m_stmt.executeUpdate();
+                if (m_stmt != null)
+                    m_stmt.close();
+            }
+
+            this.metadataConnection.commit();
+        }
+
+        return (true);
+    }
+
+    final protected String loadTableName() {
+        return this.mResolvedLoadTableName == null ? "LOAD" : this.mResolvedLoadTableName;
     }
 
 }

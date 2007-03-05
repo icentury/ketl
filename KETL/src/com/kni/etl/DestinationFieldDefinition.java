@@ -9,14 +9,13 @@ import java.text.DecimalFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 
-
 /**
- * Insert the type's description here.
- * Creation date: (3/26/2002 1:29:29 PM)
+ * Insert the type's description here. Creation date: (3/26/2002 1:29:29 PM)
+ * 
  * @author: Administrator
  */
-public class DestinationFieldDefinition
-{
+public class DestinationFieldDefinition {
+
     public int MaxLength = -1;
     public boolean FixedWidth = false;
     public String Delimiter;
@@ -33,73 +32,62 @@ public class DestinationFieldDefinition
 
     /**
      * SourceFieldDefinition constructor comment.
+     * 
      * @param pCharSet TODO
      */
-    public DestinationFieldDefinition(String pCharSet)
-    {
+    public DestinationFieldDefinition(String pCharSet) {
         super();
         mCharSet = pCharSet;
     }
 
-    public byte[] getDelimiterAsBytes() throws UnsupportedEncodingException
-    {
-        if ((bDelimiter == null) && (Delimiter != null))
-        {
-            bDelimiter = mCharSet == null?this.Delimiter.getBytes():this.Delimiter.getBytes(mCharSet);
+    public byte[] getDelimiterAsBytes() throws UnsupportedEncodingException {
+        if ((bDelimiter == null) && (Delimiter != null)) {
+            bDelimiter = mCharSet == null ? this.Delimiter.getBytes() : this.Delimiter.getBytes(mCharSet);
         }
 
         return bDelimiter;
     }
 
-    public byte[] getDefaultValueAsBytes() throws UnsupportedEncodingException
-    {
-        if ((bDefeaultValue == null) && (DefaultValue != null))
-        {
-            bDefeaultValue = mCharSet == null?this.DefaultValue.getBytes():this.DefaultValue.getBytes(mCharSet);
+    public byte[] getDefaultValueAsBytes() throws UnsupportedEncodingException {
+        if ((bDefeaultValue == null) && (DefaultValue != null)) {
+            bDefeaultValue = mCharSet == null ? this.DefaultValue.getBytes() : this.DefaultValue.getBytes(mCharSet);
         }
 
         return bDefeaultValue;
     }
 
-    public SimpleDateFormat getSimpleDateFormat()
-    {
-        if (this.sSimpleDateFormatter == null)
-        {
+    public SimpleDateFormat getSimpleDateFormat() {
+        if (this.sSimpleDateFormatter == null) {
             this.sSimpleDateFormatter = new SimpleDateFormat();
         }
 
-        if (FormatString != null)
-        {
+        if (FormatString != null) {
             this.sSimpleDateFormatter.applyPattern(FormatString);
         }
 
         return (this.sSimpleDateFormatter);
     }
 
-    public DecimalFormat getDecimalFormat()
-    {
-        if (this.sDecimalFormatter == null)
-        {
+    public DecimalFormat getDecimalFormat() {
+        if (this.sDecimalFormatter == null) {
             this.sDecimalFormatter = new DecimalFormat();
         }
 
-        if (FormatString != null)
-        {
+        if (FormatString != null) {
             this.sDecimalFormatter.applyPattern(FormatString);
         }
 
         return (this.sDecimalFormatter);
     }
 
-    public Format getFormat(Class cl)
-    {
-        if(Number.class.isAssignableFrom(cl))
+    public Format getFormat(Class cl) {
+        if (Number.class.isAssignableFrom(cl))
             return this.getDecimalFormat();
 
-        if(java.util.Date.class.isAssignableFrom(cl))
+        if (java.util.Date.class.isAssignableFrom(cl))
             return this.getSimpleDateFormat();
 
-            return null;
-        
+        return null;
+
     }
 }

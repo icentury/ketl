@@ -19,7 +19,6 @@ import org.xml.sax.InputSource;
 
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.exceptions.KETLQAException;
-import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
 import com.kni.util.ArgumentParserUtil;
 
