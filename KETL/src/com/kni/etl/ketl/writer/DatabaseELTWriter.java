@@ -83,6 +83,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     private static final String ALTERNATE_VALUE_SUB = "${PARAM}";
     public static final String BATCH_ATTRIB = "BATCHDATA";
     public static final String HANDLER_ATTRIB = "HANDLER";
+    public static final String WRAP_ATTRIB = "WRAP";
     public static final String HASH_COLUMN_ATTRIB = "HASHCOLUMN";
     public static final String HASH_COMPARE_ONLY_ATTRIB = "HASHCOMPAREONLY";
     private static final int BULK = 2;
@@ -193,6 +194,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
             dcdNewColumn.setAlternateInsertValue(XMLHelper.getAttributeAsString(attr, ALTERNATE_INSERT_VALUE, null));
             dcdNewColumn.setAlternateUpdateValue(XMLHelper.getAttributeAsString(attr, ALTERNATE_UPDATE_VALUE, null));
+            dcdNewColumn.setValueWrapper(XMLHelper.getAttributeAsString(attr, WRAP_ATTRIB, null));
 
             // Find out what the upsert flags are for this input...
             if (XMLHelper.getAttributeAsBoolean(attr, PK_ATTRIB, false)) {
@@ -1089,7 +1091,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
                 allColumnCount++;
                 allColumns.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                insertValues.append('?');
+                insertValues.append(madcdColumns[i].getParameterDefinition());
 
                 // if hash column then first column is hash column so offset columns by 1
                 fieldPopulationOrder.add(this.mHashColumnDefinition == null ? new Integer(i) : i == 0 ? new Integer(-1)

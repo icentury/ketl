@@ -2,6 +2,8 @@ package com.kni.etl.dbutils;
 
 import org.w3c.dom.Node;
 
+import com.kni.etl.ketl.exceptions.KETLThreadException;
+
 /**
  * @author nwakefield Creation Date: Mar 7, 2003
  */
@@ -16,6 +18,7 @@ public class DatabaseColumnDefinition extends ColumnDefinition {
 
     private String mAlternateInsertValue = null;
     private String mAlternateUpdateValue = null;
+    private String mWrapValue = null;
     private Class mSrcClass;
     public boolean exists = true;
 
@@ -107,5 +110,19 @@ public class DatabaseColumnDefinition extends ColumnDefinition {
 
     public Class getSourceClass() {
         return mSrcClass;
+    }
+
+    public String getParameterDefinition(){
+        if(this.mWrapValue == null) return "?";
+        return this.mWrapValue;
+    }
+    
+    public void setValueWrapper(String arg0) throws KETLThreadException {
+        this.mWrapValue = arg0;   
+        
+        if(this.mWrapValue == null) return;
+        
+        if(this.mWrapValue.replaceAll("[^?]","").length() != 1)
+            throw new KETLThreadException("Value wrapper must contain 1 parameter reference, e.g. trim(?) not " + this.mWrapValue,Thread.currentThread());
     }
 }
