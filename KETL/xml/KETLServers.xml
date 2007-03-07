@@ -1,5 +1,5 @@
 <!--  change demo to actual servername, if not connecting via localhost -->
-<SERVERS DEFAULTSERVER="localhostPG">
+<SERVERS DEFAULTSERVER="localhostMySQL">
 	<SERVER NAME="localhostPG">
 		<USERNAME>ketlmd</USERNAME>
 		<PASSWORD>ketlmd</PASSWORD>
@@ -18,6 +18,16 @@
 		<NETWORKNAME>localhost</NETWORKNAME>
 		<DRIVER>oracle.jdbc.driver.OracleDriver</DRIVER>
 		<URL>jdbc:oracle:thin:@localhost:1521:xe</URL>
+		<MDPREFIX></MDPREFIX>
+		<PASSPHRASE>ZATXO+7vBD7k9uicS/JOlBtsuscFIA8bpWBHZcHYNrc=</PASSPHRASE>		
+	</SERVER>
+
+	<SERVER NAME="localhostMySQL">
+		<USERNAME>ketlmd</USERNAME>
+		<PASSWORD>ketlmd</PASSWORD>
+		<NETWORKNAME>localhost</NETWORKNAME>
+		<DRIVER>com.mysql.jdbc.Driver</DRIVER>
+		<URL>jdbc:mysql://localhost/ketlmd</URL>
 		<MDPREFIX></MDPREFIX>
 		<PASSPHRASE>ZATXO+7vBD7k9uicS/JOlBtsuscFIA8bpWBHZcHYNrc=</PASSPHRASE>		
 	</SERVER>

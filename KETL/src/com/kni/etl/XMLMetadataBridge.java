@@ -7,7 +7,7 @@
 package com.kni.etl;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.StringReader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -1021,7 +1021,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
                 try {
                     DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
                     builder = dmf.newDocumentBuilder();
-                    jobNodes = builder.parse(new InputSource(new FileReader(xmlFile)));
+                    jobNodes = builder.parse(new InputSource(new StringReader(xmlFile)));
 
                     ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
                             "WARNING: Any duplicate parameters will be given the last value found");

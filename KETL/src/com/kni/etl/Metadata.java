@@ -4466,13 +4466,13 @@ public class Metadata {
             pNextRunDate = pOnceOnlyDate;
         else if (pNextRunDate == null) {
             // if this value is not set, the job will never run. Default to enable right now & run at next interval
-            if (pEnableDate.before(pNow))
+            if (pEnableDate == null || pEnableDate.before(pNow))
                 pEnableDate = pNow;
             // 1st, call this function w/o any increments (e.g. the schedule may be later this year)
             pNextRunDate = getNextDate(pEnableDate, -1, pMonthOfYear, -1, pDayOfWeek, pDayOfMonth, -1, pHourOfDay, -1,
                     pMinuteOfHour);
             // 2nd, test if this date is in the past, then add the increments
-            if (pNextRunDate.before(pNow))
+            if (pNextRunDate == null || pNextRunDate.before(pNow))
                 pNextRunDate = getNextDate(pEnableDate, pMonth, pMonthOfYear, pDay, pDayOfWeek, pDayOfMonth, pHour,
                         pHourOfDay, pMinute, pMinuteOfHour);
         }
@@ -4520,11 +4520,7 @@ public class Metadata {
                     m_stmt_sel.close();
                 return -1;
             }
-            if (m_rs != null)
-                m_rs.close();
-            if (m_stmt_sel != null)
-                m_stmt_sel.close();
-
+            
             // B.create a new schedule for this job
             m_stmt_add = metadataConnection.prepareStatement("INSERT INTO " + tablePrefix
                     + "job_schedule (schedule_id, job_id, month, month_of_year, day, day_of_week, day_of_month,"
