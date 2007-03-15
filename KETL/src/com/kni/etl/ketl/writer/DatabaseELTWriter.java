@@ -586,7 +586,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         switch (this.mType) {
         case ROLL:
         case UPSERT:
-            sql.add(EngineConstants.replaceParameterV2(this.getStepTemplate(mDBType, "DROPTABLE", true), "TABLENAME",
+               sql.add(EngineConstants.replaceParameterV2(this.getStepTemplate(mDBType, "DROPTABLE", true), "TABLENAME",
                     this.mstrSchemaName + this.msTempTableName));
             break;
         }
@@ -672,8 +672,12 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 }
             } catch (Exception e) {
                 try {
-                    StatementManager.executeStatements(this.getFailureCleanupLoadSQL(), this.mcDBConnection,
+                    if(this.debug()==false)
+                        StatementManager.executeStatements(this.getFailureCleanupLoadSQL(), this.mcDBConnection,
                             mStatementSeperator, StatementManager.END, this, true);
+                    else {
+                        ResourcePool.LogMessage(this,ResourcePool.DEBUG_MESSAGE,"Cleanup statements were skipped, manual deletion of temp tables may be necessary");                        
+                    }
                 } catch (Exception e1) {
 
                 }

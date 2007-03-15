@@ -7,6 +7,7 @@
 package com.kni.etl.ketl.transformation;
 
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.text.Format;
 import java.text.ParsePosition;
@@ -15,6 +16,11 @@ import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -44,9 +50,11 @@ import com.kni.etl.util.XMLHelper;
 public class XMLToFieldsTransformation extends ETLTransformation {
 
     private static final String XPATH_EVALUATE_ATTRIB = "XPATHEVALUATE";
+    private static final String DUMPXML_ATTRIB = "DUMPXML";
     private static final String DOCUMENT_BUILDER = "DOCUMENTBUILDER";
 
     private String docBuilder;
+    private Transformer xmlTransformer;
 
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
@@ -57,7 +65,8 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
         if ((this.mRootXPath = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), XPATH_ATTRIB, null)) == null) {
             // No TABLE attribute listed...
-            throw new KETLThreadException("ERROR: No root XPATH attribute specified in step '" + this.getName() + "'.", this);
+            throw new KETLThreadException("ERROR: No root XPATH attribute specified in step '" + this.getName() + "'.",
+                    this);
         }
 
         this.mbXPathEvaluateNodes = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), XPATH_EVALUATE_ATTRIB,
@@ -73,11 +82,18 @@ public class XMLToFieldsTransformation extends ETLTransformation {
                     tmp = xpf.newXPath();
                     ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "XPath engine - "
                             + xpf.getClass().getCanonicalName());
+
                 }
                 this.mXPath = tmp.compile(mRootXPath);
             } catch (Exception e) {
                 throw new KETLThreadException(e, this);
             }
+        }
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            xmlTransformer = tf.newTransformer();
+        } catch (Exception e) {
+            throw new KETLThreadException(e, this);
         }
 
         return 0;
@@ -100,7 +116,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
             if (docBuilder != null) {
                 this.xmlHandler = (XMLHandler) Class.forName(docBuilder).newInstance();
-                this.mBuilder = this.xmlHandler.getDocumentBuilder(this.validating,this.namespaceAware);
+                this.mBuilder = this.xmlHandler.getDocumentBuilder(this.validating, this.namespaceAware);
             }
             else {
                 DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
@@ -109,8 +125,6 @@ public class XMLToFieldsTransformation extends ETLTransformation {
                         + dmf.getClass().getCanonicalName());
                 this.mBuilder = dmf.newDocumentBuilder();
             }
-            
-            
 
         } catch (Exception e) {
             throw new KETLThreadException(e, this);
@@ -119,16 +133,17 @@ public class XMLToFieldsTransformation extends ETLTransformation {
     }
 
     private void configureDocumentBuilderFactory(DocumentBuilderFactory dmf) {
-        if(dmf.isNamespaceAware()) {
-            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,"Parser is namespace aware");
+        if (dmf.isNamespaceAware()) {
+            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Parser is namespace aware");
         }
-        if(dmf.isValidating()) {
-            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,"Parser is validating");
+        if (dmf.isValidating()) {
+            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Parser is validating");
         }
-        
+
         dmf.setValidating(this.validating);
         dmf.setNamespaceAware(this.namespaceAware);
     }
+
     public static final String XPATH_ATTRIB = "XPATH";
     private boolean mbXPathEvaluateNodes = true;
     private String mRootXPath;
@@ -194,17 +209,21 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         boolean mbXPathEvaluateField;
         String[] mRecursiveXPath;
         ParsePosition position;
+        boolean mDumpXML = false;
         String nullIF = null;
 
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             this.xpath = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), XPATH_ATTRIB, null);
-            
-            if(this.xpath == null)
-                this.xpath = XMLHelper.getAttributeAsString(xmlConfig.getParentNode().getAttributes(), XPATH_ATTRIB, null);
-            
+
+            if (this.xpath == null)
+                this.xpath = XMLHelper.getAttributeAsString(xmlConfig.getParentNode().getAttributes(), XPATH_ATTRIB,
+                        null);
+
+            this.mDumpXML = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), DUMPXML_ATTRIB, false);
+
             this.nullIF = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "NULLIF", null);
-               this.mbXPathEvaluateField = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(),
+            this.mbXPathEvaluateField = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(),
                     XPATH_EVALUATE_ATTRIB, true);
             int res = super.initialize(xmlConfig);
 
@@ -301,6 +320,21 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         }
         return false;
     }
+    
+    private String getXMLDump(Object o) throws Exception{
+        
+        if(o== null) return null;
+        if (o instanceof Node)
+            return XMLHelper.outputXML((Node) o);
+        
+        if (o instanceof Source) {
+            StringWriter ws = new StringWriter();
+            xmlTransformer.transform((Source) o, new StreamResult(ws));
+            return ws.toString();
+        }
+        
+        throw new Exception("Object could not be converted to xml " + o.getClass().getCanonicalName());
+    }
 
     public Object getXMLValue(int i) throws KETLTransformException {
         XMLETLOutPort port = (XMLETLOutPort) this.mOutPorts[i];
@@ -309,11 +343,20 @@ public class XMLToFieldsTransformation extends ETLTransformation {
             String result = null;
 
             Node cur = (Node) currentNode;
-            if (port.mbXPathEvaluateField)
-                result = (String) port.mXPathExp.evaluate(cur, XPathConstants.STRING);
+            if (port.mbXPathEvaluateField) {
+                if (port.mDumpXML) {
+                    result = getXMLDump( port.mXPathExp.evaluate(cur, XPathConstants.NODE));
+
+                }
+                else
+                    result = (String) port.mXPathExp.evaluate(cur, XPathConstants.STRING);
+            }
             else {
                 if (port.mRecursiveXPath == null) {
-                    if (port.fetchAttribute)
+                    if (port.mDumpXML) {
+                        result = getXMLDump(cur);
+                    }
+                    else if (port.fetchAttribute)
                         result = XMLHelper.getAttributeAsString(cur.getAttributes(), port.attribute, null);
                     else
                         result = XMLHelper.getChildNodeValueAsString(cur, port.xpath, null, null, null);
@@ -330,7 +373,10 @@ public class XMLToFieldsTransformation extends ETLTransformation {
                             return null;
                     }
 
-                    if (port.fetchAttribute) {
+                    if (port.mDumpXML) {
+                        result = getXMLDump(node);
+                    }
+                    else if (port.fetchAttribute) {
                         result = XMLHelper.getAttributeAsString(node.getAttributes(), port.attribute, null);
                     }
                     else
@@ -412,12 +458,12 @@ public class XMLToFieldsTransformation extends ETLTransformation {
                 doc = mBuilder.parse(new InputSource(new StringReader(string)));
                 if (this.mbXPathEvaluateNodes) {
                     if (this.xmlHandler == null)
-                        nodeList = convertToList((NodeList) this.mXPath.evaluate(doc, XPathConstants.NODESET),nodeList);
+                        nodeList = convertToList((NodeList) this.mXPath.evaluate(doc, XPathConstants.NODESET), nodeList);
                     else
-                        nodeList = this.xmlHandler.evaluateXPath(this.mXPath, doc,nodeList);
+                        nodeList = this.xmlHandler.evaluateXPath(this.mXPath, doc, nodeList);
                 }
                 else {
-                    nodeList = convertToList(doc.getElementsByTagName(mRootXPath),nodeList);
+                    nodeList = convertToList(doc.getElementsByTagName(mRootXPath), nodeList);
                 }
 
                 length = nodeList.size();
@@ -440,13 +486,13 @@ public class XMLToFieldsTransformation extends ETLTransformation {
     }
 
     private static List convertToList(NodeList list, List oldList) {
-        
-        if(oldList == null)
+
+        if (oldList == null)
             oldList = new ArrayList(list == null ? 0 : list.getLength());
         else {
             oldList.clear();
         }
-        
+
         for (int i = list.getLength() - 1; i >= 0; i--) {
             oldList.add(list.item(i));
         }

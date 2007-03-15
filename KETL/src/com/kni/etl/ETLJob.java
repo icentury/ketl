@@ -525,13 +525,20 @@ public class ETLJob {
         return jsStatus;
     }
 
+    
+    private boolean bCancelSuccessfull = false;
+    
+    public void cancelSuccessfull(boolean arg0){
+        bCancelSuccessfull = arg0;
+    }
+    
     /**
      * Insert the method's description here. Creation date: (5/3/2002 5:28:54 PM)
      * 
      * @return boolean
      */
-    public boolean isCancelJob() {
-        return bCancelJob;
+    public boolean isCancelSuccessfull() {
+        return bCancelSuccessfull;
     }
 
     /**

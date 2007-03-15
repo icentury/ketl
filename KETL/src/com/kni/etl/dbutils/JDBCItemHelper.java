@@ -50,7 +50,7 @@ public class JDBCItemHelper {
                 pPreparedStatement.setLong(parameterIndex, (Long) pDataItem);
 
         }
-        else if (pClass == byte[].class) {
+        else if (pClass == byte[].class || pClass == Byte[].class) {
             if (pDataItem == null)
                 pPreparedStatement.setNull(parameterIndex, java.sql.Types.VARBINARY);
             else
@@ -201,8 +201,14 @@ public class JDBCItemHelper {
         else if (pClass == Clob.class) {
             result = pRS.getClob(columnIndex);
         }
+        else if (pClass == Byte[].class) {
+            result = pRS.getBytes(columnIndex);
+        }
         else if (pClass == Blob.class) {
             result = pRS.getBlob(columnIndex);
+        }
+        else if (pClass == java.sql.Array.class) {
+            result = pRS.getArray(columnIndex);            
         }
         else {
             result = pRS.getObject(columnIndex);
@@ -276,6 +282,8 @@ public class JDBCItemHelper {
                 return String.class.getCanonicalName();
         case java.sql.Types.BOOLEAN:
             return Boolean.class.getCanonicalName();
+        case java.sql.Types.ARRAY:
+            return java.sql.Array.class.getCanonicalName();
         default:
             return Object.class.getCanonicalName();
         }

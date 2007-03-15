@@ -1693,21 +1693,51 @@ public class Metadata {
     public void getJobStatus(ETLJob pJob) throws SQLException, java.lang.Exception {
         PreparedStatement m_stmt = null;
         ResultSet m_rs = null;
-
+    
         synchronized (this.oLock) {
             // Make metadata connection alive.
             refreshMetadataConnection();
-
+    
             m_stmt = metadataConnection.prepareStatement("SELECT STATUS_ID,DM_LOAD_ID,LOAD_ID FROM  " + tablePrefix
                     + "JOB_LOG A " + "WHERE JOB_ID like ?");
             m_stmt.setString(1, pJob.getJobID());
             m_rs = m_stmt.executeQuery();
-
+    
             // cycle through pending jobs setting next run date
             while (m_rs.next()) {
                 pJob.getStatus().setStatusCode(m_rs.getInt(1));
                 pJob.setJobExecutionID(m_rs.getInt(2));
                 pJob.setLoadID(m_rs.getInt(3));
+            }
+    
+            // Close open resources
+            if (m_rs != null) {
+                m_rs.close();
+            }
+    
+            if (m_stmt != null) {
+                m_stmt.close();
+            }
+        }
+    }
+
+    public int getJobStatusByExecutionId(int pLoadID) throws SQLException, java.lang.Exception {
+        PreparedStatement m_stmt = null;
+        ResultSet m_rs = null;
+
+        synchronized (this.oLock) {
+            // Make metadata connection alive.
+            refreshMetadataConnection();
+
+            m_stmt = metadataConnection.prepareStatement("SELECT STATUS_ID FROM  " + tablePrefix + "JOB_LOG A "
+                    + "WHERE DM_LOAD_ID = ?");
+            m_stmt.setInt(1, pLoadID);
+            m_rs = m_stmt.executeQuery();
+
+            Integer status_id = null;
+            // cycle through pending jobs setting next run date
+            while (m_rs.next()) {
+                status_id = m_rs.getInt(1);
             }
 
             // Close open resources
@@ -1718,7 +1748,13 @@ public class Metadata {
             if (m_stmt != null) {
                 m_stmt.close();
             }
+
+            if (status_id == null)
+                throw new Exception("Job not in job_log table, load id = " + pLoadID);
+            
+            return status_id.intValue();
         }
+
     }
 
     public ETLJob getDetailedJobStatus(String pJobID, int pLoadID, int pExecutionID) throws SQLException,

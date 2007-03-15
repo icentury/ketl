@@ -282,6 +282,13 @@ public class ETLThreadManager {
             boolean showStatus = false;
             long currentTime = System.currentTimeMillis();
 
+            // deal with cancellations
+            if(this.getJobExecutor().getCurrentETLJob().isCancelled()){
+                interruptAllThreads = true;   
+                ResourcePool.LogMessage(this,ResourcePool.WARNING_MESSAGE,"Cancelling job");
+                this.getJobExecutor().getCurrentETLJob().cancelSuccessfull(true);
+            }
+            
             for (Object o : this.threads) {
 
                 // if any thread has failed then force failure for alive threads, they should be failing already but

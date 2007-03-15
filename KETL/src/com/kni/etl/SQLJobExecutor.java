@@ -24,11 +24,44 @@ import com.kni.etl.util.XMLHelper;
 
 public class SQLJobExecutor extends ETLJobExecutor {
 
+    private SQLJobMonitor monitor;
+
+    private class SQLJobMonitor extends Thread {
+
+        boolean alive = true;        
+        SQLJob currentJob = null;
+        public Statement stmt = null;;
+
+        @Override
+        public void run() {
+            try {
+                while (alive) {
+
+                    if (stmt != null && currentJob != null && currentJob.isCancelled()) {
+                        try {
+                            stmt.cancel();
+                            currentJob.cancelSuccessfull(true);
+                        } catch (SQLException e) {
+                            ResourcePool.LogException(e, this);
+                        }
+
+                    }
+                    Thread.sleep(500);
+
+                }
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+
+    }
+
     /**
      * SQLJobExecutor constructor comment.
      */
     public SQLJobExecutor() {
-        super();
+        super();       
     }
 
     Connection dbConnection = null;
@@ -38,8 +71,12 @@ public class SQLJobExecutor extends ETLJobExecutor {
         if (debug)
             ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Executing statement: " + curSQL);
 
-        stmt.execute(curSQL);
-
+        this.monitor.stmt = stmt;
+        try {
+            stmt.execute(curSQL);
+        } finally {
+            this.monitor.stmt = null;
+        }
         if (debug)
             ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Execution time(Seconds): "
                     + (((double) (System.currentTimeMillis() - start)) / (double) 1000));
@@ -53,6 +90,8 @@ public class SQLJobExecutor extends ETLJobExecutor {
      * @param param com.kni.etl.ETLJob
      */
     protected boolean executeJob(ETLJob ejJob) {
+        this.monitor = new SQLJobMonitor();
+        this.monitor.start();
         SQLJob sjJob;
         ETLJobStatus jsJobStatus;
         String curSQL = null;
@@ -63,6 +102,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
         }
 
         sjJob = (SQLJob) ejJob;
+        this.monitor.currentJob = sjJob;
         jsJobStatus = sjJob.getStatus();
 
         // Get a connection to our database...
@@ -265,6 +305,10 @@ public class SQLJobExecutor extends ETLJobExecutor {
             }
 
             return false;
+        } finally {
+            this.monitor.currentJob = null;
+            this.monitor.stmt = null;
+            this.monitor.alive = false;
         }
 
         return true;
