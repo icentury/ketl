@@ -1,4 +1,0 @@
-0,CREATE
-1,DROP
-0,FALSE
-1,
