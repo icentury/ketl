@@ -630,7 +630,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
             // Log executing sql to feed result record object with single object reference
             this.mstrExecutingSQL = strSQLToExecute;
             this.setWaiting("source query to execute");
-            this.mrsDBResultSet = getResultSet(strSQLToExecute);
+            this.mrsDBResultSet = getResultSet(this.mStmt,strSQLToExecute);
             this.setWaiting(null);
             this.mColMetadata = null;
             this.maxCharLength = this.mcDBConnection.getMetaData().getMaxCharLiteralLength();
@@ -662,7 +662,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
         return true;
     }
 
-    protected ResultSet getResultSet(String pStatement,String pSQLToExecute) throws SQLException {
+    protected ResultSet getResultSet(Statement pStatement,String pSQLToExecute) throws SQLException {
         return pStatement.executeQuery(pSQLToExecute);
     }
 }
