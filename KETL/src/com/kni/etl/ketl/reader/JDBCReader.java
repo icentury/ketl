@@ -51,7 +51,7 @@ import com.kni.etl.util.XMLHelper;
  * @author Brian Sullivan
  * @version 1.0
  */
-final public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDBCReader, DBConnection, PrePostSQL {
+public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDBCReader, DBConnection, PrePostSQL {
 
     public class JDBCReaderETLOutPort extends ETLOutPort {
 
@@ -630,7 +630,7 @@ final public class JDBCReader extends ETLReader implements DefaultReaderCore, QA
             // Log executing sql to feed result record object with single object reference
             this.mstrExecutingSQL = strSQLToExecute;
             this.setWaiting("source query to execute");
-            this.mrsDBResultSet = this.mStmt.executeQuery(strSQLToExecute);
+            this.mrsDBResultSet = getResultSet(strSQLToExecute);
             this.setWaiting(null);
             this.mColMetadata = null;
             this.maxCharLength = this.mcDBConnection.getMetaData().getMaxCharLiteralLength();
@@ -660,5 +660,9 @@ final public class JDBCReader extends ETLReader implements DefaultReaderCore, QA
         // Return the actual db result set, in case the caller wants to do
         // something without our conversion to the ResultRecord...
         return true;
+    }
+
+    protected ResultSet getResultSet(String pStatement,String pSQLToExecute) throws SQLException {
+        return pStatement.executeQuery(pSQLToExecute);
     }
 }

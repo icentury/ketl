@@ -523,8 +523,8 @@ public abstract class ETLJobExecutor extends Thread {
             jCurrentJob.getStatus().setStatusCode(ETLJobStatus.EXECUTING);
             bSuccess = executeJob(jCurrentJob);
 
-            ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Job " + jCurrentJob.sJobID
-                    + " executed, final status id = " + jCurrentJob.getStatus().getStatusCode() + ", cancel status =  "
+            ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Job executed: ID = " + jCurrentJob.sJobID
+                    + ", STATUS ID = " + jCurrentJob.getStatus().getStatusCode() + ", CANCEL STATUS =  "
                     + jCurrentJob.isCancelSuccessfull());
             // Update the status to done if the subclass forgot to...
             if (jCurrentJob.getStatus().getStatusCode() == ETLJobStatus.EXECUTING

@@ -4,6 +4,8 @@
 
 package com.kni.etl;
 
+import com.kni.etl.dbutils.ResourcePool;
+
 /**
  * Insert the type's description here. Creation date: (5/3/2002 12:21:59 PM)
  * 
@@ -158,7 +160,9 @@ public class ETLStatus {
         if ((iStatusCode >= 0) && (iStatusCode < getStatusMessages().length)) {
             return true;
         }
-
+        
+        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE, "isValidStatusCode: Invalid status code ID=" + iStatusCode);
+        
         return false;
     }
 
@@ -189,6 +193,9 @@ public class ETLStatus {
      */
     public synchronized int setStatusCode(int iNewStatus) {
         // Verify it's a valid status
+        
+        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE, "setStatusCode: status code ID=" + iNewStatus + ", previous status code ID = " + this.iStatusCode);
+
         if (isValidStatusCode(iNewStatus)) {
             iStatusCode = iNewStatus;
         }

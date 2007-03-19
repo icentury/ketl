@@ -4024,6 +4024,10 @@ public class Metadata {
         String sql = null;
         PreparedStatement m_stmt = null;
 
+        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE, "setJobStatus: ID=" + pETLJob.sJobID
+                + ", STATUS ID = " + pETLJob.getStatus().getStatusCode() + ", CANCEL STATUS =  "
+                + pETLJob.isCancelSuccessfull());
+        
         synchronized (this.oLock) {
             try {
                 // Make metadata connection alive.
