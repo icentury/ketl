@@ -507,10 +507,12 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
             return true;
         } finally {
-            closeSteps();
-            // clear job reference as job done, and new job can be excepted
-            this.ejCurrentJob = null;
-
+            try{
+                closeSteps();
+            } finally {
+                // clear job reference as job done, and new job can be excepted
+                this.ejCurrentJob = null;
+            }
         }
 
     }

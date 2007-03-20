@@ -298,7 +298,8 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
     protected void close(boolean success) {
 
         try {
-            stmt.close();
+            if(stmt != null)
+                stmt.close();
         } catch (SQLException e) {
             ResourcePool.LogException(e, this);
         }
