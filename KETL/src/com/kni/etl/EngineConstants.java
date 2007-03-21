@@ -389,7 +389,7 @@ public class EngineConstants {
                                                 "Plugin in file " + children[i] + " does not have a name.");
                                     }
                                     else {
-                                        try {
+                                        try {                                            
                                             Class.forName(pluginName);
                                             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
                                                     "Plugin " + pluginName + " enabled.");
@@ -398,8 +398,13 @@ public class EngineConstants {
                                             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
                                                     "Plugin " + pluginName + " failed to initialize: " + e.toString());
 
+                                        } catch (Throwable e) {
+                                            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
+                                                    "Plugin " + pluginName + " failed to initialize: " + e.toString());
+
+                                        
                                         }
-                                    }
+                                       }
                                 }
                             } catch (Exception e) {
                                 ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, e
