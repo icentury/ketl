@@ -1090,4 +1090,18 @@ where (${UPDATETRIGGERS})</TEMPLATE>
 		</TEMPLATES>
 	</STEP>
 	
+	<STEP CLASS="com.kni.etl.ketl.reader.HelloWorld" IMAGE="icons/HelloWorld.png" SMALLIMAGE="icons/HelloWorldSmall.png">
+		<PARAMETERS>
+			<PARAMETER NAME="PHRASE" REQUIRED="FALSE" />
+		</PARAMETERS>
+		<ATTRIBUTES>
+			<ATTRIBUTE NAME="VALUES" TYPE="INTEGER" />
+		</ATTRIBUTES>
+		<PORTS>
+			<OUT>
+				<ATTRIBUTES/>
+			</OUT>
+		</PORTS>
+	</STEP>
+	
 </KETL>
