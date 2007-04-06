@@ -12,15 +12,12 @@ package com.kni.etl.sessionizer;
 
 import com.kni.etl.stringtools.BoyerMooreAlgorithm;
 
-
 /**
- * @author nwakefield
- *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
+ *         Generation&gt;Code and Comments
  */
-public class WebServerSettings
-{
+public class WebServerSettings {
+
     char[][][] mChEndMarkers;
     char[][][] mChVariableSeperators;
     String[][] mStEndMarkers;
@@ -34,8 +31,7 @@ public class WebServerSettings
     /**
      *
      */
-    public WebServerSettings()
-    {
+    public WebServerSettings() {
         super();
         this.mChEndMarkers = new char[3][][];
         this.mChVariableSeperators = new char[3][][];
@@ -45,14 +41,12 @@ public class WebServerSettings
         this.mbVariableSeperators = new BoyerMooreAlgorithm[3][];
     }
 
-    void addWebServerPair(int pType, String[] pEndMarkers, String[] pVariableSeperators)
-    {
+    void addWebServerPair(int pType, String[] pEndMarkers, String[] pVariableSeperators) {
         this.mChEndMarkers[pType] = new char[pEndMarkers.length][];
         this.mbEndMarkers[pType] = new BoyerMooreAlgorithm[pEndMarkers.length];
         this.mStEndMarkers[pType] = new String[pEndMarkers.length];
 
-        for (int i = 0; i < pEndMarkers.length; i++)
-        {
+        for (int i = 0; i < pEndMarkers.length; i++) {
             BoyerMooreAlgorithm searchAccelerator = new BoyerMooreAlgorithm();
             searchAccelerator.compile(pEndMarkers[i]);
             this.mbEndMarkers[pType][i] = searchAccelerator;
@@ -64,8 +58,7 @@ public class WebServerSettings
         this.mbVariableSeperators[pType] = new BoyerMooreAlgorithm[pVariableSeperators.length];
         this.mStVariableSeperators[pType] = new String[pVariableSeperators.length];
 
-        for (int i = 0; i < pVariableSeperators.length; i++)
-        {
+        for (int i = 0; i < pVariableSeperators.length; i++) {
             BoyerMooreAlgorithm searchAccelerator = new BoyerMooreAlgorithm();
             searchAccelerator.compile(pVariableSeperators[i]);
             this.mbVariableSeperators[pType][i] = searchAccelerator;
@@ -74,33 +67,27 @@ public class WebServerSettings
         }
     }
 
-    public String[] getEndMarkersAsString(int pType)
-    {
+    public String[] getEndMarkersAsString(int pType) {
         return this.mStEndMarkers[pType];
     }
 
-    public BoyerMooreAlgorithm[] getEndMarkersAsBoyerMoore(int pType)
-    {
+    public BoyerMooreAlgorithm[] getEndMarkersAsBoyerMoore(int pType) {
         return this.mbEndMarkers[pType];
     }
 
-    public char[][] getEndMarkersAsCharArray(int pType)
-    {
+    public char[][] getEndMarkersAsCharArray(int pType) {
         return this.mChEndMarkers[pType];
     }
 
-    public BoyerMooreAlgorithm[] getSeperatorsAsBoyerMoore(int pType)
-    {
+    public BoyerMooreAlgorithm[] getSeperatorsAsBoyerMoore(int pType) {
         return this.mbVariableSeperators[pType];
     }
 
-    public String[] getSeperatorsAsString(int pType)
-    {
+    public String[] getSeperatorsAsString(int pType) {
         return this.mStVariableSeperators[pType];
     }
 
-    public char[][] getSeperatorsAsCharArray(int pType)
-    {
+    public char[][] getSeperatorsAsCharArray(int pType) {
         return this.mChVariableSeperators[pType];
     }
 }

@@ -7,14 +7,13 @@ package com.kni.etl.sessionizer;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
-
 /**
- * Insert the type's description here.
- * Creation date: (5/9/2002 11:08:57 PM)
+ * Insert the type's description here. Creation date: (5/9/2002 11:08:57 PM)
+ * 
  * @author: Administrator
  */
-public class PageParserPageDefinition
-{
+public class PageParserPageDefinition {
+
     /**
      *
      */
@@ -37,255 +36,221 @@ public class PageParserPageDefinition
     /**
      * PageParserPageDefinition constructor comment.
      */
-    public PageParserPageDefinition()
-    {
+    public PageParserPageDefinition() {
         super();
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:09:49 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:09:49 PM)
+     * 
      * @return java.lang.String
      */
-    public java.lang.String getDirectory()
-    {
+    public java.lang.String getDirectory() {
         return this.Directory;
     }
 
-    public void setValidPage(boolean pValid)
-    {
+    public void setValidPage(boolean pValid) {
         this.valid = pValid;
     }
 
-    public boolean getValidPage()
-    {
+    public boolean getValidPage() {
         return this.valid;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:09:49 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:09:49 PM)
+     * 
      * @return java.lang.String
      */
-    public char[] getDirectoryAsCharArray()
-    {
+    public char[] getDirectoryAsCharArray() {
         return this.DirectoryAsChars;
     }
-    
-    public char[] getMethodAsCharArray()
-    {
+
+    public char[] getMethodAsCharArray() {
         return this.MethodAsChars;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:09:25 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:09:25 PM)
+     * 
      * @return java.lang.String
      */
-    public java.lang.String getHostName()
-    {
+    public java.lang.String getHostName() {
         return this.HostName;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:09:25 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:09:25 PM)
+     * 
      * @return java.lang.String
      */
-    public char[] getHostNameAsCharArray()
-    {
+    public char[] getHostNameAsCharArray() {
         return this.HostNameAsChars;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:10:09 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:10:09 PM)
+     * 
      * @return java.lang.String
      */
-    public java.lang.String getProtocol()
-    {
+    public java.lang.String getProtocol() {
         return this.Protocol;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:10:09 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:10:09 PM)
+     * 
      * @return java.lang.String
      */
-    public char[] getProtocolAsCharArray()
-    {
+    public char[] getProtocolAsCharArray() {
         return this.ProtocolAsChars;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:10:23 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:10:23 PM)
+     * 
      * @return java.lang.String
      */
-    public java.lang.String getTemplate()
-    {
+    public java.lang.String getTemplate() {
         return this.Template;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:10:23 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:10:23 PM)
+     * 
      * @return java.lang.String
      */
-    public char[] getTemplateAsCharArray()
-    {
+    public char[] getTemplateAsCharArray() {
         return this.TemplateAsChars;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:13:03 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:13:03 PM)
+     * 
      * @return com.kni.etl.PageParserPageParameter[]
      */
-    public com.kni.etl.sessionizer.PageParserPageParameter[] getValidPageParameters()
-    {
+    public com.kni.etl.sessionizer.PageParserPageParameter[] getValidPageParameters() {
         return this.ValidPageParameters;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/10/2002 8:48:04 AM)
+     * Insert the method's description here. Creation date: (5/10/2002 8:48:04 AM)
+     * 
      * @return int
      */
-    public int getWeight()
-    {
+    public int getWeight() {
         return this.Weight;
     }
 
-    public int[] getValidStatus()
-    {
+    public int[] getValidStatus() {
         return this.ValidStatus;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:09:49 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:09:49 PM)
+     * 
      * @param newDirectory java.lang.String
      */
-    public void setDirectory(java.lang.String newDirectory)
-    {
+    public void setDirectory(java.lang.String newDirectory) {
         this.Directory = newDirectory;
 
-        if (newDirectory != null)
-        {
+        if (newDirectory != null) {
             this.DirectoryAsChars = newDirectory.toCharArray();
         }
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:09:25 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:09:25 PM)
+     * 
      * @param newHostName java.lang.String
      */
-    public void setHostName(java.lang.String newHostName)
-    {
+    public void setHostName(java.lang.String newHostName) {
         this.HostName = newHostName;
 
-        if (newHostName != null)
-        {
+        if (newHostName != null) {
             this.HostNameAsChars = newHostName.toCharArray();
         }
     }
-    
-    
-    public void setMethod(java.lang.String newMethod)
-    {
-        if (newMethod != null)
-        {
+
+    public void setMethod(java.lang.String newMethod) {
+        if (newMethod != null) {
             this.MethodAsChars = newMethod.toCharArray();
         }
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:10:09 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:10:09 PM)
+     * 
      * @param newProtocol java.lang.String
      */
-    public void setProtocol(java.lang.String newProtocol)
-    {
+    public void setProtocol(java.lang.String newProtocol) {
         this.Protocol = newProtocol;
 
-        if (newProtocol != null)
-        {
+        if (newProtocol != null) {
             this.ProtocolAsChars = newProtocol.toCharArray();
         }
     }
 
-    public void setID(int newID)
-    {
+    public void setID(int newID) {
         this.ID = newID;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:10:23 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:10:23 PM)
+     * 
      * @param newTemplate java.lang.String
      */
-    public void setTemplate(String newTemplate)
-    {
+    public void setTemplate(String newTemplate) {
         this.Template = newTemplate;
 
-        if ((newTemplate != null) && (newTemplate.length() > 0))
-        {
+        if ((newTemplate != null) && (newTemplate.length() > 0)) {
             this.TemplateAsChars = newTemplate.toCharArray();
         }
     }
 
-    public void setValidStatus(String arg0)
-    {
+    public void setValidStatus(String arg0) {
         // default to nothing
         this.ValidStatus = new int[0];
 
-        if (arg0 != null)
-        {
+        if (arg0 != null) {
             StringTokenizer st = new StringTokenizer(arg0, ",");
 
             ArrayList a = new ArrayList();
 
-            while (st.hasMoreTokens())
-            {
+            while (st.hasMoreTokens()) {
                 a.add(st.nextToken());
             }
 
             this.ValidStatus = new int[a.size()];
 
-            for (int i = 0; i < this.ValidStatus.length; i++)
-            {
+            for (int i = 0; i < this.ValidStatus.length; i++) {
                 this.ValidStatus[i] = Integer.parseInt((String) a.get(i));
             }
         }
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/9/2002 11:13:03 PM)
+     * Insert the method's description here. Creation date: (5/9/2002 11:13:03 PM)
+     * 
      * @param newValidPageParameters com.kni.etl.PageParserPageParameter[]
      */
-    public void setValidPageParameters(com.kni.etl.sessionizer.PageParserPageParameter[] newValidPageParameters)
-    {
+    public void setValidPageParameters(com.kni.etl.sessionizer.PageParserPageParameter[] newValidPageParameters) {
         this.ValidPageParameters = newValidPageParameters;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/10/2002 8:48:04 AM)
+     * Insert the method's description here. Creation date: (5/10/2002 8:48:04 AM)
+     * 
      * @param newWeight int
      */
-    public void setWeight(int newWeight)
-    {
+    public void setWeight(int newWeight) {
         this.Weight = newWeight;
     }
 
     /**
      * @return
      */
-    public int getID()
-    {
+    public int getID() {
         return this.ID;
     }
 }

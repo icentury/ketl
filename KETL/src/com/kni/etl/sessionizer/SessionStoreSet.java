@@ -10,9 +10,8 @@ import java.util.List;
 import com.kni.etl.KNIHashMap;
 import com.kni.etl.ReadWriteLock;
 
+public class SessionStoreSet implements Serializable {
 
-public class SessionStoreSet implements Serializable
-{
     /**
      *
      */
@@ -28,15 +27,15 @@ public class SessionStoreSet implements Serializable
 
     /**
      * SessionStoreBackgroundThread constructor comment.
+     * 
      * @param pDestinationThread TODO
      */
-    public SessionStoreSet(KNIHashMap pHashMapToMonitor, ReadWriteLock pHashMapReadWriteLock,
-        java.util.Date pDate, int pSessionTimeOut, int pLastMatchTimeOut, int pAssociatedAlgorithmCode,
-        List pRemovedSessionsQueue, boolean pKeepFallBack)
-    {
+    public SessionStoreSet(KNIHashMap pHashMapToMonitor, ReadWriteLock pHashMapReadWriteLock, java.util.Date pDate,
+            int pSessionTimeOut, int pLastMatchTimeOut, int pAssociatedAlgorithmCode, List pRemovedSessionsQueue,
+            boolean pKeepFallBack) {
         super();
 
-        //this.setPriority(MIN_PRIORITY);
+        // this.setPriority(MIN_PRIORITY);
         this.CurrentDate = pDate;
         this.SessionTimeOut = pSessionTimeOut;
         this.HashMapToMonitor = pHashMapToMonitor;
@@ -48,15 +47,13 @@ public class SessionStoreSet implements Serializable
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (5/13/2002 11:34:59 PM)
-     * @param pDontExpireSessions if true then non closed sessions will have null last
-     * activity
+     * Insert the method's description here. Creation date: (5/13/2002 11:34:59 PM)
+     * 
+     * @param pDontExpireSessions if true then non closed sessions will have null last activity
      * @return int
      * @throws InterruptedException
      */
-    public int closeOutAllSessions(boolean pDontExpireSessions)      
-    {
+    public int closeOutAllSessions(boolean pDontExpireSessions) {
         int removed = 0;
 
         this.HashMapReadWriteLock.getReadLock();
@@ -73,8 +70,7 @@ public class SessionStoreSet implements Serializable
             Session sessionToCheck = (Session) this.HashMapToMonitor.get(key);
 
             /* Is the cacheable object expired? */
-            if (sessionToCheck != null)
-            {
+            if (sessionToCheck != null) {
                 // switch to write lock
                 this.HashMapReadWriteLock.releaseLock();
                 this.HashMapReadWriteLock.getWriteLock();
@@ -88,11 +84,9 @@ public class SessionStoreSet implements Serializable
                 // deindex session for this hashmap
                 sessionToCheck.expireForCode(this.AssociatedAlgorithmCode);
 
-                // Now check to if session not indexed anymore, if so add to done queue            
-                if (sessionToCheck.isExpired() == true)
-                {
-                    if (pDontExpireSessions)
-                    {
+                // Now check to if session not indexed anymore, if so add to done queue
+                if (sessionToCheck.isExpired() == true) {
+                    if (pDontExpireSessions) {
                         sessionToCheck.LastActivity = null;
                     }
 
@@ -116,17 +110,14 @@ public class SessionStoreSet implements Serializable
     }
 
     public boolean validateSession(String key, java.util.Date activityDate, Session sessionToCheck, boolean invalidate)
-        throws InterruptedException
-    {
+            throws InterruptedException {
         boolean result = true;
         this.HashMapReadWriteLock.getReadLock();
 
         /* Is the cacheable object expired? */
-        if ((sessionToCheck != null) &&
-                ((invalidate == true) ||
-                (sessionToCheck.isStillValid(activityDate, this.SessionTimeOut, this.LastMatchTimeOut,
-                    this.AssociatedAlgorithmCode, this.EnableFallBack) == false)))
-        {
+        if ((sessionToCheck != null)
+                && ((invalidate == true) || (sessionToCheck.isStillValid(activityDate, this.SessionTimeOut,
+                        this.LastMatchTimeOut, this.AssociatedAlgorithmCode, this.EnableFallBack) == false))) {
             this.HashMapReadWriteLock.releaseLock();
             this.HashMapReadWriteLock.getWriteLock();
 
@@ -139,9 +130,8 @@ public class SessionStoreSet implements Serializable
             // deindex session for this hashmap
             sessionToCheck.expireForCode(this.AssociatedAlgorithmCode);
 
-            // Now check to if session not indexed anymore, if so add to done queue            
-            if (sessionToCheck.isExpired() == true)
-            {
+            // Now check to if session not indexed anymore, if so add to done queue
+            if (sessionToCheck.isExpired() == true) {
                 this.RemovedSessionsQueue.add(sessionToCheck);
             }
 
@@ -154,8 +144,7 @@ public class SessionStoreSet implements Serializable
         return result;
     }
 
-    public int findInvalidSessions() throws Exception
-    { // lock hashmap for reading
+    public int findInvalidSessions() throws Exception { // lock hashmap for reading
 
         int removed = 0;
 
@@ -174,17 +163,16 @@ public class SessionStoreSet implements Serializable
 
             /* Get the cacheable object associated with the key inside the cache */
 
-            //Session sessionToCheck = (Session) HashMapToMonitor.get(key);
-
+            // Session sessionToCheck = (Session) HashMapToMonitor.get(key);
             /* Is the cacheable object expired? */
-            if ((sessionToCheck != null) &&
-                    (sessionToCheck.isStillValid(this.CurrentDate, this.SessionTimeOut, this.LastMatchTimeOut,
-                        this.AssociatedAlgorithmCode, this.EnableFallBack) == false))
-            {
+            if ((sessionToCheck != null)
+                    && (sessionToCheck.isStillValid(this.CurrentDate, this.SessionTimeOut, this.LastMatchTimeOut,
+                            this.AssociatedAlgorithmCode, this.EnableFallBack) == false)) {
                 this.HashMapReadWriteLock.releaseLock();
                 this.HashMapReadWriteLock.getWriteLock();
 
-                // System.out.println("HashMap monitor thread: Removing timed out session->" + sessionToCheck.LastActivity + ", " + sessionToCheck.LastActivity);
+                // System.out.println("HashMap monitor thread: Removing timed out session->" +
+                // sessionToCheck.LastActivity + ", " + sessionToCheck.LastActivity);
                 // System.out.println(".");
                 // remove session, session expired
                 keySet.remove(key);
@@ -194,9 +182,8 @@ public class SessionStoreSet implements Serializable
                 // deindex session for this hashmap
                 sessionToCheck.expireForCode(this.AssociatedAlgorithmCode);
 
-                // Now check to if session not indexed anymore, if so add to done queue            
-                if (sessionToCheck.isExpired() == true)
-                {
+                // Now check to if session not indexed anymore, if so add to done queue
+                if (sessionToCheck.isExpired() == true) {
                     this.RemovedSessionsQueue.add(sessionToCheck);
                 }
 
@@ -215,20 +202,15 @@ public class SessionStoreSet implements Serializable
         return (removed);
     }
 
-
-
-    public void setHashMapToMonitor(KNIHashMap pNewHashMapToMonitor, ReadWriteLock pHashMapReadWriteLock)
-    {
+    public void setHashMapToMonitor(KNIHashMap pNewHashMapToMonitor, ReadWriteLock pHashMapReadWriteLock) {
         this.HashMapToMonitor = pNewHashMapToMonitor;
         this.HashMapReadWriteLock = pHashMapReadWriteLock;
     }
 
     /**
-     * Insert the method's description here.
-     * Creation date: (4/18/2002 9:58:44 AM)
+     * Insert the method's description here. Creation date: (4/18/2002 9:58:44 AM)
      */
-    public void stopScanning()
-    {
+    public void stopScanning() {
         this.HashMapToMonitor = null;
     }
 }

@@ -38,7 +38,7 @@ public abstract class ETLSplit extends ETLStep {
     final String getDefaultExceptionClass() {
         return KETLTransformException.class.getCanonicalName();
     }
-    
+
     protected String generateCoreImports() {
         return super.generateCoreImports() + "import com.kni.etl.ketl.smp.ETLSplitCore;\n"
                 + "import com.kni.etl.ketl.smp.ETLSplit;\n";
@@ -49,15 +49,15 @@ public abstract class ETLSplit extends ETLStep {
 
         try {
             if (objects != null)
-                this.logBadRecord(val, objects,e);
+                this.logBadRecord(val, objects, e);
         } catch (IOException e1) {
             throw new KETLTransformException(e1);
         }
         try {
             super.incrementErrorCount(e, 1, val);
         } catch (Exception e1) {
-            if(e1 instanceof KETLTransformException)
-                throw (KETLTransformException)e1;            
+            if (e1 instanceof KETLTransformException)
+                throw (KETLTransformException) e1;
             throw new KETLTransformException(e1);
         }
     }
@@ -132,6 +132,11 @@ public abstract class ETLSplit extends ETLStep {
             Object o;
             o = this.getSourceQueue().take();
             if (o == ENDOBJ) {
+                
+                while(this.remainingRecords()){
+                    processData(res,new Object[this.batchSize][this.mExpectedInputDataTypes.length]);
+                }
+                
                 for (int i = 0; i < this.queues; i++) {
                     this.queue[i].put(o);
                 }
@@ -144,18 +149,28 @@ public abstract class ETLSplit extends ETLStep {
 
             }
 
-            if(timing) startTimeNano = System.nanoTime();
-            int rows = splitBatch(data, data.length, res);
-            if(timing) totalTimeNano += System.nanoTime() - startTimeNano;
-            
-            this.updateThreadStats(rows);
-
-            for (int i = 0; i < this.queues; i++) {
-                this.queue[i].put(res[i]);
-            }
+            processData(res, data);
 
         }
 
+    }
+
+    protected boolean remainingRecords() {
+        return false;
+    }
+
+    private void processData(Object[][][] res, Object[][] data) throws KETLTransformException, InterruptedException {
+        if (timing)
+            startTimeNano = System.nanoTime();
+        int rows = splitBatch(data, data.length, res);
+        if (timing)
+            totalTimeNano += System.nanoTime() - startTimeNano;
+
+        this.updateThreadStats(rows);
+
+        for (int i = 0; i < this.queues; i++) {
+            this.queue[i].put(res[i]);
+        }        
     }
 
     @Override
@@ -175,25 +190,32 @@ public abstract class ETLSplit extends ETLStep {
      */
     private int splitBatch(Object[][] pInputRecord, int length, Object[][][] pOutput) throws KETLTransformException {
         int rows = 0;
-        for (int path = 0; path < this.queues; path++) {
-            pOutput[path] = new Object[length][];
-            int resultLength = 0;
-            for (int i = 0; i < length; i++) {
 
-                if (i == 0) {
-                    this.mInputRecordWidth = pInputRecord[i].length;
-                    if (this.mOutputRecordWidth[path] == -1) {
-                        this.mOutputRecordWidth[path] = this.mInputRecordWidth;
-                    }
-                }
+        // build output data arrays
+        for(int i=0;i<this.queues;i++)
+            pOutput[i] = new Object[length][];
+        
+        int[] resultLength = new int[this.queues];
+
+        for (int i = 0; i < length; i++) {
+
+            if (i == 0)
+                this.mInputRecordWidth = this.mExpectedInputDataTypes.length;
+
+            for (int path = 0; path < this.queues; path++) {
+
+                if (i == 0 && this.mOutputRecordWidth[path] == -1)
+                    this.mOutputRecordWidth[path] = this.mExpectedOutputDataTypes[path].length;
+                
                 Object[] result = new Object[this.mOutputRecordWidth[path]];
+
                 try {
                     int code = core.splitRecord(pInputRecord[i], this.mExpectedInputDataTypes, this.mInputRecordWidth,
                             path, result, this.mExpectedOutputDataTypes[path], this.mOutputRecordWidth[path]);
 
                     switch (code) {
                     case ETLSplitCore.SUCCESS:
-                        pOutput[path][resultLength++] = result;
+                        pOutput[path][resultLength[path]++] = result;
                         break;
                     case ETLSplitCore.SKIP_RECORD:
                         break;
@@ -204,13 +226,17 @@ public abstract class ETLSplit extends ETLStep {
                     this.incrementErrorCount(e, pInputRecord[i], 1);
                 }
             }
-            if (resultLength != length) {
-                Object[][] newResult = new Object[resultLength][];
-                System.arraycopy(pOutput[path], 0, newResult, 0, resultLength);
+
+        }
+
+        for (int path = 0; path < this.queues; path++) {
+            if (resultLength[path] != length) {
+                Object[][] newResult = new Object[resultLength[path]][];
+                System.arraycopy(pOutput[path], 0, newResult, 0, resultLength[path]);
                 pOutput[path] = newResult;
             }
 
-            rows += resultLength;
+            rows += resultLength[path];
         }
 
         return rows;
@@ -238,23 +264,24 @@ public abstract class ETLSplit extends ETLStep {
         } catch (ClassNotFoundException e) {
             throw new KETLThreadException(e, this);
         }
+        
+        this.configureBufferSort(srcQueue);
 
     }
-    
+
     @Override
     public void switchTargetQueue(ManagedBlockingQueue currentQueue, ManagedBlockingQueue newQueue) {
-        for(int i=0;i<this.queue.length;i++)
-            if(this.queue[i]==currentQueue)
-                this.queue[i] = newQueue;        
+        for (int i = 0; i < this.queue.length; i++)
+            if (this.queue[i] == currentQueue)
+                this.queue[i] = newQueue;
     }
-
 
     ManagedBlockingQueue getSourceQueue() {
         return srcQueue;
     }
 
     @Override
-    protected String getRecordExecuteMethodHeader() {
+    protected String getRecordExecuteMethodHeader() throws KETLThreadException {
         StringBuilder sb = new StringBuilder();
 
         sb.append("public int splitRecord(Object[] pInputRecords,"

@@ -4,14 +4,13 @@
 
 package com.kni.etl.sessionizer;
 
-
 /**
- * Insert the type's description here.
- * Creation date: (5/10/2002 12:56:19 PM)
+ * Insert the type's description here. Creation date: (5/10/2002 12:56:19 PM)
+ * 
  * @author: Administrator
  */
-public class PageViewItemFinderAccelerator
-{
+public class PageViewItemFinderAccelerator {
+
     public int IP_ADDRESS = -1;
     public int IN_COOKIE = -1;
     public int OUT_COOKIE = -1;
@@ -29,8 +28,7 @@ public class PageViewItemFinderAccelerator
     /**
      * PageViewItemFinderAccelerator constructor comment.
      */
-    public PageViewItemFinderAccelerator()
-    {
+    public PageViewItemFinderAccelerator() {
         super();
     }
 }

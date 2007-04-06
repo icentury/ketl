@@ -8,6 +8,7 @@ package com.kni.etl.ketl.smp;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -64,6 +65,29 @@ abstract public class ETLWorker implements Runnable {
     public static final int RIGHT = 1;
 
     static final int STEP = 0;
+
+    protected void configureBufferSort(ManagedBlockingQueue srcQueue) {
+
+        if (srcQueue instanceof Partitioner)
+            return;
+
+        Node[] sortKeys = XMLHelper.getElementsByName(this.getXMLConfig(), "IN", "BUFFERSORT", null);
+        Comparator comp = null;
+
+        if (sortKeys != null && sortKeys.length > 0) {
+            Integer[] elements = new Integer[sortKeys.length];
+            Boolean[] elementOrder = new Boolean[sortKeys.length];
+
+            for (int i = 0; i < sortKeys.length; i++) {
+                elements[i] = XMLHelper.getAttributeAsInt(sortKeys[i].getAttributes(), "BUFFERSORT", 0);
+                elementOrder[i] = XMLHelper.getAttributeAsBoolean(sortKeys[i].getAttributes(), "BUFFERSORTORDER", true);
+            }
+            comp = new DefaultComparator(elements, elementOrder);
+
+            ((ManagedBlockingQueueImpl) srcQueue).setSortComparator(comp);
+        }
+
+    }
 
     final protected static String[] extractPortDetails(String content) throws KETLThreadException {
 
@@ -288,7 +312,7 @@ abstract public class ETLWorker implements Runnable {
         this.instantiateCore(coreClass);
     }
 
-    public int complete() throws KETLThreadException {        
+    public int complete() throws KETLThreadException {
         return 0;
     }
 
@@ -351,10 +375,13 @@ abstract public class ETLWorker implements Runnable {
     protected String generatePortMappingCode() throws KETLThreadException {
         StringBuilder sb = new StringBuilder();
         // generate constants used for references
-        if(this.mInPorts != null){
-            for(int i=0;i<this.mInPorts.length;i++){
-                if(this.mInPorts[i].isConstant())
-                    this.getCodeField(this.mInPorts[i].getPortClass().getCanonicalName(),"new " + this.mInPorts[i].getPortClass().getCanonicalName() + "(\"" +this.mInPorts[i].getConstantValue().toString()+ "\")",true,true,this.mInPorts[i].generateReference());
+        if (this.mInPorts != null) {
+            for (int i = 0; i < this.mInPorts.length; i++) {
+                if (this.mInPorts[i].isConstant())
+                    this.getCodeField(this.mInPorts[i].getPortClass().getCanonicalName(), "new "
+                            + this.mInPorts[i].getPortClass().getCanonicalName() + "(\""
+                            + this.mInPorts[i].getConstantValue().toString() + "\")", true, true, this.mInPorts[i]
+                            .generateReference());
             }
         }
         // generate port maps
@@ -1054,12 +1081,17 @@ abstract public class ETLWorker implements Runnable {
 
     private NumberFormat nFormat = NumberFormat.getNumberInstance();
     private static final double nano = Math.pow(10, 9);
+    private static final long nanoToMilli = (long) Math.pow(10, 6);
 
     public String getTiming() {
         if (timing == false)
             return "N/A";
 
         return "" + nFormat.format(this.totalTimeNano / nano) + " seconds";
+    }
+
+    public long getCPUTiming() {
+        return this.totalTimeNano / nanoToMilli;
     }
 
     private Object mWaitingFor = null;

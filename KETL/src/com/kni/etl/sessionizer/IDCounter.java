@@ -13,13 +13,11 @@ package com.kni.etl.sessionizer;
 import com.kni.etl.Metadata;
 import com.kni.etl.dbutils.ResourcePool;
 
-
 /**
- * @author nwakefield
- * Creation Date: Jun 17, 2003
+ * @author nwakefield Creation Date: Jun 17, 2003
  */
-public class IDCounter
-{
+public class IDCounter {
+
     /**
      *
      */
@@ -30,13 +28,11 @@ public class IDCounter
     private long idsLeft = 0;
     private String IDName;
 
-    public IDCounter()
-    {
+    public IDCounter() {
         super();
     }
 
-    public IDCounter(String strIDName, long param) throws Exception
-    {
+    public IDCounter(String strIDName, long param) throws Exception {
         super();
         this.batchSize = param;
         this.md = ResourcePool.getMetadata();
@@ -45,42 +41,36 @@ public class IDCounter
         // Get max temp session id
         this.IDName = strIDName;
 
-        try
-        {
-            //System.out.println("IDS " + Thread.currentThread().getName()  + ": ID in " + id + " batchsize:" + batchSize);
+        try {
+            // System.out.println("IDS " + Thread.currentThread().getName() + ": ID in " + id + " batchsize:" +
+            // batchSize);
             this.id = this.md.getBatchOfIDValues(this.IDName, this.batchSize);
 
-            //System.out.println("IDS " + Thread.currentThread().getName()  + ": ID out " + id + " batchsize:" + batchSize);
-        }
-        catch (Exception e)
-        {
+            // System.out.println("IDS " + Thread.currentThread().getName() + ": ID out " + id + " batchsize:" +
+            // batchSize);
+        } catch (Exception e) {
             this.md = null;
         }
 
-        if (this.md == null)
-        {
+        if (this.md == null) {
             ResourcePool.LogMessage(this, "Sequence " + strIDName + " defaulting to 0 as metadata not available!");
             this.id = 0;
         }
     }
 
-    public synchronized final long incrementID()
-    {
+    public synchronized final long incrementID() {
         this.idsLeft--;
 
-        if (this.idsLeft <= 0)
-        {
-            if (this.md != null)
-            {
-                try
-                {
-                    //System.out.println("IDS " + Thread.currentThread().getName()  + ": ID in " + id + " batchsize:" + batchSize);
+        if (this.idsLeft <= 0) {
+            if (this.md != null) {
+                try {
+                    // System.out.println("IDS " + Thread.currentThread().getName() + ": ID in " + id + " batchsize:" +
+                    // batchSize);
                     this.id = this.md.getBatchOfIDValues(this.IDName, this.batchSize);
 
-                    //System.out.println("IDS " + Thread.currentThread().getName()  + ": ID out " + id + " batchsize:" + batchSize);
-                }
-                catch (Exception e)
-                {
+                    // System.out.println("IDS " + Thread.currentThread().getName() + ": ID out " + id + " batchsize:" +
+                    // batchSize);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -91,24 +81,20 @@ public class IDCounter
         return this.id++;
     }
 
-    public final long setToCurrentID()
-    {
-        if (this.md != null)
-        {
+    public final long setToCurrentID() {
+        if (this.md != null) {
             this.md.setMaxIDValue(this.IDName, this.id++);
         }
 
         return this.id;
     }
 
-    public final long getID()
-    {
+    public final long getID() {
         return this.id;
     }
 
     @Override
-    public final String toString()
-    {
+    public final String toString() {
         return Long.toString(this.id);
     }
 }

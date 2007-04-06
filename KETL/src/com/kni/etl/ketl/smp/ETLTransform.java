@@ -29,55 +29,6 @@ import com.kni.etl.util.aggregator.Direct;
  */
 public abstract class ETLTransform extends ETLStep {
 
-    final class DefaultComparator implements Comparator {
-
-        Integer[] elements;
-        int len;
-        Boolean[] order;
-
-        public DefaultComparator(Integer[] elements) {
-            super();
-            this.elements = elements;
-            this.order = new Boolean[elements.length];
-            java.util.Arrays.fill(order, new Boolean(true));
-            len = this.elements.length;
-        }
-
-        public DefaultComparator(Integer[] elements, Boolean[] order) {
-            super();
-            this.elements = elements;
-            this.order = order;
-            len = this.elements.length;
-        }
-
-        public int compare(Object o1, Object o2) {
-
-            Object[] left = (Object[]) o1;
-            Object[] right = (Object[]) o2;
-
-            for (int i = 0; i < len; i++) {
-
-                Comparable l = (Comparable) (order[i] ? left : right)[elements[i]];
-                Comparable r = (Comparable) (order[i] ? right : left)[elements[i]];
-                int res;
-                if (l == null && r == null)
-                    res = 0;
-                else if (l == null && r != null)
-                    res = -1;
-                else if (l != null && r == null)
-                    res = 1;
-                else
-                    res = l.compareTo(r);
-
-                if (res != 0)
-                    return res;
-            }
-
-            return 0;
-        }
-
-    }
-
     private ArrayList aggregateOut = new ArrayList();
 
     private Aggregator[] aggregates;
@@ -227,7 +178,7 @@ public abstract class ETLTransform extends ETLStep {
         return sb.toString();
     }
 
-    private Comparator getSortComparator() {
+    protected Comparator getSortComparator() {
         ArrayList cols = new ArrayList();
         ArrayList order = new ArrayList();
         for (int i = 0; i < this.mInPorts.length; i++)
@@ -345,7 +296,8 @@ public abstract class ETLTransform extends ETLStep {
         } catch (ClassNotFoundException e) {
             throw new KETLThreadException(e, this);
         }
-
+          
+        this.configureBufferSort(srcQueue);
     }
     
     @Override

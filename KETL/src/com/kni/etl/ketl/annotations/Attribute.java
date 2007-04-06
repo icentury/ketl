@@ -6,5 +6,5 @@ public @interface Attribute {
     boolean required() default false;
 
     String datatype() default "STRING";
-
+    
 }

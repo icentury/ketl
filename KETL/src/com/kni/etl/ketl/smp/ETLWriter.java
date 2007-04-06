@@ -7,6 +7,7 @@ package com.kni.etl.ketl.smp;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -186,8 +187,12 @@ public abstract class ETLWriter extends ETLStep {
         } catch (ClassNotFoundException e) {
             throw new KETLThreadException(e, this);
         }
+        
+        this.configureBufferSort(srcQueue);
 
     }
+
+    
 
     ManagedBlockingQueue getSourceQueue() {
         return srcQueue;

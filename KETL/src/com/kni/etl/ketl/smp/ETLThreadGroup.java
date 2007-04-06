@@ -7,9 +7,12 @@ package com.kni.etl.ketl.smp;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Comparator;
 
 import org.w3c.dom.Node;
 
+import com.kni.etl.ketl.ETLInPort;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
 
@@ -52,7 +55,7 @@ public class ETLThreadGroup {
             KETLThreadException {
 
         if (iType != PIPELINE_SPLIT || ETLSplit.class.isAssignableFrom(type.getNodeClass()) == false)
-            throw new KETLThreadException("Invalid type supplied",Thread.currentThread());
+            throw new KETLThreadException("Invalid type supplied", Thread.currentThread());
 
         ETLThreadGroup[] grp = new ETLThreadGroup[pPorts.length];
 
@@ -221,7 +224,7 @@ public class ETLThreadGroup {
                     ManagedBlockingQueue srcQueue = srcGrp.mQueue[0];
 
                     if (partitioningQueue != null) {
-                        srcWorker.switchTargetQueue(srcGrp.mQueue[0], partitioningQueue);                         
+                        srcWorker.switchTargetQueue(srcGrp.mQueue[0], partitioningQueue);
                         srcGrp.mQueue[0] = partitioningQueue;
                         srcQueue = partitioningQueue.getTargetSourceQueue(partition);
                     }
@@ -250,8 +253,22 @@ public class ETLThreadGroup {
     private Partitioner getPartitioner(Node xmlNode, int targetPartitions) throws KETLThreadException {
         Node[] partitionKeys = XMLHelper.getElementsByName(xmlNode, "IN", "PARTITIONKEY", null);
 
-        if (partitionKeys == null || partitionKeys.length == 0)
-            return null;
+        Node[] sortKeys = XMLHelper.getElementsByName(xmlNode, "IN", "BUFFERSORT", null);
+        Comparator comp = null;
+
+        if (sortKeys != null && sortKeys.length > 0) {
+            Integer[] elements = new Integer[sortKeys.length];
+            Boolean[] elementOrder = new Boolean[sortKeys.length];
+
+            for (int i = 0; i < sortKeys.length; i++) {
+                elements[i] = XMLHelper.getAttributeAsInt(sortKeys[i].getAttributes(), "BUFFERSORT", 0);
+                elementOrder[i] = XMLHelper.getAttributeAsBoolean(sortKeys[i].getAttributes(), "BUFFERSORTORDER", true);                
+            }
+            comp = new DefaultComparator(elements, elementOrder);
+
+            if (partitionKeys == null || partitionKeys.length == 0)
+                return null;
+        }
 
         int[] indexCheck = new int[partitionKeys.length];
         java.util.Arrays.fill(indexCheck, -1);
@@ -269,7 +286,7 @@ public class ETLThreadGroup {
                 throw new KETLThreadException("Invalid PARTITIONKEY settings, key sequence order is wrong", this);
         }
 
-        return new Partitioner(partitionKeys, targetPartitions, this.mQueueSize);
+        return new Partitioner(partitionKeys, comp, targetPartitions, this.mQueueSize);
     }
 
     private ETLThreadGroup() {

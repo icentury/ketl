@@ -35,6 +35,7 @@ public class AnalyzePageview implements Serializable {
     SessionBuilder sBuilder = null;
 
     static public class Holder {
+
         public Session currentSession;
         public Object[] pageView;
         public boolean isPageView;
@@ -43,14 +44,14 @@ public class AnalyzePageview implements Serializable {
         public short iPageSequence;
         public int iAssociatedHits;
     }
-    
+
     public Holder analyzeHit(Holder holder) throws Exception {
         Holder res = this.sBuilder.analyzeHit(holder);
 
-        if(res == null && this.sBuilder.ignoreHit)
+        if (res == null && this.sBuilder.ignoreHit)
             return null;
-        
-        if (res == null || res.currentSession ==null) {
+
+        if (res == null || res.currentSession == null) {
             this.outputBadSession(holder.pageView);
             return null;
         }
@@ -61,13 +62,13 @@ public class AnalyzePageview implements Serializable {
             res.currentSession.Hit++;
             // keep reference to last page
             res.currentSession.lastHit = holder.pageView;
-            
+
         }
         return holder;
     }
 
     transient IDCounter iBadSessions = new IDCounter();
-    
+
     /**
      * @param resultRecord
      */
@@ -77,8 +78,8 @@ public class AnalyzePageview implements Serializable {
                 + java.util.Arrays.toString(resultRecord));
     }
 
-    public void configure(IDCounter idCounter,SessionDefinition sessionDef, PageParserPageDefinition[] pDef, boolean pPagesOnly,
-            boolean hitCountRequired, int[] itemMap, List completeSessionList) {
+    public void configure(IDCounter idCounter, SessionDefinition sessionDef, PageParserPageDefinition[] pDef,
+            boolean pPagesOnly, boolean hitCountRequired, int[] itemMap, List completeSessionList) {
 
         this.mbPagesOnly = pPagesOnly;
         this.sessionDef = sessionDef;
@@ -109,7 +110,8 @@ public class AnalyzePageview implements Serializable {
                 // store last hit date last activity
                 this.sBuilder.closeOutAllSessions(false);
             }
-            else if (this.closeOutMode == AnalyzePageview.RESTART_SESSIONS_AND_STORE) { // store null for last activity, makes
+            else if (this.closeOutMode == AnalyzePageview.RESTART_SESSIONS_AND_STORE) { // store null for last activity,
+                                                                                        // makes
                 // identification of non closed
                 // sessions easier
                 this.sBuilder.closeOutAllSessions(true);
@@ -122,7 +124,6 @@ public class AnalyzePageview implements Serializable {
         return new Holder();
     }
 
-    
     public void setCloseOutMode(int closeOutMode) {
         this.closeOutMode = closeOutMode;
     }

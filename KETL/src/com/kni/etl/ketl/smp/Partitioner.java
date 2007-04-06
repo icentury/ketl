@@ -1,9 +1,12 @@
 package com.kni.etl.ketl.smp;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 import org.w3c.dom.Node;
 
+import com.kni.etl.util.SortedList;
 import com.kni.etl.util.XMLHelper;
 
 final public class Partitioner extends ManagedBlockingQueue {
@@ -14,32 +17,33 @@ final public class Partitioner extends ManagedBlockingQueue {
     private static final long serialVersionUID = 1L;
     private int mCapacity;
     private int[] mHashOrder;
-    private ArrayList[] mOutData;
+    private List[] mOutData;
     private int mHashLength = 0;
     private Node[] mPartitionKeys;
     private ManagedBlockingQueue[] mDestinationQueues;
     private int mDestQueues = 0;
     private String name;
+    private boolean mSorted;
 
-    public Partitioner(Node[] partitionKeys, int targetPartitions, int capacity) {
+    public Partitioner(Node[] partitionKeys, Comparator sortComparator, int targetPartitions, int capacity) {
         // we don't use this queue and instead redirect
         super(1);
 
         this.mDestQueues = targetPartitions;
-        
+
         this.mHashOrder = new int[partitionKeys.length];
-        this.mOutData = new ArrayList[targetPartitions];
-        
-        for(int i=0;i<targetPartitions;i++)
-            this.mOutData[i] = new ArrayList();
-        
+        this.mOutData = new List[targetPartitions];
+        this.mSorted = sortComparator != null;
+
+        for (int i = 0; i < targetPartitions; i++)
+            this.mOutData[i] = mSorted ? new SortedList(sortComparator) : new ArrayList();
+
         this.mPartitionKeys = partitionKeys;
         this.mHashLength = partitionKeys.length;
         this.mDestinationQueues = new ManagedBlockingQueue[targetPartitions];
         this.mCapacity = capacity;
     }
 
-    
     class PartitionTargerManagedBlockingQueue extends ManagedBlockingQueue {
 
         private static final long serialVersionUID = 1L;
@@ -55,7 +59,9 @@ final public class Partitioner extends ManagedBlockingQueue {
             mParentPartitioner = parentPartitioner;
         }
 
-        /* (non-Javadoc)
+        /*
+         * (non-Javadoc)
+         * 
          * @see com.kni.etl.ketl.smp.MQueue#setName(java.lang.String)
          */
         public void setName(String arg0) {
@@ -66,26 +72,28 @@ final public class Partitioner extends ManagedBlockingQueue {
             return this.name == null ? "NA" : this.name + this.size();
         }
 
-        /* (non-Javadoc)
+        /*
+         * (non-Javadoc)
+         * 
          * @see com.kni.etl.ketl.smp.MQueue#registerReader(com.kni.etl.ketl.smp.ETLWorker)
          */
         public void registerReader(ETLWorker worker) {
             mParentPartitioner.registerReader(worker);
         }
 
-        /* (non-Javadoc)
+        /*
+         * (non-Javadoc)
+         * 
          * @see com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
          */
         public void registerWriter(ETLWorker worker) {
             mParentPartitioner.registerWriter(worker);
         }
 
-       
-
     }
-    
+
     public ManagedBlockingQueue getTargetSourceQueue(int i) {
-        mDestinationQueues[i] = new PartitionTargerManagedBlockingQueue(this,this.mCapacity);
+        mDestinationQueues[i] = new PartitionTargerManagedBlockingQueue(this, this.mCapacity);
         return mDestinationQueues[i];
     }
 
@@ -144,6 +152,19 @@ final public class Partitioner extends ManagedBlockingQueue {
     @Override
     public void put(Object pO) throws InterruptedException {
         if (pO == com.kni.etl.ketl.smp.ETLWorker.ENDOBJ) {
+
+            if (this.mOutData[0] instanceof SortedList) {
+                for (int i = 0; i < this.mDestQueues; i++) {
+
+                    ((SortedList) this.mOutData[i]).releaseAll();
+                    if (this.mOutData[i].size() > 0) {
+                        Object[][] outData = new Object[((SortedList) this.mOutData[i]).fetchSize()][];
+                        this.mOutData[i].toArray(outData);
+                        this.mDestinationQueues[i].put(outData);
+                    }
+                }
+            }
+
             for (int i = 0; i < this.mDestinationQueues.length; i++) {
                 this.mDestinationQueues[i].put(pO);
             }
@@ -157,20 +178,26 @@ final public class Partitioner extends ManagedBlockingQueue {
             Object[] data = batch[r];
             int h = 1;
             for (int i = 0; i < mHashLength; i++) {
-                int pos = this.mHashOrder[i];                
+                int pos = this.mHashOrder[i];
                 h = 31 * h + (data[pos] == null ? 0 : data[pos].hashCode());
             }
-            this.mOutData[Math.abs(h%this.mDestQueues)].add(data);
+            this.mOutData[Math.abs(h % this.mDestQueues)].add(data);
         }
 
-        for (int i = 0; i < this.mDestQueues; i++)
+        for (int i = 0; i < this.mDestQueues; i++) {
             if (this.mOutData[i].size() > 0) {
-                Object[][] outData = new Object[this.mOutData[i].size()][];
-                this.mOutData[i].toArray(outData);
-                this.mDestinationQueues[i].put(outData);
-                this.mOutData[i].clear();
-            }
 
+                Object[][] outData = new Object[this.mOutData[i].size()][];
+                outData = (Object[][]) this.mOutData[i].toArray(outData);
+
+                if (outData != null)
+                    this.mDestinationQueues[i].put(outData);
+
+                if (mSorted == false)
+                    this.mOutData[i].clear();
+
+            }
+        }
     }
 
 }

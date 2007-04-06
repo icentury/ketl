@@ -5,6 +5,10 @@
  */
 package com.kni.etl.ketl.smp;
 
+import java.util.Comparator;
+import java.util.List;
+
+import com.kni.etl.util.SortedList;
 
 final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
 
@@ -14,14 +18,14 @@ final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
 
     /**
      * @param pCapacity
-     * @param pName TODO
      */
     public ManagedBlockingQueueImpl(int pCapacity) {
         super(pCapacity);
-
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.ketl.smp.MQueue#setName(java.lang.String)
      */
     public void setName(String arg0) {
@@ -32,59 +36,78 @@ final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
         return this.name == null ? "NA" : this.name + this.size();
     }
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.MQueue#registerReader(com.kni.etl.ketl.smp.ETLWorker)
-     */
-    public void registerReader(ETLWorker worker) {
-        this.readingThreads++;
-    }
-
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
-     */
-    public void registerWriter(ETLWorker worker) {
-        this.writingThreads++;
-    }
-
-   
     /*
      * (non-Javadoc)
      * 
-     * @see java.util.concurrent.LinkedBlockingQueue#take()
+     * @see com.kni.etl.ketl.smp.MQueue#registerReader(com.kni.etl.ketl.smp.ETLWorker)
      */
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.MQueue#take()
-     */
-    @Override
-    public Object take() throws InterruptedException {
-        Object o = super.take();
-        /*
-         * if (o == com.kni.etl.ketl.smp.ETLWorker.ENDOBJ) { writingThreads--; if (writingThreads == 0) { return o; }
-         * return this.take(); }
-         */
-        return o;
+    public synchronized void registerReader(ETLWorker worker) {
+        this.readingThreads++;
 
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
+     */
+    public synchronized void registerWriter(ETLWorker worker) {
+        this.writingThreads++;
+    }
+
+    private List<Object[]> bufferedSort;
+
+    public void setSortComparator(Comparator arg0){
+        this.bufferedSort=new SortedList<Object[]>(arg0);
+    }
     /*
      * (non-Javadoc)
      * 
      * @see java.util.concurrent.LinkedBlockingQueue#put(java.lang.Object)
      */
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.ketl.smp.MQueue#put(java.lang.Object)
      */
     @Override
     public void put(Object pO) throws InterruptedException {
+
         if (pO == com.kni.etl.ketl.smp.ETLWorker.ENDOBJ) {
-            writingThreads--;
-            if (writingThreads == 0) {
-                for (int i = 0; i < this.readingThreads; i++) {
-                    super.put(pO);
+            synchronized (this) {
+                writingThreads--;
+                if (writingThreads == 0) {
+
+                    if (this.bufferedSort != null) {
+                        Object[][] batch;
+                        ((SortedList)this.bufferedSort).releaseAll();
+                        while ((batch = this.bufferedSort.toArray(new Object[((SortedList) this.bufferedSort).fetchSize()][])) != null)
+                            super.put(batch);
+                    }
+
+                    for (int i = 0; i < this.readingThreads; i++) {
+                        super.put(pO);
+                    }
                 }
             }
+
             return;
         }
+
+        if (this.bufferedSort != null) {
+            Object[][] batch = (Object[][]) pO;
+
+            int size = batch.length;
+            
+            for(int i=0;i<size;i++)
+                this.bufferedSort.add(batch[i]);
+            
+            batch = (Object[][]) this.bufferedSort.toArray(batch);
+
+            if (batch == null)
+                return;
+        }
+
         super.put(pO);
     }
 

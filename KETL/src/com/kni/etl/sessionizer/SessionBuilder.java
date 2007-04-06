@@ -81,8 +81,8 @@ public class SessionBuilder implements Serializable {
     private int mTimePos = -1;
     private int itemMap[];
 
-    public SessionBuilder(IDCounter pStartSessionID, int[] itemMap,List list) {
-        this.ActiveSessionStore = new SessionStore(pStartSessionID,list);
+    public SessionBuilder(IDCounter pStartSessionID, int[] itemMap, List list) {
+        this.ActiveSessionStore = new SessionStore(pStartSessionID, list);
         this.preLoadWebServerSettings();
 
         this.itemMap = itemMap;
@@ -119,8 +119,8 @@ public class SessionBuilder implements Serializable {
      * Insert the method's description here. Creation date: (4/8/2002 2:40:02 PM)
      * 
      * @return int
-     * @param holder datasources.ResultRecord ObjectType(s) 1 : IP Address 2 : In Cookie 3 : out Cookie 4 : URL
-     *            Request 5 : Browser identification 6 : HTML request error 7 : Default 8 : Data and Time of Hit
+     * @param holder datasources.ResultRecord ObjectType(s) 1 : IP Address 2 : In Cookie 3 : out Cookie 4 : URL Request
+     *            5 : Browser identification 6 : HTML request error 7 : Default 8 : Data and Time of Hit
      * @throws InterruptedException
      */
     public final Holder analyzeHit(Holder holder) throws Exception {
@@ -147,34 +147,29 @@ public class SessionBuilder implements Serializable {
             return null;
         }
 
-      
-            // if get request field not found then locate it
-            // and record its pos for future recognition
+        // if get request field not found then locate it
+        // and record its pos for future recognition
 
-            if (this.urlCleaner == null) {
-                this.urlCleaner = new URLCleaner();
-                this.urlCleaner.setPageParserDefinitions(this.mPageParserDefinition);
+        if (this.urlCleaner == null) {
+            this.urlCleaner = new URLCleaner();
+            this.urlCleaner.setPageParserDefinitions(this.mPageParserDefinition);
+        }
+
+        try {
+            String cleansedURL = this.urlCleaner.cleanHTTPRequest((String) holder.pageView[this.idxGetRequestField],
+                    (Integer) holder.pageView[this.idxErrorCodeField], 0, EngineConstants.MAX_REQUEST_LENGTH, true);
+
+            holder.bCleansed = this.urlCleaner.cleansed;
+
+            if (holder.bCleansed) {
+                holder.pageView[this.idxGetRequestField] = cleansedURL;
+                holder.iCleansedID = (short) this.urlCleaner.cleansedWithID;
             }
-
-              
-            
-            try {
-                String cleansedURL     = this.urlCleaner.cleanHTTPRequest((String)holder.pageView[this.idxGetRequestField],(Integer) holder.pageView[this.idxErrorCodeField], 0,
-                        EngineConstants.MAX_REQUEST_LENGTH, true);
-                
-                holder.bCleansed = this.urlCleaner.cleansed;
-                
-                if(holder.bCleansed){
-                    holder.pageView[this.idxGetRequestField] = cleansedURL;
-                    holder.iCleansedID = (short) this.urlCleaner.cleansedWithID;     
-                } else if(this.ignoreHit)
-                    return null;
-            } catch (Exception e) {
-                ResourcePool.LogMessage(this, "URL Decoder exception: " + e);
-            }
-
-            
-          
+            else if (this.ignoreHit)
+                return null;
+        } catch (Exception e) {
+            ResourcePool.LogMessage(this, "URL Decoder exception: " + e);
+        }
 
         while (HitAnalyzed == false) {
             // get session key id
@@ -208,8 +203,9 @@ public class SessionBuilder implements Serializable {
                                     strValue = this.strMan.getVariableByName(this.searchBuffer, len,
                                             this.ActiveSessionDefinition.SessionIdentifiers[pos].searchAccelerator,
                                             this.getSeperatorsAsBoyerMoore(this.ActiveSessionDefinition.WebServerType,
-                                                    this.itemMap[position]), this.getEndMarkersAsBoyerMoore(
-                                                    this.ActiveSessionDefinition.WebServerType, this.itemMap[position]),
+                                                    this.itemMap[position]),
+                                            this.getEndMarkersAsBoyerMoore(this.ActiveSessionDefinition.WebServerType,
+                                                    this.itemMap[position]),
                                             this.ActiveSessionDefinition.SessionIdentifiers[pos].CaseSensitive);
                                 } catch (Exception e) {
                                     System.out.println("AnalyzeHit getVariableByName:" + e.getMessage() + ", Record "
@@ -321,7 +317,7 @@ public class SessionBuilder implements Serializable {
         }
 
         holder.currentSession = MatchingSession;
-        
+
         return holder;
     }
 
@@ -351,8 +347,6 @@ public class SessionBuilder implements Serializable {
         }
     }
 
-    
-
     /**
      * Insert the method's description here. Creation date: (5/13/2002 11:31:33 PM)
      * 
@@ -363,9 +357,6 @@ public class SessionBuilder implements Serializable {
         // set timing attributes of session, when hit occured
         this.ActiveSessionStore.closeOutAllSessions(pLastActivityNull);
     }
-
-
-
 
     /**
      * Insert the method's description here. Creation date: (4/16/2002 6:19:49 PM)

@@ -16,6 +16,7 @@ import org.w3c.dom.Element;
 
 import com.kni.etl.ETLJob;
 import com.kni.etl.ETLJobStatus;
+import com.kni.etl.ETLStatus;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.KETLJobExecutor;
@@ -29,7 +30,7 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ETLThreadManager {
 
-    ArrayList threads = new ArrayList();
+    ArrayList<WorkerThread> threads = new ArrayList<WorkerThread>();
 
     class WorkerThread {
 
@@ -148,16 +149,20 @@ public class ETLThreadManager {
     }
 
     public String finalStatus(ETLJobStatus jsJobStatus) {
-        int recordWriterCount = 0, recordReaderCount = 0;
+        int recordWriterCount = 0, recordReaderCount = 0, recordReadErrorCount=0, recordWriteErrorCount=0;
         long currentTime = System.currentTimeMillis();
 
-        for (Object o : this.threads) {
-            if (((WorkerThread) o).step instanceof ETLReader) {
-                recordReaderCount += ((WorkerThread) o).step.getRecordsProcessed();
+        for (WorkerThread o : this.threads) {
+            if ( o.step instanceof ETLReader) {
+                recordReaderCount += o.step.getRecordsProcessed();
+                recordReadErrorCount +=((ETLStep)o.step).getErrorCount();  
             }
-            else if (((WorkerThread) o).step instanceof ETLWriter) {
-                recordWriterCount += ((WorkerThread) o).step.getRecordsProcessed();
-            }
+            else if (o.step instanceof ETLWriter) {
+                recordWriterCount += o.step.getRecordsProcessed();
+                recordReadErrorCount +=((ETLStep)o.step).getErrorCount();
+            } 
+            
+            jsJobStatus.setStats(o.step.getName(),o.step.partitions,o.step.partitionID,recordReaderCount,recordWriterCount,recordReadErrorCount,recordWriteErrorCount,o.step.getCPUTiming());
         }
 
         long allTimeDiff = currentTime - startTime;
@@ -166,6 +171,8 @@ public class ETLThreadManager {
         int recordDiff = recordReaderCount - previousReaderRecords;
         sb.append("\tOverall Read: " + recordReaderCount / ((allTimeDiff / 1000) + 1) + "\n");
 
+        jsJobStatus.setStats(recordReaderCount,recordWriterCount,recordReadErrorCount,recordWriteErrorCount,allTimeDiff);
+        
         sb.append("\tAverage Read: " + recordDiff / ((prevTimeDiff / 1000) + 1) + "\n");
         sb.append("\tTotal Records Read: " + recordReaderCount + "\n");
 
@@ -272,7 +279,7 @@ public class ETLThreadManager {
         return this.mkjExecutor;
     }
 
-    public void monitor(int sleepTime, int maxTime, ETLJobStatus jsJobStatus) throws Throwable {
+    public void monitor(int sleepTime, int maxTime, ETLStatus jsJobStatus) throws Throwable {
         boolean state = true;
         Throwable failureException = null;
         boolean interruptAllThreads = false;
