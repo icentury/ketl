@@ -4,6 +4,11 @@
 
 package com.kni.etl;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import com.kni.etl.util.XMLHelper;
+
 /**
  * Insert the type's description here. Creation date: (5/3/2002 1:50:01 PM)
  * 
@@ -48,7 +53,7 @@ public class ETLJobStatus extends ETLStatus {
      */
     public ETLJobStatus() {
         super();
-        setStatusCode(SCHEDULED);
+        this.setStatusCode(ETLJobStatus.SCHEDULED);
     }
 
     /**
@@ -56,21 +61,70 @@ public class ETLJobStatus extends ETLStatus {
      * 
      * @return java.lang.String[]
      */
+    @Override
     public String[] getStatusMessages() {
-        return astrStatusMessages;
+        return ETLJobStatus.astrStatusMessages;
     }
 
     Throwable mException;
 
     public void setException(Throwable e) {
         // prevent duplicate stack trace
-        if (this.mException != null && e == mException)
+        if (this.mException != null && e == this.mException)
             return;
 
-        mException = e;
+        this.mException = e;
     }
 
     public Throwable getException() {
-        return mException;
+        return this.mException;
+    }
+
+    public void setStats(String name, int partitions, int partitionID, int recordReaderCount, int recordWriterCount,
+            int recordReadErrorCount, int recordWriteErrorCount, long timing) {
+        Element e = getStatsNode();
+
+        Element step = (Element) XMLHelper.getElementByName(e, "STEP", "NAME", name);
+
+        if (step == null) {
+            step = e.getOwnerDocument().createElement("STEP");
+            e.appendChild(step);
+            step.setAttribute("NAME", name);
+            step.setAttribute("PARTITIONS", Integer.toString(partitions));
+        }
+
+        Element partition = e.getOwnerDocument().createElement("PARTITION");
+        step.appendChild(partition);
+
+        partition.setAttribute("PARTITION", Integer.toString(partitionID));
+        partition.setAttribute("READ", Integer.toString(recordReaderCount));
+        partition.setAttribute("WRITE", Integer.toString(recordWriterCount));
+        partition.setAttribute("READERROR", Integer.toString(recordReadErrorCount));
+        partition.setAttribute("WRITEERROR", Integer.toString(recordWriteErrorCount));
+        partition.setAttribute("TIMING", Long.toString(timing));
+
+    }
+
+    public void setStats(int recordReaderCount, int recordWriterCount, int recordReadErrorCount,
+            int recordWriteErrorCount, long executionTime) {
+        Element e = getStatsNode();
+
+        e.setAttribute("READ", Integer.toString(recordReaderCount));
+        e.setAttribute("WRITE", Integer.toString(recordWriterCount));
+        e.setAttribute("READERROR", Integer.toString(recordReadErrorCount));
+        e.setAttribute("WRITEERROR", Integer.toString(recordWriteErrorCount));
+        e.setAttribute("TIMING", Long.toString(executionTime));
+
+    }
+
+    public void setStats(int statement, int updateCount, long executionTime) {
+        Element e = getStatsNode();
+
+        Element step = e.getOwnerDocument().createElement("STATEMENT");
+        e.appendChild(step);
+        step.setAttribute("ID", Integer.toString(statement));
+        step.setAttribute("EFFECTEDRECORDS", Integer.toString(updateCount));
+        step.setAttribute("TIMING", Long.toString(executionTime));
+
     }
 }

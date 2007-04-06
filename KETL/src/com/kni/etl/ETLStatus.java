@@ -4,7 +4,15 @@
 
 package com.kni.etl;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.util.XMLHelper;
 
 /**
  * Insert the type's description here. Creation date: (5/3/2002 12:21:59 PM)
@@ -21,7 +29,7 @@ public class ETLStatus {
     protected java.lang.String strErrorMessage = "";
     protected java.lang.String strWarningMessage = "";
     protected java.lang.String strExtendedMessage = "";
-
+    protected Element statsNode = null;
     private java.sql.Timestamp mStartDate, mEndDate, mExecutionDate;
 
     /**
@@ -194,7 +202,7 @@ public class ETLStatus {
     public synchronized int setStatusCode(int iNewStatus) {
         // Verify it's a valid status
         
-        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE, "setStatusCode: status code ID=" + iNewStatus + ", previous status code ID = " + this.iStatusCode);
+        //ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE, "setStatusCode: status code ID=" + iNewStatus + ", previous status code ID = " + this.iStatusCode);
 
         if (isValidStatusCode(iNewStatus)) {
             iStatusCode = iNewStatus;
@@ -270,5 +278,39 @@ public class ETLStatus {
      */
     public final void setServerID(int pServer) {
         miServer = pServer;
+    }
+    
+ 
+    
+    public final String getXMLStats() {
+        if(this.statsNode==null) return null;
+        return XMLHelper.outputXML(this.statsNode);
+    }
+
+    protected Element getStatsNode() {
+        if (statsNode == null) {
+            Document documentRoot;
+            
+            DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder;
+            try {
+                builder = dmf.newDocumentBuilder();
+            } catch (ParserConfigurationException e) {
+                throw new RuntimeException(e);
+            }
+            documentRoot = builder.newDocument();
+            statsNode = documentRoot.createElement("STATS");
+            documentRoot.appendChild(statsNode);
+        }
+        
+        return statsNode;
+    }
+    
+    public void setStats(int records,long executionTime) {
+        Element e = getStatsNode();
+                
+        e.setAttribute("RECORDS",Integer.toString(records));
+        e.setAttribute("TIMING", Long.toString(executionTime));
+        
     }
 }

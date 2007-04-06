@@ -1270,7 +1270,7 @@ public class Metadata {
                 throw new Exception("Job " + pJobID + " does not exist or does not exist in project " + pProjectID);
             }
 
-            ETLJobStatus etlJobStatus = new ETLJobStatus();
+            ETLStatus etlJobStatus = new ETLJobStatus();
 
             // Make metadata connection alive.
             refreshMetadataConnection();
@@ -1693,28 +1693,28 @@ public class Metadata {
     public void getJobStatus(ETLJob pJob) throws SQLException, java.lang.Exception {
         PreparedStatement m_stmt = null;
         ResultSet m_rs = null;
-    
+
         synchronized (this.oLock) {
             // Make metadata connection alive.
             refreshMetadataConnection();
-    
+
             m_stmt = metadataConnection.prepareStatement("SELECT STATUS_ID,DM_LOAD_ID,LOAD_ID FROM  " + tablePrefix
                     + "JOB_LOG A " + "WHERE JOB_ID like ?");
             m_stmt.setString(1, pJob.getJobID());
             m_rs = m_stmt.executeQuery();
-    
+
             // cycle through pending jobs setting next run date
             while (m_rs.next()) {
                 pJob.getStatus().setStatusCode(m_rs.getInt(1));
                 pJob.setJobExecutionID(m_rs.getInt(2));
                 pJob.setLoadID(m_rs.getInt(3));
             }
-    
+
             // Close open resources
             if (m_rs != null) {
                 m_rs.close();
             }
-    
+
             if (m_stmt != null) {
                 m_stmt.close();
             }
@@ -1751,7 +1751,7 @@ public class Metadata {
 
             if (status_id == null)
                 throw new Exception("Job not in job_log table, load id = " + pLoadID);
-            
+
             return status_id.intValue();
         }
 
@@ -3657,7 +3657,6 @@ public class Metadata {
                     }
 
                     tmpSessionIdentifier.ObjectType = rs.getInt(1);
-                    tmpSessionIdentifier.DataType = rs.getInt(2);
                     tmpSessionIdentifier.Weight = rs.getInt(4);
                     tmpSessionIdentifier.FormatString = rs.getString(5);
                     tmpSessionIdentifier.DestinationObjectType = rs.getInt(8);
@@ -3745,6 +3744,9 @@ public class Metadata {
 
             metadataConnection.setAutoCommit(false);
 
+            // perform version checks
+            performVersionCheck();
+
             DatabaseMetaData mdDB = metadataConnection.getMetaData();
 
             boolean ansi92 = mdDB.supportsANSI92EntryLevelSQL();
@@ -3781,6 +3783,31 @@ public class Metadata {
             if (ansi92 && outerJoins) {
                 this.bAnsi92OuterJoin = true;
             }
+        }
+    }
+
+    private void performVersionCheck() throws SQLException {
+
+        Statement stmt = null;
+        try {
+            stmt = this.metadataConnection.createStatement();
+            // check for update code 2.1.0
+            try {
+                stmt.execute("select count(*) from " + tablePrefix + "job_log_hist where LAST_UPDATE_DATE is null union select count(*) from "
+                        + tablePrefix + "job_log where LAST_UPDATE_DATE is null" );
+            } catch (Exception e) {
+                throw new RuntimeException("Metadata needs updating to 2.1, see scripts in $KETLDIR/setup");
+            }
+            // check for clob code 2.1.9
+            try {
+                stmt.execute("select count(*) from " + tablePrefix + "job_log_hist where stats is null union select count(*) from "
+                        + tablePrefix + "job_log where stats is null");
+            } catch (Exception e) {
+                throw new RuntimeException("Metadata needs updating to 2.1.9, see scripts in $KETLDIR/setup");
+            }
+        } finally {
+            if(stmt != null)
+                stmt.close();
         }
     }
 
@@ -4008,9 +4035,11 @@ public class Metadata {
                     }
                 }
             } catch (SQLException e) {
-                System.out.println("Error setting status: error:" + e + "(" + sql + ")");
+                System.out.println("Error setting status: error:" + e.toString() + "(" + sql + ")");
+                e.printStackTrace();
             } catch (Exception e) {
-                System.out.println("Error setting status: error:" + e);
+                System.out.println("Error setting status: error:" + e.toString());
+                e.printStackTrace();
             }
         }
     }
@@ -4024,15 +4053,17 @@ public class Metadata {
         String sql = null;
         PreparedStatement m_stmt = null;
 
-        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE, "setJobStatus: ID=" + pETLJob.sJobID
-                + ", STATUS ID = " + pETLJob.getStatus().getStatusCode() + ", CANCEL STATUS =  "
-                + pETLJob.isCancelSuccessfull());
-        
+        // ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE, "setJobStatus: ID=" +
+        // pETLJob.sJobID
+        // + ", STATUS ID = " + pETLJob.getStatus().getStatusCode() + ", CANCEL STATUS = "
+        // + pETLJob.isCancelSuccessfull());
+
         synchronized (this.oLock) {
             try {
                 // Make metadata connection alive.
                 refreshMetadataConnection();
 
+                boolean logStats = false;
                 switch (pETLJob.getStatus().getStatusCode()) {
                 case ETLJobStatus.WAITING_TO_BE_RETRIED:
                 case ETLJobStatus.PENDING_CLOSURE_FAILED:
@@ -4040,8 +4071,8 @@ public class Metadata {
                 case ETLJobStatus.PENDING_CLOSURE_SKIP:
                 case ETLJobStatus.PENDING_CLOSURE_CANCELLED:
                     m_stmt = metadataConnection.prepareStatement("UPDATE  " + tablePrefix + "JOB_LOG SET END_DATE = "
-                            + currentTimeStampSyntax + ", STATUS_ID = ?,MESSAGE =  ? WHERE DM_LOAD_ID = ?"); //$NON-NLS-1$
-
+                            + currentTimeStampSyntax + ", STATUS_ID = ?,MESSAGE =  ?, STATS = ? WHERE DM_LOAD_ID = ?"); //$NON-NLS-1$
+                    logStats = true;
                     break;
 
                 default:
@@ -4056,7 +4087,17 @@ public class Metadata {
                         .getStatusMessage().getBytes().length > 2000 ? pETLJob.getStatus().getStatusMessage()
                         .substring(0, 1000)
                         + ".." : pETLJob.getStatus().getStatusMessage()));
-                m_stmt.setInt(3, pETLJob.getJobExecutionID());
+
+                if (logStats) {
+                    String xml = pETLJob.getStatus().getXMLStats();
+                    if (xml == null)
+                        m_stmt.setNull(3, java.sql.Types.LONGVARCHAR);
+                    else
+                        m_stmt.setCharacterStream(3, new java.io.StringReader(xml), xml.length());
+                    m_stmt.setInt(4, pETLJob.getJobExecutionID());
+                }
+                else
+                    m_stmt.setInt(3, pETLJob.getJobExecutionID());
 
                 try {
                     m_stmt.execute();
@@ -4560,7 +4601,7 @@ public class Metadata {
                     m_stmt_sel.close();
                 return -1;
             }
-            
+
             // B.create a new schedule for this job
             m_stmt_add = metadataConnection.prepareStatement("INSERT INTO " + tablePrefix
                     + "job_schedule (schedule_id, job_id, month, month_of_year, day, day_of_week, day_of_month,"

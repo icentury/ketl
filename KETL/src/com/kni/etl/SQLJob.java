@@ -342,4 +342,6 @@ public class SQLJob extends ETLJob implements DBConnection {
         return ResourcePool.getConnection(getDatabaseDriverClass(), getDatabaseURL(), getDatabaseUser(),
                 getDatabasePassword(), getPreSQL(), true);
     }
+
+  
 }

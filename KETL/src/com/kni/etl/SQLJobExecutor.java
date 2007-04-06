@@ -66,7 +66,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
     Connection dbConnection = null;
 
-    private void wrapExecution(Statement stmt, String curSQL, boolean debug) throws SQLException {
+    private long wrapExecution(Statement stmt, String curSQL, boolean debug) throws SQLException {
         long start = (System.currentTimeMillis() - 1);
         if (debug)
             ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Executing statement: " + curSQL);
@@ -81,6 +81,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
             ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Execution time(Seconds): "
                     + (((double) (System.currentTimeMillis() - start)) / (double) 1000));
 
+        return System.currentTimeMillis() - start;
     }
 
     /**
@@ -93,7 +94,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
         this.monitor = new SQLJobMonitor();
         this.monitor.start();
         SQLJob sjJob;
-        ETLJobStatus jsJobStatus;
+        ETLStatus jsJobStatus;
         String curSQL = null;
 
         // Only accept SQL jobs...
@@ -123,6 +124,8 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
         // Run the SQL job
         try {
+            long start = (System.currentTimeMillis() - 1);
+            
             Statement stmt = dbConnection.createStatement();
 
             boolean defaultDebug = sjJob.mSQLNode == null ? false : XMLHelper.getAttributeAsBoolean(sjJob.mSQLNode
@@ -134,10 +137,11 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
                 stmt.setMaxRows(sjJob.getMaxRows());
                 curSQL = sjJob.getSQL();
-                wrapExecution(stmt, curSQL, false);
+                long executionTime = wrapExecution(stmt, curSQL, false);
                 curSQL = null;
                 sjJob.setResultSet(stmt.getResultSet());
                 sjJob.setUpdateCount(stmt.getUpdateCount());
+                sjJob.getStatus().setStats(statement,stmt.getUpdateCount(),executionTime);
             }
             else {
                 NodeList nl = sjJob.mSQLNode.getChildNodes();
@@ -181,7 +185,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
                         curSQL = sjJob.resolveParameters(XMLHelper.getTextContent(n));
                         try {
-                            wrapExecution(stmt, curSQL, debug);
+                            long executionTime = wrapExecution(stmt, curSQL, debug);
 
                             curSQL = null;
                             if (paramName != null) {
@@ -243,7 +247,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
                             }
 
                             sjJob.setUpdateCount(sjJob.getUpdateCount() + stmt.getUpdateCount());
-
+                            sjJob.getStatus().setStats(statement,stmt.getUpdateCount(),executionTime);
                         } catch (SQLException e) {
                             if (critical)
                                 throw e;
@@ -263,6 +267,8 @@ public class SQLJobExecutor extends ETLJobExecutor {
             }
 
             ResourcePool.releaseConnection(dbConnection);
+            
+            sjJob.getStatus().setStats(sjJob.getUpdateCount(),System.currentTimeMillis() - start);
             dbConnection = null;
         } catch (Exception e) {
             jsJobStatus.setErrorCode(2); // BRIAN: NEED TO SET UP SQL JOB ERROR CODES

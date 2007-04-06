@@ -66,11 +66,11 @@ public class OSJobExecutor extends ETLJobExecutor {
         try {
             this.monitor.start();
 
-            ETLJobStatus jsJobStatus;
+            ETLStatus jsJobStatus;
             String strWorkingDirectory;
             Process pProcess = null;
             File fWorkingDirectory = null;
-
+            long start = (System.currentTimeMillis() - 1);
             // Only accept OS jobs...
             if ((jCurrentJob instanceof OSJob) == false) {
                 return false;
@@ -144,7 +144,8 @@ public class OSJobExecutor extends ETLJobExecutor {
                     }
 
                     bSuccess = false;
-                }
+                } else
+                    jsJobStatus.setStats(-1,System.currentTimeMillis() - start);
             } catch (Exception e) {
                 jsJobStatus.setErrorCode(2); // BRIAN: NEED TO SET UP OS JOB ERROR CODES
                 jsJobStatus.setErrorMessage("Error in process: " + e.getMessage());
@@ -154,6 +155,7 @@ public class OSJobExecutor extends ETLJobExecutor {
             this.monitor.alive = false;
         }
 
+        
         return bSuccess;
     }
 
