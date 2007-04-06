@@ -56,10 +56,10 @@ public class AnalyzeSessionStore implements Serializable
     {
         super();
 
-        setIDCounter(pStartSessionID);
+        this.setIDCounter(pStartSessionID);
 
-        CurrentDate = new java.util.Date(1);
-        RemovedSessionsQueue = new Vector();
+        this.CurrentDate = new java.util.Date(1);
+        this.RemovedSessionsQueue = new Vector();
     }
 
     public void setIDCounter(IDCounter pStartSessionID)
@@ -78,7 +78,7 @@ public class AnalyzeSessionStore implements Serializable
     {
         Session duplicateSession = (Session) pSession.clone();
 
-        duplicateSession.setID(tmpSessionID.incrementID());
+        duplicateSession.setID(this.tmpSessionID.incrementID());
 
         // mark if repeat visitor!
         if (duplicateSession.PersistantIdentifier != null)
@@ -87,26 +87,26 @@ public class AnalyzeSessionStore implements Serializable
         }
 
         // add session to main identifier hashmap so it can be called back later.
-        duplicateSession.setMainSessionIdentifierIndexed(putSession(duplicateSession,
-                SessionsByMainSessionIdentifierHashMap, SessionsByMainSessionIdentifierReadWriteLock,
+        duplicateSession.setMainSessionIdentifierIndexed(this.putSession(duplicateSession,
+                this.SessionsByMainSessionIdentifierHashMap, this.SessionsByMainSessionIdentifierReadWriteLock,
                 duplicateSession.MainSessionIdentifier));
 
         //--------------------------------------------------------------
         // add session to ip address and browser hashmap
-        duplicateSession.setIPAddressAndBrowserIndexed(putSession(duplicateSession,
-                SessionsByIPAddressAndBrowserHashMap, SessionsByIPAddressAndBrowserReadWriteLock,
+        duplicateSession.setIPAddressAndBrowserIndexed(this.putSession(duplicateSession,
+                this.SessionsByIPAddressAndBrowserHashMap, this.SessionsByIPAddressAndBrowserReadWriteLock,
                 duplicateSession.IPAddress + duplicateSession.Browser));
 
         //--------------------------------------------------------------
         // add session to first click hashmap
-        duplicateSession.setFirstClickSessionIdentifierIndexed(putSession(duplicateSession,
-                SessionsByFirstClickSessionIdentifierHashMap, SessionsByFirstClickSessionIdentifierReadWriteLock,
+        duplicateSession.setFirstClickSessionIdentifierIndexed(this.putSession(duplicateSession,
+                this.SessionsByFirstClickSessionIdentifierHashMap, this.SessionsByFirstClickSessionIdentifierReadWriteLock,
                 duplicateSession.FirstClickSessionIdentifier));
 
         //---------------------------------------------------------------
         // add session to peristant identifier hashmap
-        duplicateSession.setPersistantIdentifierIndexed(putSession(duplicateSession,
-                SessionsByPersistantIdentifierHashMap, SessionsByPersistantIdentifierReadWriteLock,
+        duplicateSession.setPersistantIdentifierIndexed(this.putSession(duplicateSession,
+                this.SessionsByPersistantIdentifierHashMap, this.SessionsByPersistantIdentifierReadWriteLock,
                 duplicateSession.PersistantIdentifier));
 
         return duplicateSession;
@@ -135,18 +135,18 @@ public class AnalyzeSessionStore implements Serializable
         int removed = 0;
         int val;
 
-        val = SessionsByIPAddressAndBrowserBackgroundThread.findInvalidSessions();
+        val = this.SessionsByIPAddressAndBrowserBackgroundThread.findInvalidSessions();
 
         //System.out.print("Removed IP And B:" + val);
-        val = SessionsByMainSessionIdentifierBackgroundThread.findInvalidSessions();
+        val = this.SessionsByMainSessionIdentifierBackgroundThread.findInvalidSessions();
 
         //System.out.print(", Main ID:" + val);
         removed = val + removed;
-        val = SessionsByFirstClickSessionIdentifierBackgroundThread.findInvalidSessions();
+        val = this.SessionsByFirstClickSessionIdentifierBackgroundThread.findInvalidSessions();
 
         //System.out.print(", First Click:" + val);
         removed = val + removed;
-        val = SessionsByPersistantIdentifierBackgroundThread.findInvalidSessions();
+        val = this.SessionsByPersistantIdentifierBackgroundThread.findInvalidSessions();
 
         //System.out.println(", Persistant:" + val);
         removed = val + removed;
@@ -161,7 +161,7 @@ public class AnalyzeSessionStore implements Serializable
      */
     public java.util.Date getCurrentDate()
     {
-        return CurrentDate;
+        return this.CurrentDate;
     }
 
     /**
@@ -211,13 +211,13 @@ public class AnalyzeSessionStore implements Serializable
         switch (pSessionMatchingAlgorithmToUse)
         {
         case 1: //|3|5|7:		
-            tmpSession = getSession(SessionsByMainSessionIdentifierHashMap,
-                    SessionsByMainSessionIdentifierReadWriteLock, pSessionToFind.MainSessionIdentifier);
+            tmpSession = this.getSession(this.SessionsByMainSessionIdentifierHashMap,
+                    this.SessionsByMainSessionIdentifierReadWriteLock, pSessionToFind.MainSessionIdentifier);
 
             if ((tmpSession != null) &&
-                    (SessionsByMainSessionIdentifierBackgroundThread.validateSession(tmpSession.MainSessionIdentifier,
+                    (this.SessionsByMainSessionIdentifierBackgroundThread.validateSession(tmpSession.MainSessionIdentifier,
                         pSessionToFind.LastActivity, tmpSession,
-                        sessionDefinition.matchInValid(tmpSession.getBestMatchedByCode(), pSessionMatchingAlgorithmToUse)) == false))
+                        this.sessionDefinition.matchInValid(tmpSession.getBestMatchedByCode(), pSessionMatchingAlgorithmToUse)) == false))
             {
                 tmpSession = null;
             }
@@ -229,13 +229,13 @@ public class AnalyzeSessionStore implements Serializable
             break;
 
         case 2: //|6:
-            tmpSession = getSession(SessionsByFirstClickSessionIdentifierHashMap,
-                    SessionsByFirstClickSessionIdentifierReadWriteLock, pSessionToFind.FirstClickSessionIdentifier);
+            tmpSession = this.getSession(this.SessionsByFirstClickSessionIdentifierHashMap,
+                    this.SessionsByFirstClickSessionIdentifierReadWriteLock, pSessionToFind.FirstClickSessionIdentifier);
 
             if ((tmpSession != null) &&
-                    (SessionsByFirstClickSessionIdentifierBackgroundThread.validateSession(
+                    (this.SessionsByFirstClickSessionIdentifierBackgroundThread.validateSession(
                         tmpSession.FirstClickSessionIdentifier, pSessionToFind.LastActivity, tmpSession,
-                        sessionDefinition.matchInValid(tmpSession.getBestMatchedByCode(), pSessionMatchingAlgorithmToUse)) == false))
+                        this.sessionDefinition.matchInValid(tmpSession.getBestMatchedByCode(), pSessionMatchingAlgorithmToUse)) == false))
             {
                 tmpSession = null;
             }
@@ -243,13 +243,13 @@ public class AnalyzeSessionStore implements Serializable
             break;
 
         case 4:
-            tmpSession = getSession(SessionsByPersistantIdentifierHashMap, SessionsByPersistantIdentifierReadWriteLock,
+            tmpSession = this.getSession(this.SessionsByPersistantIdentifierHashMap, this.SessionsByPersistantIdentifierReadWriteLock,
                     pSessionToFind.PersistantIdentifier);
 
             if ((tmpSession != null) &&
-                    (SessionsByPersistantIdentifierBackgroundThread.validateSession(tmpSession.PersistantIdentifier,
+                    (this.SessionsByPersistantIdentifierBackgroundThread.validateSession(tmpSession.PersistantIdentifier,
                         pSessionToFind.LastActivity, tmpSession,
-                        sessionDefinition.matchInValid(tmpSession.getBestMatchedByCode(), pSessionMatchingAlgorithmToUse)) == false))
+                        this.sessionDefinition.matchInValid(tmpSession.getBestMatchedByCode(), pSessionMatchingAlgorithmToUse)) == false))
             {
                 tmpSession = null;
             }
@@ -259,13 +259,13 @@ public class AnalyzeSessionStore implements Serializable
         case 24:
 
             String key = pSessionToFind.IPAddress + pSessionToFind.Browser;
-            tmpSession = getSession(SessionsByIPAddressAndBrowserHashMap, SessionsByIPAddressAndBrowserReadWriteLock,
+            tmpSession = this.getSession(this.SessionsByIPAddressAndBrowserHashMap, this.SessionsByIPAddressAndBrowserReadWriteLock,
                     key);
 
             if ((tmpSession != null) &&
-                    (SessionsByIPAddressAndBrowserBackgroundThread.validateSession(key, pSessionToFind.LastActivity,
+                    (this.SessionsByIPAddressAndBrowserBackgroundThread.validateSession(key, pSessionToFind.LastActivity,
                         tmpSession,
-                        sessionDefinition.matchInValid(tmpSession.getBestMatchedByCode(), pSessionMatchingAlgorithmToUse)) == false))
+                        this.sessionDefinition.matchInValid(tmpSession.getBestMatchedByCode(), pSessionMatchingAlgorithmToUse)) == false))
             {
                 tmpSession = null;
             }
@@ -335,15 +335,15 @@ public class AnalyzeSessionStore implements Serializable
      */
     public void setCurrentDate(long newCurrentTime)
     {
-        if (CurrentDate == null)
+        if (this.CurrentDate == null)
         {
-            CurrentDate = new java.util.Date(newCurrentTime);
+            this.CurrentDate = new java.util.Date(newCurrentTime);
         }
         else
         {
-            synchronized (CurrentDate)
+            synchronized (this.CurrentDate)
             {
-                CurrentDate.setTime(newCurrentTime);
+                this.CurrentDate.setTime(newCurrentTime);
             }
         }
     }
@@ -390,22 +390,22 @@ public class AnalyzeSessionStore implements Serializable
 
         // if fallback enabled then set last match for fallback enabled
         // identifier to last activity date
-        if (sessionDefinition.FirstClickIdentifierFallbackEnabled)
+        if (this.sessionDefinition.FirstClickIdentifierFallbackEnabled)
         {
             pSessionToSync.setMatchedByDateForCode(2, pSessionToSyncWith.LastActivity);
         }
 
-        if (sessionDefinition.IPBrowserFallbackEnabled)
+        if (this.sessionDefinition.IPBrowserFallbackEnabled)
         {
             pSessionToSync.setMatchedByDateForCode(24, pSessionToSyncWith.LastActivity);
         }
 
-        if (sessionDefinition.MainIdentifierFallbackEnabled)
+        if (this.sessionDefinition.MainIdentifierFallbackEnabled)
         {
             pSessionToSync.setMatchedByDateForCode(1, pSessionToSyncWith.LastActivity);
         }
 
-        if (sessionDefinition.PersistantIdentifierFallbackEnabled)
+        if (this.sessionDefinition.PersistantIdentifierFallbackEnabled)
         {
             pSessionToSync.setMatchedByDateForCode(4, pSessionToSyncWith.LastActivity);
         }
@@ -469,7 +469,7 @@ public class AnalyzeSessionStore implements Serializable
             if (pSessionToSync.isMainSessionIdentifierIndexed() == true)
             {
                 // remove key from hashmap
-                removeSession(SessionsByMainSessionIdentifierHashMap, SessionsByMainSessionIdentifierReadWriteLock,
+                this.removeSession(this.SessionsByMainSessionIdentifierHashMap, this.SessionsByMainSessionIdentifierReadWriteLock,
                     pSessionToSync.MainSessionIdentifier);
                 pSessionToSync.setMainSessionIdentifierIndexed(false);
             }
@@ -487,13 +487,13 @@ public class AnalyzeSessionStore implements Serializable
         if ((pSessionToSync.isMainSessionIdentifierIndexed() == false) &&
                 (pSessionToSync.MainSessionIdentifier != null) &&
                 (pSessionToSync.isMainSessionIdentifierAllowIndex() == true) &&
-                ((pSessionToSync.getBestMatchedByCode() == 0) || sessionDefinition.MainIdentifierFallbackEnabled ||
+                ((pSessionToSync.getBestMatchedByCode() == 0) || this.sessionDefinition.MainIdentifierFallbackEnabled ||
                 (pSessionToSync.getBestMatchedByCode() >= 1)))
         {
             // add session back into hashmap
             // System.out.println("Update: " + pSessionToSync.MainSessionIdentifier);
-            pSessionToSync.setMainSessionIdentifierIndexed(putSession(pSessionToSync,
-                    SessionsByMainSessionIdentifierHashMap, SessionsByMainSessionIdentifierReadWriteLock,
+            pSessionToSync.setMainSessionIdentifierIndexed(this.putSession(pSessionToSync,
+                    this.SessionsByMainSessionIdentifierHashMap, this.SessionsByMainSessionIdentifierReadWriteLock,
                     pSessionToSync.MainSessionIdentifier));
 
             // set session as indexed
@@ -510,7 +510,7 @@ public class AnalyzeSessionStore implements Serializable
             if (pSessionToSync.isIPAddressAndBrowserIndexed() == true)
             {
                 // remove key from hashmap
-                removeSession(SessionsByIPAddressAndBrowserHashMap, SessionsByIPAddressAndBrowserReadWriteLock,
+                this.removeSession(this.SessionsByIPAddressAndBrowserHashMap, this.SessionsByIPAddressAndBrowserReadWriteLock,
                     pSessionToSync.IPAddress + pSessionToSync.Browser);
                 pSessionToSync.setIPAddressAndBrowserIndexed(false);
             }
@@ -530,13 +530,13 @@ public class AnalyzeSessionStore implements Serializable
         // index item if not indexed already
         if ((pSessionToSync.isIPAddressAndBrowserIndexed() == false) && (pSessionToSync.IPAddress != null) &&
                 (pSessionToSync.Browser != null) && (pSessionToSync.isIPAddressAndBrowserAllowIndex() == true) &&
-                ((pSessionToSync.getBestMatchedByCode() == 0) || sessionDefinition.IPBrowserFallbackEnabled ||
+                ((pSessionToSync.getBestMatchedByCode() == 0) || this.sessionDefinition.IPBrowserFallbackEnabled ||
                 (pSessionToSync.getBestMatchedByCode() >= 24)))
         {
             // System.out.println("Update: " + pSessionToSync.IPAddress + pSessionToSync.Browser);
             // add session back into hashmap
-            pSessionToSync.setIPAddressAndBrowserIndexed(putSession(pSessionToSync,
-                    SessionsByIPAddressAndBrowserHashMap, SessionsByIPAddressAndBrowserReadWriteLock,
+            pSessionToSync.setIPAddressAndBrowserIndexed(this.putSession(pSessionToSync,
+                    this.SessionsByIPAddressAndBrowserHashMap, this.SessionsByIPAddressAndBrowserReadWriteLock,
                     pSessionToSync.IPAddress + pSessionToSync.Browser));
         }
 
@@ -553,8 +553,8 @@ public class AnalyzeSessionStore implements Serializable
                 if (pSessionToSync.isFirstClickSessionIdentifierIndexed() == true)
                 {
                     // remove key from hashmap
-                    removeSession(SessionsByFirstClickSessionIdentifierHashMap,
-                        SessionsByFirstClickSessionIdentifierReadWriteLock, pSessionToSync.FirstClickSessionIdentifier);
+                    this.removeSession(this.SessionsByFirstClickSessionIdentifierHashMap,
+                        this.SessionsByFirstClickSessionIdentifierReadWriteLock, pSessionToSync.FirstClickSessionIdentifier);
                     pSessionToSync.setFirstClickSessionIdentifierIndexed(false);
                 }
 
@@ -573,14 +573,14 @@ public class AnalyzeSessionStore implements Serializable
                     (pSessionToSync.FirstClickSessionIdentifier != null) &&
                     (pSessionToSync.isFirstClickSessionIdentifierAllowIndex() == true) &&
                     ((pSessionToSync.getBestMatchedByCode() == 0) ||
-                    sessionDefinition.FirstClickIdentifierFallbackEnabled ||
+                    this.sessionDefinition.FirstClickIdentifierFallbackEnabled ||
                     (pSessionToSync.getBestMatchedByCode() >= 2)))
             {
                 // System.out.println("Update: " + pSessionToSync.FirstClickSessionIdentifier);
                 // add session back into hashmap
-                pSessionToSync.setFirstClickSessionIdentifierIndexed(putSession(pSessionToSync,
-                        SessionsByFirstClickSessionIdentifierHashMap,
-                        SessionsByFirstClickSessionIdentifierReadWriteLock, pSessionToSync.FirstClickSessionIdentifier));
+                pSessionToSync.setFirstClickSessionIdentifierIndexed(this.putSession(pSessionToSync,
+                        this.SessionsByFirstClickSessionIdentifierHashMap,
+                        this.SessionsByFirstClickSessionIdentifierReadWriteLock, pSessionToSync.FirstClickSessionIdentifier));
             }
         }
 
@@ -593,7 +593,7 @@ public class AnalyzeSessionStore implements Serializable
             if (pSessionToSync.isPersistantIdentifierIndexed() == true)
             {
                 // remove key from hashmap
-                removeSession(SessionsByPersistantIdentifierHashMap, SessionsByPersistantIdentifierReadWriteLock,
+                this.removeSession(this.SessionsByPersistantIdentifierHashMap, this.SessionsByPersistantIdentifierReadWriteLock,
                     pSessionToSync.PersistantIdentifier);
                 pSessionToSync.setPersistantIdentifierIndexed(false);
             }
@@ -610,13 +610,13 @@ public class AnalyzeSessionStore implements Serializable
         // index item if not indexed already
         if ((pSessionToSync.isPersistantIdentifierIndexed() == false) && (pSessionToSync.PersistantIdentifier != null) &&
                 (pSessionToSync.isPersistantIdentifierAllowIndex() == true) &&
-                ((pSessionToSync.getBestMatchedByCode() == 0) || sessionDefinition.PersistantIdentifierFallbackEnabled ||
+                ((pSessionToSync.getBestMatchedByCode() == 0) || this.sessionDefinition.PersistantIdentifierFallbackEnabled ||
                 (pSessionToSync.getBestMatchedByCode() >= 4)))
         {
             // System.out.println("Update: " + pSessionToSync.PersistantIdentifier);
             // add session back into hashmap
-            pSessionToSync.setPersistantIdentifierIndexed(putSession(pSessionToSync,
-                    SessionsByPersistantIdentifierHashMap, SessionsByPersistantIdentifierReadWriteLock,
+            pSessionToSync.setPersistantIdentifierIndexed(this.putSession(pSessionToSync,
+                    this.SessionsByPersistantIdentifierHashMap, this.SessionsByPersistantIdentifierReadWriteLock,
                     pSessionToSync.PersistantIdentifier));
         }
     }
@@ -629,10 +629,10 @@ public class AnalyzeSessionStore implements Serializable
      */
     public void closeOutAllSessions(boolean pLastActivityNull)
     {
-        SessionsByIPAddressAndBrowserBackgroundThread.closeOutAllSessions(pLastActivityNull);
-        SessionsByMainSessionIdentifierBackgroundThread.closeOutAllSessions(pLastActivityNull);
-        SessionsByFirstClickSessionIdentifierBackgroundThread.closeOutAllSessions(pLastActivityNull);
-        SessionsByPersistantIdentifierBackgroundThread.closeOutAllSessions(pLastActivityNull);
+        this.SessionsByIPAddressAndBrowserBackgroundThread.closeOutAllSessions(pLastActivityNull);
+        this.SessionsByMainSessionIdentifierBackgroundThread.closeOutAllSessions(pLastActivityNull);
+        this.SessionsByFirstClickSessionIdentifierBackgroundThread.closeOutAllSessions(pLastActivityNull);
+        this.SessionsByPersistantIdentifierBackgroundThread.closeOutAllSessions(pLastActivityNull);
 
         return;
     }
@@ -651,76 +651,76 @@ public class AnalyzeSessionStore implements Serializable
 
     public void createHashMaps(SessionDefinition pSessionDefinition)
     {
-        sessionDefinition = pSessionDefinition;
+        this.sessionDefinition = pSessionDefinition;
 
         int sleepTime = 5000;
 
         // create hashmaps, hashmap locks and management threads
         // ip address and browser
-        if (SessionsByIPAddressAndBrowserHashMap == null)
+        if (this.SessionsByIPAddressAndBrowserHashMap == null)
         {
-            SessionsByIPAddressAndBrowserHashMap = createHashMap(sessionDefinition.PeakSessionsAnHour,
-                    sessionDefinition.IPBrowserTimeOut);
+            this.SessionsByIPAddressAndBrowserHashMap = this.createHashMap(this.sessionDefinition.PeakSessionsAnHour,
+                    this.sessionDefinition.IPBrowserTimeOut);
         }
 
-        if (SessionsByIPAddressAndBrowserReadWriteLock == null)
+        if (this.SessionsByIPAddressAndBrowserReadWriteLock == null)
         {
-            SessionsByIPAddressAndBrowserReadWriteLock = new ReadWriteLock();
+            this.SessionsByIPAddressAndBrowserReadWriteLock = new ReadWriteLock();
         }
 
-        SessionsByIPAddressAndBrowserBackgroundThread = new AnalyzeSessionStoreSessions(SessionsByIPAddressAndBrowserHashMap,
-                SessionsByIPAddressAndBrowserReadWriteLock, CurrentDate, sleepTime, sessionDefinition.TimeOut,
-                sessionDefinition.IPBrowserTimeOut, 24, RemovedSessionsQueue, sessionDefinition.IPBrowserFallbackEnabled);
+        this.SessionsByIPAddressAndBrowserBackgroundThread = new AnalyzeSessionStoreSessions(this.SessionsByIPAddressAndBrowserHashMap,
+                this.SessionsByIPAddressAndBrowserReadWriteLock, this.CurrentDate, sleepTime, this.sessionDefinition.TimeOut,
+                this.sessionDefinition.IPBrowserTimeOut, 24, this.RemovedSessionsQueue, this.sessionDefinition.IPBrowserFallbackEnabled);
 
         // first click
-        if (SessionsByFirstClickSessionIdentifierHashMap == null)
+        if (this.SessionsByFirstClickSessionIdentifierHashMap == null)
         {
-            SessionsByFirstClickSessionIdentifierHashMap = createHashMap(sessionDefinition.PeakSessionsAnHour,
-                    sessionDefinition.FirstClickIdentifierTimeOut);
+            this.SessionsByFirstClickSessionIdentifierHashMap = this.createHashMap(this.sessionDefinition.PeakSessionsAnHour,
+                    this.sessionDefinition.FirstClickIdentifierTimeOut);
         }
 
-        if (SessionsByFirstClickSessionIdentifierReadWriteLock == null)
+        if (this.SessionsByFirstClickSessionIdentifierReadWriteLock == null)
         {
-            SessionsByFirstClickSessionIdentifierReadWriteLock = new ReadWriteLock();
+            this.SessionsByFirstClickSessionIdentifierReadWriteLock = new ReadWriteLock();
         }
 
-        SessionsByFirstClickSessionIdentifierBackgroundThread = new AnalyzeSessionStoreSessions(SessionsByFirstClickSessionIdentifierHashMap,
-                SessionsByFirstClickSessionIdentifierReadWriteLock, CurrentDate, sleepTime, sessionDefinition.TimeOut,
-                sessionDefinition.FirstClickIdentifierTimeOut, 2, RemovedSessionsQueue,
-                sessionDefinition.FirstClickIdentifierFallbackEnabled);
+        this.SessionsByFirstClickSessionIdentifierBackgroundThread = new AnalyzeSessionStoreSessions(this.SessionsByFirstClickSessionIdentifierHashMap,
+                this.SessionsByFirstClickSessionIdentifierReadWriteLock, this.CurrentDate, sleepTime, this.sessionDefinition.TimeOut,
+                this.sessionDefinition.FirstClickIdentifierTimeOut, 2, this.RemovedSessionsQueue,
+                this.sessionDefinition.FirstClickIdentifierFallbackEnabled);
 
         // persistant identifier
-        if (SessionsByPersistantIdentifierHashMap == null)
+        if (this.SessionsByPersistantIdentifierHashMap == null)
         {
-            SessionsByPersistantIdentifierHashMap = createHashMap(sessionDefinition.PeakSessionsAnHour,
-                    sessionDefinition.PersistantIdentifierTimeOut);
+            this.SessionsByPersistantIdentifierHashMap = this.createHashMap(this.sessionDefinition.PeakSessionsAnHour,
+                    this.sessionDefinition.PersistantIdentifierTimeOut);
         }
 
-        if (SessionsByPersistantIdentifierReadWriteLock == null)
+        if (this.SessionsByPersistantIdentifierReadWriteLock == null)
         {
-            SessionsByPersistantIdentifierReadWriteLock = new ReadWriteLock();
+            this.SessionsByPersistantIdentifierReadWriteLock = new ReadWriteLock();
         }
 
-        SessionsByPersistantIdentifierBackgroundThread = new AnalyzeSessionStoreSessions(SessionsByPersistantIdentifierHashMap,
-                SessionsByPersistantIdentifierReadWriteLock, CurrentDate, sleepTime, sessionDefinition.TimeOut,
-                sessionDefinition.PersistantIdentifierTimeOut, 4, RemovedSessionsQueue,
-                sessionDefinition.PersistantIdentifierFallbackEnabled);
+        this.SessionsByPersistantIdentifierBackgroundThread = new AnalyzeSessionStoreSessions(this.SessionsByPersistantIdentifierHashMap,
+                this.SessionsByPersistantIdentifierReadWriteLock, this.CurrentDate, sleepTime, this.sessionDefinition.TimeOut,
+                this.sessionDefinition.PersistantIdentifierTimeOut, 4, this.RemovedSessionsQueue,
+                this.sessionDefinition.PersistantIdentifierFallbackEnabled);
 
         //  main session identifier
-        if (SessionsByMainSessionIdentifierHashMap == null)
+        if (this.SessionsByMainSessionIdentifierHashMap == null)
         {
-            SessionsByMainSessionIdentifierHashMap = createHashMap(sessionDefinition.PeakSessionsAnHour,
-                    sessionDefinition.MainIdentifierTimeOut);
+            this.SessionsByMainSessionIdentifierHashMap = this.createHashMap(this.sessionDefinition.PeakSessionsAnHour,
+                    this.sessionDefinition.MainIdentifierTimeOut);
         }
 
-        if (SessionsByMainSessionIdentifierReadWriteLock == null)
+        if (this.SessionsByMainSessionIdentifierReadWriteLock == null)
         {
-            SessionsByMainSessionIdentifierReadWriteLock = new ReadWriteLock();
+            this.SessionsByMainSessionIdentifierReadWriteLock = new ReadWriteLock();
         }
 
-        SessionsByMainSessionIdentifierBackgroundThread = new AnalyzeSessionStoreSessions(SessionsByMainSessionIdentifierHashMap,
-                SessionsByMainSessionIdentifierReadWriteLock, CurrentDate, sleepTime, sessionDefinition.TimeOut,
-                sessionDefinition.MainIdentifierTimeOut, 1, RemovedSessionsQueue,
-                sessionDefinition.MainIdentifierFallbackEnabled);
+        this.SessionsByMainSessionIdentifierBackgroundThread = new AnalyzeSessionStoreSessions(this.SessionsByMainSessionIdentifierHashMap,
+                this.SessionsByMainSessionIdentifierReadWriteLock, this.CurrentDate, sleepTime, this.sessionDefinition.TimeOut,
+                this.sessionDefinition.MainIdentifierTimeOut, 1, this.RemovedSessionsQueue,
+                this.sessionDefinition.MainIdentifierFallbackEnabled);
     }
 }

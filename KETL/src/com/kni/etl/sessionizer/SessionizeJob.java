@@ -15,9 +15,6 @@ import com.kni.etl.stringtools.StringMatcher;
 
 public class SessionizeJob extends ETLJob
 {
-    private char[] comparisonBuffer;
-    private char[] buffer;
-
     // Any single character
     public static final char ANY = '?';
 
@@ -63,11 +60,13 @@ public class SessionizeJob extends ETLJob
      * Insert the method's description here.
      * Creation date: (5/9/2002 2:28:24 PM)
      */
+    @Override
     public void cleanup()
     {
         // If we still have a ResultSet open, we should close it...
     }
 
+    @Override
     protected Node setChildNodes(Node pParentNode)
     {
         Element e = pParentNode.getOwnerDocument().createElement("EMPTY");
@@ -87,9 +86,10 @@ public class SessionizeJob extends ETLJob
      * Insert the method's description here.
      * Creation date: (5/9/2002 12:06:44 PM)
      */
+    @Override
     protected void finalize() throws Throwable
     {
-        cleanup();
+        this.cleanup();
 
         // It's good practice to call the superclass's finalize() method,
         // even if you know there is not one currently defined...
@@ -103,7 +103,7 @@ public class SessionizeJob extends ETLJob
      */
     public String getBatchCommitSize()
     {
-        return (String) getGlobalParameter(SessionizeJob.BATCH_COMMIT_SIZE);
+        return (String) this.getGlobalParameter(SessionizeJob.BATCH_COMMIT_SIZE);
     }
 
     /**
@@ -113,7 +113,7 @@ public class SessionizeJob extends ETLJob
      */
     public java.lang.String getDatabaseDriverClass()
     {
-        return (String) getGlobalParameter(SessionizeJob.DATABASE_DRIVER_CLASS);
+        return (String) this.getGlobalParameter(SessionizeJob.DATABASE_DRIVER_CLASS);
     }
 
     /**
@@ -123,12 +123,12 @@ public class SessionizeJob extends ETLJob
      */
     public java.lang.String getDatabasePassword()
     {
-        return (String) getGlobalParameter(SessionizeJob.DATABASE_PASSWORD);
+        return (String) this.getGlobalParameter(SessionizeJob.DATABASE_PASSWORD);
     }
 
     public java.lang.String getDatabasePrefix()
     {
-        return (String) getGlobalParameter(SessionizeJob.DATABASE_PREFIX);
+        return (String) this.getGlobalParameter(SessionizeJob.DATABASE_PREFIX);
     }
 
     /**
@@ -138,7 +138,7 @@ public class SessionizeJob extends ETLJob
      */
     public java.lang.String getDatabaseURL()
     {
-        return (String) getGlobalParameter(SessionizeJob.DATABASE_URL);
+        return (String) this.getGlobalParameter(SessionizeJob.DATABASE_URL);
     }
 
     /**
@@ -148,7 +148,7 @@ public class SessionizeJob extends ETLJob
      */
     public java.lang.String getDatabaseUser()
     {
-        return (String) getGlobalParameter(SessionizeJob.DATABASE_USER);
+        return (String) this.getGlobalParameter(SessionizeJob.DATABASE_USER);
     }
 
     /**
@@ -158,27 +158,27 @@ public class SessionizeJob extends ETLJob
      */
     public String getFileDefinitionID()
     {
-        return (String) getGlobalParameter(SessionizeJob.FILE_DEFINITION_ID);
+        return (String) this.getGlobalParameter(SessionizeJob.FILE_DEFINITION_ID);
     }
 
     public String getMetadataDriver()
     {
-        return (String) getGlobalParameter(SessionizeJob.METADATA_DRIVER_CLASS);
+        return (String) this.getGlobalParameter(SessionizeJob.METADATA_DRIVER_CLASS);
     }
 
     public String getMetadataPassword()
     {
-        return (String) getGlobalParameter(SessionizeJob.METADATA_PASSWORD);
+        return (String) this.getGlobalParameter(SessionizeJob.METADATA_PASSWORD);
     }
 
     public String getMetadataURL()
     {
-        return (String) getGlobalParameter(SessionizeJob.METADATA_URL);
+        return (String) this.getGlobalParameter(SessionizeJob.METADATA_URL);
     }
 
     public String getMetadataUser()
     {
-        return (String) getGlobalParameter(SessionizeJob.METADATA_USER);
+        return (String) this.getGlobalParameter(SessionizeJob.METADATA_USER);
     }
 
     /**
@@ -188,7 +188,7 @@ public class SessionizeJob extends ETLJob
      */
     public String getPageDefinitionID()
     {
-        return (String) getGlobalParameter(SessionizeJob.PAGE_DEFINITION_ID);
+        return (String) this.getGlobalParameter(SessionizeJob.PAGE_DEFINITION_ID);
     }
 
     /**
@@ -198,7 +198,7 @@ public class SessionizeJob extends ETLJob
      */
     public String getSessionDefinitionID()
     {
-        return (String) getGlobalParameter(SessionizeJob.SESSION_DEFINITION_ID);
+        return (String) this.getGlobalParameter(SessionizeJob.SESSION_DEFINITION_ID);
     }
 
     /**
@@ -208,7 +208,7 @@ public class SessionizeJob extends ETLJob
      */
     public int getUpdateCount()
     {
-        return iUpdateCount;
+        return this.iUpdateCount;
     }
 
     /**
@@ -261,11 +261,10 @@ public class SessionizeJob extends ETLJob
 
             File[] list = dir.listFiles();
 
-            for (int i = 0; i < list.length; i++)
-            {
-                if (list[i].isFile())
+            for (File element : list) {
+                if (element.isFile())
                 {
-                    if (filePattern.match(list[i].getName()))
+                    if (filePattern.match(element.getName()))
                     {
                         if (fileNames == null)
                         {
@@ -280,7 +279,7 @@ public class SessionizeJob extends ETLJob
                             fileNames = tmp;
                         }
 
-                        fileNames[fieldCnt] = list[i].getPath();
+                        fileNames[fieldCnt] = element.getPath();
                     }
                 }
             }
@@ -291,7 +290,7 @@ public class SessionizeJob extends ETLJob
 
     public String getWebLogSearchString()
     {
-        return (String) getGlobalParameter(SessionizeJob.WEBLOG_SEARCH_STRING);
+        return (String) this.getGlobalParameter(SessionizeJob.WEBLOG_SEARCH_STRING);
     }
 
     /**
@@ -301,7 +300,7 @@ public class SessionizeJob extends ETLJob
      */
     public boolean runSMP()
     {
-        String smp = (String) getGlobalParameter(SessionizeJob.SMP);
+        String smp = (String) this.getGlobalParameter(SessionizeJob.SMP);
 
         if (smp == null)
         {
@@ -324,7 +323,7 @@ public class SessionizeJob extends ETLJob
      */
     public void setBatchCommitSize(String pParam)
     {
-        setGlobalParameter("batch_commit_size", pParam);
+        this.setGlobalParameter("batch_commit_size", pParam);
     }
 
     /**
@@ -334,7 +333,7 @@ public class SessionizeJob extends ETLJob
      */
     public void setDatabaseDriverClass(java.lang.String newDatabaseDriverClass)
     {
-        setGlobalParameter("driver", newDatabaseDriverClass);
+        this.setGlobalParameter("driver", newDatabaseDriverClass);
     }
 
     /**
@@ -344,7 +343,7 @@ public class SessionizeJob extends ETLJob
      */
     public void setDatabasePassword(java.lang.String newDatabasePassword)
     {
-        setGlobalParameter("password", newDatabasePassword);
+        this.setGlobalParameter("password", newDatabasePassword);
     }
 
     /**
@@ -354,7 +353,7 @@ public class SessionizeJob extends ETLJob
      */
     public void setDatabaseURL(java.lang.String newDatabaseURL)
     {
-        setGlobalParameter("url", newDatabaseURL);
+        this.setGlobalParameter("url", newDatabaseURL);
     }
 
     /**
@@ -364,7 +363,7 @@ public class SessionizeJob extends ETLJob
      */
     public void setDatabaseUser(java.lang.String newDatabaseUser)
     {
-        setGlobalParameter("user", newDatabaseUser);
+        this.setGlobalParameter("user", newDatabaseUser);
     }
 
     /**
@@ -374,27 +373,27 @@ public class SessionizeJob extends ETLJob
      */
     public void setFileDefinitionID(String pParam)
     {
-        setGlobalParameter("file_definition_id", pParam);
+        this.setGlobalParameter("file_definition_id", pParam);
     }
 
     public void setMetadataDriver(String newMD)
     {
-        setGlobalParameter("md_driver", newMD);
+        this.setGlobalParameter("md_driver", newMD);
     }
 
     public void setMetadataPassword(String newMD)
     {
-        setGlobalParameter("md_pwd", newMD);
+        this.setGlobalParameter("md_pwd", newMD);
     }
 
     public void setMetadataURL(String newMD)
     {
-        setGlobalParameter("md_url", newMD);
+        this.setGlobalParameter("md_url", newMD);
     }
 
     public void setMetadataUser(String newMD)
     {
-        setGlobalParameter("md_user", newMD);
+        this.setGlobalParameter("md_user", newMD);
     }
 
     /**
@@ -404,7 +403,7 @@ public class SessionizeJob extends ETLJob
      */
     public void setPageDefinitionID(String pParam)
     {
-        setGlobalParameter("page_definition_id", pParam);
+        this.setGlobalParameter("page_definition_id", pParam);
     }
 
     /**
@@ -414,7 +413,7 @@ public class SessionizeJob extends ETLJob
      */
     public void setSessionDefinitionID(String pParam)
     {
-        setGlobalParameter("session_definition_id", pParam);
+        this.setGlobalParameter("session_definition_id", pParam);
     }
 
     /**
@@ -424,7 +423,7 @@ public class SessionizeJob extends ETLJob
      */
     public void setUpdateCount(int newUpdateCount)
     {
-        iUpdateCount = newUpdateCount;
+        this.iUpdateCount = newUpdateCount;
     }
 
     /**
@@ -434,6 +433,6 @@ public class SessionizeJob extends ETLJob
      */
     public void setWebLogSearchString(java.lang.String newParam)
     {
-        setGlobalParameter("weblog_srch", newParam);
+        this.setGlobalParameter("weblog_srch", newParam);
     }
 }

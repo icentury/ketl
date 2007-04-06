@@ -38,44 +38,44 @@ public class IDCounter
     public IDCounter(String strIDName, long param) throws Exception
     {
         super();
-        batchSize = param;
-        md = ResourcePool.getMetadata();
-        idsLeft = batchSize;
+        this.batchSize = param;
+        this.md = ResourcePool.getMetadata();
+        this.idsLeft = this.batchSize;
 
         // Get max temp session id
-        IDName = strIDName;
+        this.IDName = strIDName;
 
         try
         {
             //System.out.println("IDS " + Thread.currentThread().getName()  + ": ID in " + id + " batchsize:" + batchSize);
-            id = md.getBatchOfIDValues(IDName, batchSize);
+            this.id = this.md.getBatchOfIDValues(this.IDName, this.batchSize);
 
             //System.out.println("IDS " + Thread.currentThread().getName()  + ": ID out " + id + " batchsize:" + batchSize);
         }
         catch (Exception e)
         {
-            md = null;
+            this.md = null;
         }
 
-        if (md == null)
+        if (this.md == null)
         {
             ResourcePool.LogMessage(this, "Sequence " + strIDName + " defaulting to 0 as metadata not available!");
-            id = 0;
+            this.id = 0;
         }
     }
 
     public synchronized final long incrementID()
     {
-        idsLeft--;
+        this.idsLeft--;
 
-        if (idsLeft <= 0)
+        if (this.idsLeft <= 0)
         {
-            if (md != null)
+            if (this.md != null)
             {
                 try
                 {
                     //System.out.println("IDS " + Thread.currentThread().getName()  + ": ID in " + id + " batchsize:" + batchSize);
-                    id = md.getBatchOfIDValues(IDName, batchSize);
+                    this.id = this.md.getBatchOfIDValues(this.IDName, this.batchSize);
 
                     //System.out.println("IDS " + Thread.currentThread().getName()  + ": ID out " + id + " batchsize:" + batchSize);
                 }
@@ -85,29 +85,30 @@ public class IDCounter
                 }
             }
 
-            idsLeft = batchSize - 1;
+            this.idsLeft = this.batchSize - 1;
         }
 
-        return id++;
+        return this.id++;
     }
 
     public final long setToCurrentID()
     {
-        if (md != null)
+        if (this.md != null)
         {
-            md.setMaxIDValue(IDName, id++);
+            this.md.setMaxIDValue(this.IDName, this.id++);
         }
 
-        return id;
+        return this.id;
     }
 
     public final long getID()
     {
-        return id;
+        return this.id;
     }
 
+    @Override
     public final String toString()
     {
-        return Long.toString(id);
+        return Long.toString(this.id);
     }
 }

@@ -32,7 +32,7 @@ public class Session extends ResultRecord
     private static final long serialVersionUID = 3977299923580500018L;
 
     // public attributes
-    private long ID;
+    public long ID;
     public boolean lastHitStored = false;
     public boolean expired = false;
     public java.util.Date FirstActivity;
@@ -46,7 +46,7 @@ public class Session extends ResultRecord
     public String customField3;
     public String customField2;
     public String customField1;
-    public PageView lastHit = null;
+    public Object[] lastHit = null;
     public java.lang.String[][] CookieKeepVariables;
     public long Hit = 0;
     public long PageViews = 0;
@@ -75,6 +75,8 @@ public class Session extends ResultRecord
     public static final int SESSION = 1;
     java.util.Date mLastReferrerURLPageDate = null;
 
+    
+
     /**
      * Session constructor comment.
      */
@@ -82,14 +84,14 @@ public class Session extends ResultRecord
     {
         super();
 
-        this.Type = SESSION;
+        this.Type = Session.SESSION;
 
-        IndexLock = new ReadWriteLock();
+        this.IndexLock = new ReadWriteLock();
     }
 
     public void syncReferrer(String pReferrerURL, Date pPageDate)
     {
-        if ((mLastReferrerURLPageDate == null) || pPageDate.before(mLastReferrerURLPageDate))
+        if ((this.mLastReferrerURLPageDate == null) || pPageDate.before(this.mLastReferrerURLPageDate))
         {
             this.Referrer = pReferrerURL;
             this.mLastReferrerURLPageDate = pPageDate;
@@ -102,33 +104,33 @@ public class Session extends ResultRecord
         switch (pDestinationObjectType)
         {
         case EngineConstants.SESSION_MAIN_SESSION_IDENTIFIER:
-            MainSessionIdentifier = pValue;
+            this.MainSessionIdentifier = pValue;
 
             return (true);
 
         case EngineConstants.SESSION_FIRST_CLICK_IDENTIFIER:
-            FirstClickSessionIdentifier = pValue;
+            this.FirstClickSessionIdentifier = pValue;
 
             return (true);
 
         case EngineConstants.SESSION_BROWSER:
-            Browser = pValue;
+            this.Browser = pValue;
 
             return (true);
 
         case EngineConstants.SESSION_IP_ADDRESS:
-            IPAddress = pValue;
+            this.IPAddress = pValue;
 
             return (true);
 
         case EngineConstants.SESSION_PERSISTANT_IDENTIFIER:
 
-            if (StartPersistantIdentifier == null)
+            if (this.StartPersistantIdentifier == null)
             {
-                StartPersistantIdentifier = pValue;
+                this.StartPersistantIdentifier = pValue;
             }
 
-            PersistantIdentifier = pValue;
+            this.PersistantIdentifier = pValue;
 
             return (true);
         }
@@ -197,6 +199,7 @@ public class Session extends ResultRecord
      * Creation date: (4/15/2002 10:23:51 AM)
      * @return datasources.Session
      */
+    @Override
     public Object clone()
     {
         Session copySession = null;
@@ -227,61 +230,61 @@ public class Session extends ResultRecord
         */
 
         // copy string
-        if (Browser != null)
+        if (this.Browser != null)
         {
-            copySession.Browser = Browser;
+            copySession.Browser = this.Browser;
         }
 
-        if (IPAddress != null)
+        if (this.IPAddress != null)
         {
-            copySession.IPAddress = IPAddress;
+            copySession.IPAddress = this.IPAddress;
         }
 
-        if (FirstClickSessionIdentifier != null)
+        if (this.FirstClickSessionIdentifier != null)
         {
-            copySession.FirstClickSessionIdentifier = FirstClickSessionIdentifier;
+            copySession.FirstClickSessionIdentifier = this.FirstClickSessionIdentifier;
         }
 
-        if (MainSessionIdentifier != null)
+        if (this.MainSessionIdentifier != null)
         {
-            copySession.MainSessionIdentifier = MainSessionIdentifier;
+            copySession.MainSessionIdentifier = this.MainSessionIdentifier;
         }
 
-        if (PersistantIdentifier != null)
+        if (this.PersistantIdentifier != null)
         {
-            copySession.PersistantIdentifier = PersistantIdentifier;
+            copySession.PersistantIdentifier = this.PersistantIdentifier;
         }
 
-        if (StartPersistantIdentifier != null)
+        if (this.StartPersistantIdentifier != null)
         {
-            copySession.StartPersistantIdentifier = StartPersistantIdentifier;
+            copySession.StartPersistantIdentifier = this.StartPersistantIdentifier;
         }
 
         // clone custom fields
-        if (customField1 != null)
+        if (this.customField1 != null)
         {
-            copySession.customField1 = customField1;
+            copySession.customField1 = this.customField1;
         }
 
-        if (customField2 != null)
+        if (this.customField2 != null)
         {
-            copySession.customField2 = customField2;
+            copySession.customField2 = this.customField2;
         }
 
-        if (customField3 != null)
+        if (this.customField3 != null)
         {
-            copySession.customField3 = customField3;
+            copySession.customField3 = this.customField3;
         }
 
         // clone dates
-        if (FirstActivity != null)
+        if (this.FirstActivity != null)
         {
-            copySession.FirstActivity = (java.util.Date) FirstActivity.clone();
+            copySession.FirstActivity = (java.util.Date) this.FirstActivity.clone();
         }
 
-        if (LastActivity != null)
+        if (this.LastActivity != null)
         {
-            copySession.LastActivity = (java.util.Date) LastActivity.clone();
+            copySession.LastActivity = (java.util.Date) this.LastActivity.clone();
         }
 
         if (this.CookieKeepVariables != null)
@@ -352,22 +355,22 @@ public class Session extends ResultRecord
         switch (pCode)
         {
         case 1:
-            setMainSessionIdentifierIndexed(false);
+            this.setMainSessionIdentifierIndexed(false);
 
             break;
 
         case 2:
-            setFirstClickSessionIdentifierIndexed(false);
+            this.setFirstClickSessionIdentifierIndexed(false);
 
             break;
 
         case 4:
-            setPersistantIdentifierIndexed(false);
+            this.setPersistantIdentifierIndexed(false);
 
             break;
 
         case 24:
-            setIPAddressAndBrowserIndexed(false);
+            this.setIPAddressAndBrowserIndexed(false);
 
             break;
         }
@@ -380,7 +383,7 @@ public class Session extends ResultRecord
      */
     public int getBestMatchedByCode()
     {
-        return BestSessionMatchedBy;
+        return this.BestSessionMatchedBy;
     }
 
     /**
@@ -390,7 +393,7 @@ public class Session extends ResultRecord
      */
     public final long getID()
     {
-        return ID;
+        return this.ID;
     }
 
     /**
@@ -430,7 +433,7 @@ public class Session extends ResultRecord
      */
     public int getSessionMatchedByCode()
     {
-        return SessionMatchedBy;
+        return this.SessionMatchedBy;
     }
 
     /**
@@ -441,10 +444,10 @@ public class Session extends ResultRecord
     public boolean isExpired()
     {
         boolean res = false;
-        IndexLock.getReadLock();
+        this.IndexLock.getReadLock();
 
-        if ((isMainSessionIdentifierIndexed() == false) && (isPersistantIdentifierIndexed() == false) &&
-                (isIPAddressAndBrowserIndexed() == false) && (isFirstClickSessionIdentifierIndexed() == false))
+        if ((this.isMainSessionIdentifierIndexed() == false) && (this.isPersistantIdentifierIndexed() == false) &&
+                (this.isIPAddressAndBrowserIndexed() == false) && (this.isFirstClickSessionIdentifierIndexed() == false))
         {
             res = true;
         }
@@ -453,7 +456,7 @@ public class Session extends ResultRecord
             res = false;
         }
 
-        IndexLock.releaseLock();
+        this.IndexLock.releaseLock();
         this.expired = true;
 
         return res;
@@ -466,7 +469,7 @@ public class Session extends ResultRecord
      */
     public boolean isFirstClickSessionIdentifierAllowIndex()
     {
-        return FirstClickSessionIdentifierAllowIndex;
+        return this.FirstClickSessionIdentifierAllowIndex;
     }
 
     /**
@@ -476,7 +479,7 @@ public class Session extends ResultRecord
      */
     public boolean isFirstClickSessionIdentifierIndexed()
     {
-        return FirstClickSessionIdentifierIndexed;
+        return this.FirstClickSessionIdentifierIndexed;
     }
 
     /**
@@ -486,7 +489,7 @@ public class Session extends ResultRecord
      */
     public boolean isIPAddressAndBrowserAllowIndex()
     {
-        return IPAddressAndBrowserAllowIndex;
+        return this.IPAddressAndBrowserAllowIndex;
     }
 
     /**
@@ -496,7 +499,7 @@ public class Session extends ResultRecord
      */
     public boolean isIPAddressAndBrowserIndexed()
     {
-        return IPAddressAndBrowserIndexed;
+        return this.IPAddressAndBrowserIndexed;
     }
 
     /**
@@ -506,7 +509,7 @@ public class Session extends ResultRecord
      */
     public boolean isMainSessionIdentifierAllowIndex()
     {
-        return MainSessionIdentifierAllowIndex;
+        return this.MainSessionIdentifierAllowIndex;
     }
 
     /**
@@ -516,7 +519,7 @@ public class Session extends ResultRecord
      */
     public boolean isMainSessionIdentifierIndexed()
     {
-        return MainSessionIdentifierIndexed;
+        return this.MainSessionIdentifierIndexed;
     }
 
     /**
@@ -526,7 +529,7 @@ public class Session extends ResultRecord
      */
     public boolean isPersistantIdentifierAllowIndex()
     {
-        return PersistantIdentifierAllowIndex;
+        return this.PersistantIdentifierAllowIndex;
     }
 
     /**
@@ -536,7 +539,7 @@ public class Session extends ResultRecord
      */
     public boolean isPersistantIdentifierIndexed()
     {
-        return PersistantIdentifierIndexed;
+        return this.PersistantIdentifierIndexed;
     }
 
     /**
@@ -546,7 +549,7 @@ public class Session extends ResultRecord
      */
     public boolean isPreviouslyFoundOnMainSessionIdentifier()
     {
-        return PreviouslyFoundOnMainSessionIdentifier;
+        return this.PreviouslyFoundOnMainSessionIdentifier;
     }
 
     /**
@@ -556,7 +559,7 @@ public class Session extends ResultRecord
      */
     public boolean isRepeatVisitor()
     {
-        return RepeatVisitor;
+        return this.RepeatVisitor;
     }
 
     /**
@@ -568,7 +571,7 @@ public class Session extends ResultRecord
      */
     public boolean isStillValid(java.util.Date pDate, int pTimeOut)
     {
-        if ((pDate.getTime() - LastActivity.getTime()) <= (pTimeOut * 1000))
+        if ((pDate.getTime() - this.LastActivity.getTime()) <= (pTimeOut * 1000))
         {
             return (true);
         }
@@ -587,7 +590,7 @@ public class Session extends ResultRecord
         boolean pEnableFallback)
     {
         // if session timeout exceeded then timeout session as normal
-        if ((pDate.getTime() - LastActivity.getTime()) >= (pTimeOut * 1000))
+        if ((pDate.getTime() - this.LastActivity.getTime()) >= (pTimeOut * 1000))
         {
             // if (this.FirstClickSessionIdentifier != null && this.FirstClickSessionIdentifier.indexOf("226.199.161.208681024730146880") > 0) {
             //     int rs = 0;
@@ -599,8 +602,8 @@ public class Session extends ResultRecord
             // was greater than last match timeout then mark session as false and not to use this
             // id again for life of session
         }
-        else if ((pAlgorithmToUse > BestSessionMatchedBy) && (BestSessionMatchedBy != 0) && (SessionMatchedBy != 0) &&
-                (disallowMatchingByThisAlgorithm(pDate, pLastMatchTimeOut, pAlgorithmToUse) == true))
+        else if ((pAlgorithmToUse > this.BestSessionMatchedBy) && (this.BestSessionMatchedBy != 0) && (this.SessionMatchedBy != 0) &&
+                (this.disallowMatchingByThisAlgorithm(pDate, pLastMatchTimeOut, pAlgorithmToUse) == true))
         {
             // if session timed out on lack of match using given algorithm then do not allow
             // matching on this algorithm again - protects again joining sessions
@@ -623,11 +626,11 @@ public class Session extends ResultRecord
      */
     public void resetIndexes()
     {
-        setPersistantIdentifierIndexed(false);
-        setIPAddressAndBrowserIndexed(false);
-        setMainSessionIdentifierIndexed(false);
-        setFirstClickSessionIdentifierIndexed(false);
-        setPreviouslyFoundOnMainSessionIdentifier(false);
+        this.setPersistantIdentifierIndexed(false);
+        this.setIPAddressAndBrowserIndexed(false);
+        this.setMainSessionIdentifierIndexed(false);
+        this.setFirstClickSessionIdentifierIndexed(false);
+        this.setPreviouslyFoundOnMainSessionIdentifier(false);
     }
 
     /**
@@ -637,11 +640,11 @@ public class Session extends ResultRecord
      */
     public void setFirstClickSessionIdentifierIndexed(boolean newFirstClickSessionIdentifierIndexed)
     {
-        IndexLock.getWriteLock();
+        this.IndexLock.getWriteLock();
 
-        FirstClickSessionIdentifierIndexed = newFirstClickSessionIdentifierIndexed;
+        this.FirstClickSessionIdentifierIndexed = newFirstClickSessionIdentifierIndexed;
 
-        IndexLock.releaseLock();
+        this.IndexLock.releaseLock();
 
         if (newFirstClickSessionIdentifierIndexed)
         {
@@ -661,7 +664,7 @@ public class Session extends ResultRecord
      */
     public void setID(long newID)
     {
-        ID = newID;
+        this.ID = newID;
     }
 
     /**
@@ -671,11 +674,11 @@ public class Session extends ResultRecord
      */
     public void setIPAddressAndBrowserIndexed(boolean newIPAddressAndBrowserIndexed)
     {
-        IndexLock.getWriteLock();
+        this.IndexLock.getWriteLock();
 
-        IPAddressAndBrowserIndexed = newIPAddressAndBrowserIndexed;
+        this.IPAddressAndBrowserIndexed = newIPAddressAndBrowserIndexed;
 
-        IndexLock.releaseLock();
+        this.IndexLock.releaseLock();
 
         if (newIPAddressAndBrowserIndexed)
         {
@@ -694,9 +697,9 @@ public class Session extends ResultRecord
      */
     public void setMainSessionIdentifierIndexed(boolean newMainSessionIdentifierIndexed)
     {
-        IndexLock.getWriteLock();
+        this.IndexLock.getWriteLock();
         this.MainSessionIdentifierIndexed = newMainSessionIdentifierIndexed;
-        IndexLock.releaseLock();
+        this.IndexLock.releaseLock();
 
         if (newMainSessionIdentifierIndexed)
         {
@@ -748,11 +751,11 @@ public class Session extends ResultRecord
      */
     public void setMatchingAlgorithm(int pCode)
     {
-        SessionMatchedBy = pCode;
+        this.SessionMatchedBy = pCode;
 
-        if ((pCode < BestSessionMatchedBy) || (BestSessionMatchedBy == 0))
+        if ((pCode < this.BestSessionMatchedBy) || (this.BestSessionMatchedBy == 0))
         {
-            BestSessionMatchedBy = pCode;
+            this.BestSessionMatchedBy = pCode;
         }
     }
 
@@ -763,11 +766,11 @@ public class Session extends ResultRecord
      */
     public void setPersistantIdentifierIndexed(boolean newPersistantIdentifierIndexed)
     {
-        IndexLock.getWriteLock();
+        this.IndexLock.getWriteLock();
 
-        PersistantIdentifierIndexed = newPersistantIdentifierIndexed;
+        this.PersistantIdentifierIndexed = newPersistantIdentifierIndexed;
 
-        IndexLock.releaseLock();
+        this.IndexLock.releaseLock();
 
         if (newPersistantIdentifierIndexed)
         {
@@ -787,7 +790,7 @@ public class Session extends ResultRecord
      */
     public void setPreviouslyFoundOnMainSessionIdentifier(boolean newPreviouslyFoundOnMainSessionIdentifier)
     {
-        PreviouslyFoundOnMainSessionIdentifier = newPreviouslyFoundOnMainSessionIdentifier;
+        this.PreviouslyFoundOnMainSessionIdentifier = newPreviouslyFoundOnMainSessionIdentifier;
     }
 
     /**
@@ -797,13 +800,14 @@ public class Session extends ResultRecord
      */
     public void setRepeatVisitor(boolean newRepeatVisitor)
     {
-        RepeatVisitor = newRepeatVisitor;
+        this.RepeatVisitor = newRepeatVisitor;
     }
 
     /**
      * Insert the method's description here.
      * Creation date: (4/20/2002 7:49:02 PM)
      */
+    @Override
     public void sync()
     {
         super.sync();
@@ -848,50 +852,51 @@ public class Session extends ResultRecord
     /* (non-Javadoc)
      * @see com.kni.etl.ResultRecord#CopyTo(com.kni.etl.ResultRecord)
      */
+    @Override
     public ResultRecord CopyTo(ResultRecord newRecord)
     {
         Session rec = (Session) newRecord;
-        rec.ID = ID;
-        rec.lastHitStored = lastHitStored;
-        rec.expired = expired;
-        rec.FirstActivity = FirstActivity;
-        rec.LastActivity = LastActivity;
-        rec.Browser = Browser;
-        rec.IPAddress = IPAddress;
-        rec.MainSessionIdentifier = MainSessionIdentifier;
-        rec.StartPersistantIdentifier = StartPersistantIdentifier;
-        rec.PersistantIdentifier = PersistantIdentifier;
-        rec.FirstClickSessionIdentifier = FirstClickSessionIdentifier;
-        rec.customField3 = customField3;
-        rec.customField2 = customField2;
-        rec.customField1 = customField1;
-        rec.lastHit = lastHit;
-        rec.CookieKeepVariables = CookieKeepVariables;
-        rec.Hit = Hit;
-        rec.PageViews = PageViews;
-        rec.DM_LOAD_ID = DM_LOAD_ID;
-        rec.LOAD_ID = LOAD_ID;
-        rec.PreviouslyFoundOnMainSessionIdentifier = PreviouslyFoundOnMainSessionIdentifier;
-        rec.RepeatVisitor = RepeatVisitor;
-        rec.Referrer = Referrer;
+        rec.ID = this.ID;
+        rec.lastHitStored = this.lastHitStored;
+        rec.expired = this.expired;
+        rec.FirstActivity = this.FirstActivity;
+        rec.LastActivity = this.LastActivity;
+        rec.Browser = this.Browser;
+        rec.IPAddress = this.IPAddress;
+        rec.MainSessionIdentifier = this.MainSessionIdentifier;
+        rec.StartPersistantIdentifier = this.StartPersistantIdentifier;
+        rec.PersistantIdentifier = this.PersistantIdentifier;
+        rec.FirstClickSessionIdentifier = this.FirstClickSessionIdentifier;
+        rec.customField3 = this.customField3;
+        rec.customField2 = this.customField2;
+        rec.customField1 = this.customField1;
+        rec.lastHit = this.lastHit;
+        rec.CookieKeepVariables = this.CookieKeepVariables;
+        rec.Hit = this.Hit;
+        rec.PageViews = this.PageViews;
+        rec.DM_LOAD_ID = this.DM_LOAD_ID;
+        rec.LOAD_ID = this.LOAD_ID;
+        rec.PreviouslyFoundOnMainSessionIdentifier = this.PreviouslyFoundOnMainSessionIdentifier;
+        rec.RepeatVisitor = this.RepeatVisitor;
+        rec.Referrer = this.Referrer;
 
         // private attributes
-        rec.SessionMatchedBy = SessionMatchedBy;
-        rec.BestSessionMatchedBy = BestSessionMatchedBy;
-        rec.IPAddressAndBrowserIndexed = IPAddressAndBrowserIndexed;
-        rec.MainSessionIdentifierIndexed = MainSessionIdentifierIndexed;
-        rec.FirstClickSessionIdentifierIndexed = FirstClickSessionIdentifierIndexed;
-        rec.PersistantIdentifierIndexed = PersistantIdentifierIndexed;
-        rec.IPAddressAndBrowserAllowIndex = IPAddressAndBrowserAllowIndex;
-        rec.MainSessionIdentifierAllowIndex = MainSessionIdentifierAllowIndex;
-        rec.FirstClickSessionIdentifierAllowIndex = FirstClickSessionIdentifierAllowIndex;
-        rec.PersistantIdentifierAllowIndex = PersistantIdentifierAllowIndex;
-        rec.IPAddressAndBrowserLastMatch = IPAddressAndBrowserLastMatch;
-        rec.MainSessionIdentifierLastMatch = MainSessionIdentifierLastMatch;
-        rec.FirstClickSessionIdentifierLastMatch = FirstClickSessionIdentifierLastMatch;
-        rec.PersistantIdentifierLastMatch = PersistantIdentifierLastMatch;
-        rec.IndexLock = IndexLock;
-        rec.mLastReferrerURLPageDate = mLastReferrerURLPageDate;
+        rec.SessionMatchedBy = this.SessionMatchedBy;
+        rec.BestSessionMatchedBy = this.BestSessionMatchedBy;
+        rec.IPAddressAndBrowserIndexed = this.IPAddressAndBrowserIndexed;
+        rec.MainSessionIdentifierIndexed = this.MainSessionIdentifierIndexed;
+        rec.FirstClickSessionIdentifierIndexed = this.FirstClickSessionIdentifierIndexed;
+        rec.PersistantIdentifierIndexed = this.PersistantIdentifierIndexed;
+        rec.IPAddressAndBrowserAllowIndex = this.IPAddressAndBrowserAllowIndex;
+        rec.MainSessionIdentifierAllowIndex = this.MainSessionIdentifierAllowIndex;
+        rec.FirstClickSessionIdentifierAllowIndex = this.FirstClickSessionIdentifierAllowIndex;
+        rec.PersistantIdentifierAllowIndex = this.PersistantIdentifierAllowIndex;
+        rec.IPAddressAndBrowserLastMatch = this.IPAddressAndBrowserLastMatch;
+        rec.MainSessionIdentifierLastMatch = this.MainSessionIdentifierLastMatch;
+        rec.FirstClickSessionIdentifierLastMatch = this.FirstClickSessionIdentifierLastMatch;
+        rec.PersistantIdentifierLastMatch = this.PersistantIdentifierLastMatch;
+        rec.IndexLock = this.IndexLock;
+        rec.mLastReferrerURLPageDate = this.mLastReferrerURLPageDate;
 
         return newRecord;
     }

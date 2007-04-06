@@ -38,7 +38,7 @@ public class PageParserPageParameter
      */
     public char[] getParameterName()
     {
-        return ParameterName;
+        return this.ParameterName;
     }
 
     /**
@@ -48,7 +48,7 @@ public class PageParserPageParameter
      */
     public char[] getParameterValue()
     {
-        return ParameterValue;
+        return this.ParameterValue;
     }
 
     /**
@@ -58,7 +58,7 @@ public class PageParserPageParameter
      */
     public char[] getValueSeperator()
     {
-        return ValueSeperator;
+        return this.ValueSeperator;
     }
 
     /**
@@ -68,7 +68,7 @@ public class PageParserPageParameter
      */
     public boolean isParameterRequired()
     {
-        return ParameterRequired;
+        return this.ParameterRequired;
     }
 
     /**
@@ -78,7 +78,7 @@ public class PageParserPageParameter
      */
     public boolean isRemoveParameter()
     {
-        return RemoveParameter;
+        return this.RemoveParameter;
     }
 
     /**
@@ -88,7 +88,7 @@ public class PageParserPageParameter
      */
     public boolean isRemoveParameterValue()
     {
-        return RemoveParameterValue;
+        return this.RemoveParameterValue;
     }
 
     /**
@@ -103,7 +103,7 @@ public class PageParserPageParameter
             return;
         }
 
-        ParameterName = newParameterName.toCharArray();
+        this.ParameterName = newParameterName.toCharArray();
     }
 
     /**
@@ -113,7 +113,7 @@ public class PageParserPageParameter
      */
     public void setParameterRequired(boolean newParameterRequired)
     {
-        ParameterRequired = newParameterRequired;
+        this.ParameterRequired = newParameterRequired;
     }
 
     /**
@@ -128,7 +128,7 @@ public class PageParserPageParameter
             return;
         }
 
-        ParameterValue = newParameterValue.toCharArray();
+        this.ParameterValue = newParameterValue.toCharArray();
     }
 
     /**
@@ -138,7 +138,7 @@ public class PageParserPageParameter
      */
     public void setRemoveParameter(boolean newRemoveParameter)
     {
-        RemoveParameter = newRemoveParameter;
+        this.RemoveParameter = newRemoveParameter;
     }
 
     /**
@@ -148,7 +148,7 @@ public class PageParserPageParameter
      */
     public void setRemoveParameterValue(boolean newRemoveParameterValue)
     {
-        RemoveParameterValue = newRemoveParameterValue;
+        this.RemoveParameterValue = newRemoveParameterValue;
     }
 
     /**
@@ -163,6 +163,6 @@ public class PageParserPageParameter
             return;
         }
 
-        ValueSeperator = newValueSeperator.toCharArray();
+        this.ValueSeperator = newValueSeperator.toCharArray();
     }
 }

@@ -18,13 +18,24 @@ public class SessionIdentifier
     public int DataType;
     public int ObjectType;
     public BoyerMooreAlgorithm searchAccelerator = null;
-
-    // 9 = MAIN_SESSION_IDENTIFIER, 10 = FIRST_CLICK_IDENTIFIER, 11 = BROWSER, 12 = IP_ADDRESS
     public int DestinationObjectType;
     public java.lang.String VariableName;
     public java.lang.String FormatString;
     public boolean CaseSensitive = false;
+    public int identifiers = 0;
+    public int[] identifier;
 
+    
+    public void addSessionIdentifierMap(int pos){
+        if(this.identifiers ==0)
+            this.identifier = new int[this.identifiers+1];
+        else {
+            int[] tmp = new int[this.identifiers+1];
+            System.arraycopy(this.identifier,0, tmp, 0,this.identifiers);
+            this.identifier = tmp;
+        }        
+        this.identifier[this.identifiers++] = pos;        
+    }
     /**
      * SessionIdentifier constructor comment.
      */
@@ -43,14 +54,14 @@ public class SessionIdentifier
             return;
         }
 
-        CaseSensitive = caseSensitive;
+        this.CaseSensitive = caseSensitive;
 
-        VariableName = string;
+        this.VariableName = string;
 
-        if (VariableName != null)
+        if (this.VariableName != null)
         {
-            searchAccelerator = new BoyerMooreAlgorithm();
-            searchAccelerator.compile(VariableName);
+            this.searchAccelerator = new BoyerMooreAlgorithm();
+            this.searchAccelerator.compile(this.VariableName);
         }
     }
 }

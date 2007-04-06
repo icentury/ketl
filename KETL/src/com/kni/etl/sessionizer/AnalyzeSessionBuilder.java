@@ -35,7 +35,7 @@ public class AnalyzeSessionBuilder implements Serializable
     static final int WEIGHT = 0;
     static final int SESSIONIDENTIFIER = 1;
     static final int ENDOFLIST = -1;
-    transient char[] searchBuffer = new char[MAXSEARCHBUFFER];
+    transient char[] searchBuffer = new char[AnalyzeSessionBuilder.MAXSEARCHBUFFER];
     int[][] sessionWeightIndex = null;
     int sessionWeightIndexLength;
     int[][] sessionIdentifierObjectIndex = null;
@@ -45,12 +45,12 @@ public class AnalyzeSessionBuilder implements Serializable
 
     public void setLoadIDs(int pLoadID, int pdmLoadID)
     {
-        DM_LOAD_ID = pdmLoadID;
+        this.DM_LOAD_ID = pdmLoadID;
     }
 
     public void setIDCounter(IDCounter pStartSessionID)
     {
-        ActiveSessionStore.setIDCounter(pStartSessionID);
+        this.ActiveSessionStore.setIDCounter(pStartSessionID);
     }
 
     public void preLoadWebServerSettings()
@@ -58,9 +58,9 @@ public class AnalyzeSessionBuilder implements Serializable
         //      --------------- Preload End Marker and Seperators as
         // Strings---------------
         // Apache
-        mWebServerSettings = new WebServerSettings[EngineConstants.MAX_WEBSERVERS];
-        mWebServerSettings[EngineConstants.APACHE] = new WebServerSettings();
-        mWebServerSettings[EngineConstants.NETSCAPE] = new WebServerSettings();
+        this.mWebServerSettings = new WebServerSettings[EngineConstants.MAX_WEBSERVERS];
+        this.mWebServerSettings[EngineConstants.APACHE] = new WebServerSettings();
+        this.mWebServerSettings[EngineConstants.NETSCAPE] = new WebServerSettings();
 
         // apache cookie seps
         String[] a2 = { "=", ":" };
@@ -82,12 +82,12 @@ public class AnalyzeSessionBuilder implements Serializable
         // apache netscape cookie endmark
         String[] e2 = { ";", " " };
 
-        mWebServerSettings[EngineConstants.APACHE].addWebServerPair(WebServerSettings.URL, e1, a2);
-        mWebServerSettings[EngineConstants.NETSCAPE].addWebServerPair(WebServerSettings.URL, b1, b2);
-        mWebServerSettings[EngineConstants.APACHE].addWebServerPair(WebServerSettings.COOKIE, e2, a2);
-        mWebServerSettings[EngineConstants.NETSCAPE].addWebServerPair(WebServerSettings.COOKIE, e2, d2);
-        mWebServerSettings[EngineConstants.APACHE].addWebServerPair(WebServerSettings.OTHER, c1, e2);
-        mWebServerSettings[EngineConstants.NETSCAPE].addWebServerPair(WebServerSettings.OTHER, c1, e2);
+        this.mWebServerSettings[EngineConstants.APACHE].addWebServerPair(WebServerSettings.URL, e1, a2);
+        this.mWebServerSettings[EngineConstants.NETSCAPE].addWebServerPair(WebServerSettings.URL, b1, b2);
+        this.mWebServerSettings[EngineConstants.APACHE].addWebServerPair(WebServerSettings.COOKIE, e2, a2);
+        this.mWebServerSettings[EngineConstants.NETSCAPE].addWebServerPair(WebServerSettings.COOKIE, e2, d2);
+        this.mWebServerSettings[EngineConstants.APACHE].addWebServerPair(WebServerSettings.OTHER, c1, e2);
+        this.mWebServerSettings[EngineConstants.NETSCAPE].addWebServerPair(WebServerSettings.OTHER, c1, e2);
     }
 
     /**
@@ -102,8 +102,8 @@ public class AnalyzeSessionBuilder implements Serializable
 
         this.setLoadIDs(pLoadID, pdmLoadID);
 
-        ActiveSessionStore = new AnalyzeSessionStore(pStartSessionID);
-        preLoadWebServerSettings();
+        this.ActiveSessionStore = new AnalyzeSessionStore(pStartSessionID);
+        this.preLoadWebServerSettings();
     }
 
     public void setPagesOnly(PageParserPageDefinition[] mpDef, boolean pmbPagesOnly, boolean pmbHitCountRequired)
@@ -154,20 +154,20 @@ public class AnalyzeSessionBuilder implements Serializable
         int SessionMatchingAlgorithmToUse = 0;
 
         // purge current session if used previously
-        purgeCurrentSession();
+        this.purgeCurrentSession();
 
         // record source file
-        CurrentSession.SourceFile = pRecord.SourceFile;
+        this.CurrentSession.SourceFile = pRecord.SourceFile;
 
         // set timing attributes of session, when hit occured
-        setEstimatedTime(pRecord, recordFields);
+        this.setEstimatedTime(pRecord, recordFields);
 
         // set custom fields if any
-        setCustomFields(pRecord, recordFields);
+        this.setCustomFields(pRecord, recordFields);
 
         // if last activity is null then hit is invalid, probably error in log
         // file
-        if (CurrentSession.LastActivity == null)
+        if (this.CurrentSession.LastActivity == null)
         {
             return null;
         }
@@ -177,39 +177,39 @@ public class AnalyzeSessionBuilder implements Serializable
         // if pages only then parse url to see if it is a valid page
         // if it is record string and set request to string post session recognition
         // if it isn't then ignore page and move on.
-        if (mbPagesOnly && mbHitsCanBeSkipped)
+        if (this.mbPagesOnly && this.mbHitsCanBeSkipped)
         {
             // if get request field not found then locate it
             // and record its pos for future recognition
-            if (idxGetRequestField == -1)
+            if (this.idxGetRequestField == -1)
             {
                 for (int index = 0; index < recordFields; index++)
                 {
                     if (pRecord.LineFields[index].ObjectType == EngineConstants.GET_REQUEST)
                     {
-                        idxGetRequestField = index;
+                        this.idxGetRequestField = index;
                     }
 
                     if (pRecord.LineFields[index].ObjectType == EngineConstants.HTML_ERROR_CODE)
                     {
-                        idxErrorCodeField = index;
+                        this.idxErrorCodeField = index;
                     }
                 }
             }
 
-            if (urlCleaner == null)
+            if (this.urlCleaner == null)
             {
-                urlCleaner = new URLCleaner();
-                urlCleaner.setPageParserDefinitions(this.mPageParserDefinition);
+                this.urlCleaner = new URLCleaner();
+                this.urlCleaner.setPageParserDefinitions(this.mPageParserDefinition);
             }
 
-            cleansedURL = pRecord.LineFields[idxGetRequestField].getString();
+            cleansedURL = pRecord.LineFields[this.idxGetRequestField].getString();
 
-            int errorCode = pRecord.LineFields[idxErrorCodeField].getInteger();
+            int errorCode = pRecord.LineFields[this.idxErrorCodeField].getInteger();
 
             try
             {
-                cleansedURL = urlCleaner.cleanHTTPRequest(cleansedURL, errorCode, 0,
+                cleansedURL = this.urlCleaner.cleanHTTPRequest(cleansedURL, errorCode, 0,
                         EngineConstants.MAX_REQUEST_LENGTH, true);
             }
             catch (Exception e)
@@ -217,13 +217,13 @@ public class AnalyzeSessionBuilder implements Serializable
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "URL Decoder exception: " + e);
             }
 
-            if (urlCleaner.cleansed == true)
+            if (this.urlCleaner.cleansed == true)
             {
-                ignoreHit = false;
+                this.ignoreHit = false;
             }
             else
             {
-                ignoreHit = true;
+                this.ignoreHit = true;
 
                 return null;
             }
@@ -232,11 +232,11 @@ public class AnalyzeSessionBuilder implements Serializable
         while (HitAnalyzed == false)
         {
             // get session key id
-            if (ActiveSessionDefinition.SessionIdentifiers[pos].Weight == weight)
+            if (this.ActiveSessionDefinition.SessionIdentifiers[pos].Weight == weight)
             {
                 for (int index = 0; index < recordFields; index++)
                 {
-                    if (pRecord.LineFields[index].ObjectType == ActiveSessionDefinition.SessionIdentifiers[pos].ObjectType)
+                    if (pRecord.LineFields[index].ObjectType == this.ActiveSessionDefinition.SessionIdentifiers[pos].ObjectType)
                     {
                         String strValue = null;
 
@@ -258,7 +258,7 @@ public class AnalyzeSessionBuilder implements Serializable
                             {
                                 strValue = null;
                             }
-                            else if (ActiveSessionDefinition.SessionIdentifiers[pos].VariableName != null)
+                            else if (this.ActiveSessionDefinition.SessionIdentifiers[pos].VariableName != null)
                             {
                                 int len = pRecord.LineFields[index].getString().length();
 
@@ -271,17 +271,17 @@ public class AnalyzeSessionBuilder implements Serializable
 
                                 try
                                 {
-                                    strValue = strMan.getVariableByName(searchBuffer, len,
-                                            ActiveSessionDefinition.SessionIdentifiers[pos].searchAccelerator,
-                                            getSeperatorsAsBoyerMoore(ActiveSessionDefinition.WebServerType,
+                                    strValue = this.strMan.getVariableByName(this.searchBuffer, len,
+                                            this.ActiveSessionDefinition.SessionIdentifiers[pos].searchAccelerator,
+                                            this.getSeperatorsAsBoyerMoore(this.ActiveSessionDefinition.WebServerType,
                                                 pRecord.LineFields[index].ObjectType),
-                                            getEndMarkersAsBoyerMoore(ActiveSessionDefinition.WebServerType,
+                                            this.getEndMarkersAsBoyerMoore(this.ActiveSessionDefinition.WebServerType,
                                                 pRecord.LineFields[index].ObjectType),
-                                            ActiveSessionDefinition.SessionIdentifiers[pos].CaseSensitive);
+                                            this.ActiveSessionDefinition.SessionIdentifiers[pos].CaseSensitive);
                                 }
                                 catch (Exception e)
                                 {
-                                    String str = new String(searchBuffer) + ":" + len;
+                                    String str = new String(this.searchBuffer) + ":" + len;
 
                                     System.out.println("AnalyzeHit getVariableByName:" + e.getMessage() + ", File " +
                                         pRecord.SourceFile + ":" + pRecord.SourceLine + ", Params:" + str);
@@ -313,20 +313,20 @@ public class AnalyzeSessionBuilder implements Serializable
                         }
 
                         if ((strValue != null) &&
-                                (CurrentSession.addSessionIdentifier(strValue,
-                                    ActiveSessionDefinition.SessionIdentifiers[pos].DestinationObjectType) == true))
+                                (this.CurrentSession.addSessionIdentifier(strValue,
+                                    this.ActiveSessionDefinition.SessionIdentifiers[pos].DestinationObjectType) == true))
                         {
                             index = pRecord.LineFields.length;
 
                             SessionMatchingAlgorithmToUse = SessionMatchingAlgorithmToUse +
-                                CurrentSession.getMatchingAlgorithmCode(ActiveSessionDefinition.SessionIdentifiers[pos].DestinationObjectType);
+                                this.CurrentSession.getMatchingAlgorithmCode(this.ActiveSessionDefinition.SessionIdentifiers[pos].DestinationObjectType);
                         }
                         else if (strValue != null)
                         {
                             /** * record variable if required ** */
-                            CurrentSession.addSessionVariable(strValue,
-                                ActiveSessionDefinition.SessionIdentifiers[pos].DestinationObjectType,
-                                ActiveSessionDefinition.SessionIdentifiers[pos].VariableName);
+                            this.CurrentSession.addSessionVariable(strValue,
+                                this.ActiveSessionDefinition.SessionIdentifiers[pos].DestinationObjectType,
+                                this.ActiveSessionDefinition.SessionIdentifiers[pos].VariableName);
                         }
                     }
                 }
@@ -334,7 +334,7 @@ public class AnalyzeSessionBuilder implements Serializable
                 // Move to next identifier
                 pos++;
 
-                if (pos >= ActiveSessionDefinition.SessionIdentifiers.length)
+                if (pos >= this.ActiveSessionDefinition.SessionIdentifiers.length)
                 {
                     HitAnalyzed = true;
 
@@ -342,7 +342,7 @@ public class AnalyzeSessionBuilder implements Serializable
                     if (SessionLocated == false)
                     {
                         // identify session using bitmask of algorithm
-                        MatchingSession = ActiveSessionStore.getSessionBySelectedAlgorithm(CurrentSession,
+                        MatchingSession = this.ActiveSessionStore.getSessionBySelectedAlgorithm(this.CurrentSession,
                                 SessionMatchingAlgorithmToUse);
 
                         if (MatchingSession != null)
@@ -367,26 +367,26 @@ public class AnalyzeSessionBuilder implements Serializable
                     {
                         // assign a load and individual job id to the new
                         // session for logging
-                        CurrentSession.DM_LOAD_ID = DM_LOAD_ID;
-                        CurrentSession.LOAD_ID = LOAD_ID;
-                        MatchingSession = ActiveSessionStore.addSession(CurrentSession);
+                        this.CurrentSession.DM_LOAD_ID = this.DM_LOAD_ID;
+                        this.CurrentSession.LOAD_ID = this.LOAD_ID;
+                        MatchingSession = this.ActiveSessionStore.addSession(this.CurrentSession);
                     }
                     else
                     {
                         // update current session with remainding information if
                         // matching session does not have it.
                         // update MatchingSession with any missing values
-                        ActiveSessionStore.updateSessionStore(MatchingSession, CurrentSession);
+                        this.ActiveSessionStore.updateSessionStore(MatchingSession, this.CurrentSession);
                     }
                 }
             }
-            else if (ActiveSessionDefinition.SessionIdentifiers[pos].Weight > weight)
+            else if (this.ActiveSessionDefinition.SessionIdentifiers[pos].Weight > weight)
             {
                 // Identify session if not found already
                 if (SessionLocated == false)
                 {
                     // identify session using bitmask of algorithm
-                    MatchingSession = ActiveSessionStore.getSessionBySelectedAlgorithm(CurrentSession,
+                    MatchingSession = this.ActiveSessionStore.getSessionBySelectedAlgorithm(this.CurrentSession,
                             SessionMatchingAlgorithmToUse);
                 }
 
@@ -414,37 +414,12 @@ public class AnalyzeSessionBuilder implements Serializable
         }
 
         // store parsed url if pages only option was enabled, preventing reparsing
-        if (this.mbPagesOnly && mbHitsCanBeSkipped)
+        if (this.mbPagesOnly && this.mbHitsCanBeSkipped)
         {
-            pRecord.LineFields[idxGetRequestField].setString(cleansedURL);
+            pRecord.LineFields[this.idxGetRequestField].setString(cleansedURL);
         }
 
         return MatchingSession;
-    }
-
-    /**
-     * @param pRecord
-     * @param recordFields
-     */
-    private final void buildSessionIdentifierIndex(ResultRecord pRecord, int recordFields)
-    {
-        sessionIdentifierObjectIndex = new int[this.ActiveSessionDefinition.SessionIdentifiers.length][recordFields];
-
-        for (int i = 0; i < this.ActiveSessionDefinition.SessionIdentifiers.length; i++)
-        {
-            int itemIndex = 0;
-
-            for (int index = 0; index < recordFields; index++)
-            {
-                if (pRecord.LineFields[index].ObjectType == ActiveSessionDefinition.SessionIdentifiers[i].ObjectType)
-                {
-                    sessionIdentifierObjectIndex[i][itemIndex] = index;
-                    itemIndex++;
-                }
-            }
-
-            sessionIdentifierObjectIndex[i][itemIndex] = ENDOFLIST;
-        }
     }
 
     /**
@@ -459,23 +434,23 @@ public class AnalyzeSessionBuilder implements Serializable
             if ((pRecord.LineFields[index].ObjectType == EngineConstants.HIT_DATE_TIME) &&
                     (pRecord.LineFields[index].isNull() == false))
             {
-                CurrentSession.LastActivity = pRecord.LineFields[index].getDate();
+                this.CurrentSession.LastActivity = pRecord.LineFields[index].getDate();
 
-                if (CurrentSession.FirstActivity == null)
+                if (this.CurrentSession.FirstActivity == null)
                 {
-                    CurrentSession.FirstActivity = pRecord.LineFields[index].getDate();
+                    this.CurrentSession.FirstActivity = pRecord.LineFields[index].getDate();
                 }
 
                 // if hits are at a new date update current date in session
                 // store if date is five seconds later
                 // TODO: sometimes incoming data isn't clean change this to be
                 // either side of 5 seconds
-                if ((ActiveSessionStore.getCurrentDate() == null) ||
-                        (CurrentSession.LastActivity.getTime() > (ActiveSessionStore.CurrentDate.getTime() + 30000)))
+                if ((this.ActiveSessionStore.getCurrentDate() == null) ||
+                        (this.CurrentSession.LastActivity.getTime() > (this.ActiveSessionStore.CurrentDate.getTime() + 30000)))
                 {
-                    ActiveSessionStore.setCurrentDate(CurrentSession.LastActivity.getTime());
+                    this.ActiveSessionStore.setCurrentDate(this.CurrentSession.LastActivity.getTime());
 
-                    ActiveSessionStore.findStaleSessions();
+                    this.ActiveSessionStore.findStaleSessions();
                 }
 
                 //	date time found then don't need to search anymore.
@@ -494,17 +469,17 @@ public class AnalyzeSessionBuilder implements Serializable
                 switch (pRecord.LineFields[index].ObjectType)
                 {
                 case EngineConstants.CUSTOM_FIELD_1:
-                    CurrentSession.customField1 = pRecord.LineFields[index].getString();
+                    this.CurrentSession.customField1 = pRecord.LineFields[index].getString();
 
                     break;
 
                 case EngineConstants.CUSTOM_FIELD_2:
-                    CurrentSession.customField2 = pRecord.LineFields[index].getString();
+                    this.CurrentSession.customField2 = pRecord.LineFields[index].getString();
 
                     break;
 
                 case EngineConstants.CUSTOM_FIELD_3:
-                    CurrentSession.customField3 = pRecord.LineFields[index].getString();
+                    this.CurrentSession.customField3 = pRecord.LineFields[index].getString();
 
                     break;
                 }
@@ -521,7 +496,7 @@ public class AnalyzeSessionBuilder implements Serializable
     public final void closeOutAllSessions(boolean pLastActivityNull)
     {
         // set timing attributes of session, when hit occured
-        ActiveSessionStore.closeOutAllSessions(pLastActivityNull);
+        this.ActiveSessionStore.closeOutAllSessions(pLastActivityNull);
     }
 
     /**
@@ -530,7 +505,7 @@ public class AnalyzeSessionBuilder implements Serializable
      */
     public final Vector getDoneSessionsQueue()
     {
-        return (ActiveSessionStore.RemovedSessionsQueue);
+        return (this.ActiveSessionStore.RemovedSessionsQueue);
     }
 
     /**
@@ -562,7 +537,7 @@ public class AnalyzeSessionBuilder implements Serializable
 
     public final IDCounter getLastSessionID()
     {
-        if (ActiveSessionStore != null)
+        if (this.ActiveSessionStore != null)
         {
             return this.ActiveSessionStore.getLastSessionID();
         }
@@ -594,27 +569,27 @@ public class AnalyzeSessionBuilder implements Serializable
      */
     private final void purgeCurrentSession()
     {
-        CurrentSession.setID(-1);
-        CurrentSession.FirstActivity = null;
-        CurrentSession.LastActivity = null;
-        CurrentSession.customField1 = null;
-        CurrentSession.customField2 = null;
-        CurrentSession.customField3 = null;
+        this.CurrentSession.setID(-1);
+        this.CurrentSession.FirstActivity = null;
+        this.CurrentSession.LastActivity = null;
+        this.CurrentSession.customField1 = null;
+        this.CurrentSession.customField2 = null;
+        this.CurrentSession.customField3 = null;
 
-        CurrentSession.Browser = null;
-        CurrentSession.IPAddress = null;
-        CurrentSession.MainSessionIdentifier = null;
-        CurrentSession.FirstClickSessionIdentifier = null;
-        CurrentSession.PersistantIdentifier = null;
-        CurrentSession.StartPersistantIdentifier = null;
+        this.CurrentSession.Browser = null;
+        this.CurrentSession.IPAddress = null;
+        this.CurrentSession.MainSessionIdentifier = null;
+        this.CurrentSession.FirstClickSessionIdentifier = null;
+        this.CurrentSession.PersistantIdentifier = null;
+        this.CurrentSession.StartPersistantIdentifier = null;
 
-        if (CurrentSession.CookieKeepVariables != null)
+        if (this.CurrentSession.CookieKeepVariables != null)
         {
-            CurrentSession.CookieKeepVariables = null;
+            this.CurrentSession.CookieKeepVariables = null;
         }
 
-        CurrentSession.resetIndexes();
-        CurrentSession.setID(-1);
+        this.CurrentSession.resetIndexes();
+        this.CurrentSession.setID(-1);
     }
 
     /**
@@ -628,29 +603,29 @@ public class AnalyzeSessionBuilder implements Serializable
     {
         // set session first click timeout to be the same as main session
         // identifier!!
-        if (ActiveSessionDefinition == null)
+        if (this.ActiveSessionDefinition == null)
         {
-            ActiveSessionDefinition = pSessionDefinition;
+            this.ActiveSessionDefinition = pSessionDefinition;
         }
 
         // initialize hashmaps to store session identifiers
-        ActiveSessionStore.createHashMaps(pSessionDefinition);
+        this.ActiveSessionStore.createHashMaps(pSessionDefinition);
 
-        sessionWeightIndex = new int[ActiveSessionDefinition.SessionIdentifiers.length][2];
+        this.sessionWeightIndex = new int[this.ActiveSessionDefinition.SessionIdentifiers.length][2];
 
         int iWeight = 1;
         int iWeightPos = 0;
 
         // get session definition order
-        while (iWeightPos < ActiveSessionDefinition.SessionIdentifiers.length)
+        while (iWeightPos < this.ActiveSessionDefinition.SessionIdentifiers.length)
         {
-            for (int indexPosItem = 0; indexPosItem < ActiveSessionDefinition.SessionIdentifiers.length;
+            for (int indexPosItem = 0; indexPosItem < this.ActiveSessionDefinition.SessionIdentifiers.length;
                     indexPosItem++)
             {
-                if (ActiveSessionDefinition.SessionIdentifiers[indexPosItem].Weight == iWeight)
+                if (this.ActiveSessionDefinition.SessionIdentifiers[indexPosItem].Weight == iWeight)
                 {
-                    sessionWeightIndex[iWeightPos][WEIGHT] = iWeight;
-                    sessionWeightIndex[iWeightPos][SESSIONIDENTIFIER] = indexPosItem;
+                    this.sessionWeightIndex[iWeightPos][AnalyzeSessionBuilder.WEIGHT] = iWeight;
+                    this.sessionWeightIndex[iWeightPos][AnalyzeSessionBuilder.SESSIONIDENTIFIER] = indexPosItem;
                     iWeightPos++;
                 }
             }
@@ -658,7 +633,7 @@ public class AnalyzeSessionBuilder implements Serializable
             iWeight++;
         }
 
-        sessionWeightIndexLength = sessionWeightIndex.length;
+        this.sessionWeightIndexLength = this.sessionWeightIndex.length;
     }
 
     private void writeObject(ObjectOutputStream s) throws IOException
@@ -672,7 +647,7 @@ public class AnalyzeSessionBuilder implements Serializable
         {
             s.defaultReadObject();
             this.CurrentSession = new Session();
-            ActiveSessionStore.setCurrentDate(new java.util.Date(1).getTime());
+            this.ActiveSessionStore.setCurrentDate(new java.util.Date(1).getTime());
         }
         catch (IOException e)
         {

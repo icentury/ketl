@@ -34,7 +34,7 @@ public class PageView extends ResultRecord
     {
         super();
 
-        this.Type = PAGEVIEW;
+        this.Type = PageView.PAGEVIEW;
     }
 
     /**
@@ -44,11 +44,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getBrowser()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.BROWSER != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.BROWSER != -1))
         {
-            if (LineFields[ItemFinderAccelerator.BROWSER].ObjectType == EngineConstants.BROWSER)
+            if (this.LineFields[this.ItemFinderAccelerator.BROWSER].ObjectType == EngineConstants.BROWSER)
             {
-                return (LineFields[ItemFinderAccelerator.BROWSER]);
+                return (this.LineFields[this.ItemFinderAccelerator.BROWSER]);
             }
         }
         else
@@ -57,12 +57,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.BROWSER = itemID;
+                    this.ItemFinderAccelerator.BROWSER = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -76,11 +76,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getBytesSent()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.BYTES_SENT != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.BYTES_SENT != -1))
         {
-            if (LineFields[ItemFinderAccelerator.BYTES_SENT].ObjectType == EngineConstants.BYTES_SENT)
+            if (this.LineFields[this.ItemFinderAccelerator.BYTES_SENT].ObjectType == EngineConstants.BYTES_SENT)
             {
-                return (LineFields[ItemFinderAccelerator.BYTES_SENT]);
+                return (this.LineFields[this.ItemFinderAccelerator.BYTES_SENT]);
             }
         }
         else
@@ -89,12 +89,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.BYTES_SENT = itemID;
+                    this.ItemFinderAccelerator.BYTES_SENT = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -108,11 +108,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getCanonicalServerPort()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.CANONICAL_PORT != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.CANONICAL_PORT != -1))
         {
-            if (LineFields[ItemFinderAccelerator.CANONICAL_PORT].ObjectType == EngineConstants.CANONICAL_PORT)
+            if (this.LineFields[this.ItemFinderAccelerator.CANONICAL_PORT].ObjectType == EngineConstants.CANONICAL_PORT)
             {
-                return (LineFields[ItemFinderAccelerator.CANONICAL_PORT]);
+                return (this.LineFields[this.ItemFinderAccelerator.CANONICAL_PORT]);
             }
         }
         else
@@ -121,12 +121,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.CANONICAL_PORT = itemID;
+                    this.ItemFinderAccelerator.CANONICAL_PORT = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -141,9 +141,9 @@ public class PageView extends ResultRecord
      */
     private int getFieldID(int pObjectType)
     {
-        for (int i = 0; i < LineFields.length; i++)
+        for (int i = 0; i < this.LineFields.length; i++)
         {
-            if (LineFields[i].ObjectType == pObjectType)
+            if (this.LineFields[i].ObjectType == pObjectType)
             {
                 return (i);
             }
@@ -159,11 +159,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getGetRequest()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.GET_REQUEST != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.GET_REQUEST != -1))
         {
-            if (LineFields[ItemFinderAccelerator.GET_REQUEST].ObjectType == EngineConstants.GET_REQUEST)
+            if (this.LineFields[this.ItemFinderAccelerator.GET_REQUEST].ObjectType == EngineConstants.GET_REQUEST)
             {
-                return (LineFields[ItemFinderAccelerator.GET_REQUEST]);
+                return (this.LineFields[this.ItemFinderAccelerator.GET_REQUEST]);
             }
         }
         else
@@ -172,12 +172,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.GET_REQUEST = itemID;
+                    this.ItemFinderAccelerator.GET_REQUEST = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -191,11 +191,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getHitDateTime()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.HIT_DATE_TIME != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.HIT_DATE_TIME != -1))
         {
-            if (LineFields[ItemFinderAccelerator.HIT_DATE_TIME].ObjectType == EngineConstants.HIT_DATE_TIME)
+            if (this.LineFields[this.ItemFinderAccelerator.HIT_DATE_TIME].ObjectType == EngineConstants.HIT_DATE_TIME)
             {
-                return (LineFields[ItemFinderAccelerator.HIT_DATE_TIME]);
+                return (this.LineFields[this.ItemFinderAccelerator.HIT_DATE_TIME]);
             }
         }
         else
@@ -204,12 +204,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.HIT_DATE_TIME = itemID;
+                    this.ItemFinderAccelerator.HIT_DATE_TIME = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -223,11 +223,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getHTMLErrorCode()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.HTML_ERROR_CODE != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.HTML_ERROR_CODE != -1))
         {
-            if (LineFields[ItemFinderAccelerator.HTML_ERROR_CODE].ObjectType == EngineConstants.HTML_ERROR_CODE)
+            if (this.LineFields[this.ItemFinderAccelerator.HTML_ERROR_CODE].ObjectType == EngineConstants.HTML_ERROR_CODE)
             {
-                return (LineFields[ItemFinderAccelerator.HTML_ERROR_CODE]);
+                return (this.LineFields[this.ItemFinderAccelerator.HTML_ERROR_CODE]);
             }
         }
         else
@@ -236,12 +236,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.HTML_ERROR_CODE = itemID;
+                    this.ItemFinderAccelerator.HTML_ERROR_CODE = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -255,11 +255,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getInCookieString()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.IN_COOKIE != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.IN_COOKIE != -1))
         {
-            if (LineFields[ItemFinderAccelerator.IN_COOKIE].ObjectType == EngineConstants.IN_COOKIE)
+            if (this.LineFields[this.ItemFinderAccelerator.IN_COOKIE].ObjectType == EngineConstants.IN_COOKIE)
             {
-                return (LineFields[ItemFinderAccelerator.IN_COOKIE]);
+                return (this.LineFields[this.ItemFinderAccelerator.IN_COOKIE]);
             }
         }
         else
@@ -268,12 +268,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.IN_COOKIE = itemID;
+                    this.ItemFinderAccelerator.IN_COOKIE = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -287,11 +287,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getIPAddress()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.IP_ADDRESS != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.IP_ADDRESS != -1))
         {
-            if (LineFields[ItemFinderAccelerator.IP_ADDRESS].ObjectType == EngineConstants.IP_ADDRESS)
+            if (this.LineFields[this.ItemFinderAccelerator.IP_ADDRESS].ObjectType == EngineConstants.IP_ADDRESS)
             {
-                return (LineFields[ItemFinderAccelerator.IP_ADDRESS]);
+                return (this.LineFields[this.ItemFinderAccelerator.IP_ADDRESS]);
             }
         }
         else
@@ -300,12 +300,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.IP_ADDRESS = itemID;
+                    this.ItemFinderAccelerator.IP_ADDRESS = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -319,11 +319,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getOutCookieString()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.OUT_COOKIE != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.OUT_COOKIE != -1))
         {
-            if (LineFields[ItemFinderAccelerator.OUT_COOKIE].ObjectType == EngineConstants.OUT_COOKIE)
+            if (this.LineFields[this.ItemFinderAccelerator.OUT_COOKIE].ObjectType == EngineConstants.OUT_COOKIE)
             {
-                return (LineFields[ItemFinderAccelerator.OUT_COOKIE]);
+                return (this.LineFields[this.ItemFinderAccelerator.OUT_COOKIE]);
             }
         }
         else
@@ -332,12 +332,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.OUT_COOKIE = itemID;
+                    this.ItemFinderAccelerator.OUT_COOKIE = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -351,11 +351,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getReferrerURL()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.REFERRER_URL != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.REFERRER_URL != -1))
         {
-            if (LineFields[ItemFinderAccelerator.REFERRER_URL].ObjectType == EngineConstants.REFERRER_URL)
+            if (this.LineFields[this.ItemFinderAccelerator.REFERRER_URL].ObjectType == EngineConstants.REFERRER_URL)
             {
-                return (LineFields[ItemFinderAccelerator.REFERRER_URL]);
+                return (this.LineFields[this.ItemFinderAccelerator.REFERRER_URL]);
             }
         }
         else
@@ -364,12 +364,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.REFERRER_URL = itemID;
+                    this.ItemFinderAccelerator.REFERRER_URL = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -403,11 +403,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getServerName()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.SERVER_NAME != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.SERVER_NAME != -1))
         {
-            if (LineFields[ItemFinderAccelerator.SERVER_NAME].ObjectType == EngineConstants.SERVER_NAME)
+            if (this.LineFields[this.ItemFinderAccelerator.SERVER_NAME].ObjectType == EngineConstants.SERVER_NAME)
             {
-                return (LineFields[ItemFinderAccelerator.SERVER_NAME]);
+                return (this.LineFields[this.ItemFinderAccelerator.SERVER_NAME]);
             }
         }
         else
@@ -416,12 +416,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.SERVER_NAME = itemID;
+                    this.ItemFinderAccelerator.SERVER_NAME = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -450,7 +450,7 @@ public class PageView extends ResultRecord
 
     public long getPageSequence()
     {
-        return mPageSequenceID;
+        return this.mPageSequenceID;
     }
 
     public void setPageSequenceID(long pPageSeq)
@@ -465,11 +465,11 @@ public class PageView extends ResultRecord
      */
     public DataItem getTimeTakenToServeRequest()
     {
-        if ((ItemFinderAccelerator != null) && (ItemFinderAccelerator.SERVE_TIME != -1))
+        if ((this.ItemFinderAccelerator != null) && (this.ItemFinderAccelerator.SERVE_TIME != -1))
         {
-            if (LineFields[ItemFinderAccelerator.SERVE_TIME].ObjectType == EngineConstants.SERVE_TIME)
+            if (this.LineFields[this.ItemFinderAccelerator.SERVE_TIME].ObjectType == EngineConstants.SERVE_TIME)
             {
-                return (LineFields[ItemFinderAccelerator.SERVE_TIME]);
+                return (this.LineFields[this.ItemFinderAccelerator.SERVE_TIME]);
             }
         }
         else
@@ -478,12 +478,12 @@ public class PageView extends ResultRecord
 
             if (itemID != -1)
             {
-                if (ItemFinderAccelerator != null)
+                if (this.ItemFinderAccelerator != null)
                 {
-                    ItemFinderAccelerator.SERVE_TIME = itemID;
+                    this.ItemFinderAccelerator.SERVE_TIME = itemID;
                 }
 
-                return (LineFields[itemID]);
+                return (this.LineFields[itemID]);
             }
         }
 
@@ -502,32 +502,33 @@ public class PageView extends ResultRecord
 
     public void setSessionID(long sessionID)
     {
-        SessionID = sessionID;
-        diSessionID = new DataItem();
-        diSessionID.setLong(sessionID);
+        this.SessionID = sessionID;
+        this.diSessionID = new DataItem();
+        this.diSessionID.setLong(sessionID);
     }
 
     public long getSessionID()
     {
-        return SessionID;
+        return this.SessionID;
     }
 
     public DataItem getSessionIDAsDataItem()
     {
-        return diSessionID;
+        return this.diSessionID;
     }
 
     /* (non-Javadoc)
      * @see com.kni.etl.ResultRecord#CopyTo(com.kni.etl.ResultRecord)
      */
+    @Override
     public ResultRecord CopyTo(ResultRecord newRecord)
     {
         PageView rec = (PageView) newRecord;
-        rec.SessionID = SessionID;
-        rec.Session = Session;
-        rec.ItemFinderAccelerator = ItemFinderAccelerator;
-        rec.mPageSequenceID = mPageSequenceID;
-        rec.diSessionID = diSessionID;
+        rec.SessionID = this.SessionID;
+        rec.Session = this.Session;
+        rec.ItemFinderAccelerator = this.ItemFinderAccelerator;
+        rec.mPageSequenceID = this.mPageSequenceID;
+        rec.diSessionID = this.diSessionID;
 
         return super.CopyTo(newRecord);
     }

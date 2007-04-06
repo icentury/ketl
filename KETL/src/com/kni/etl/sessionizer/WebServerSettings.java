@@ -37,12 +37,12 @@ public class WebServerSettings
     public WebServerSettings()
     {
         super();
-        mChEndMarkers = new char[3][][];
-        mChVariableSeperators = new char[3][][];
-        mStEndMarkers = new String[3][];
-        mStVariableSeperators = new String[3][];
-        mbEndMarkers = new BoyerMooreAlgorithm[3][];
-        mbVariableSeperators = new BoyerMooreAlgorithm[3][];
+        this.mChEndMarkers = new char[3][][];
+        this.mChVariableSeperators = new char[3][][];
+        this.mStEndMarkers = new String[3][];
+        this.mStVariableSeperators = new String[3][];
+        this.mbEndMarkers = new BoyerMooreAlgorithm[3][];
+        this.mbVariableSeperators = new BoyerMooreAlgorithm[3][];
     }
 
     void addWebServerPair(int pType, String[] pEndMarkers, String[] pVariableSeperators)

@@ -21,7 +21,6 @@ public class PageParserPageDefinition
     private static final long serialVersionUID = 3257006544788009785L;
     private java.lang.String HostName;
     private java.lang.String Directory;
-    private java.lang.String Method;
     private java.lang.String Protocol;
     private java.lang.String Template;
     private int ID;
@@ -50,7 +49,7 @@ public class PageParserPageDefinition
      */
     public java.lang.String getDirectory()
     {
-        return Directory;
+        return this.Directory;
     }
 
     public void setValidPage(boolean pValid)
@@ -85,7 +84,7 @@ public class PageParserPageDefinition
      */
     public java.lang.String getHostName()
     {
-        return HostName;
+        return this.HostName;
     }
 
     /**
@@ -105,7 +104,7 @@ public class PageParserPageDefinition
      */
     public java.lang.String getProtocol()
     {
-        return Protocol;
+        return this.Protocol;
     }
 
     /**
@@ -125,7 +124,7 @@ public class PageParserPageDefinition
      */
     public java.lang.String getTemplate()
     {
-        return Template;
+        return this.Template;
     }
 
     /**
@@ -145,7 +144,7 @@ public class PageParserPageDefinition
      */
     public com.kni.etl.sessionizer.PageParserPageParameter[] getValidPageParameters()
     {
-        return ValidPageParameters;
+        return this.ValidPageParameters;
     }
 
     /**
@@ -155,7 +154,7 @@ public class PageParserPageDefinition
      */
     public int getWeight()
     {
-        return Weight;
+        return this.Weight;
     }
 
     public int[] getValidStatus()
@@ -196,8 +195,6 @@ public class PageParserPageDefinition
     
     public void setMethod(java.lang.String newMethod)
     {
-        this.Method = newMethod;
-
         if (newMethod != null)
         {
             this.MethodAsChars = newMethod.toCharArray();
@@ -271,7 +268,7 @@ public class PageParserPageDefinition
      */
     public void setValidPageParameters(com.kni.etl.sessionizer.PageParserPageParameter[] newValidPageParameters)
     {
-        ValidPageParameters = newValidPageParameters;
+        this.ValidPageParameters = newValidPageParameters;
     }
 
     /**
@@ -281,7 +278,7 @@ public class PageParserPageDefinition
      */
     public void setWeight(int newWeight)
     {
-        Weight = newWeight;
+        this.Weight = newWeight;
     }
 
     /**
@@ -289,6 +286,6 @@ public class PageParserPageDefinition
      */
     public int getID()
     {
-        return ID;
+        return this.ID;
     }
 }

@@ -94,19 +94,19 @@ public class SessionDefinition
      */
     public void addSessionIdentifier(SessionIdentifier pSessionIdentifier)
     {
-        if (SessionIdentifiers == null)
+        if (this.SessionIdentifiers == null)
         {
-            SessionIdentifiers = new SessionIdentifier[NumberOfIdentifiers + 1];
+            this.SessionIdentifiers = new SessionIdentifier[this.NumberOfIdentifiers + 1];
         }
         else
         {
-            SessionIdentifier[] tmp = new SessionIdentifier[NumberOfIdentifiers + 1];
-            System.arraycopy(SessionIdentifiers, 0, tmp, 0, SessionIdentifiers.length);
-            SessionIdentifiers = tmp;
+            SessionIdentifier[] tmp = new SessionIdentifier[this.NumberOfIdentifiers + 1];
+            System.arraycopy(this.SessionIdentifiers, 0, tmp, 0, this.SessionIdentifiers.length);
+            this.SessionIdentifiers = tmp;
         }
 
         // insert pSessionIdentifier at end of array
-        SessionIdentifiers[NumberOfIdentifiers] = pSessionIdentifier;
-        NumberOfIdentifiers++;
+        this.SessionIdentifiers[this.NumberOfIdentifiers] = pSessionIdentifier;
+        this.NumberOfIdentifiers++;
     }
 }

@@ -31,7 +31,6 @@ final public class PGCopyWriter {
     private CopyManager copy;
     private DateFormat dateFormatter;
     private String dateTimeFormat = "yyyy-MM-dd HH:mm:ss";
-    private String doubleFormat;
     private NumberFormat doubleFormatter;
     private int mColumns = -1;
     private Connection mConnection;
@@ -40,16 +39,15 @@ final public class PGCopyWriter {
     private String msLoadCommand = null;
     private StringBuilder mWriter = new StringBuilder();
     private int rowsInThisBatch = 0;
-    private long startTime = System.currentTimeMillis();
-    private Charset mEncoder;
+     private Charset mEncoder;
 
     public PGCopyWriter(Connection con) throws SQLException {
         super();
 
         this.mConnection = con;
-        this.copy = ((org.postgresql.PGConnection) mConnection).getCopyAPI();
+        this.copy = ((org.postgresql.PGConnection) this.mConnection).getCopyAPI();
 
-        this.dateFormatter = new SimpleDateFormat(dateTimeFormat);
+        this.dateFormatter = new SimpleDateFormat(this.dateTimeFormat);
         this.doubleFormatter = new DecimalFormat();
         this.copy.setCopyBufferSize(1 << 20);
         this.doubleFormatter.setGroupingUsed(false);
@@ -71,10 +69,10 @@ final public class PGCopyWriter {
         this.mDatums = new Object[this.mColumns];
         this.mDatumTypes = new Class[this.mColumns];
 
-        for (int i = 0; i < mColumns; i++) {
+        for (int i = 0; i < this.mColumns; i++) {
             sb.append(pColumns[i]);
 
-            if (i < (mColumns - 1)) {
+            if (i < (this.mColumns - 1)) {
                 sb.append(",");
             }
         }
@@ -83,7 +81,7 @@ final public class PGCopyWriter {
 
         this.msLoadCommand = sb.toString();
 
-        return msLoadCommand;
+        return this.msLoadCommand;
     }
 
     StringBuilder sb = new StringBuilder();
@@ -100,7 +98,7 @@ final public class PGCopyWriter {
         // escape string if needed
         int len = mString.length();
 
-        sb.setLength(0);
+        this.sb.setLength(0);
 
         for (int i = 0; i < len; i++) {
             char c = mString.charAt(i);
@@ -110,62 +108,62 @@ final public class PGCopyWriter {
                 System.out.println("Removing null in string: " + mString);
                 break;
             case '\f':
-                sb.append("\\f");
+                this.sb.append("\\f");
                 break;
             case '\b':
-                sb.append("\\b");
+                this.sb.append("\\b");
                 break;
             case '\t':
-                sb.append("\\t");
+                this.sb.append("\\t");
                 break;
             case '\r':
-                sb.append("\\r");
+                this.sb.append("\\r");
                 break;
             case '\n':
-                sb.append("\\n");
+                this.sb.append("\\n");
                 break;
             case '\\':
             case '|':
-                sb.append("\\");
+                this.sb.append("\\");
 
             default:
-                sb.append(c);
+                this.sb.append(c);
             }
         }
 
-        return sb.toString();
+        return this.sb.toString();
     }
 
     private byte[] mBuffer;
     private int mLoadLen = 0;
 
     public byte[] badLoadContents() {
-        byte[] dump = new byte[mLoadLen];
+        byte[] dump = new byte[this.mLoadLen];
         System.arraycopy(this.mBuffer, 0, dump, 0, this.mLoadLen);
         return dump;
     }
 
     public boolean executeBatch() throws IOException, SQLException {
         // copy data from the given input stream to the table
-        this.mWriter.append(dataEnd);
+        this.mWriter.append(PGCopyWriter.dataEnd);
 
         // encode String as byte array
-        mLoadLen = this.encode(this.mWriter.toString());
+        this.mLoadLen = this.encode(this.mWriter.toString());
 
         // reset stringbuilder to start
         this.mWriter.setLength(0);
 
         // map input stream arround array.
-        InputStream input = new ByteArrayInputStream(this.mBuffer, 0, mLoadLen);
+        InputStream input = new ByteArrayInputStream(this.mBuffer, 0, this.mLoadLen);
 
         // send command
-        copy.copyInQuery(msLoadCommand, input);
+        this.copy.copyInQuery(this.msLoadCommand, input);
 
         // increment batch count
-        batchesCompleted++;
+        this.batchesCompleted++;
 
         // reset variables for next batch
-        rowsInThisBatch = 0;
+        this.rowsInThisBatch = 0;
 
         return true;
     }
@@ -184,12 +182,12 @@ final public class PGCopyWriter {
     public boolean addBatch() throws SQLException, IOException {
         for (int i = 0; i < this.mColumns; i++) {
             if (i > 0)
-                this.mWriter.append(mDelimiter);
+                this.mWriter.append(PGCopyWriter.mDelimiter);
 
             this.mWriter.append(this.mDatums[i]);
             this.mDatums[i] = null;
         }
-        this.mWriter.append(rowEnd);
+        this.mWriter.append(PGCopyWriter.rowEnd);
 
         this.rowsInThisBatch++;
 
@@ -225,8 +223,8 @@ final public class PGCopyWriter {
     }
 
     public void setDouble(int pos, double arg0, int arg1) throws IOException {
-        doubleFormatter.setMaximumFractionDigits(arg1);
-        this.setObject(pos, doubleFormatter.format(arg0));
+        this.doubleFormatter.setMaximumFractionDigits(arg1);
+        this.setObject(pos, this.doubleFormatter.format(arg0));
     }
 
     public void setFloat(int pos, float arg0) throws IOException {
@@ -242,17 +240,17 @@ final public class PGCopyWriter {
     }
 
     public void setNull(int pos, int dataType) throws IOException {
-        mDatums[pos - 1] = mNull;
+        this.mDatums[pos - 1] = PGCopyWriter.mNull;
     }
 
     private void setObject(int pos, Object arg0) {
-        mDatums[pos - 1] = arg0;
+        this.mDatums[pos - 1] = arg0;
         if (this.mDatumTypes[pos - 1] == null)
-            this.mDatumTypes[pos - 1] = mDatums[pos - 1].getClass();
+            this.mDatumTypes[pos - 1] = this.mDatums[pos - 1].getClass();
     }
 
     public void setString(int pos, String arg0) throws IOException {
-        this.setObject(pos, escape(arg0));
+        this.setObject(pos, this.escape(arg0));
     }
 
     public void setTimestamp(int pos, Date arg0) throws IOException {
