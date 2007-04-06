@@ -15,7 +15,7 @@ import com.kni.etl.stringtools.BoyerMooreAlgorithm;
 public class SessionIdentifier
 {
     public int Weight;
-    public int DataType;
+    //public int DataType;
     public int ObjectType;
     public BoyerMooreAlgorithm searchAccelerator = null;
     public int DestinationObjectType;

@@ -22,22 +22,22 @@ public class SessionStore implements Serializable
     // IP and Browser session identifiers 
     private KNIHashMap SessionsByIPAddressAndBrowserHashMap;
     private ReadWriteLock SessionsByIPAddressAndBrowserReadWriteLock;
-    private SessionStoreBackgroundThread SessionsByIPAddressAndBrowserBackgroundThread;
+    private SessionStoreSet SessionsByIPAddressAndBrowserBackgroundThread;
 
     // Main session identifiers
     private KNIHashMap SessionsByMainSessionIdentifierHashMap;
     private ReadWriteLock SessionsByMainSessionIdentifierReadWriteLock;
-    private SessionStoreBackgroundThread SessionsByMainSessionIdentifierBackgroundThread;
+    private SessionStoreSet SessionsByMainSessionIdentifierBackgroundThread;
 
     // first click session identifiers
     private KNIHashMap SessionsByFirstClickSessionIdentifierHashMap;
     private ReadWriteLock SessionsByFirstClickSessionIdentifierReadWriteLock;
-    private SessionStoreBackgroundThread SessionsByFirstClickSessionIdentifierBackgroundThread;
+    private SessionStoreSet SessionsByFirstClickSessionIdentifierBackgroundThread;
 
     // persistant session identifiers
     private KNIHashMap SessionsByPersistantIdentifierHashMap;
     private ReadWriteLock SessionsByPersistantIdentifierReadWriteLock;
-    private SessionStoreBackgroundThread SessionsByPersistantIdentifierBackgroundThread;
+    private SessionStoreSet SessionsByPersistantIdentifierBackgroundThread;
     java.util.Date CurrentDate;
     private List RemovedSessionsQueue;
     
@@ -672,7 +672,7 @@ public class SessionStore implements Serializable
             this.SessionsByIPAddressAndBrowserReadWriteLock = new ReadWriteLock();
         }
 
-        this.SessionsByIPAddressAndBrowserBackgroundThread = new SessionStoreBackgroundThread(this.SessionsByIPAddressAndBrowserHashMap,
+        this.SessionsByIPAddressAndBrowserBackgroundThread = new SessionStoreSet(this.SessionsByIPAddressAndBrowserHashMap,
                 this.SessionsByIPAddressAndBrowserReadWriteLock, this.CurrentDate, this.sessionDefinition.TimeOut,
                 this.sessionDefinition.IPBrowserTimeOut, 24, this.RemovedSessionsQueue,
                 this.sessionDefinition.IPBrowserFallbackEnabled);
@@ -689,7 +689,7 @@ public class SessionStore implements Serializable
             this.SessionsByFirstClickSessionIdentifierReadWriteLock = new ReadWriteLock();
         }
 
-        this.SessionsByFirstClickSessionIdentifierBackgroundThread = new SessionStoreBackgroundThread(this.SessionsByFirstClickSessionIdentifierHashMap,
+        this.SessionsByFirstClickSessionIdentifierBackgroundThread = new SessionStoreSet(this.SessionsByFirstClickSessionIdentifierHashMap,
                 this.SessionsByFirstClickSessionIdentifierReadWriteLock, this.CurrentDate, this.sessionDefinition.TimeOut,
                 this.sessionDefinition.FirstClickIdentifierTimeOut, 2, this.RemovedSessionsQueue,
                 this.sessionDefinition.FirstClickIdentifierFallbackEnabled);
@@ -706,7 +706,7 @@ public class SessionStore implements Serializable
             this.SessionsByPersistantIdentifierReadWriteLock = new ReadWriteLock();
         }
 
-        this.SessionsByPersistantIdentifierBackgroundThread = new SessionStoreBackgroundThread(this.SessionsByPersistantIdentifierHashMap,
+        this.SessionsByPersistantIdentifierBackgroundThread = new SessionStoreSet(this.SessionsByPersistantIdentifierHashMap,
                 this.SessionsByPersistantIdentifierReadWriteLock, this.CurrentDate, this.sessionDefinition.TimeOut,
                 this.sessionDefinition.PersistantIdentifierTimeOut, 4, this.RemovedSessionsQueue,
                 this.sessionDefinition.PersistantIdentifierFallbackEnabled);
@@ -723,7 +723,7 @@ public class SessionStore implements Serializable
             this.SessionsByMainSessionIdentifierReadWriteLock = new ReadWriteLock();
         }
 
-        this.SessionsByMainSessionIdentifierBackgroundThread = new SessionStoreBackgroundThread(this.SessionsByMainSessionIdentifierHashMap,
+        this.SessionsByMainSessionIdentifierBackgroundThread = new SessionStoreSet(this.SessionsByMainSessionIdentifierHashMap,
                 this.SessionsByMainSessionIdentifierReadWriteLock, this.CurrentDate, this.sessionDefinition.TimeOut,
                 this.sessionDefinition.MainIdentifierTimeOut, 1, this.RemovedSessionsQueue,
                 this.sessionDefinition.MainIdentifierFallbackEnabled);

@@ -11,7 +11,7 @@ import com.kni.etl.KNIHashMap;
 import com.kni.etl.ReadWriteLock;
 
 
-public class SessionStoreBackgroundThread implements Serializable
+public class SessionStoreSet implements Serializable
 {
     /**
      *
@@ -30,7 +30,7 @@ public class SessionStoreBackgroundThread implements Serializable
      * SessionStoreBackgroundThread constructor comment.
      * @param pDestinationThread TODO
      */
-    public SessionStoreBackgroundThread(KNIHashMap pHashMapToMonitor, ReadWriteLock pHashMapReadWriteLock,
+    public SessionStoreSet(KNIHashMap pHashMapToMonitor, ReadWriteLock pHashMapReadWriteLock,
         java.util.Date pDate, int pSessionTimeOut, int pLastMatchTimeOut, int pAssociatedAlgorithmCode,
         List pRemovedSessionsQueue, boolean pKeepFallBack)
     {
