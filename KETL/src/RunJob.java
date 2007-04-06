@@ -7,7 +7,6 @@ import com.kni.etl.OSJobExecutor;
 import com.kni.etl.SQLJobExecutor;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.KETLJobExecutor;
-import com.kni.etl.sessionizer.XMLSessionizeJobExecutor;
 import com.kni.etl.util.XMLHelper;
 import com.kni.util.ArgumentParserUtil;
 
@@ -35,11 +34,10 @@ public class RunJob {
         String jobID = null;
 
 
-        // extract login information for metadata and xml filename
-        for (int index = 0; index < args.length; index++) {
+        for (String element : args) {
 
-            if ((fileName == null) && (args[index].indexOf("FILE=") != -1)) {
-                fileName = ArgumentParserUtil.extractArguments(args[index], "FILE=");
+            if ((fileName == null) && (element.indexOf("FILE=") != -1)) {
+                fileName = ArgumentParserUtil.extractArguments(element, "FILE=");
             }
         }
 
@@ -58,8 +56,7 @@ public class RunJob {
 
         ETLJobExecutor osJobExec = new OSJobExecutor();
 
-        ETLJobExecutor sessionJobExec = new XMLSessionizeJobExecutor();
-
+      
         ETLJobExecutor sqlJobExec = new SQLJobExecutor();
 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Executing file " + fileName);
@@ -89,10 +86,7 @@ public class RunJob {
             else if (type.equals("OSJOB")) {
                 cur = osJobExec;
             }
-            else if (type.equals("XMLSESSIONIZER")) {
-                cur = sessionJobExec;
-            }
-            else if (type.equals("EMPTYJOB")) {
+           else if (type.equals("EMPTYJOB")) {
                 ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Skipping empty job "
                         + jobID);
             }

@@ -40,7 +40,7 @@ public class KETLTestHarness {
         ArrayList jobs = new ArrayList();
         HashSet submittedJobs = new HashSet();
 
-        suite(testDir, jobs);
+        KETLTestHarness.suite(testDir, jobs);
 
         // dependencie consistency check
         HashSet dependsCheck = new HashSet();
@@ -96,12 +96,12 @@ public class KETLTestHarness {
             throw new RuntimeException("Test directory is invalid: " + testDir);
 
         String children[] = dir.list();
-        for (int i = 0; i < children.length; i++) {
-            File fl = new File(dir.getAbsolutePath() + File.separator + children[i]);
+        for (String element : children) {
+            File fl = new File(dir.getAbsolutePath() + File.separator + element);
 
             if (fl.isDirectory())
                 KETLTestHarness.suite(fl.getAbsolutePath(), jobs);
-            else if (children[i].endsWith(".xml")) {
+            else if (element.endsWith(".xml")) {
                 try {
                     Document doc = XMLHelper.readXMLFromFile(fl.getAbsolutePath());
 
@@ -114,17 +114,17 @@ public class KETLTestHarness {
 
                         TestJob job = new TestJob();
                         job.id = jobid;
-                        job.filename = testDir + File.separator + children[i];
+                        job.filename = testDir + File.separator + element;
                         Node[] depends = XMLHelper.getElementsByName(nl.item(x), "DEPENDS_ON", null, null);
 
                         if (depends != null)
-                            for (int p = 0; p < depends.length; p++)
-                                job.depends.add(XMLHelper.getTextContent(depends[p]));
+                            for (Node element0 : depends)
+                                job.depends.add(XMLHelper.getTextContent(element0));
 
                         depends = XMLHelper.getElementsByName(nl.item(x), "WAITS_ON", null, null);
                         if (depends != null)
-                            for (int p = 0; p < depends.length; p++)
-                                job.depends.add(XMLHelper.getTextContent(depends[p]));
+                            for (Node element0 : depends)
+                                job.depends.add(XMLHelper.getTextContent(element0));
 
                         job.type = XMLHelper.getAttributeAsString(nl.item(x).getAttributes(), "TYPE", null);
 
@@ -134,7 +134,7 @@ public class KETLTestHarness {
                         jobs.add(job);
                     }
                 } catch (Exception e) {
-                    System.err.println("Skipping file " + children[i] + ", Error:" + e.getMessage());
+                    System.err.println("Skipping file " + element + ", Error:" + e.getMessage());
                 }
             }
         }

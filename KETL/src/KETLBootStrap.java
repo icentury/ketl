@@ -23,15 +23,15 @@ public class KETLBootStrap
         // Start up a KETL server in the background
         if ((args.length == 3) && args[2].equalsIgnoreCase("FOREGROUND"))
         {
-            startProcess(args[1], args[0], false);
+            KETLBootStrap.startProcess(args[1], args[0], false);
         }
         else if (args.length == 2)
         {
-            startProcess(args[1], args[0], true);
+            KETLBootStrap.startProcess(args[1], args[0], true);
         }
         else if (args.length == 1)
         {
-            startProcess(null, args[0], true);
+            KETLBootStrap.startProcess(null, args[0], true);
         }
         else
         {

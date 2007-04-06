@@ -4,7 +4,6 @@ import com.kni.etl.ETLJobExecutor;
 import com.kni.etl.OSJobExecutor;
 import com.kni.etl.SQLJobExecutor;
 import com.kni.etl.ketl.KETLJobExecutor;
-import com.kni.etl.sessionizer.XMLSessionizeJobExecutor;
 
 public class KETLTestWrapper extends TestCase {
 
@@ -22,33 +21,30 @@ public class KETLTestWrapper extends TestCase {
 
     @Override
     public String getName() {
-        return (jobid + " - " + filename + "");
+        return (this.jobid + " - " + this.filename + "");
     }
 
     public void testJob() throws Throwable {
         try {
 
             ETLJobExecutor cur = null;
-            if (type.equals("KETL")) {
+            if (this.type.equals("KETL")) {
                 cur = new KETLJobExecutor();
             }
-            else if (type.equals("SQL")) {
+            else if (this.type.equals("SQL")) {
                 cur = new SQLJobExecutor();
             }
-            else if (type.equals("OSJOB")) {
+            else if (this.type.equals("OSJOB")) {
                 cur = new OSJobExecutor();
             }
-            else if (type.equals("XMLSESSIONIZER")) {
-                cur = new XMLSessionizeJobExecutor();
-            }
-            else if (type.equals("EMPTYJOB")) {
+           else if (this.type.equals("EMPTYJOB")) {
                 return;
             }
 
             if (cur == null)
-                throw new RuntimeException("Unknown job type " + type);
+                throw new RuntimeException("Unknown job type " + this.type);
 
-            ETLJobExecutor._execute(new String[] { "FILE=" + filename, "JOBID=" + jobid, "LOADID=" + loadid }, cur,
+            ETLJobExecutor._execute(new String[] { "FILE=" + this.filename, "JOBID=" + this.jobid, "LOADID=" + this.loadid }, cur,
                     false, this.loadid);
         } catch (RuntimeException e) {
             if (e.getCause() != null && e.getCause() instanceof com.kni.etl.ketl.writer.ForcedException)

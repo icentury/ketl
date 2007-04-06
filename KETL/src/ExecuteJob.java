@@ -130,26 +130,25 @@ class ExecuteJob {
         // String mdServer = null;
         String allowMultiple = null;
 
-        // decode arguments
-        for (int index = 0; index < args.length; index++) {
-            if ((server == null) && (args[index].indexOf("SERVER=") != -1)) {
-                server = extractArguments(args[index], "SERVER=");
+        for (String element : args) {
+            if ((server == null) && (element.indexOf("SERVER=") != -1)) {
+                server = ExecuteJob.extractArguments(element, "SERVER=");
             }
 
-            if ((jobID == null) && (args[index].indexOf("JOB_ID=") != -1)) {
-                jobID = extractArguments(args[index], "JOB_ID=");
+            if ((jobID == null) && (element.indexOf("JOB_ID=") != -1)) {
+                jobID = ExecuteJob.extractArguments(element, "JOB_ID=");
             }
 
-            if ((projectID == null) && (args[index].indexOf("PROJECT_ID=") != -1)) {
-                projectID = extractArguments(args[index], "PROJECT_ID=");
+            if ((projectID == null) && (element.indexOf("PROJECT_ID=") != -1)) {
+                projectID = ExecuteJob.extractArguments(element, "PROJECT_ID=");
             }
 
-            if ((ignoreDependencies == null) && (args[index].indexOf("IGNORE_DEPENDENCIES=") != -1)) {
-                ignoreDependencies = extractArguments(args[index], "IGNORE_DEPENDENCIES=");
+            if ((ignoreDependencies == null) && (element.indexOf("IGNORE_DEPENDENCIES=") != -1)) {
+                ignoreDependencies = ExecuteJob.extractArguments(element, "IGNORE_DEPENDENCIES=");
             }
 
-            if ((allowMultiple == null) && (args[index].indexOf("ALLOW_MULTIPLE=") != -1)) {
-                allowMultiple = extractArguments(args[index], "ALLOW_MULTIPLE=");
+            if ((allowMultiple == null) && (element.indexOf("ALLOW_MULTIPLE=") != -1)) {
+                allowMultiple = ExecuteJob.extractArguments(element, "ALLOW_MULTIPLE=");
             }
         }
 
@@ -168,7 +167,7 @@ class ExecuteJob {
         Metadata md = null;
 
         try {
-            md = connectToServer(Metadata.LoadConfigFile(null,  Metadata.CONFIG_FILE),server);
+            md = ExecuteJob.connectToServer(Metadata.LoadConfigFile(null,  Metadata.CONFIG_FILE),server);
         } catch (Exception e1) {
             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Connecting to metadata - "
                     + e1.getMessage());
