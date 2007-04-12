@@ -4852,38 +4852,33 @@ public class Metadata {
         // pLoadIDs must be separated by commas
         PreparedStatement m_stmt = null;
 
-        // if rows in the job_log tables are deleted, the execution id (dm_load_id)
-        // reference is lost, so we have to delete the history too
-        String[] errorTables = { "job_error", "job_error_hist" };
-        String[] loadTables = { "job_log", "job_log_hist", "load" };
-
         synchronized (this.oLock) {
             // Make metadata connection alive.
             refreshMetadataConnection();
 
-            // TODO: make sure there's nothing executing right now or there's a load end date
+            // do not delete any loads that are currently executing (i.e. in job_log or error_log) 
+            // Do the deletes in this order: 1st, delete the error history
+            m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix 
+                    + "job_error_hist WHERE dm_load_id IN (SELECT dm_load_id FROM " + tablePrefix
+                    + "job_log_hist WHERE load_id in (" + pLoadIDs + "))");
+            m_stmt.executeUpdate();
+            if (m_stmt != null)
+                m_stmt.close();
 
-            for (int i = 0; i < errorTables.length; i++) {
-                m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix + errorTables[i]
-                        + " WHERE dm_load_id IN (SELECT dm_load_id FROM " + tablePrefix
-                        + "job_log WHERE load_id in (?) UNION SELECT dm_load_id FROM " + tablePrefix
-                        + "job_log_hist WHERE load_id in (?))");
-                m_stmt.setString(1, pLoadIDs);
-                m_stmt.setString(2, pLoadIDs);
-                m_stmt.executeUpdate();
-                if (m_stmt != null)
-                    m_stmt.close();
-            }
+            // 2nd, delete the log history 
+            m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix
+                    + "job_log_hist WHERE load_id in (" + pLoadIDs + ")");
+            m_stmt.executeUpdate();
+            if (m_stmt != null)
+                m_stmt.close();
 
-            for (int i = 0; i < loadTables.length; i++) {
-                m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix + loadTables[i]
-                        + " WHERE load_id in (?)");
-                m_stmt.setString(1, pLoadIDs);
-                m_stmt.executeUpdate();
-                if (m_stmt != null)
-                    m_stmt.close();
-            }
-
+            //3rd, delete the load if there's a load end date
+            m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix
+                    + "load WHERE load_id in (" + pLoadIDs + ") and end_date is not null");
+            m_stmt.executeUpdate();
+            if (m_stmt != null)
+                m_stmt.close();
+            
             this.metadataConnection.commit();
         }
 
