@@ -594,7 +594,7 @@ abstract public class ETLWorker implements Runnable {
     }
 
     public Object handleException(Exception e) throws Exception {
-        return null;
+        throw e;
     }
 
     public Object handlePortEventCode(int eventCode, int portIndex) throws Exception {
@@ -602,7 +602,7 @@ abstract public class ETLWorker implements Runnable {
     }
 
     public Object handlePortException(Exception e, int portIndex) throws Exception {
-        return null;
+        throw e;
     }
 
     protected int hash(Object[] obj, int paths) {
