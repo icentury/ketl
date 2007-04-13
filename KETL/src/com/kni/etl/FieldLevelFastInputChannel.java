@@ -311,19 +311,25 @@ public final class FieldLevelFastInputChannel {
                     int recordPos = pos;
                     boolean foundDelimiter = true;
 
-                    if (pKeepDelimiter)
+                    if (delimiterLength == 0 && pKeepDelimiter)
                         pOutput[pos++] = (char) ch;
-                    for (int x = 1; x < delimiterLength; x++) {
-                        ch = this.read();
-                        if (ch == -1) {
-                            EOF = true;
-                            throw new EOFException();
-                        }
+
+                    if (delimiterLength > 1) {
                         pOutput[pos++] = (char) ch;
-                        if (ch != pDelimiter[x]) {
-                            x = delimiterLength;
-                            foundDelimiter = false;
+
+                        for (int x = 1; x < delimiterLength; x++) {
+                            ch = this.read();
+                            if (ch == -1) {
+                                EOF = true;
+                                throw new EOFException();
+                            }
+                            pOutput[pos++] = (char) ch;
+                            if (ch != pDelimiter[x]) {
+                                x = delimiterLength;
+                                foundDelimiter = false;
+                            }
                         }
+
                     }
 
                     if (foundDelimiter) {
