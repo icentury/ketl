@@ -175,7 +175,12 @@ public class Console {
         }
         else if (pCommands.length == 1) // use default server
         {
-            this.servername = XMLHelper.getAttributeAsString(this.xmlConfig.getFirstChild().getAttributes(), "DEFAULTSERVER", "");
+            Node n = XMLHelper.findElementByName(this.xmlConfig, "SERVERS", null, null);
+            if (n == null) {
+                ResourcePool.LogMessage("KETLServers.xml is missing the root node SERVERS, please review file");
+                System.exit(-1);
+            }
+            this.servername = XMLHelper.getAttributeAsString(n.getAttributes(), "DEFAULTSERVER", "");
         }
 
         if (this.servername.equalsIgnoreCase("LOCALHOST")) {

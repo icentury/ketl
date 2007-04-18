@@ -129,13 +129,15 @@ public abstract class ETLStep extends ETLWorker {
     private String mDumpFile;
     private boolean mLoggerFailed = false;
 
+
     protected void logBadRecord(int pRowNum, Object[] pRec, Exception e2) throws IOException {
         if (this.mLoggerFailed)
             return;
         try {
             if (moDump == null) {
-                mDumpFile = EngineConstants.BAD_RECORD_PATH + File.separator
-                        + this.getJobExecutor().getCurrentETLJob().getJobID() + "."
+                String rootPath = this.getJobExecutor().ejCurrentJob.getLoggingPath();
+
+                mDumpFile = rootPath + File.separator + this.getJobExecutor().getCurrentETLJob().getJobID() + "."
                         + this.getJobExecutor().getCurrentETLJob().getJobExecutionID();
                 moDump = new FileOutputStream(mDumpFile);
                 moDumpBuffer = new BufferedOutputStream(moDump);
@@ -489,7 +491,7 @@ public abstract class ETLStep extends ETLWorker {
             ResourcePool.LogMessage(this, e.getMessage());
             return -1;
         }
-        
+
         this.mbFirstThreadToStart = this._isFirstThreadToStart();
         // initialize any qa for this step
         this.mqacQACollection = getQACollection(xmlConfig);
@@ -518,8 +520,6 @@ public abstract class ETLStep extends ETLWorker {
          * found, check that the following exist:\n" + getRequiredTagsMessage()); return 4; }
          */
         this.mErrorCounter = this.getJobExecutor().ejCurrentJob.getErrorCounter(this.getName());
-
-      
 
         if (this.isFirstThreadToEnterInitializePhase())
             this.mqacQACollection.initializeCheck();
@@ -679,7 +679,7 @@ public abstract class ETLStep extends ETLWorker {
                 event.mstrMessage, event.getExtendedMessage(), true);
 
         // to stdout
-        ResourcePool.LogMessage(event.getETLStep(),event.getReturnCode(), ResourcePool.INFO_MESSAGE,
+        ResourcePool.LogMessage(event.getETLStep(), event.getReturnCode(), ResourcePool.INFO_MESSAGE,
                 event.mstrMessage, event.getExtendedMessage(), false);
 
         return 1;

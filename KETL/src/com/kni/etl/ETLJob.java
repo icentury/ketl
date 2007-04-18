@@ -898,7 +898,7 @@ public class ETLJob {
             return;
         try {
             if (moDump == null) {
-                mDumpFile = EngineConstants.BAD_RECORD_PATH + File.separator + this.getJobID() + "."
+                mDumpFile = this.getLoggingPath() + File.separator + this.getJobID() + "."
                         + this.getJobExecutionID() + ".joblog";
                 moDump = new FileOutputStream(mDumpFile);
                 moDumpBuffer = new BufferedOutputStream(moDump);
@@ -916,6 +916,21 @@ public class ETLJob {
             e.printStackTrace();
         }
 
+    }
+
+    public String getLoggingPath() {
+        String rootPath = EngineConstants.BAD_RECORD_PATH;
+
+        rootPath = this.getInternalConstants(rootPath);
+        try {
+            File fl = new File(rootPath);
+            fl.mkdirs();
+        } catch (Exception e) {
+            ResourcePool.LogException(e, this);
+            rootPath = "log";
+        }
+        
+        return rootPath;
     }
 
     final public synchronized ArrayList getLog(String name2) {
