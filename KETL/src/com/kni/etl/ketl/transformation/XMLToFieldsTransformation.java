@@ -276,7 +276,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
         public String generateCode(int portReferenceIndex) throws KETLThreadException {
 
-            if (this.xpath == null || this.isUsed() == false)
+            if (this.xpath == null || this.isConstant() || this.isUsed() == false)
                 return super.generateCode(portReferenceIndex);
 
             // must be pure code then do some replacing

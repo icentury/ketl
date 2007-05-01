@@ -37,7 +37,7 @@ public class OSJob extends ETLJob {
 
     protected Node setChildNodes(Node pParentNode) {
         Element e = pParentNode.getOwnerDocument().createElement("OSJOB");
-        e.appendChild(pParentNode.getOwnerDocument().createTextNode(this.getAction().toString()));
+        e.appendChild(pParentNode.getOwnerDocument().createTextNode(this.getAction(false).toString()));
         pParentNode.appendChild(e);
 
         return e;
@@ -72,7 +72,7 @@ public class OSJob extends ETLJob {
      * @return java.lang.String
      */
     public java.lang.String getCommandLine() throws Exception {
-        String cmd = (String) this.getAction();
+        String cmd = (String) this.getAction(true);
 
         if (cmd.indexOf("<OSJOB") != -1) {
             DocumentBuilder builder = null;
@@ -80,7 +80,7 @@ public class OSJob extends ETLJob {
             DocumentBuilderFactory dmfFactory = DocumentBuilderFactory.newInstance();
 
             builder = dmfFactory.newDocumentBuilder();
-            xmlDOM = builder.parse(new InputSource(new StringReader((String) this.getAction())));
+            xmlDOM = builder.parse(new InputSource(new StringReader((String) this.getAction(true))));
 
             NodeList nl = xmlDOM.getElementsByTagName("OSJOB");
 
@@ -189,6 +189,6 @@ public class OSJob extends ETLJob {
      * @return a string representation of the receiver
      */
     public String toString() {
-        return (String) this.getAction();
+        return (String) this.getAction(true);
     }
 }

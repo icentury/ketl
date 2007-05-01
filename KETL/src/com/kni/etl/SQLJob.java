@@ -51,7 +51,7 @@ public class SQLJob extends ETLJob implements DBConnection {
             x.setAttribute(AUTOCOMMIT, "FALSE");
             x.setAttribute(MAXROWS, Integer.toString(this.getMaxRows()));
             e.appendChild(x);
-            x.appendChild(pParentNode.getOwnerDocument().createTextNode(this.getAction().toString()));
+            x.appendChild(pParentNode.getOwnerDocument().createTextNode(this.getAction(false).toString()));
             pParentNode.appendChild(e);
 
             return e;
@@ -170,7 +170,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return java.lang.String
      */
     public java.lang.String getSQL() throws Exception {
-        return resolveParameters((String) this.getAction());
+        return resolveParameters((String) this.getAction(true));
     }
 
     /**
@@ -282,7 +282,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return a string representation of the receiver
      */
     public String toString() {
-        return (String) this.getAction();
+        return (String) this.getAction(true);
     }
 
     /*
@@ -293,7 +293,7 @@ public class SQLJob extends ETLJob implements DBConnection {
     public void setAction(Object oAction) throws Exception {
         super.setAction(oAction);
 
-        String sAction = (String) this.getAction();
+        String sAction = (String) this.getAction(false);
 
         if (sAction == "" || sAction.indexOf("<SQL") == -1) {
             mSQLNode = null;
@@ -308,7 +308,7 @@ public class SQLJob extends ETLJob implements DBConnection {
         try {
 
             builder = dmfFactory.newDocumentBuilder();
-            xmlDOM = builder.parse(new InputSource(new StringReader((String) this.getAction())));
+            xmlDOM = builder.parse(new InputSource(new StringReader((String) this.getAction(false))));
 
             NodeList nl = xmlDOM.getElementsByTagName("SQL");
 

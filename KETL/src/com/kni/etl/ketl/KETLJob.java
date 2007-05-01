@@ -60,7 +60,7 @@ public class KETLJob extends ETLJob {
             DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
             builder = dmf.newDocumentBuilder();
 
-            Object action = this.getAction();
+            Object action = this.getAction(false);
 
             if (action == null) {
                 action = "<ACTION/>";

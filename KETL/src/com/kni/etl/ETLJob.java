@@ -223,10 +223,10 @@ public class ETLJob {
         Element e = pParentNode.getOwnerDocument().createElement("EMPTY");
 
         // XMLHelper.outputXML(this.)
-        Object action = this.getAction();
+        Object action = this.getAction(false);
 
         if (action != null) {
-            e.appendChild(pParentNode.getOwnerDocument().createTextNode(this.getAction().toString()));
+            e.appendChild(pParentNode.getOwnerDocument().createTextNode(this.getAction(false).toString()));
         }
 
         pParentNode.appendChild(e);
@@ -325,7 +325,7 @@ public class ETLJob {
             }
 
             sb.append("-- }\n");
-            sb.append(this.getAction() + "\n");
+            sb.append(this.getAction(false) + "\n");
             sb.append("-- END_SQL_JOB\n");
             jobDefinition = sb.toString();
         }
@@ -391,14 +391,15 @@ public class ETLJob {
 
     /**
      * Insert the method's description here. Creation date: (5/8/2002 3:32:26 PM)
+     * @param resolveConstants TODO
      * 
      * @return java.lang.String
      */
-    public Object getAction() {
+    public Object getAction(boolean resolveConstants) {
         if (moAction instanceof String) {
             String strAction = (String) moAction;
 
-            if (strAction != null) {
+            if (strAction != null && resolveConstants) {
                 strAction = getInternalConstants(strAction);
             }
 

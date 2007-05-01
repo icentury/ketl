@@ -328,7 +328,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
             try {
                 builder = dmfFactory.newDocumentBuilder();
 
-                String jobXML = (String) kjJob.getAction();
+                String jobXML = (String) kjJob.getAction(true);
 
                 if (this.aesOverrideParameters != null) {
                     for (int i = 0; i < this.aesOverrideParameters.size(); i++) {

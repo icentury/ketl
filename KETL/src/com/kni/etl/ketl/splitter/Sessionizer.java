@@ -500,7 +500,7 @@ public class Sessionizer extends ETLSplit {
                 throw new KETLThreadException(
                         "SESSION channel can only contain attributes with a valid OBJECTTYPE attribute", this);
 
-            if (this.miSource == -1 || this.isUsed() == false)
+            if (this.miSource == -1 || this.isConstant() || this.isUsed() == false)
                 return super.generateCode(portReferenceIndex);
 
             return this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this) + "] = (("
