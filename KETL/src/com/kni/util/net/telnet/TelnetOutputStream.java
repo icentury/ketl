@@ -75,7 +75,7 @@ final class TelnetOutputStream extends OutputStream
 
     TelnetOutputStream(TelnetClient client)
     {
-        __client = client;
+        this.__client = client;
     }
 
 
@@ -86,54 +86,55 @@ final class TelnetOutputStream extends OutputStream
      * @exception IOException If an error occurs while writing to the underlying
      *            stream.
      ***/
+    @Override
     public void write(int ch) throws IOException
     {
 
-        synchronized (__client)
+        synchronized (this.__client)
         {
             ch &= 0xff;
 
-            if (__client._requestedWont(TelnetOption.BINARY))
+            if (this.__client._requestedWont(TelnetOption.BINARY))
             {
-                if (__lastWasCR)
+                if (this.__lastWasCR)
                 {
-                    if (__convertCRtoCRLF)
+                    if (this.__convertCRtoCRLF)
                     {
-                        __client._sendByte('\n');
+                        this.__client._sendByte('\n');
                         if (ch == '\n')
                         {
-                            __lastWasCR = false;
+                            this.__lastWasCR = false;
                             return ;
                         }
                     }
                     else if (ch != '\n')
-                        __client._sendByte('\0');
+                        this.__client._sendByte('\0');
                 }
 
-                __lastWasCR = false;
+                this.__lastWasCR = false;
 
                 switch (ch)
                 {
                 case '\r':
-                    __client._sendByte('\r');
-                    __lastWasCR = true;
+                    this.__client._sendByte('\r');
+                    this.__lastWasCR = true;
                     break;
                 case TelnetCommand.IAC:
-                    __client._sendByte(TelnetCommand.IAC);
-                    __client._sendByte(TelnetCommand.IAC);
+                    this.__client._sendByte(TelnetCommand.IAC);
+                    this.__client._sendByte(TelnetCommand.IAC);
                     break;
                 default:
-                    __client._sendByte(ch);
+                    this.__client._sendByte(ch);
                     break;
                 }
             }
             else if (ch == TelnetCommand.IAC)
             {
-                __client._sendByte(ch);
-                __client._sendByte(TelnetCommand.IAC);
+                this.__client._sendByte(ch);
+                this.__client._sendByte(TelnetCommand.IAC);
             }
             else
-                __client._sendByte(ch);
+                this.__client._sendByte(ch);
         }
     }
 
@@ -145,9 +146,10 @@ final class TelnetOutputStream extends OutputStream
      * @exception IOException If an error occurs while writing to the underlying
      *            stream.
      ***/
+    @Override
     public void write(byte buffer[]) throws IOException
     {
-        write(buffer, 0, buffer.length);
+        this.write(buffer, 0, buffer.length);
     }
 
 
@@ -161,24 +163,27 @@ final class TelnetOutputStream extends OutputStream
      * @exception IOException If an error occurs while writing to the underlying
      *            stream.
      ***/
+    @Override
     public void write(byte buffer[], int offset, int length) throws IOException
     {
-        synchronized (__client)
+        synchronized (this.__client)
         {
             while (length-- > 0)
-                write(buffer[offset++]);
+                this.write(buffer[offset++]);
         }
     }
 
     /*** Flushes the stream. ***/
+    @Override
     public void flush() throws IOException
     {
-        __client._flushOutputStream();
+        this.__client._flushOutputStream();
     }
 
     /*** Closes the stream. ***/
+    @Override
     public void close() throws IOException
     {
-        __client._closeOutputStream();
+        this.__client._closeOutputStream();
     }
 }

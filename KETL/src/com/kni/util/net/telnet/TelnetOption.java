@@ -153,8 +153,8 @@ public class TelnetOption
 
     public static int EXTENDED_OPTIONS_LIST = 255;
 
-    private static int __FIRST_OPTION = BINARY;
-    private static int __LAST_OPTION = NEW_ENVIRONMENT_VARIABLES;
+    private static int __FIRST_OPTION = TelnetOption.BINARY;
+    private static int __LAST_OPTION = TelnetOption.NEW_ENVIRONMENT_VARIABLES;
 
     private static final String __optionString[] = {
                 "BINARY", "ECHO", "RCP", "SUPPRESS GO AHEAD", "NAME", "STATUS",
@@ -177,7 +177,7 @@ public class TelnetOption
      ***/
     public static final String getOption(int code)
     {
-        return __optionString[code];
+        return TelnetOption.__optionString[code];
     }
 
 
@@ -190,7 +190,7 @@ public class TelnetOption
      **/
     public static final boolean isValidOption(int code)
     {
-        return (code <= __LAST_OPTION);
+        return (code <= TelnetOption.__LAST_OPTION);
     }
 
     // Cannot be instantiated
