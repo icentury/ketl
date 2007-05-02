@@ -103,101 +103,101 @@ class Telnet extends SocketClient
     /* public */
     Telnet()
     {
-        setDefaultPort(DEFAULT_PORT);
-        _doResponse = new int[TelnetOption.MAX_OPTION_VALUE + 1];
-        _willResponse = new int[TelnetOption.MAX_OPTION_VALUE + 1];
-        _options = new int[TelnetOption.MAX_OPTION_VALUE + 1];
+        this.setDefaultPort(Telnet.DEFAULT_PORT);
+        this._doResponse = new int[TelnetOption.MAX_OPTION_VALUE + 1];
+        this._willResponse = new int[TelnetOption.MAX_OPTION_VALUE + 1];
+        this._options = new int[TelnetOption.MAX_OPTION_VALUE + 1];
     }
 
 
     boolean _stateIsWill(int option)
     {
-        return ((_options[option] & _WILL_MASK) != 0);
+        return ((this._options[option] & Telnet._WILL_MASK) != 0);
     }
 
     boolean _stateIsWont(int option)
     {
-        return !_stateIsWill(option);
+        return !this._stateIsWill(option);
     }
 
     boolean _stateIsDo(int option)
     {
-        return ((_options[option] & _DO_MASK) != 0);
+        return ((this._options[option] & Telnet._DO_MASK) != 0);
     }
 
     boolean _stateIsDont(int option)
     {
-        return !_stateIsDo(option);
+        return !this._stateIsDo(option);
     }
 
     boolean _requestedWill(int option)
     {
-        return ((_options[option] & _REQUESTED_WILL_MASK) != 0);
+        return ((this._options[option] & Telnet._REQUESTED_WILL_MASK) != 0);
     }
 
     boolean _requestedWont(int option)
     {
-        return !_requestedWill(option);
+        return !this._requestedWill(option);
     }
 
     boolean _requestedDo(int option)
     {
-        return ((_options[option] & _REQUESTED_DO_MASK) != 0);
+        return ((this._options[option] & Telnet._REQUESTED_DO_MASK) != 0);
     }
 
     boolean _requestedDont(int option)
     {
-        return !_requestedDo(option);
+        return !this._requestedDo(option);
     }
 
     void _setWill(int option)
     {
-        _options[option] |= _WILL_MASK;
+        this._options[option] |= Telnet._WILL_MASK;
     }
     void _setDo(int option)
     {
-        _options[option] |= _DO_MASK;
+        this._options[option] |= Telnet._DO_MASK;
     }
     void _setWantWill(int option)
     {
-        _options[option] |= _REQUESTED_WILL_MASK;
+        this._options[option] |= Telnet._REQUESTED_WILL_MASK;
     }
     void _setWantDo(int option)
     {
-        _options[option] |= _REQUESTED_DO_MASK;
+        this._options[option] |= Telnet._REQUESTED_DO_MASK;
     }
 
     void _setWont(int option)
     {
-        _options[option] &= ~_WILL_MASK;
+        this._options[option] &= ~Telnet._WILL_MASK;
     }
     void _setDont(int option)
     {
-        _options[option] &= ~_DO_MASK;
+        this._options[option] &= ~Telnet._DO_MASK;
     }
     void _setWantWont(int option)
     {
-        _options[option] &= ~_REQUESTED_WILL_MASK;
+        this._options[option] &= ~Telnet._REQUESTED_WILL_MASK;
     }
     void _setWantDont(int option)
     {
-        _options[option] &= ~_REQUESTED_DO_MASK;
+        this._options[option] &= ~Telnet._REQUESTED_DO_MASK;
     }
 
     void _processDo(int option) throws IOException
     {
         boolean acceptNewState = false;
 
-        if (_willResponse[option] > 0)
+        if (this._willResponse[option] > 0)
         {
-            --_willResponse[option];
-            if (_willResponse[option] > 0 && _stateIsWill(option))
-                --_willResponse[option];
+            --this._willResponse[option];
+            if (this._willResponse[option] > 0 && this._stateIsWill(option))
+                --this._willResponse[option];
         }
 
-        if (_willResponse[option] == 0)
+        if (this._willResponse[option] == 0)
         {
-            if (_requestedWont(option))
+            if (this._requestedWont(option))
             {
 
                 switch (option)
@@ -211,13 +211,13 @@ class Telnet extends SocketClient
 
                 if (acceptNewState)
                 {
-                    _setWantWill(option);
-                    _sendWill(option);
+                    this._setWantWill(option);
+                    this._sendWill(option);
                 }
                 else
                 {
-                    ++_willResponse[option];
-                    _sendWont(option);
+                    ++this._willResponse[option];
+                    this._sendWont(option);
                 }
             }
             else
@@ -235,20 +235,20 @@ class Telnet extends SocketClient
             }
         }
 
-        _setWill(option);
+        this._setWill(option);
     }
 
 
     void _processDont(int option) throws IOException
     {
-        if (_willResponse[option] > 0)
+        if (this._willResponse[option] > 0)
         {
-            --_willResponse[option];
-            if (_willResponse[option] > 0 && _stateIsWont(option))
-                --_willResponse[option];
+            --this._willResponse[option];
+            if (this._willResponse[option] > 0 && this._stateIsWont(option))
+                --this._willResponse[option];
         }
 
-        if (_willResponse[option] == 0 && _requestedWill(option))
+        if (this._willResponse[option] == 0 && this._requestedWill(option))
         {
 
             switch (option)
@@ -259,13 +259,13 @@ class Telnet extends SocketClient
 
             }
 
-            _setWantWont(option);
+            this._setWantWont(option);
 
-            if (_stateIsWill(option))
-                _sendWont(option);
+            if (this._stateIsWill(option))
+                this._sendWont(option);
         }
 
-        _setWont(option);
+        this._setWont(option);
     }
 
 
@@ -273,14 +273,14 @@ class Telnet extends SocketClient
     {
         boolean acceptNewState = false;
 
-        if (_doResponse[option] > 0)
+        if (this._doResponse[option] > 0)
         {
-            --_doResponse[option];
-            if (_doResponse[option] > 0 && _stateIsDo(option))
-                --_doResponse[option];
+            --this._doResponse[option];
+            if (this._doResponse[option] > 0 && this._stateIsDo(option))
+                --this._doResponse[option];
         }
 
-        if (_doResponse[option] == 0 && _requestedDont(option))
+        if (this._doResponse[option] == 0 && this._requestedDont(option))
         {
 
             switch (option)
@@ -294,30 +294,30 @@ class Telnet extends SocketClient
 
             if (acceptNewState)
             {
-                _setWantDo(option);
-                _sendDo(option);
+                this._setWantDo(option);
+                this._sendDo(option);
             }
             else
             {
-                ++_doResponse[option];
-                _sendDont(option);
+                ++this._doResponse[option];
+                this._sendDont(option);
             }
         }
 
-        _setDo(option);
+        this._setDo(option);
     }
 
 
     void _processWont(int option) throws IOException
     {
-        if (_doResponse[option] > 0)
+        if (this._doResponse[option] > 0)
         {
-            --_doResponse[option];
-            if (_doResponse[option] > 0 && _stateIsDont(option))
-                --_doResponse[option];
+            --this._doResponse[option];
+            if (this._doResponse[option] > 0 && this._stateIsDont(option))
+                --this._doResponse[option];
         }
 
-        if (_doResponse[option] == 0 && _requestedDo(option))
+        if (this._doResponse[option] == 0 && this._requestedDo(option))
         {
 
             switch (option)
@@ -328,108 +328,109 @@ class Telnet extends SocketClient
 
             }
 
-            _setWantDont(option);
+            this._setWantDont(option);
 
-            if (_stateIsDo(option))
-                _sendDont(option);
+            if (this._stateIsDo(option))
+                this._sendDont(option);
         }
 
-        _setDont(option);
+        this._setDont(option);
     }
 
 
+    @Override
     protected void _connectAction_() throws IOException
     {
         super._connectAction_();
-        _input_ = new BufferedInputStream(_input_);
-        _output_ = new BufferedOutputStream(_output_);
+        this._input_ = new BufferedInputStream(this._input_);
+        this._output_ = new BufferedOutputStream(this._output_);
     }
 
 
     final synchronized void _sendDo(int option)
     throws IOException
     {
-        if (debug)
+        if (Telnet.debug)
             System.err.println("DO: " + TelnetOption.getOption(option));
-        _output_.write(_COMMAND_DO);
-        _output_.write(option);
+        this._output_.write(Telnet._COMMAND_DO);
+        this._output_.write(option);
     }
 
     final synchronized void _requestDo(int option)
     throws IOException
     {
-        if ((_doResponse[option] == 0 && _stateIsDo(option)) ||
-                _requestedDo(option))
+        if ((this._doResponse[option] == 0 && this._stateIsDo(option)) ||
+                this._requestedDo(option))
             return ;
-        _setWantDo(option);
-        ++_doResponse[option];
-        _sendDo(option);
+        this._setWantDo(option);
+        ++this._doResponse[option];
+        this._sendDo(option);
     }
 
     final synchronized void _sendDont(int option)
     throws IOException
     {
-        if (debug)
+        if (Telnet.debug)
             System.err.println("DONT: " + TelnetOption.getOption(option));
-        _output_.write(_COMMAND_DONT);
-        _output_.write(option);
+        this._output_.write(Telnet._COMMAND_DONT);
+        this._output_.write(option);
     }
 
     final synchronized void _requestDont(int option)
     throws IOException
     {
-        if ((_doResponse[option] == 0 && _stateIsDont(option)) ||
-                _requestedDont(option))
+        if ((this._doResponse[option] == 0 && this._stateIsDont(option)) ||
+                this._requestedDont(option))
             return ;
-        _setWantDont(option);
-        ++_doResponse[option];
-        _sendDont(option);
+        this._setWantDont(option);
+        ++this._doResponse[option];
+        this._sendDont(option);
     }
 
 
     final synchronized void _sendWill(int option)
     throws IOException
     {
-        if (debug)
+        if (Telnet.debug)
             System.err.println("WILL: " + TelnetOption.getOption(option));
-        _output_.write(_COMMAND_WILL);
-        _output_.write(option);
+        this._output_.write(Telnet._COMMAND_WILL);
+        this._output_.write(option);
     }
 
     final synchronized void _requestWill(int option)
     throws IOException
     {
-        if ((_willResponse[option] == 0 && _stateIsWill(option)) ||
-                _requestedWill(option))
+        if ((this._willResponse[option] == 0 && this._stateIsWill(option)) ||
+                this._requestedWill(option))
             return ;
-        _setWantWill(option);
-        ++_doResponse[option];
-        _sendWill(option);
+        this._setWantWill(option);
+        ++this._doResponse[option];
+        this._sendWill(option);
     }
 
     final synchronized void _sendWont(int option)
     throws IOException
     {
-        if (debug)
+        if (Telnet.debug)
             System.err.println("WONT: " + TelnetOption.getOption(option));
-        _output_.write(_COMMAND_WONT);
-        _output_.write(option);
+        this._output_.write(Telnet._COMMAND_WONT);
+        this._output_.write(option);
     }
 
     final synchronized void _requestWont(int option)
     throws IOException
     {
-        if ((_willResponse[option] == 0 && _stateIsWont(option)) ||
-                _requestedWont(option))
+        if ((this._willResponse[option] == 0 && this._stateIsWont(option)) ||
+                this._requestedWont(option))
             return ;
-        _setWantWont(option);
-        ++_doResponse[option];
-        _sendWont(option);
+        this._setWantWont(option);
+        ++this._doResponse[option];
+        this._sendWont(option);
     }
 
     final synchronized void _sendByte(int b)
     throws IOException
     {
-        _output_.write(b);
+        this._output_.write(b);
     }
 }
