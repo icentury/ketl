@@ -94,17 +94,17 @@ public class TelnetClient extends Telnet
      ***/
     public TelnetClient()
     {
-        __input = null;
-        __output = null;
+        this.__input = null;
+        this.__output = null;
     }
 
     void _flushOutputStream() throws IOException
     {
-        _output_.flush();
+        this._output_.flush();
     }
     void _closeOutputStream() throws IOException
     {
-        _output_.close();
+        this._output_.close();
     }
 
     /***
@@ -112,6 +112,7 @@ public class TelnetClient extends Telnet
      * <p>
      * @exception IOException  If an error occurs during connection setup.
      ***/
+    @Override
     protected void _connectAction_() throws IOException
     {
         super._connectAction_();
@@ -119,9 +120,9 @@ public class TelnetClient extends Telnet
         TelnetInputStream tmp;
 
         if (FromNetASCIIInputStream.isConversionRequired())
-            input = new FromNetASCIIInputStream(_input_);
+            input = new FromNetASCIIInputStream(this._input_);
         else
-            input = _input_;
+            input = this._input_;
 
 
         tmp = new TelnetInputStream(input, this);
@@ -132,8 +133,8 @@ public class TelnetClient extends Telnet
         // This blocking behavior requires further investigation, but right
         // now it looks like classes like InputStreamReader are not implemented
         // in a safe manner.
-        __input = new BufferedInputStream(tmp);
-        __output = new ToNetASCIIOutputStream(new TelnetOutputStream(this));
+        this.__input = new BufferedInputStream(tmp);
+        this.__output = new ToNetASCIIOutputStream(new TelnetOutputStream(this));
     }
 
     /***
@@ -143,10 +144,11 @@ public class TelnetClient extends Telnet
      * close them yourself, but rather call disconnect to properly close
      * the connection.
      ***/
+    @Override
     public void disconnect() throws IOException
     {
-        __input.close();
-        __output.close();
+        this.__input.close();
+        this.__output.close();
         super.disconnect();
     }
 
@@ -159,7 +161,7 @@ public class TelnetClient extends Telnet
      ***/
     public OutputStream getOutputStream()
     {
-        return __output;
+        return this.__output;
     }
 
     /***
@@ -171,6 +173,6 @@ public class TelnetClient extends Telnet
      ***/
     public InputStream getInputStream()
     {
-        return __input;
+        return this.__input;
     }
 }
