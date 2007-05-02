@@ -136,8 +136,8 @@ public final class TelnetCommand
                 "AO", "IP", "BRK", "DMARK", "NOP", "SE", "EOR", "ABORT", "SUSP", "EOF"
             };
 
-    private static final int __FIRST_COMMAND = IAC;
-    private static final int __LAST_COMMAND = EOF;
+    private static final int __FIRST_COMMAND = TelnetCommand.IAC;
+    private static final int __LAST_COMMAND = TelnetCommand.EOF;
 
     /***
      * Returns the string representation of the telnet protocol command
@@ -148,7 +148,7 @@ public final class TelnetCommand
      ***/
     public static final String getCommand(int code)
     {
-        return __commandString[__FIRST_COMMAND - code];
+        return TelnetCommand.__commandString[TelnetCommand.__FIRST_COMMAND - code];
     }
 
     /***
@@ -160,7 +160,7 @@ public final class TelnetCommand
      **/
     public static final boolean isValidCommand(int code)
     {
-        return (code <= __FIRST_COMMAND && code >= __LAST_COMMAND);
+        return (code <= TelnetCommand.__FIRST_COMMAND && code >= TelnetCommand.__LAST_COMMAND);
     }
 
     // Cannot be instantiated
