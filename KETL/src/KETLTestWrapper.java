@@ -37,15 +37,15 @@ public class KETLTestWrapper extends TestCase {
             else if (this.type.equals("OSJOB")) {
                 cur = new OSJobExecutor();
             }
-           else if (this.type.equals("EMPTYJOB")) {
+            else if (this.type.equals("EMPTYJOB")) {
                 return;
             }
 
             if (cur == null)
                 throw new RuntimeException("Unknown job type " + this.type);
 
-            ETLJobExecutor._execute(new String[] { "FILE=" + this.filename, "JOBID=" + this.jobid, "LOADID=" + this.loadid }, cur,
-                    false, this.loadid);
+            ETLJobExecutor._execute(new String[] { "FILE=" + this.filename, "JOBID=" + this.jobid,
+                    "LOADID=" + this.loadid }, cur, false, this.loadid);
         } catch (RuntimeException e) {
             if (e.getCause() != null && e.getCause() instanceof com.kni.etl.ketl.writer.ForcedException)
                 return;

@@ -40,7 +40,6 @@ import com.kni.util.FileHelpers;
  */
 public class Console {
 
-    
     static final int CANCEL_JOB = 12;
     static final int CONNECT = 6;
     static final int DEFINITION = 1;
@@ -96,8 +95,9 @@ public class Console {
             "STATUS {CLUSTER|JOBS}",
             "JOB <NAME> {DEFINITION|DELETE|KILL|XMLDEFINITION|RESTART|SKIP|EXPORT <FILENAME>|IMPORT <FILENAME>|DEPENDENCIES|EXECUTE <PROJECTID> {MULTI} {IGNOREDEPENDENCIES}}",
             "RESTART {IMMEDIATE|NORMAL}", "QUIT", "CONNECT <SERVER|LOCALHOST> <USERNAME>", "HELP",
-            "PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}", "PAUSE <SERVERID>", "RESUME <SERVERID>", "PROJECT LIST",
-            "SERVER LIST", "RUN {LIST|RESET|<FILENAME>|LOADID <VALUE>}", "/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}" };
+            "PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}", "PAUSE <SERVERID>", "RESUME <SERVERID>",
+            "PROJECT LIST", "SERVER LIST", "RUN {LIST|RESET|<FILENAME>|LOADID <VALUE>}",
+            "/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}" };
 
     static final int XMLDEFINITION = 0;
 
@@ -136,7 +136,6 @@ public class Console {
 
     String servername = null;
 
-   
     ETLJobExecutor sqlJobExec = new SQLJobExecutor();
 
     BufferedReader stdin = new BufferedReader(this.inputStreamReader);
@@ -197,7 +196,8 @@ public class Console {
 
                 // try for explicit name
                 if (this.nCurrentServer == null) {
-                    this.nCurrentServer = XMLHelper.findElementByName(this.xmlConfig, "SERVER", "NAME", this.servername);
+                    this.nCurrentServer = XMLHelper
+                            .findElementByName(this.xmlConfig, "SERVER", "NAME", this.servername);
                 }
             } catch (UnknownHostException e) {
                 return "Connection failure: Could not get system hostname please supply servername";
@@ -233,7 +233,8 @@ public class Console {
             try {
                 Metadata mds = new Metadata(true, passphrase);
                 mds.setRepository(this.username, this.password, this.url, this.driver, this.mdprefix);
-                this.servername = XMLHelper.getAttributeAsString(this.nCurrentServer.getAttributes(), "NAME", this.servername);
+                this.servername = XMLHelper.getAttributeAsString(this.nCurrentServer.getAttributes(), "NAME",
+                        this.servername);
                 ResourcePool.setMetadata(mds);
                 this.md = ResourcePool.getMetadata();
 
@@ -285,8 +286,7 @@ public class Console {
                     this.md.importJob(job);
                 }
             } catch (org.xml.sax.SAXException e) {
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Parsing XML document, "
-                        + e.toString());
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Parsing XML document, " + e.toString());
 
                 System.exit(EngineConstants.INVALID_XML_EXIT_CODE);
             } catch (Exception e) {
@@ -335,8 +335,7 @@ public class Console {
                     this.md.importParameterList(parameterList);
                 }
             } catch (org.xml.sax.SAXException e) {
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Parsing XML document, "
-                        + e.toString());
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Parsing XML document, " + e.toString());
 
                 System.exit(EngineConstants.INVALID_XML_EXIT_CODE);
             } catch (Exception e) {
@@ -663,15 +662,18 @@ public class Console {
 
         if (this.connected()) {
             // if its an export then load from file
-            if ((pCommands.length > 2) && (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.IMPORT)) {
+            if ((pCommands.length > 2)
+                    && (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.IMPORT)) {
                 return this.importParameters(pCommands);
             }
-            else if ((pCommands.length > 2) && (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.DEFINITION)) {
+            else if ((pCommands.length > 2)
+                    && (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.DEFINITION)) {
 
                 return this.getXMLParameterlistDefinition(pCommands[1]);
 
             }
-            else if ((pCommands.length > 2) && (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.EXPORT)) {
+            else if ((pCommands.length > 2)
+                    && (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.EXPORT)) {
                 if (pCommands.length < 4) {
                     ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "ERROR: No export file given");
 
@@ -1057,7 +1059,8 @@ public class Console {
                             cur = this.osJobExec;
                         }
                         else if (type.equals("XMLSESSIONIZER")) {
-                            throw new RuntimeException("The XMLSessionizer job type is no longer supported, please migrate to KETL job with Sessionizer step");
+                            throw new RuntimeException(
+                                    "The XMLSessionizer job type is no longer supported, please migrate to KETL job with Sessionizer step");
                         }
                         else if (type.equals("EMPTYJOB")) {
                             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Skipping empty job " + jobID);
@@ -1179,7 +1182,8 @@ public class Console {
 
             // server can be started up remotely
             // unix nohup java -cp KETL.jar;ojdbc14.jar
-            String remoteStart = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "REMOTESTART", null, null, null);
+            String remoteStart = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "REMOTESTART", null, null,
+                    null);
 
             if (remoteStart == null) {
                 return "No remote start tag defined in server xml";
@@ -1217,8 +1221,8 @@ public class Console {
                 }
             }
 
-            KETLBootStrap.startProcess(null, remoteStart + " " + this.username + " " + this.password + " " + this.url + " " + this.driver,
-                    false);
+            KETLBootStrap.startProcess(null, remoteStart + " " + this.username + " " + this.password + " " + this.url
+                    + " " + this.driver, false);
 
             return "Started";
         }
@@ -1246,7 +1250,8 @@ public class Console {
 
                 sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.EXECUTING), "Executing"));
                 sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.FAILED), "Failed"));
-                sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_FAILED), "Just Failed"));
+                sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_FAILED),
+                        "Just Failed"));
                 sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PAUSED), "Paused"));
                 sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.READY_TO_RUN), "Ready To Run"));
 

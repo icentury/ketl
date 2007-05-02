@@ -71,7 +71,7 @@ class ExecuteJob {
         return (result);
     }
 
-   static private Metadata connectToServer(Document xmlConfig, String pServerName) throws Exception {
+    static private Metadata connectToServer(Document xmlConfig, String pServerName) throws Exception {
         Node nCurrentServer;
         String password;
         String url;
@@ -94,18 +94,18 @@ class ExecuteJob {
         String passphrase = XMLHelper.getChildNodeValueAsString(nCurrentServer, "PASSPHRASE", null, null, null);
 
         // metadata object isn't set and login information found then connect to metadata
-       
-            try {
-                Metadata mds = new Metadata(true, passphrase);
-                mds.setRepository(username, password, url, driver, mdprefix);
-                pServerName = XMLHelper.getAttributeAsString(nCurrentServer.getAttributes(), "NAME", pServerName);
-                ResourcePool.setMetadata(mds);
-                md = ResourcePool.getMetadata();
 
-            } catch (Exception e1) {
-                throw new Exception("ERROR: Connecting to metadata - " + e1.getMessage());
-            }
-       
+        try {
+            Metadata mds = new Metadata(true, passphrase);
+            mds.setRepository(username, password, url, driver, mdprefix);
+            pServerName = XMLHelper.getAttributeAsString(nCurrentServer.getAttributes(), "NAME", pServerName);
+            ResourcePool.setMetadata(mds);
+            md = ResourcePool.getMetadata();
+
+        } catch (Exception e1) {
+            throw new Exception("ERROR: Connecting to metadata - " + e1.getMessage());
+        }
+
         return md;
     }
 
@@ -115,12 +115,12 @@ class ExecuteJob {
      * @param args an array of command-line arguments
      */
     public static void main(java.lang.String[] args) {
-        
+
         // String mdServer = null;
         String jobID = null;
 
         String server = null;
-        
+
         // String mdServer = null;
         String projectID = null;
 
@@ -167,7 +167,7 @@ class ExecuteJob {
         Metadata md = null;
 
         try {
-            md = ExecuteJob.connectToServer(Metadata.LoadConfigFile(null,  Metadata.CONFIG_FILE),server);
+            md = ExecuteJob.connectToServer(Metadata.LoadConfigFile(null, Metadata.CONFIG_FILE), server);
         } catch (Exception e1) {
             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Connecting to metadata - "
                     + e1.getMessage());
@@ -197,8 +197,8 @@ class ExecuteJob {
 
         try {
             com.kni.etl.ETLJob[] e = md.getJobDetails(jobID);
-            
-            if(e == null || e.length == 0){
+
+            if (e == null || e.length == 0) {
                 System.err.println("Job " + jobID + " not found in metadata.");
                 System.exit(-1);
             }

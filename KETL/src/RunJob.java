@@ -26,13 +26,11 @@ public class RunJob {
 
     private void execute(String[] args) throws Exception {
 
-       
         // declare XML filename
         String fileName = null;
 
         // declare job name override
         String jobID = null;
-
 
         for (String element : args) {
 
@@ -56,7 +54,6 @@ public class RunJob {
 
         ETLJobExecutor osJobExec = new OSJobExecutor();
 
-      
         ETLJobExecutor sqlJobExec = new SQLJobExecutor();
 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Executing file " + fileName);
@@ -86,7 +83,7 @@ public class RunJob {
             else if (type.equals("OSJOB")) {
                 cur = osJobExec;
             }
-           else if (type.equals("EMPTYJOB")) {
+            else if (type.equals("EMPTYJOB")) {
                 ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Skipping empty job "
                         + jobID);
             }

@@ -21,19 +21,17 @@ public class KETLTestHarness {
     }
 
     public static Test suite() {
-        int iLoadID = (int) System.currentTimeMillis()/2;
+        int iLoadID = (int) System.currentTimeMillis() / 2;
 
         TestSuite suite = new TestSuite("KETL Job Test: " + iLoadID);
 
         String testDir = System.getProperty("KETLTestDir");
-         if (testDir == null) {
+        if (testDir == null) {
             testDir = "xml" + File.separator + "tests";
         }
 
         String treatAllAsEmpty = System.getProperty("KETLDependencieCheckOnly");
-        
-        
-         
+
         System.out.println("Testing files found in \"" + testDir
                 + "\" this can be changed by setting system property KETLTestDir.");
 
@@ -57,7 +55,7 @@ public class KETLTestHarness {
 
                 boolean in = true;
                 for (int i = 0; i < tJob.depends.size(); i++) {
-                    if (dependsCheck.contains(tJob.depends.get(i)) == false){
+                    if (dependsCheck.contains(tJob.depends.get(i)) == false) {
                         System.err.println("Job \"" + tJob.id + "\" depends on job \"" + tJob.depends.get(i)
                                 + "\" which does not exist in the set of jobs being tested");
                         tJob.depends.remove(i);
@@ -66,16 +64,17 @@ public class KETLTestHarness {
                         in = false;
                 }
 
-                if (in) {   
-                    System.out.print("Job "+ tJob.id + " depends On:\t");
-                    for(int d=0;d<tJob.depends.size();d++){
-                        if(d>0)
+                if (in) {
+                    System.out.print("Job " + tJob.id + " depends On:\t");
+                    for (int d = 0; d < tJob.depends.size(); d++) {
+                        if (d > 0)
                             System.out.print(", ");
                         System.out.print(tJob.depends.get(d).toString());
                     }
                     System.out.println("");
-                    
-                    suite.addTest(new KETLTestWrapper(tJob.filename, tJob.id,treatAllAsEmpty==null?tJob.type:"EMPTYJOB", iLoadID));
+
+                    suite.addTest(new KETLTestWrapper(tJob.filename, tJob.id, treatAllAsEmpty == null ? tJob.type
+                            : "EMPTYJOB", iLoadID));
                     jobs.remove(tJob);
                     submittedJobs.add(tJob.id);
                 }

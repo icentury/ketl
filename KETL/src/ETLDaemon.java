@@ -13,10 +13,9 @@ import com.kni.etl.ketl.kernel.KernelFactory;
  */
 class ETLDaemon {
 
-    
     public static void main(java.lang.String[] args) throws InstantiationException, IllegalAccessException {
         ResourcePool.setCacheIndexPrefix("Daemon");
-        KETLKernel ke = KernelFactory.getNewKernel();        
+        KETLKernel ke = KernelFactory.getNewKernel();
         ke.run(args);
     }
 }
