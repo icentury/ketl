@@ -94,27 +94,27 @@ final class TelnetInputStream extends BufferedInputStream implements Runnable
     TelnetInputStream(InputStream input, TelnetClient client)
     {
         super(input);
-        __client = client;
-        __receiveState = _STATE_DATA;
-        __isClosed = true;
-        __hasReachedEOF = false;
+        this.__client = client;
+        this.__receiveState = TelnetInputStream._STATE_DATA;
+        this.__isClosed = true;
+        this.__hasReachedEOF = false;
 
         // Make it 1025, because when full, one slot will go unused, and we
         // want a 1024 byte buffer just to have a round number (base 2 that is)
         //__queue         = new int[1025];
-        __queue = new int[2049];
-        __queueHead = 0;
-        __queueTail = 0;
-        __bytesAvailable = 0;
-        __ioException = null;
-        __readIsWaiting = false;
-        __thread = new Thread(this);
+        this.__queue = new int[2049];
+        this.__queueHead = 0;
+        this.__queueTail = 0;
+        this.__bytesAvailable = 0;
+        this.__ioException = null;
+        this.__readIsWaiting = false;
+        this.__thread = new Thread(this);
     }
 
     void _start()
     {
         int priority;
-        __isClosed = false;
+        this.__isClosed = false;
 
         // Need to set a higher priority in case JVM does not use pre-emptive
         // threads.  This should prevent scheduler induced deadlock (rather than
@@ -126,9 +126,9 @@ final class TelnetInputStream extends BufferedInputStream implements Runnable
             priority = Thread.MAX_PRIORITY;
         }
 
-        __thread.setPriority(priority);
-        __thread.setDaemon(true);
-        __thread.start();
+        this.__thread.setPriority(priority);
+        this.__thread.setDaemon(true);
+        this.__thread.start();
     }
 
     // synchronized(__client) critical sections are to protect against
@@ -151,7 +151,7 @@ _loop:
             ch = (ch & 0xff);
 
 _mainSwitch: 
-            switch (__receiveState)
+            switch (this.__receiveState)
             {
             case _STATE_CR:
 
@@ -168,28 +168,28 @@ _mainSwitch:
 
                 if (ch == TelnetCommand.IAC)
                 {
-                    __receiveState = _STATE_IAC;
+                    this.__receiveState = TelnetInputStream._STATE_IAC;
 
                     continue;
                 }
 
                 if (ch == '\r')
                 {
-                    synchronized (__client)
+                    synchronized (this.__client)
                     {
-                        if (__client._requestedDont(TelnetOption.BINARY))
+                        if (this.__client._requestedDont(TelnetOption.BINARY))
                         {
-                            __receiveState = _STATE_CR;
+                            this.__receiveState = TelnetInputStream._STATE_CR;
                         }
                         else
                         {
-                            __receiveState = _STATE_DATA;
+                            this.__receiveState = TelnetInputStream._STATE_DATA;
                         }
                     }
                 }
                 else
                 {
-                    __receiveState = _STATE_DATA;
+                    this.__receiveState = TelnetInputStream._STATE_DATA;
                 }
 
                 break;
@@ -199,27 +199,27 @@ _mainSwitch:
                 switch (ch)
                 {
                 case TelnetCommand.WILL:
-                    __receiveState = _STATE_WILL;
+                    this.__receiveState = TelnetInputStream._STATE_WILL;
 
                     continue;
 
                 case TelnetCommand.WONT:
-                    __receiveState = _STATE_WONT;
+                    this.__receiveState = TelnetInputStream._STATE_WONT;
 
                     continue;
 
                 case TelnetCommand.DO:
-                    __receiveState = _STATE_DO;
+                    this.__receiveState = TelnetInputStream._STATE_DO;
 
                     continue;
 
                 case TelnetCommand.DONT:
-                    __receiveState = _STATE_DONT;
+                    this.__receiveState = TelnetInputStream._STATE_DONT;
 
                     continue;
 
                 case TelnetCommand.IAC:
-                    __receiveState = _STATE_DATA;
+                    this.__receiveState = TelnetInputStream._STATE_DATA;
 
                     break;
 
@@ -227,55 +227,55 @@ _mainSwitch:
                     break;
                 }
 
-                __receiveState = _STATE_DATA;
+                this.__receiveState = TelnetInputStream._STATE_DATA;
 
                 continue;
 
             case _STATE_WILL:
 
-                synchronized (__client)
+                synchronized (this.__client)
                 {
-                    __client._processWill(ch);
-                    __client._flushOutputStream();
+                    this.__client._processWill(ch);
+                    this.__client._flushOutputStream();
                 }
 
-                __receiveState = _STATE_DATA;
+                this.__receiveState = TelnetInputStream._STATE_DATA;
 
                 continue;
 
             case _STATE_WONT:
 
-                synchronized (__client)
+                synchronized (this.__client)
                 {
-                    __client._processWont(ch);
-                    __client._flushOutputStream();
+                    this.__client._processWont(ch);
+                    this.__client._flushOutputStream();
                 }
 
-                __receiveState = _STATE_DATA;
+                this.__receiveState = TelnetInputStream._STATE_DATA;
 
                 continue;
 
             case _STATE_DO:
 
-                synchronized (__client)
+                synchronized (this.__client)
                 {
-                    __client._processDo(ch);
-                    __client._flushOutputStream();
+                    this.__client._processDo(ch);
+                    this.__client._flushOutputStream();
                 }
 
-                __receiveState = _STATE_DATA;
+                this.__receiveState = TelnetInputStream._STATE_DATA;
 
                 continue;
 
             case _STATE_DONT:
 
-                synchronized (__client)
+                synchronized (this.__client)
                 {
-                    __client._processDont(ch);
-                    __client._flushOutputStream();
+                    this.__client._processDont(ch);
+                    this.__client._flushOutputStream();
                 }
 
-                __receiveState = _STATE_DATA;
+                this.__receiveState = TelnetInputStream._STATE_DATA;
 
                 continue;
             }
@@ -286,39 +286,40 @@ _mainSwitch:
         return ch;
     }
 
+    @Override
     public int read() throws IOException
     {
         // Critical section because we're altering __bytesAvailable,
         // __queueHead, and the contents of _queue in addition to
         // testing value of __hasReachedEOF.
-        synchronized (__queue)
+        synchronized (this.__queue)
         {
             while (true)
             {
-                if (__ioException != null)
+                if (this.__ioException != null)
                 {
                     IOException e;
-                    e = __ioException;
-                    __ioException = null;
+                    e = this.__ioException;
+                    this.__ioException = null;
                     throw e;
                 }
 
-                if (__bytesAvailable == 0)
+                if (this.__bytesAvailable == 0)
                 {
                     // Return -1 if at end of file
-                    if (__hasReachedEOF)
+                    if (this.__hasReachedEOF)
                     {
                         return -1;
                     }
 
                     // Otherwise, we have to wait for queue to get something
-                    __queue.notify();
+                    this.__queue.notify();
 
                     try
                     {
-                        __readIsWaiting = true;
-                        __queue.wait();
-                        __readIsWaiting = false;
+                        this.__readIsWaiting = true;
+                        this.__queue.wait();
+                        this.__readIsWaiting = false;
                     }
                     catch (InterruptedException e)
                     {
@@ -331,14 +332,14 @@ _mainSwitch:
 
                 int ch;
 
-                ch = __queue[__queueHead];
+                ch = this.__queue[this.__queueHead];
 
-                if (++__queueHead >= __queue.length)
+                if (++this.__queueHead >= this.__queue.length)
                 {
-                    __queueHead = 0;
+                    this.__queueHead = 0;
                 }
 
-                --__bytesAvailable;
+                --this.__bytesAvailable;
 
                 return ch;
             }
@@ -356,9 +357,10 @@ _mainSwitch:
      * @exception IOException If an error occurs in reading the underlying
      *            stream.
      ***/
+    @Override
     public int read(byte[] buffer) throws IOException
     {
-        return read(buffer, 0, buffer.length);
+        return this.read(buffer, 0, buffer.length);
     }
 
     /***
@@ -375,6 +377,7 @@ _mainSwitch:
      * @exception IOException If an error occurs while reading the underlying
      *            stream.
      ***/
+    @Override
     public int read(byte[] buffer, int offset, int length)
         throws IOException
     {
@@ -387,15 +390,15 @@ _mainSwitch:
         }
 
         // Critical section because run() may change __bytesAvailable
-        synchronized (__queue)
+        synchronized (this.__queue)
         {
-            if (length > __bytesAvailable)
+            if (length > this.__bytesAvailable)
             {
-                length = __bytesAvailable;
+                length = this.__bytesAvailable;
             }
         }
 
-        if ((ch = read()) == -1)
+        if ((ch = this.read()) == -1)
         {
             return -1;
         }
@@ -406,28 +409,31 @@ _mainSwitch:
         {
             buffer[offset++] = (byte) ch;
         }
-        while ((--length > 0) && ((ch = read()) != -1));
+        while ((--length > 0) && ((ch = this.read()) != -1));
 
         return (offset - off);
     }
 
     /*** Returns false.  Mark is not supported. ***/
+    @Override
     public boolean markSupported()
     {
         return false;
     }
 
+    @Override
     public int available() throws IOException
     {
         // Critical section because run() may change __bytesAvailable
-        synchronized (__queue)
+        synchronized (this.__queue)
         {
-            return __bytesAvailable;
+            return this.__bytesAvailable;
         }
     }
 
     // Cannot be synchronized.  Will cause deadlock if run() is blocked
     // in read because BufferedInputStream read() is synchronized.
+    @Override
     public void close() throws IOException
     {
         // Completely disregard the fact thread may still be running.
@@ -436,17 +442,17 @@ _mainSwitch:
         // interrupt a system read() from the interrupt() method.
         super.close();
 
-        synchronized (__queue)
+        synchronized (this.__queue)
         {
-            __hasReachedEOF = true;
-            __isClosed = true;
+            this.__hasReachedEOF = true;
+            this.__isClosed = true;
 
-            if (__thread.isAlive())
+            if (this.__thread.isAlive())
             {
-                __thread.interrupt();
+                this.__thread.interrupt();
             }
 
-            __queue.notifyAll();
+            this.__queue.notifyAll();
         }
     }
 
@@ -457,29 +463,29 @@ _mainSwitch:
         try
         {
 _outerLoop: 
-            while (!__isClosed)
+            while (!this.__isClosed)
             {
                 try
                 {
-                    if ((ch = __read()) < 0)
+                    if ((ch = this.__read()) < 0)
                     {
                         break;
                     }
                 }
                 catch (InterruptedIOException e)
                 {
-                    synchronized (__queue)
+                    synchronized (this.__queue)
                     {
-                        __ioException = e;
-                        __queue.notifyAll();
+                        this.__ioException = e;
+                        this.__queue.notifyAll();
 
                         try
                         {
-                            __queue.wait(100);
+                            this.__queue.wait(100);
                         }
                         catch (InterruptedException interrupted)
                         {
-                            if (__isClosed)
+                            if (this.__isClosed)
                             {
                                 break _outerLoop;
                             }
@@ -491,19 +497,19 @@ _outerLoop:
 
                 // Critical section because we're altering __bytesAvailable,
                 // __queueTail, and the contents of _queue.
-                synchronized (__queue)
+                synchronized (this.__queue)
                 {
-                    while (__bytesAvailable >= (__queue.length - 1))
+                    while (this.__bytesAvailable >= (this.__queue.length - 1))
                     {
-                        __queue.notify();
+                        this.__queue.notify();
 
                         try
                         {
-                            __queue.wait();
+                            this.__queue.wait();
                         }
                         catch (InterruptedException e)
                         {
-                            if (__isClosed)
+                            if (this.__isClosed)
                             {
                                 break _outerLoop;
                             }
@@ -511,34 +517,34 @@ _outerLoop:
                     }
 
                     // Need to do this in case we're not full, but block on a read
-                    if (__readIsWaiting)
+                    if (this.__readIsWaiting)
                     {
-                        __queue.notify();
+                        this.__queue.notify();
                     }
 
-                    __queue[__queueTail] = ch;
-                    ++__bytesAvailable;
+                    this.__queue[this.__queueTail] = ch;
+                    ++this.__bytesAvailable;
 
-                    if (++__queueTail >= __queue.length)
+                    if (++this.__queueTail >= this.__queue.length)
                     {
-                        __queueTail = 0;
+                        this.__queueTail = 0;
                     }
                 }
             }
         }
         catch (IOException e)
         {
-            synchronized (__queue)
+            synchronized (this.__queue)
             {
-                __ioException = e;
+                this.__ioException = e;
             }
         }
 
-        synchronized (__queue)
+        synchronized (this.__queue)
         {
-            __isClosed = true; // Possibly redundant
-            __hasReachedEOF = true;
-            __queue.notify();
+            this.__isClosed = true; // Possibly redundant
+            this.__hasReachedEOF = true;
+            this.__queue.notify();
         }
     }
 }
