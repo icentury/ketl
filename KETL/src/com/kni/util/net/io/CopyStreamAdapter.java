@@ -85,7 +85,7 @@ public class CopyStreamAdapter implements CopyStreamListener
      */
     public CopyStreamAdapter()
     {
-        internalListeners = new ListenerList();
+        this.internalListeners = new ListenerList();
     }
 
     /**
@@ -100,7 +100,7 @@ public class CopyStreamAdapter implements CopyStreamListener
      */
     public void bytesTransferred(CopyStreamEvent event)
     {
-        bytesTransferred(event.getTotalBytesTransferred(),
+        this.bytesTransferred(event.getTotalBytesTransferred(),
                          event.getBytesTransferred(),
                          event.getStreamSize());
     }
@@ -126,7 +126,7 @@ public class CopyStreamAdapter implements CopyStreamListener
         Enumeration listeners;
         CopyStreamEvent event;
 
-        listeners = internalListeners.getListeners();
+        listeners = this.internalListeners.getListeners();
 
         event = new CopyStreamEvent(this,
                                     totalBytesTransferred,
@@ -148,7 +148,7 @@ public class CopyStreamAdapter implements CopyStreamListener
      */
     public void addCopyStreamListener(CopyStreamListener listener)
     {
-        internalListeners.addListener(listener);
+        this.internalListeners.addListener(listener);
     }
 
     /**
@@ -158,6 +158,6 @@ public class CopyStreamAdapter implements CopyStreamListener
      */
     public void removeCopyStreamListener(CopyStreamListener listener)
     {
-        internalListeners.removeListener(listener);
+        this.internalListeners.removeListener(listener);
     }
 }

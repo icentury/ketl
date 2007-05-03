@@ -87,7 +87,7 @@ public class SocketInputStream extends FilterInputStream
     public SocketInputStream(Socket socket, InputStream stream)
     {
         super(stream);
-        __socket = socket;
+        this.__socket = socket;
     }
 
     /***
@@ -97,9 +97,10 @@ public class SocketInputStream extends FilterInputStream
      * @exception IOException  If there is an error in closing the stream
      *                         or socket.
      ***/
+    @Override
     public void close() throws IOException
     {
         super.close();
-        __socket.close();
+        this.__socket.close();
     }
 }

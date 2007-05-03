@@ -82,7 +82,7 @@ public final class DotTerminatedMessageReader extends Reader
     static
     {
         LS = System.getProperty("line.separator");
-        LS_CHARS = LS.toCharArray();
+        LS_CHARS = DotTerminatedMessageReader.LS.toCharArray();
     }
 
     private boolean atBeginning;
@@ -99,13 +99,13 @@ public final class DotTerminatedMessageReader extends Reader
     public DotTerminatedMessageReader(Reader reader)
     {
         super(reader);
-        internalBuffer = new char[LS_CHARS.length + 3];
-        pos = internalBuffer.length;
+        this.internalBuffer = new char[DotTerminatedMessageReader.LS_CHARS.length + 3];
+        this.pos = this.internalBuffer.length;
 
         // Assumes input is at start of message
-        atBeginning = true;
-        eof = false;
-        internalReader = new PushbackReader(reader);
+        this.atBeginning = true;
+        this.eof = false;
+        this.internalReader = new PushbackReader(reader);
     }
 
     /**
@@ -120,42 +120,43 @@ public final class DotTerminatedMessageReader extends Reader
      * @exception IOException If an error occurs while reading the underlying
      *            stream.
      */
+    @Override
     public int read() throws IOException
     {
         int ch;
 
-        synchronized (lock)
+        synchronized (this.lock)
         {
-            if (pos < internalBuffer.length)
+            if (this.pos < this.internalBuffer.length)
             {
-                return internalBuffer[pos++];
+                return this.internalBuffer[this.pos++];
             }
 
-            if (eof)
+            if (this.eof)
             {
                 return -1;
             }
 
-            if ((ch = internalReader.read()) == -1)
+            if ((ch = this.internalReader.read()) == -1)
             {
-                eof = true;
+                this.eof = true;
 
                 return -1;
             }
 
-            if (atBeginning)
+            if (this.atBeginning)
             {
-                atBeginning = false;
+                this.atBeginning = false;
 
                 if (ch == '.')
                 {
-                    ch = internalReader.read();
+                    ch = this.internalReader.read();
 
                     if (ch != '.')
                     {
                         // read newline
-                        eof = true;
-                        internalReader.read();
+                        this.eof = true;
+                        this.internalReader.read();
 
                         return -1;
                     }
@@ -166,40 +167,40 @@ public final class DotTerminatedMessageReader extends Reader
 
             if (ch == '\r')
             {
-                ch = internalReader.read();
+                ch = this.internalReader.read();
 
                 if (ch == '\n')
                 {
-                    ch = internalReader.read();
+                    ch = this.internalReader.read();
 
                     if (ch == '.')
                     {
-                        ch = internalReader.read();
+                        ch = this.internalReader.read();
 
                         if (ch != '.')
                         {
                             // read newline and indicate end of file
-                            internalReader.read();
-                            eof = true;
+                            this.internalReader.read();
+                            this.eof = true;
                         }
                         else
                         {
-                            internalBuffer[--pos] = (char) ch;
+                            this.internalBuffer[--this.pos] = (char) ch;
                         }
                     }
                     else
                     {
-                        internalReader.unread(ch);
+                        this.internalReader.unread(ch);
                     }
 
-                    pos -= LS_CHARS.length;
-                    System.arraycopy(LS_CHARS, 0, internalBuffer, pos,
-                        LS_CHARS.length);
-                    ch = internalBuffer[pos++];
+                    this.pos -= DotTerminatedMessageReader.LS_CHARS.length;
+                    System.arraycopy(DotTerminatedMessageReader.LS_CHARS, 0, this.internalBuffer, this.pos,
+                        DotTerminatedMessageReader.LS_CHARS.length);
+                    ch = this.internalBuffer[this.pos++];
                 }
                 else
                 {
-                    internalBuffer[--pos] = (char) ch;
+                    this.internalBuffer[--this.pos] = (char) ch;
 
                     return '\r';
                 }
@@ -219,9 +220,10 @@ public final class DotTerminatedMessageReader extends Reader
      * @exception IOException If an error occurs in reading the underlying
      *            stream.
      */
+    @Override
     public int read(char[] buffer) throws IOException
     {
-        return read(buffer, 0, buffer.length);
+        return this.read(buffer, 0, buffer.length);
     }
 
     /**
@@ -238,20 +240,21 @@ public final class DotTerminatedMessageReader extends Reader
      * @exception IOException If an error occurs in reading the underlying
      *            stream.
      */
+    @Override
     public int read(char[] buffer, int offset, int length)
         throws IOException
     {
         int ch;
         int off;
 
-        synchronized (lock)
+        synchronized (this.lock)
         {
             if (length < 1)
             {
                 return 0;
             }
 
-            if ((ch = read()) == -1)
+            if ((ch = this.read()) == -1)
             {
                 return -1;
             }
@@ -262,7 +265,7 @@ public final class DotTerminatedMessageReader extends Reader
             {
                 buffer[offset++] = (char) ch;
             }
-            while ((--length > 0) && ((ch = read()) != -1));
+            while ((--length > 0) && ((ch = this.read()) != -1));
 
             return (offset - off);
         }
@@ -274,11 +277,12 @@ public final class DotTerminatedMessageReader extends Reader
      * @exception IOException If an error occurs while checking the underlying
      *            stream.
      */
+    @Override
     public boolean ready() throws IOException
     {
-        synchronized (lock)
+        synchronized (this.lock)
         {
-            return ((pos < internalBuffer.length) || internalReader.ready());
+            return ((this.pos < this.internalBuffer.length) || this.internalReader.ready());
         }
     }
 
@@ -296,27 +300,28 @@ public final class DotTerminatedMessageReader extends Reader
      * @exception IOException  If an error occurs while reading the
      *            underlying stream.
      */
+    @Override
     public void close() throws IOException
     {
-        synchronized (lock)
+        synchronized (this.lock)
         {
-            if (internalReader == null)
+            if (this.internalReader == null)
             {
                 return;
             }
 
-            if (!eof)
+            if (!this.eof)
             {
-                while (read() != -1)
+                while (this.read() != -1)
                 {
                     ;
                 }
             }
 
-            eof = true;
-            atBeginning = false;
-            pos = internalBuffer.length;
-            internalReader = null;
+            this.eof = true;
+            this.atBeginning = false;
+            this.pos = this.internalBuffer.length;
+            this.internalReader = null;
         }
     }
 }

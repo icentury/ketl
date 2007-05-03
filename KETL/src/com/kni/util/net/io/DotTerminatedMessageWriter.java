@@ -93,8 +93,8 @@ public final class DotTerminatedMessageWriter extends Writer
     public DotTerminatedMessageWriter(Writer output)
     {
         super(output);
-        __output = output;
-        __state = __NOTHING_SPECIAL_STATE;
+        this.__output = output;
+        this.__state = DotTerminatedMessageWriter.__NOTHING_SPECIAL_STATE;
     }
 
 
@@ -109,30 +109,31 @@ public final class DotTerminatedMessageWriter extends Writer
      * @exception IOException  If an error occurs while writing to the
      *            underlying output.
      ***/
+    @Override
     public void write(int ch) throws IOException
     {
-        synchronized (lock)
+        synchronized (this.lock)
         {
             switch (ch)
             {
             case '\r':
-                __state = __LAST_WAS_CR_STATE;
-                __output.write('\r');
+                this.__state = DotTerminatedMessageWriter.__LAST_WAS_CR_STATE;
+                this.__output.write('\r');
                 return ;
             case '\n':
-                if (__state != __LAST_WAS_CR_STATE)
-                    __output.write('\r');
-                __output.write('\n');
-                __state = __LAST_WAS_NL_STATE;
+                if (this.__state != DotTerminatedMessageWriter.__LAST_WAS_CR_STATE)
+                    this.__output.write('\r');
+                this.__output.write('\n');
+                this.__state = DotTerminatedMessageWriter.__LAST_WAS_NL_STATE;
                 return ;
             case '.':
                 // Double the dot at the beginning of a line
-                if (__state == __LAST_WAS_NL_STATE)
-                    __output.write('.');
+                if (this.__state == DotTerminatedMessageWriter.__LAST_WAS_NL_STATE)
+                    this.__output.write('.');
                 // Fall through
             default:
-                __state = __NOTHING_SPECIAL_STATE;
-                __output.write(ch);
+                this.__state = DotTerminatedMessageWriter.__NOTHING_SPECIAL_STATE;
+                this.__output.write(ch);
                 return ;
             }
         }
@@ -149,12 +150,13 @@ public final class DotTerminatedMessageWriter extends Writer
      * @exception IOException If an error occurs while writing to the underlying
      *            output.
      ***/
+    @Override
     public void write(char[] buffer, int offset, int length) throws IOException
     {
-        synchronized (lock)
+        synchronized (this.lock)
         {
             while (length-- > 0)
-                write(buffer[offset++]);
+                this.write(buffer[offset++]);
         }
     }
 
@@ -166,9 +168,10 @@ public final class DotTerminatedMessageWriter extends Writer
      * @exception IOException If an error occurs while writing to the underlying
      *            output.
      ***/
+    @Override
     public void write(char[] buffer) throws IOException
     {
-        write(buffer, 0, buffer.length);
+        this.write(buffer, 0, buffer.length);
     }
 
 
@@ -179,9 +182,10 @@ public final class DotTerminatedMessageWriter extends Writer
      * @exception IOException If an error occurs while writing to the underlying
      *            output.
      ***/
+    @Override
     public void write(String string) throws IOException
     {
-        write(string.toCharArray());
+        this.write(string.toCharArray());
     }
 
 
@@ -194,9 +198,10 @@ public final class DotTerminatedMessageWriter extends Writer
      * @exception IOException If an error occurs while writing to the underlying
      *            output.
      ***/
+    @Override
     public void write(String string, int offset, int length) throws IOException
     {
-        write(string.toCharArray(), offset, length);
+        this.write(string.toCharArray(), offset, length);
     }
 
 
@@ -206,11 +211,12 @@ public final class DotTerminatedMessageWriter extends Writer
      * @exception IOException If an error occurs while writing to the underlying
      *            output.
      ***/
+    @Override
     public void flush() throws IOException
     {
-        synchronized (lock)
+        synchronized (this.lock)
         {
-            __output.flush();
+            this.__output.flush();
         }
     }
 
@@ -223,22 +229,23 @@ public final class DotTerminatedMessageWriter extends Writer
      * @exception IOException If an error occurs while writing to the underlying
      *            output or closing the Writer.
      ***/
+    @Override
     public void close() throws IOException
     {
-        synchronized (lock)
+        synchronized (this.lock)
         {
-            if (__output == null)
+            if (this.__output == null)
                 return ;
 
-            if (__state == __LAST_WAS_CR_STATE)
-                __output.write('\n');
-            else if (__state != __LAST_WAS_NL_STATE)
-                __output.write("\r\n");
+            if (this.__state == DotTerminatedMessageWriter.__LAST_WAS_CR_STATE)
+                this.__output.write('\n');
+            else if (this.__state != DotTerminatedMessageWriter.__LAST_WAS_NL_STATE)
+                this.__output.write("\r\n");
 
-            __output.write(".\r\n");
+            this.__output.write(".\r\n");
 
-            __output.flush();
-            __output = null;
+            this.__output.flush();
+            this.__output = null;
         }
     }
 

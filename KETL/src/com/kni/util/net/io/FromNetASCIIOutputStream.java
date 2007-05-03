@@ -87,7 +87,7 @@ public final class FromNetASCIIOutputStream extends FilterOutputStream
     public FromNetASCIIOutputStream(OutputStream output)
     {
         super(output);
-        __lastWasCR = false;
+        this.__lastWasCR = false;
     }
 
 
@@ -96,26 +96,26 @@ public final class FromNetASCIIOutputStream extends FilterOutputStream
         switch (ch)
         {
         case '\r':
-            __lastWasCR = true;
+            this.__lastWasCR = true;
             // Don't write anything.  We need to see if next one is linefeed
             break;
         case '\n':
-            if (__lastWasCR)
+            if (this.__lastWasCR)
             {
-                out.write(FromNetASCIIInputStream._lineSeparatorBytes);
-                __lastWasCR = false;
+                this.out.write(FromNetASCIIInputStream._lineSeparatorBytes);
+                this.__lastWasCR = false;
                 break;
             }
-            __lastWasCR = false;
-            out.write('\n');
+            this.__lastWasCR = false;
+            this.out.write('\n');
             break;
         default:
-            if (__lastWasCR)
+            if (this.__lastWasCR)
             {
-                out.write('\r');
-                __lastWasCR = false;
+                this.out.write('\r');
+                this.__lastWasCR = false;
             }
-            out.write(ch);
+            this.out.write(ch);
             break;
         }
     }
@@ -133,16 +133,17 @@ public final class FromNetASCIIOutputStream extends FilterOutputStream
      * @exception IOException If an error occurs while writing to the underlying
      *            stream.
      ***/
+    @Override
     public synchronized void write(int ch)
     throws IOException
     {
         if (FromNetASCIIInputStream._noConversionRequired)
         {
-            out.write(ch);
+            this.out.write(ch);
             return ;
         }
 
-        __write(ch);
+        this.__write(ch);
     }
 
 
@@ -153,10 +154,11 @@ public final class FromNetASCIIOutputStream extends FilterOutputStream
      * @exception IOException If an error occurs while writing to the underlying
      *            stream.
      ***/
+    @Override
     public synchronized void write(byte buffer[])
     throws IOException
     {
-        write(buffer, 0, buffer.length);
+        this.write(buffer, 0, buffer.length);
     }
 
 
@@ -170,6 +172,7 @@ public final class FromNetASCIIOutputStream extends FilterOutputStream
      * @exception IOException If an error occurs while writing to the underlying
      *            stream.
      ***/
+    @Override
     public synchronized void write(byte buffer[], int offset, int length)
     throws IOException
     {
@@ -177,12 +180,12 @@ public final class FromNetASCIIOutputStream extends FilterOutputStream
         {
             // FilterOutputStream method is very slow.
             //super.write(buffer, offset, length);
-            out.write(buffer, offset, length);
+            this.out.write(buffer, offset, length);
             return ;
         }
 
         while (length-- > 0)
-            __write(buffer[offset++]);
+            this.__write(buffer[offset++]);
     }
 
 
@@ -191,6 +194,7 @@ public final class FromNetASCIIOutputStream extends FilterOutputStream
      * <p>
      * @exception IOException  If an error occurs while closing the stream.
      ***/
+    @Override
     public synchronized void close()
     throws IOException
     {
@@ -200,8 +204,8 @@ public final class FromNetASCIIOutputStream extends FilterOutputStream
             return ;
         }
 
-        if (__lastWasCR)
-            out.write('\r');
+        if (this.__lastWasCR)
+            this.out.write('\r');
         super.close();
     }
 }

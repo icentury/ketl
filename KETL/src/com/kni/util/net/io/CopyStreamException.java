@@ -86,8 +86,8 @@ public class CopyStreamException extends IOException
                                IOException exception)
     {
         super(message);
-        totalBytesTransferred = bytesTransferred;
-        ioException = exception;
+        this.totalBytesTransferred = bytesTransferred;
+        this.ioException = exception;
     }
 
     /**
@@ -98,7 +98,7 @@ public class CopyStreamException extends IOException
      */
     public long getTotalBytesTransferred()
     {
-        return totalBytesTransferred;
+        return this.totalBytesTransferred;
     }
 
     /**
@@ -107,6 +107,6 @@ public class CopyStreamException extends IOException
      */
     public IOException getIOException()
     {
-        return ioException;
+        return this.ioException;
     }
 }

@@ -86,7 +86,7 @@ public final class ToNetASCIIInputStream extends FilterInputStream
     public ToNetASCIIInputStream(InputStream input)
     {
         super(input);
-        __status = __NOTHING_SPECIAL;
+        this.__status = ToNetASCIIInputStream.__NOTHING_SPECIAL;
     }
 
 
@@ -99,32 +99,33 @@ public final class ToNetASCIIInputStream extends FilterInputStream
      * @exception IOException If an error occurs while reading the underlying
      *            stream.
      ***/
+    @Override
     public int read() throws IOException
     {
         int ch;
 
-        if (__status == __LAST_WAS_NL)
+        if (this.__status == ToNetASCIIInputStream.__LAST_WAS_NL)
         {
-            __status = __NOTHING_SPECIAL;
+            this.__status = ToNetASCIIInputStream.__NOTHING_SPECIAL;
             return '\n';
         }
 
-        ch = in.read();
+        ch = this.in.read();
 
         switch (ch)
         {
         case '\r':
-            __status = __LAST_WAS_CR;
+            this.__status = ToNetASCIIInputStream.__LAST_WAS_CR;
             return '\r';
         case '\n':
-            if (__status != __LAST_WAS_CR)
+            if (this.__status != ToNetASCIIInputStream.__LAST_WAS_CR)
             {
-                __status = __LAST_WAS_NL;
+                this.__status = ToNetASCIIInputStream.__LAST_WAS_NL;
                 return '\r';
             }
             // else fall through
         default:
-            __status = __NOTHING_SPECIAL;
+            this.__status = ToNetASCIIInputStream.__NOTHING_SPECIAL;
             return ch;
         }
         // statement not reached
@@ -143,9 +144,10 @@ public final class ToNetASCIIInputStream extends FilterInputStream
      * @exception IOException If an error occurs in reading the underlying
      *            stream.
      ***/
+    @Override
     public int read(byte buffer[]) throws IOException
     {
-        return read(buffer, 0, buffer.length);
+        return this.read(buffer, 0, buffer.length);
     }
 
 
@@ -163,6 +165,7 @@ public final class ToNetASCIIInputStream extends FilterInputStream
      * @exception IOException If an error occurs while reading the underlying
      *            stream.
      ***/
+    @Override
     public int read(byte buffer[], int offset, int length) throws IOException
     {
         int ch, off;
@@ -170,7 +173,7 @@ public final class ToNetASCIIInputStream extends FilterInputStream
         if (length < 1)
             return 0;
 
-        ch = available();
+        ch = this.available();
 
         if (length > ch)
             length = ch;
@@ -179,7 +182,7 @@ public final class ToNetASCIIInputStream extends FilterInputStream
         if (length < 1)
             length = 1;
 
-        if ((ch = read()) == -1)
+        if ((ch = this.read()) == -1)
             return -1;
 
         off = offset;
@@ -188,24 +191,26 @@ public final class ToNetASCIIInputStream extends FilterInputStream
         {
             buffer[offset++] = (byte)ch;
         }
-        while (--length > 0 && (ch = read()) != -1);
+        while (--length > 0 && (ch = this.read()) != -1);
 
         return (offset - off);
     }
 
     /*** Returns false.  Mark is not supported. ***/
+    @Override
     public boolean markSupported()
     {
         return false;
     }
 
+    @Override
     public int available() throws IOException
     {
         int result;
 
-        result = in.available();
+        result = this.in.available();
 
-        if (__status == __LAST_WAS_NL)
+        if (this.__status == ToNetASCIIInputStream.__LAST_WAS_NL)
             return (result + 1);
 
         return result;

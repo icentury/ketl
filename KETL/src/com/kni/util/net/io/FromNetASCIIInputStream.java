@@ -77,8 +77,8 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
 
     static {
         _lineSeparator = System.getProperty("line.separator");
-        _noConversionRequired = _lineSeparator.equals("\r\n");
-        _lineSeparatorBytes = _lineSeparator.getBytes();
+        _noConversionRequired = FromNetASCIIInputStream._lineSeparator.equals("\r\n");
+        _lineSeparatorBytes = FromNetASCIIInputStream._lineSeparator.getBytes();
     }
 
     private int __length = 0;
@@ -94,7 +94,7 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
      ***/
     public static final boolean isConversionRequired()
     {
-        return !_noConversionRequired;
+        return !FromNetASCIIInputStream._noConversionRequired;
     }
 
     /***
@@ -103,7 +103,7 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
      ***/
     public FromNetASCIIInputStream(InputStream input)
     {
-        super(input, _lineSeparatorBytes.length + 1);
+        super(input, FromNetASCIIInputStream._lineSeparatorBytes.length + 1);
     }
 
 
@@ -118,15 +118,15 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
             ch = super.read();
             if (ch == '\n')
             {
-                unread(_lineSeparatorBytes);
+                this.unread(FromNetASCIIInputStream._lineSeparatorBytes);
                 ch = super.read();
                 // This is a kluge for read(byte[], ...) to read the right amount
-                --__length;
+                --this.__length;
             }
             else
             {
                 if (ch != -1)
-                    unread(ch);
+                    this.unread(ch);
                 return '\r';
             }
         }
@@ -148,12 +148,13 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
      * @exception IOException If an error occurs while reading the underlying
      *            stream.
      ***/
+    @Override
     public int read() throws IOException
     {
-        if (_noConversionRequired)
+        if (FromNetASCIIInputStream._noConversionRequired)
             return super.read();
 
-        return __read();
+        return this.__read();
     }
 
 
@@ -168,9 +169,10 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
      * @exception IOException If an error occurs in reading the underlying
      *            stream.
      ***/
+    @Override
     public int read(byte buffer[]) throws IOException
     {
-        return read(buffer, 0, buffer.length);
+        return this.read(buffer, 0, buffer.length);
     }
 
 
@@ -188,6 +190,7 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
      * @exception IOException If an error occurs while reading the underlying
      *            stream.
      ***/
+    @Override
     public int read(byte buffer[], int offset, int length) throws IOException
     {
         int ch, off;
@@ -195,18 +198,18 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
         if (length < 1)
             return 0;
 
-        ch = available();
+        ch = this.available();
 
-        __length = (length > ch ? ch : length);
+        this.__length = (length > ch ? ch : length);
 
         // If nothing is available, block to read only one character
-        if (__length < 1)
-            __length = 1;
+        if (this.__length < 1)
+            this.__length = 1;
 
-        if (_noConversionRequired)
-            return super.read(buffer, offset, __length);
+        if (FromNetASCIIInputStream._noConversionRequired)
+            return super.read(buffer, offset, this.__length);
 
-        if ((ch = __read()) == -1)
+        if ((ch = this.__read()) == -1)
             return -1;
 
         off = offset;
@@ -215,7 +218,7 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
         {
             buffer[offset++] = (byte)ch;
         }
-        while (--__length > 0 && (ch = __read()) != -1);
+        while (--this.__length > 0 && (ch = this.__read()) != -1);
 
 
         return (offset - off);
@@ -230,9 +233,10 @@ public final class FromNetASCIIInputStream extends PushbackInputStream
      * rely on the value returned by this method if you are trying to avoid 
      * blocking.
      ***/
+    @Override
     public int available() throws IOException
     {
-        return (buf.length - pos) + in.available();
+        return (this.buf.length - this.pos) + this.in.available();
     }
 
 }

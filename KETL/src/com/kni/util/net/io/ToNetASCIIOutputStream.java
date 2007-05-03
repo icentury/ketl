@@ -83,7 +83,7 @@ public final class ToNetASCIIOutputStream extends FilterOutputStream
     public ToNetASCIIOutputStream(OutputStream output)
     {
         super(output);
-        __lastWasCR = false;
+        this.__lastWasCR = false;
     }
 
 
@@ -98,22 +98,23 @@ public final class ToNetASCIIOutputStream extends FilterOutputStream
      * @exception IOException If an error occurs while writing to the underlying
      *            stream.
      ***/
+    @Override
     public synchronized void write(int ch)
     throws IOException
     {
         switch (ch)
         {
         case '\r':
-            __lastWasCR = true;
-            out.write('\r');
+            this.__lastWasCR = true;
+            this.out.write('\r');
             return ;
         case '\n':
-            if (!__lastWasCR)
-                out.write('\r');
+            if (!this.__lastWasCR)
+                this.out.write('\r');
             // Fall through
         default:
-            __lastWasCR = false;
-            out.write(ch);
+            this.__lastWasCR = false;
+            this.out.write(ch);
             return ;
         }
     }
@@ -126,10 +127,11 @@ public final class ToNetASCIIOutputStream extends FilterOutputStream
      * @exception IOException If an error occurs while writing to the underlying
      *            stream.
      ***/
+    @Override
     public synchronized void write(byte buffer[])
     throws IOException
     {
-        write(buffer, 0, buffer.length);
+        this.write(buffer, 0, buffer.length);
     }
 
 
@@ -143,11 +145,12 @@ public final class ToNetASCIIOutputStream extends FilterOutputStream
      * @exception IOException If an error occurs while writing to the underlying
      *            stream.
      ***/
+    @Override
     public synchronized void write(byte buffer[], int offset, int length)
     throws IOException
     {
         while (length-- > 0)
-            write(buffer[offset++]);
+            this.write(buffer[offset++]);
     }
 
 }

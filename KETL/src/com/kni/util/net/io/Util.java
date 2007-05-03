@@ -188,7 +188,7 @@ public final class Util
                                         int bufferSize)
     throws CopyStreamException
     {
-        return copyStream(source, dest, bufferSize,
+        return Util.copyStream(source, dest, bufferSize,
                           CopyStreamEvent.UNKNOWN_STREAM_SIZE, null);
     }
 
@@ -199,7 +199,7 @@ public final class Util
     public static final long copyStream(InputStream source, OutputStream dest)
     throws CopyStreamException
     {
-        return copyStream(source, dest, DEFAULT_COPY_BUFFER_SIZE);
+        return Util.copyStream(source, dest, Util.DEFAULT_COPY_BUFFER_SIZE);
     }
 
 
@@ -306,7 +306,7 @@ public final class Util
                                         int bufferSize)
     throws CopyStreamException
     {
-        return copyReader(source, dest, bufferSize,
+        return Util.copyReader(source, dest, bufferSize,
                           CopyStreamEvent.UNKNOWN_STREAM_SIZE, null);
     }
 
@@ -317,7 +317,7 @@ public final class Util
     public static final long copyReader(Reader source, Writer dest)
     throws CopyStreamException
     {
-        return copyReader(source, dest, DEFAULT_COPY_BUFFER_SIZE);
+        return Util.copyReader(source, dest, Util.DEFAULT_COPY_BUFFER_SIZE);
     }
 
 }

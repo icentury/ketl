@@ -113,7 +113,7 @@ public class CopyStreamEvent extends EventObject
      */
     public int getBytesTransferred()
     {
-        return bytesTransferred;
+        return this.bytesTransferred;
     }
 
     /**
@@ -124,7 +124,7 @@ public class CopyStreamEvent extends EventObject
      */
     public long getTotalBytesTransferred()
     {
-        return totalBytesTransferred;
+        return this.totalBytesTransferred;
     }
 
     /**
@@ -135,6 +135,6 @@ public class CopyStreamEvent extends EventObject
      */
     public long getStreamSize()
     {
-        return streamSize;
+        return this.streamSize;
     }
 }
