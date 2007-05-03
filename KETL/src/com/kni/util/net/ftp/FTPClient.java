@@ -261,22 +261,22 @@ public class FTPClient extends FTP
      ***/
     public FTPClient()
     {
-        __initDefaults();
-        __fileListParser = new DefaultFTPFileListParser();
-        __dataTimeout = -1;
-        __remoteVerificationEnabled = true;
+        this.__initDefaults();
+        this.__fileListParser = new DefaultFTPFileListParser();
+        this.__dataTimeout = -1;
+        this.__remoteVerificationEnabled = true;
     }
 
 
     private void __initDefaults()
     {
-        __dataConnectionMode = ACTIVE_LOCAL_DATA_CONNECTION_MODE;
-        __passiveHost = null;
-        __passivePort = -1;
-        __fileType = FTP.ASCII_FILE_TYPE;
-        __fileStructure = FTP.FILE_STRUCTURE;
-        __fileFormat = FTP.NON_PRINT_TEXT_FORMAT;
-        __fileTransferMode = FTP.STREAM_TRANSFER_MODE;
+        this.__dataConnectionMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
+        this.__passiveHost = null;
+        this.__passivePort = -1;
+        this.__fileType = FTP.ASCII_FILE_TYPE;
+        this.__fileStructure = FTP.FILE_STRUCTURE;
+        this.__fileFormat = FTP.NON_PRINT_TEXT_FORMAT;
+        this.__fileTransferMode = FTP.STREAM_TRANSFER_MODE;
     }
 
     private String __parsePathname(String reply)
@@ -334,8 +334,8 @@ public class FTPClient extends FTP
         index <<= 8;
         index |= lastIndex;
 
-        __passiveHost = host.toString();
-        __passivePort = index;
+        this.__passiveHost = host.toString();
+        this.__passivePort = index;
     }
 
 
@@ -345,29 +345,29 @@ public class FTPClient extends FTP
     {
         Socket socket;
 
-        if (__dataConnectionMode != ACTIVE_LOCAL_DATA_CONNECTION_MODE &&
-                __dataConnectionMode != PASSIVE_LOCAL_DATA_CONNECTION_MODE)
+        if (this.__dataConnectionMode != FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE &&
+                this.__dataConnectionMode != FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE)
             return null;
 
-        if (__dataConnectionMode == ACTIVE_LOCAL_DATA_CONNECTION_MODE)
+        if (this.__dataConnectionMode == FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE)
         {
             ServerSocket server;
-            server = _socketFactory_.createServerSocket(0, 1, getLocalAddress());
+            server = this._socketFactory_.createServerSocket(0, 1, this.getLocalAddress());
 
-            if (!FTPReply.isPositiveCompletion(port(getLocalAddress(),
+            if (!FTPReply.isPositiveCompletion(this.port(this.getLocalAddress(),
                                                     server.getLocalPort())))
             {
                 server.close();
                 return null;
             }
 
-            if ((__restartOffset > 0) && !restart(__restartOffset))
+            if ((this.__restartOffset > 0) && !this.restart(this.__restartOffset))
             {
                 server.close();
                 return null;
             }
 
-            if (!FTPReply.isPositivePreliminary(sendCommand(command, arg)))
+            if (!FTPReply.isPositivePreliminary(this.sendCommand(command, arg)))
             {
                 server.close();
                 return null;
@@ -377,34 +377,34 @@ public class FTPClient extends FTP
             // the data connection.  It may be desirable to let this be a
             // separately configurable value.  In any case, we really want
             // to allow preventing the accept from blocking indefinitely.
-            if (__dataTimeout >= 0)
-                server.setSoTimeout(__dataTimeout);
+            if (this.__dataTimeout >= 0)
+                server.setSoTimeout(this.__dataTimeout);
             socket = server.accept();
             server.close();
         }
         else
         { // We must be in PASSIVE_LOCAL_DATA_CONNECTION_MODE
 
-            if (pasv() != FTPReply.ENTERING_PASSIVE_MODE)
+            if (this.pasv() != FTPReply.ENTERING_PASSIVE_MODE)
                 return null;
 
-            __parsePassiveModeReply((String)_replyLines.elementAt(0));
+            this.__parsePassiveModeReply((String)this._replyLines.elementAt(0));
 
-            socket = _socketFactory_.createSocket(__passiveHost, __passivePort);
+            socket = this._socketFactory_.createSocket(this.__passiveHost, this.__passivePort);
 
-            if (!FTPReply.isPositivePreliminary(sendCommand(command, arg)))
+            if (!FTPReply.isPositivePreliminary(this.sendCommand(command, arg)))
             {
                 socket.close();
                 return null;
             }
         }
 
-        if (__remoteVerificationEnabled && !verifyRemote(socket))
+        if (this.__remoteVerificationEnabled && !this.verifyRemote(socket))
         {
             InetAddress host1, host2;
 
             host1 = socket.getInetAddress();
-            host2 = getRemoteAddress();
+            host2 = this.getRemoteAddress();
 
             socket.close();
 
@@ -413,8 +413,8 @@ public class FTPClient extends FTP
                 " is not same as server " + host2.getHostAddress());
         }
 
-        if (__dataTimeout >= 0)
-            socket.setSoTimeout(__dataTimeout);
+        if (this.__dataTimeout >= 0)
+            socket.setSoTimeout(this.__dataTimeout);
 
         return socket;
     }
@@ -426,11 +426,11 @@ public class FTPClient extends FTP
         OutputStream output;
         Socket socket;
 
-        if ((socket = __openDataConnection(command, remote)) == null)
+        if ((socket = this.__openDataConnection(command, remote)) == null)
             return false;
 
         output = new BufferedOutputStream(socket.getOutputStream());
-        if (__fileType == ASCII_FILE_TYPE)
+        if (this.__fileType == FTP.ASCII_FILE_TYPE)
             output = new ToNetASCIIOutputStream(output);
         // Treat everything else as binary for now
         try
@@ -449,7 +449,7 @@ public class FTPClient extends FTP
         }
         output.close();
         socket.close();
-        return completePendingCommand();
+        return this.completePendingCommand();
     }
 
     private OutputStream __storeFileStream(int command, String remote)
@@ -458,20 +458,21 @@ public class FTPClient extends FTP
         OutputStream output;
         Socket socket;
 
-        if ((socket = __openDataConnection(command, remote)) == null)
+        if ((socket = this.__openDataConnection(command, remote)) == null)
             return null;
 
         output = socket.getOutputStream();
-        if (__fileType == ASCII_FILE_TYPE)
+        if (this.__fileType == FTP.ASCII_FILE_TYPE)
             output = new ToNetASCIIOutputStream(output);
         return new com.kni.util.net.io.SocketOutputStream(socket, output);
     }
 
 
+    @Override
     protected void _connectAction_() throws IOException
     {
         super._connectAction_();
-        __initDefaults();
+        this.__initDefaults();
     }
 
 
@@ -485,7 +486,7 @@ public class FTPClient extends FTP
      ***/
     public void setDataTimeout(int timeout)
     {
-        __dataTimeout = timeout;
+        this.__dataTimeout = timeout;
     }
 
 
@@ -495,10 +496,11 @@ public class FTPClient extends FTP
      * <p>
      * @exception IOException If an error occurs while disconnecting.
      ***/
+    @Override
     public void disconnect() throws IOException
     {
         super.disconnect();
-        __initDefaults();
+        this.__initDefaults();
     }
 
 
@@ -513,7 +515,7 @@ public class FTPClient extends FTP
      ***/
     public void setRemoteVerificationEnabled(boolean enable)
     {
-        __remoteVerificationEnabled = enable;
+        this.__remoteVerificationEnabled = enable;
     }
 
     /***
@@ -525,7 +527,7 @@ public class FTPClient extends FTP
      ***/
     public boolean isRemoteVerificationEnabled()
     {
-        return __remoteVerificationEnabled;
+        return this.__remoteVerificationEnabled;
     }
 
     /***
@@ -544,17 +546,17 @@ public class FTPClient extends FTP
      ***/
     public boolean login(String username, String password) throws IOException
     {
-        user(username);
+        this.user(username);
 
-        if (FTPReply.isPositiveCompletion(_replyCode))
+        if (FTPReply.isPositiveCompletion(this._replyCode))
             return true;
 
         // If we get here, we either have an error code, or an intermmediate
         // reply requesting password.
-        if (!FTPReply.isPositiveIntermediate(_replyCode))
+        if (!FTPReply.isPositiveIntermediate(this._replyCode))
             return false;
 
-        return FTPReply.isPositiveCompletion(pass(password));
+        return FTPReply.isPositiveCompletion(this.pass(password));
     }
 
 
@@ -578,25 +580,25 @@ public class FTPClient extends FTP
     public boolean login(String username, String password, String account)
     throws IOException
     {
-        user(username);
+        this.user(username);
 
-        if (FTPReply.isPositiveCompletion(_replyCode))
+        if (FTPReply.isPositiveCompletion(this._replyCode))
             return true;
 
         // If we get here, we either have an error code, or an intermmediate
         // reply requesting password.
-        if (!FTPReply.isPositiveIntermediate(_replyCode))
+        if (!FTPReply.isPositiveIntermediate(this._replyCode))
             return false;
 
-        pass(password);
+        this.pass(password);
 
-        if (FTPReply.isPositiveCompletion(_replyCode))
+        if (FTPReply.isPositiveCompletion(this._replyCode))
             return true;
 
-        if (!FTPReply.isPositiveIntermediate(_replyCode))
+        if (!FTPReply.isPositiveIntermediate(this._replyCode))
             return false;
 
-        return FTPReply.isPositiveCompletion(acct(account));
+        return FTPReply.isPositiveCompletion(this.acct(account));
     }
 
     /***
@@ -613,7 +615,7 @@ public class FTPClient extends FTP
      ***/
     public boolean logout() throws IOException
     {
-        return FTPReply.isPositiveCompletion(quit());
+        return FTPReply.isPositiveCompletion(this.quit());
     }
 
 
@@ -632,7 +634,7 @@ public class FTPClient extends FTP
      ***/
     public boolean changeWorkingDirectory(String pathname) throws IOException
     {
-        return FTPReply.isPositiveCompletion(cwd(pathname));
+        return FTPReply.isPositiveCompletion(this.cwd(pathname));
     }
 
 
@@ -650,7 +652,7 @@ public class FTPClient extends FTP
      ***/
     public boolean changeToParentDirectory() throws IOException
     {
-        return FTPReply.isPositiveCompletion(cdup());
+        return FTPReply.isPositiveCompletion(this.cdup());
     }
 
 
@@ -669,7 +671,7 @@ public class FTPClient extends FTP
      ***/
     public boolean structureMount(String pathname) throws IOException
     {
-        return FTPReply.isPositiveCompletion(smnt(pathname));
+        return FTPReply.isPositiveCompletion(this.smnt(pathname));
     }
 
     /***
@@ -687,14 +689,14 @@ public class FTPClient extends FTP
      ***/
     boolean reinitialize() throws IOException
     {
-        rein();
+        this.rein();
 
-        if (FTPReply.isPositiveCompletion(_replyCode) ||
-                (FTPReply.isPositivePreliminary(_replyCode) &&
-                 FTPReply.isPositiveCompletion(getReply())))
+        if (FTPReply.isPositiveCompletion(this._replyCode) ||
+                (FTPReply.isPositivePreliminary(this._replyCode) &&
+                 FTPReply.isPositiveCompletion(this.getReply())))
         {
 
-            __initDefaults();
+            this.__initDefaults();
 
             return true;
         }
@@ -714,9 +716,9 @@ public class FTPClient extends FTP
      ***/
     public void enterLocalActiveMode()
     {
-        __dataConnectionMode = ACTIVE_LOCAL_DATA_CONNECTION_MODE;
-        __passiveHost = null;
-        __passivePort = -1;
+        this.__dataConnectionMode = FTPClient.ACTIVE_LOCAL_DATA_CONNECTION_MODE;
+        this.__passiveHost = null;
+        this.__passivePort = -1;
     }
 
 
@@ -734,11 +736,11 @@ public class FTPClient extends FTP
      ***/
     public void enterLocalPassiveMode()
     {
-        __dataConnectionMode = PASSIVE_LOCAL_DATA_CONNECTION_MODE;
+        this.__dataConnectionMode = FTPClient.PASSIVE_LOCAL_DATA_CONNECTION_MODE;
         // These will be set when just before a data connection is opened
         // in __openDataConnection()
-        __passiveHost = null;
-        __passivePort = -1;
+        this.__passiveHost = null;
+        this.__passivePort = -1;
     }
 
 
@@ -769,11 +771,11 @@ public class FTPClient extends FTP
     public boolean enterRemoteActiveMode(InetAddress host, int port)
     throws IOException
     {
-        if (FTPReply.isPositiveCompletion(port(host, port)))
+        if (FTPReply.isPositiveCompletion(this.port(host, port)))
         {
-            __dataConnectionMode = ACTIVE_REMOTE_DATA_CONNECTION_MODE;
-            __passiveHost = null;
-            __passivePort = -1;
+            this.__dataConnectionMode = FTPClient.ACTIVE_REMOTE_DATA_CONNECTION_MODE;
+            this.__passiveHost = null;
+            this.__passivePort = -1;
             return true;
         }
         return false;
@@ -803,11 +805,11 @@ public class FTPClient extends FTP
      ***/
     public boolean enterRemotePassiveMode() throws IOException
     {
-        if (pasv() != FTPReply.ENTERING_PASSIVE_MODE)
+        if (this.pasv() != FTPReply.ENTERING_PASSIVE_MODE)
             return false;
 
-        __dataConnectionMode = PASSIVE_REMOTE_DATA_CONNECTION_MODE;
-        __parsePassiveModeReply((String)_replyLines.elementAt(0));
+        this.__dataConnectionMode = FTPClient.PASSIVE_REMOTE_DATA_CONNECTION_MODE;
+        this.__parsePassiveModeReply((String)this._replyLines.elementAt(0));
 
         return true;
     }
@@ -826,7 +828,7 @@ public class FTPClient extends FTP
      ***/
     public String getPassiveHost()
     {
-        return __passiveHost;
+        return this.__passiveHost;
     }
 
     /***
@@ -843,7 +845,7 @@ public class FTPClient extends FTP
      ***/
     public int getPassivePort()
     {
-        return __passivePort;
+        return this.__passivePort;
     }
 
 
@@ -856,7 +858,7 @@ public class FTPClient extends FTP
      ***/
     public int getDataConnectionMode()
     {
-        return __dataConnectionMode;
+        return this.__dataConnectionMode;
     }
 
 
@@ -881,10 +883,10 @@ public class FTPClient extends FTP
      ***/
     public boolean setFileType(int fileType) throws IOException
     {
-        if (FTPReply.isPositiveCompletion(type(fileType)))
+        if (FTPReply.isPositiveCompletion(this.type(fileType)))
         {
-            __fileType = fileType;
-            __fileFormat = FTP.NON_PRINT_TEXT_FORMAT;
+            this.__fileType = fileType;
+            this.__fileFormat = FTP.NON_PRINT_TEXT_FORMAT;
             return true;
         }
         return false;
@@ -922,10 +924,10 @@ public class FTPClient extends FTP
     public boolean setFileType(int fileType, int formatOrByteSize)
     throws IOException
     {
-        if (FTPReply.isPositiveCompletion(type(fileType, formatOrByteSize)))
+        if (FTPReply.isPositiveCompletion(this.type(fileType, formatOrByteSize)))
         {
-            __fileType = fileType;
-            __fileFormat = formatOrByteSize;
+            this.__fileType = fileType;
+            this.__fileFormat = formatOrByteSize;
             return true;
         }
         return false;
@@ -949,9 +951,9 @@ public class FTPClient extends FTP
      ***/
     public boolean setFileStructure(int structure) throws IOException
     {
-        if (FTPReply.isPositiveCompletion(stru(structure)))
+        if (FTPReply.isPositiveCompletion(this.stru(structure)))
         {
-            __fileStructure = structure;
+            this.__fileStructure = structure;
             return true;
         }
         return false;
@@ -975,9 +977,9 @@ public class FTPClient extends FTP
      ***/
     public boolean setFileTransferMode(int mode) throws IOException
     {
-        if (FTPReply.isPositiveCompletion(mode(mode)))
+        if (FTPReply.isPositiveCompletion(this.mode(mode)))
         {
-            __fileTransferMode = mode;
+            this.__fileTransferMode = mode;
             return true;
         }
         return false;
@@ -1001,9 +1003,9 @@ public class FTPClient extends FTP
      ***/
     public boolean remoteRetrieve(String filename) throws IOException
     {
-        if (__dataConnectionMode == ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
-                __dataConnectionMode == PASSIVE_REMOTE_DATA_CONNECTION_MODE)
-            return FTPReply.isPositivePreliminary(retr(filename));
+        if (this.__dataConnectionMode == FTPClient.ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
+                this.__dataConnectionMode == FTPClient.PASSIVE_REMOTE_DATA_CONNECTION_MODE)
+            return FTPReply.isPositivePreliminary(this.retr(filename));
         return false;
     }
 
@@ -1027,9 +1029,9 @@ public class FTPClient extends FTP
      ***/
     public boolean remoteStore(String filename) throws IOException
     {
-        if (__dataConnectionMode == ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
-                __dataConnectionMode == PASSIVE_REMOTE_DATA_CONNECTION_MODE)
-            return FTPReply.isPositivePreliminary(stor(filename));
+        if (this.__dataConnectionMode == FTPClient.ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
+                this.__dataConnectionMode == FTPClient.PASSIVE_REMOTE_DATA_CONNECTION_MODE)
+            return FTPReply.isPositivePreliminary(this.stor(filename));
         return false;
     }
 
@@ -1054,9 +1056,9 @@ public class FTPClient extends FTP
      ***/
     public boolean remoteStoreUnique(String filename) throws IOException
     {
-        if (__dataConnectionMode == ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
-                __dataConnectionMode == PASSIVE_REMOTE_DATA_CONNECTION_MODE)
-            return FTPReply.isPositivePreliminary(stou(filename));
+        if (this.__dataConnectionMode == FTPClient.ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
+                this.__dataConnectionMode == FTPClient.PASSIVE_REMOTE_DATA_CONNECTION_MODE)
+            return FTPReply.isPositivePreliminary(this.stou(filename));
         return false;
     }
 
@@ -1081,9 +1083,9 @@ public class FTPClient extends FTP
      ***/
     public boolean remoteStoreUnique() throws IOException
     {
-        if (__dataConnectionMode == ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
-                __dataConnectionMode == PASSIVE_REMOTE_DATA_CONNECTION_MODE)
-            return FTPReply.isPositivePreliminary(stou());
+        if (this.__dataConnectionMode == FTPClient.ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
+                this.__dataConnectionMode == FTPClient.PASSIVE_REMOTE_DATA_CONNECTION_MODE)
+            return FTPReply.isPositivePreliminary(this.stou());
         return false;
     }
 
@@ -1108,9 +1110,9 @@ public class FTPClient extends FTP
      ***/
     public boolean remoteAppend(String filename) throws IOException
     {
-        if (__dataConnectionMode == ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
-                __dataConnectionMode == PASSIVE_REMOTE_DATA_CONNECTION_MODE)
-            return FTPReply.isPositivePreliminary(stor(filename));
+        if (this.__dataConnectionMode == FTPClient.ACTIVE_REMOTE_DATA_CONNECTION_MODE ||
+                this.__dataConnectionMode == FTPClient.PASSIVE_REMOTE_DATA_CONNECTION_MODE)
+            return FTPReply.isPositivePreliminary(this.stor(filename));
         return false;
     }
 
@@ -1160,7 +1162,7 @@ public class FTPClient extends FTP
      ***/
     public boolean completePendingCommand() throws IOException
     {
-        return FTPReply.isPositiveCompletion(getReply());
+        return FTPReply.isPositiveCompletion(this.getReply());
     }
 
 
@@ -1192,11 +1194,11 @@ public class FTPClient extends FTP
         InputStream input;
         Socket socket;
 
-        if ((socket = __openDataConnection(FTPCommand.RETR, remote)) == null)
+        if ((socket = this.__openDataConnection(FTPCommand.RETR, remote)) == null)
             return false;
 
         input = new BufferedInputStream(socket.getInputStream());
-        if (__fileType == ASCII_FILE_TYPE)
+        if (this.__fileType == FTP.ASCII_FILE_TYPE)
             input = new FromNetASCIIInputStream(input);
         // Treat everything else as binary for now
         try
@@ -1214,7 +1216,7 @@ public class FTPClient extends FTP
             throw e;
         }
         socket.close();
-        return completePendingCommand();
+        return this.completePendingCommand();
     }
 
     /***
@@ -1246,11 +1248,11 @@ public class FTPClient extends FTP
         InputStream input;
         Socket socket;
 
-        if ((socket = __openDataConnection(FTPCommand.RETR, remote)) == null)
+        if ((socket = this.__openDataConnection(FTPCommand.RETR, remote)) == null)
             return null;
 
         input = socket.getInputStream();
-        if (__fileType == ASCII_FILE_TYPE)
+        if (this.__fileType == FTP.ASCII_FILE_TYPE)
             input = new FromNetASCIIInputStream(input);
         return new com.kni.util.net.io.SocketInputStream(socket, input);
     }
@@ -1282,7 +1284,7 @@ public class FTPClient extends FTP
     public boolean storeFile(String remote, InputStream local)
     throws IOException
     {
-        return __storeFile(FTPCommand.STOR, remote, local);
+        return this.__storeFile(FTPCommand.STOR, remote, local);
     }
 
 
@@ -1313,7 +1315,7 @@ public class FTPClient extends FTP
      ***/
     public OutputStream storeFileStream(String remote) throws IOException
     {
-        return __storeFileStream(FTPCommand.STOR, remote);
+        return this.__storeFileStream(FTPCommand.STOR, remote);
     }
 
     /***
@@ -1343,7 +1345,7 @@ public class FTPClient extends FTP
     public boolean appendFile(String remote, InputStream local)
     throws IOException
     {
-        return __storeFile(FTPCommand.APPE, remote, local);
+        return this.__storeFile(FTPCommand.APPE, remote, local);
     }
 
     /***
@@ -1373,7 +1375,7 @@ public class FTPClient extends FTP
      ***/
     public OutputStream appendFileStream(String remote) throws IOException
     {
-        return __storeFileStream(FTPCommand.APPE, remote);
+        return this.__storeFileStream(FTPCommand.APPE, remote);
     }
 
     /***
@@ -1404,7 +1406,7 @@ public class FTPClient extends FTP
     public boolean storeUniqueFile(String remote, InputStream local)
     throws IOException
     {
-        return __storeFile(FTPCommand.STOU, remote, local);
+        return this.__storeFile(FTPCommand.STOU, remote, local);
     }
 
 
@@ -1437,7 +1439,7 @@ public class FTPClient extends FTP
      ***/
     public OutputStream storeUniqueFileStream(String remote) throws IOException
     {
-        return __storeFileStream(FTPCommand.STOU, remote);
+        return this.__storeFileStream(FTPCommand.STOU, remote);
     }
 
     /***
@@ -1466,7 +1468,7 @@ public class FTPClient extends FTP
      ***/
     public boolean storeUniqueFile(InputStream local) throws IOException
     {
-        return __storeFile(FTPCommand.STOU, null, local);
+        return this.__storeFile(FTPCommand.STOU, null, local);
     }
 
     /***
@@ -1497,7 +1499,7 @@ public class FTPClient extends FTP
      ***/
     public OutputStream storeUniqueFileStream() throws IOException
     {
-        return __storeFileStream(FTPCommand.STOU, null);
+        return this.__storeFileStream(FTPCommand.STOU, null);
     }
 
     /***
@@ -1515,7 +1517,7 @@ public class FTPClient extends FTP
      ***/
     public boolean allocate(int bytes) throws IOException
     {
-        return FTPReply.isPositiveCompletion(allo(bytes));
+        return FTPReply.isPositiveCompletion(this.allo(bytes));
     }
 
 
@@ -1535,7 +1537,7 @@ public class FTPClient extends FTP
      ***/
     public boolean allocate(int bytes, int recordSize) throws IOException
     {
-        return FTPReply.isPositiveCompletion(allo(bytes, recordSize));
+        return FTPReply.isPositiveCompletion(this.allo(bytes, recordSize));
     }
 
 
@@ -1559,8 +1561,8 @@ public class FTPClient extends FTP
      ***/
     private boolean restart(long offset) throws IOException
     {
-        __restartOffset = 0;
-        return FTPReply.isPositiveIntermediate(rest(Long.toString(offset)));
+        this.__restartOffset = 0;
+        return FTPReply.isPositiveIntermediate(this.rest(Long.toString(offset)));
     }
 
     /***
@@ -1575,7 +1577,7 @@ public class FTPClient extends FTP
     public void setRestartOffset(long offset)
     {
         if (offset >= 0)
-            __restartOffset = offset;
+            this.__restartOffset = offset;
     }
 
     /***
@@ -1586,7 +1588,7 @@ public class FTPClient extends FTP
      ***/
     public long getRestartOffset()
     {
-        return __restartOffset;
+        return this.__restartOffset;
     }
 
 
@@ -1607,10 +1609,10 @@ public class FTPClient extends FTP
      ***/
     public boolean rename(String from, String to) throws IOException
     {
-        if (!FTPReply.isPositiveIntermediate(rnfr(from)))
+        if (!FTPReply.isPositiveIntermediate(this.rnfr(from)))
             return false;
 
-        return FTPReply.isPositiveCompletion(rnto(to));
+        return FTPReply.isPositiveCompletion(this.rnto(to));
     }
 
 
@@ -1628,7 +1630,7 @@ public class FTPClient extends FTP
      ***/
     public boolean abort() throws IOException
     {
-        return FTPReply.isPositiveCompletion(abor());
+        return FTPReply.isPositiveCompletion(this.abor());
     }
 
     /***
@@ -1646,7 +1648,7 @@ public class FTPClient extends FTP
      ***/
     public boolean deleteFile(String pathname) throws IOException
     {
-        return FTPReply.isPositiveCompletion(dele(pathname));
+        return FTPReply.isPositiveCompletion(this.dele(pathname));
     }
 
 
@@ -1665,7 +1667,7 @@ public class FTPClient extends FTP
      ***/
     public boolean removeDirectory(String pathname) throws IOException
     {
-        return FTPReply.isPositiveCompletion(rmd(pathname));
+        return FTPReply.isPositiveCompletion(this.rmd(pathname));
     }
 
 
@@ -1686,7 +1688,7 @@ public class FTPClient extends FTP
      ***/
     public boolean makeDirectory(String pathname) throws IOException
     {
-        return FTPReply.isPositiveCompletion(mkd(pathname));
+        return FTPReply.isPositiveCompletion(this.mkd(pathname));
     }
 
 
@@ -1705,10 +1707,10 @@ public class FTPClient extends FTP
      ***/
     public String printWorkingDirectory() throws IOException
     {
-        if (pwd() != FTPReply.PATHNAME_CREATED)
+        if (this.pwd() != FTPReply.PATHNAME_CREATED)
             return null;
 
-        return __parsePathname((String)_replyLines.elementAt(0));
+        return this.__parsePathname((String)this._replyLines.elementAt(0));
     }
 
 
@@ -1727,7 +1729,7 @@ public class FTPClient extends FTP
      ***/
     public boolean sendSiteCommand(String arguments) throws IOException
     {
-        return FTPReply.isPositiveCompletion(site(arguments));
+        return FTPReply.isPositiveCompletion(this.site(arguments));
     }
 
 
@@ -1746,8 +1748,8 @@ public class FTPClient extends FTP
      ***/
     public String getSystemName() throws IOException
     {
-        if (syst() == FTPReply.NAME_SYSTEM_TYPE)
-            return ((String)_replyLines.elementAt(0)).substring(4);
+        if (this.syst() == FTPReply.NAME_SYSTEM_TYPE)
+            return ((String)this._replyLines.elementAt(0)).substring(4);
 
         return null;
     }
@@ -1769,8 +1771,8 @@ public class FTPClient extends FTP
      ***/
     public String listHelp() throws IOException
     {
-        if (FTPReply.isPositiveCompletion(help()))
-            return getReplyString();
+        if (FTPReply.isPositiveCompletion(this.help()))
+            return this.getReplyString();
         return null;
     }
 
@@ -1792,8 +1794,8 @@ public class FTPClient extends FTP
      ***/
     public String listHelp(String command) throws IOException
     {
-        if (FTPReply.isPositiveCompletion(help(command)))
-            return getReplyString();
+        if (FTPReply.isPositiveCompletion(this.help(command)))
+            return this.getReplyString();
         return null;
     }
 
@@ -1813,7 +1815,7 @@ public class FTPClient extends FTP
      ***/
     public boolean sendNoOp() throws IOException
     {
-        return FTPReply.isPositiveCompletion(noop());
+        return FTPReply.isPositiveCompletion(this.noop());
     }
 
 
@@ -1848,7 +1850,7 @@ public class FTPClient extends FTP
         BufferedReader reader;
         Vector results;
 
-        if ((socket = __openDataConnection(FTPCommand.NLST, pathname)) == null)
+        if ((socket = this.__openDataConnection(FTPCommand.NLST, pathname)) == null)
             return null;
 
         reader =
@@ -1860,7 +1862,7 @@ public class FTPClient extends FTP
         reader.close();
         socket.close();
 
-        if (completePendingCommand())
+        if (this.completePendingCommand())
         {
             String[] result;
             result = new String[results.size()];
@@ -1895,7 +1897,7 @@ public class FTPClient extends FTP
      ***/
     public String[] listNames() throws IOException
     {
-        return listNames(null);
+        return this.listNames(null);
     }
 
 
@@ -1929,14 +1931,14 @@ public class FTPClient extends FTP
         Socket socket;
         FTPFile[] results;
 
-        if ((socket = __openDataConnection(FTPCommand.LIST, pathname)) == null)
+        if ((socket = this.__openDataConnection(FTPCommand.LIST, pathname)) == null)
             return null;
 
         results = parser.parseFileList(socket.getInputStream());
 
         socket.close();
 
-        completePendingCommand();
+        this.completePendingCommand();
 
         return results;
     }
@@ -1963,7 +1965,7 @@ public class FTPClient extends FTP
      ***/
     public FTPFile[] listFiles(FTPFileListParser parser) throws IOException
     {
-        return listFiles(parser, null);
+        return this.listFiles(parser, null);
     }
 
 
@@ -1995,7 +1997,7 @@ public class FTPClient extends FTP
      ***/
     public FTPFile[] listFiles(String pathname) throws IOException
     {
-        return listFiles(__fileListParser, pathname);
+        return this.listFiles(this.__fileListParser, pathname);
     }
 
     /***
@@ -2019,7 +2021,7 @@ public class FTPClient extends FTP
      ***/
     public FTPFile[] listFiles() throws IOException
     {
-        return listFiles(__fileListParser);
+        return this.listFiles(this.__fileListParser);
     }
 
 
@@ -2037,8 +2039,8 @@ public class FTPClient extends FTP
      ***/
     public String getStatus() throws IOException
     {
-        if (FTPReply.isPositiveCompletion(stat()))
-            return getReplyString();
+        if (FTPReply.isPositiveCompletion(this.stat()))
+            return this.getReplyString();
         return null;
     }
 
@@ -2058,8 +2060,8 @@ public class FTPClient extends FTP
      ***/
     public String getStatus(String pathname) throws IOException
     {
-        if (FTPReply.isPositiveCompletion(stat(pathname)))
-            return getReplyString();
+        if (FTPReply.isPositiveCompletion(this.stat(pathname)))
+            return this.getReplyString();
         return null;
     }
 

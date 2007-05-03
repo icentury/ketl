@@ -192,38 +192,38 @@ public final class DefaultFTPFileListParser implements FTPFileListParser
                                    (cToken[start++] != '-'));
             }
 
-            start = __skipWhitespace(cToken, start);
-            end = __skipDigits(cToken, start);
-            file.setHardLinkCount(__charArrayToInt(cToken, start, end));
+            start = this.__skipWhitespace(cToken, start);
+            end = this.__skipDigits(cToken, start);
+            file.setHardLinkCount(this.__charArrayToInt(cToken, start, end));
 
-            start = __skipWhitespace(cToken, end);
-            end = __skipNonWhitespace(cToken, start);
+            start = this.__skipWhitespace(cToken, end);
+            end = this.__skipNonWhitespace(cToken, start);
             // Get user and group
             file.setUser(new String(cToken, start, end - start));
 
-            start = __skipWhitespace(cToken, end);
-            end = __skipNonWhitespace(cToken, start);
+            start = this.__skipWhitespace(cToken, end);
+            end = this.__skipNonWhitespace(cToken, start);
             file.setGroup(new String(cToken, start, end - start));
 
             // Get size, if block or character device, set size to zero and skip
             // next two tokens.
             if (isDevice)
             {
-                start = __skipWhitespace(cToken, end);
-                end = __skipNonWhitespace(cToken, start);
-                start = __skipWhitespace(cToken, end);
-                end = __skipNonWhitespace(cToken, start);
+                start = this.__skipWhitespace(cToken, end);
+                end = this.__skipNonWhitespace(cToken, start);
+                start = this.__skipWhitespace(cToken, end);
+                end = this.__skipNonWhitespace(cToken, start);
                 // Don't explicitly set size because it is zero by default
             }
             else
             {
-                start = __skipWhitespace(cToken, end);
-                end = __skipDigits(cToken, start);
-                file.setSize(__charArrayToLong(cToken, start, end));
+                start = this.__skipWhitespace(cToken, end);
+                end = this.__skipDigits(cToken, start);
+                file.setSize(this.__charArrayToLong(cToken, start, end));
             }
 
-            start = __skipWhitespace(cToken, end);
-            end = __skipNonWhitespaceToLower(cToken, start);
+            start = this.__skipWhitespace(cToken, end);
+            end = this.__skipNonWhitespaceToLower(cToken, start);
 
             // Get month
             switch (cToken[start])
@@ -269,12 +269,12 @@ public final class DefaultFTPFileListParser implements FTPFileListParser
             }
 
             // Get day, and store in access
-            start = __skipWhitespace(cToken, end);
-            end = __skipDigits(cToken, start);
-            access = __charArrayToInt(cToken, start, end);
+            start = this.__skipWhitespace(cToken, end);
+            end = this.__skipDigits(cToken, start);
+            access = this.__charArrayToInt(cToken, start, end);
 
-            start = __skipWhitespace(cToken, end);
-            end = __skipDigits(cToken, start);
+            start = this.__skipWhitespace(cToken, end);
+            end = this.__skipDigits(cToken, start);
 
             date = Calendar.getInstance();
 
@@ -287,16 +287,16 @@ public final class DefaultFTPFileListParser implements FTPFileListParser
                     hour = date.get(Calendar.MONTH);
                     if (hour < month)
                         --year;
-                    hour = __charArrayToInt(cToken, start, end);
+                    hour = this.__charArrayToInt(cToken, start, end);
                     start = end + 1;
-                    end = __skipDigits(cToken, start);
-                    minutes = __charArrayToInt(cToken, start, end);
+                    end = this.__skipDigits(cToken, start);
+                    minutes = this.__charArrayToInt(cToken, start, end);
                 }
                 else
                 {
                     // Have to set minutes or compiler will complain not initialized
                     hour = minutes = -1;
-                    year = __charArrayToInt(cToken, start, end);
+                    year = this.__charArrayToInt(cToken, start, end);
                 }
 
                 date.clear();
@@ -323,7 +323,7 @@ public final class DefaultFTPFileListParser implements FTPFileListParser
             // we need to be able to preserve leading spacesin filenames.
             //start = __skipWhitespace(cToken, end);
             start = end + 1;
-            end = __skipNonWhitespace(cToken, start);
+            end = this.__skipNonWhitespace(cToken, start);
 
             if (end >= cToken.length)
             {
@@ -406,14 +406,14 @@ public final class DefaultFTPFileListParser implements FTPFileListParser
                 line = reader.readLine();
             else
             {
-                if ((entry = parseFTPEntry(line)) != null)
+                if ((entry = this.parseFTPEntry(line)) != null)
                     results.addElement(entry);
                 line = reader.readLine();
             }
 
             while (line != null)
             {
-                if (line.length() == 0 || (entry = parseFTPEntry(line)) == null)
+                if (line.length() == 0 || (entry = this.parseFTPEntry(line)) == null)
                 {
                     results = null;
                     break;

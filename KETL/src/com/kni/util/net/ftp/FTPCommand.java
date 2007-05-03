@@ -104,37 +104,37 @@ public final class FTPCommand
     public static final int HELP = 31;
     public static final int NOOP = 32;
 
-    public static final int USERNAME = USER;
-    public static final int PASSWORD = PASS;
-    public static final int ACCOUNT = ACCT;
-    public static final int CHANGE_WORKING_DIRECTORY = CWD;
-    public static final int CHANGE_TO_PARENT_DIRECTORY = CDUP;
-    public static final int STRUCTURE_MOUNT = SMNT;
-    public static final int REINITIALIZE = REIN;
-    public static final int LOGOUT = QUIT;
-    public static final int DATA_PORT = PORT;
-    public static final int PASSIVE = PASV;
-    public static final int REPRESENTATION_TYPE = TYPE;
-    public static final int FILE_STRUCTURE = STRU;
-    public static final int TRANSFER_MODE = MODE;
-    public static final int RETRIEVE = RETR;
-    public static final int STORE = STOR;
-    public static final int STORE_UNIQUE = STOU;
-    public static final int APPEND = APPE;
-    public static final int ALLOCATE = ALLO;
-    public static final int RESTART = REST;
-    public static final int RENAME_FROM = RNFR;
-    public static final int RENAME_TO = RNTO;
-    public static final int ABORT = ABOR;
-    public static final int DELETE = DELE;
-    public static final int REMOVE_DIRECTORY = RMD;
-    public static final int MAKE_DIRECTORY = MKD;
-    public static final int PRINT_WORKING_DIRECTORY = PWD;
+    public static final int USERNAME = FTPCommand.USER;
+    public static final int PASSWORD = FTPCommand.PASS;
+    public static final int ACCOUNT = FTPCommand.ACCT;
+    public static final int CHANGE_WORKING_DIRECTORY = FTPCommand.CWD;
+    public static final int CHANGE_TO_PARENT_DIRECTORY = FTPCommand.CDUP;
+    public static final int STRUCTURE_MOUNT = FTPCommand.SMNT;
+    public static final int REINITIALIZE = FTPCommand.REIN;
+    public static final int LOGOUT = FTPCommand.QUIT;
+    public static final int DATA_PORT = FTPCommand.PORT;
+    public static final int PASSIVE = FTPCommand.PASV;
+    public static final int REPRESENTATION_TYPE = FTPCommand.TYPE;
+    public static final int FILE_STRUCTURE = FTPCommand.STRU;
+    public static final int TRANSFER_MODE = FTPCommand.MODE;
+    public static final int RETRIEVE = FTPCommand.RETR;
+    public static final int STORE = FTPCommand.STOR;
+    public static final int STORE_UNIQUE = FTPCommand.STOU;
+    public static final int APPEND = FTPCommand.APPE;
+    public static final int ALLOCATE = FTPCommand.ALLO;
+    public static final int RESTART = FTPCommand.REST;
+    public static final int RENAME_FROM = FTPCommand.RNFR;
+    public static final int RENAME_TO = FTPCommand.RNTO;
+    public static final int ABORT = FTPCommand.ABOR;
+    public static final int DELETE = FTPCommand.DELE;
+    public static final int REMOVE_DIRECTORY = FTPCommand.RMD;
+    public static final int MAKE_DIRECTORY = FTPCommand.MKD;
+    public static final int PRINT_WORKING_DIRECTORY = FTPCommand.PWD;
     //  public static final int LIST = LIST;
-    public static final int NAME_LIST = NLST;
-    public static final int SITE_PARAMETERS = SITE;
-    public static final int SYSTEM = SYST;
-    public static final int STATUS = STAT;
+    public static final int NAME_LIST = FTPCommand.NLST;
+    public static final int SITE_PARAMETERS = FTPCommand.SITE;
+    public static final int SYSTEM = FTPCommand.SYST;
+    public static final int STATUS = FTPCommand.STAT;
     //public static final int HELP = HELP;
     //public static final int NOOP = NOOP;
 
@@ -160,7 +160,7 @@ public final class FTPCommand
      ***/
     public static final String getCommand(int command)
     {
-        return _commands[command];
+        return FTPCommand._commands[command];
     }
 
 }

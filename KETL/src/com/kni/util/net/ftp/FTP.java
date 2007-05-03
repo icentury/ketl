@@ -269,12 +269,12 @@ public class FTP extends TelnetClient
      ***/
     public FTP()
     {
-        setDefaultPort(DEFAULT_PORT);
-        __commandBuffer = new StringBuffer();
-        _replyLines = new Vector();
-        _newReplyString = false;
-        _replyString = null;
-        _commandSupport_ = new ProtocolCommandSupport(this);
+        this.setDefaultPort(FTP.DEFAULT_PORT);
+        this.__commandBuffer = new StringBuffer();
+        this._replyLines = new Vector();
+        this._newReplyString = false;
+        this._replyString = null;
+        this._commandSupport_ = new ProtocolCommandSupport(this);
     }
 
     private void __getReply() throws IOException
@@ -282,10 +282,10 @@ public class FTP extends TelnetClient
         int length;
         String line, code;
 
-        _newReplyString = true;
-        _replyLines.setSize(0);
+        this._newReplyString = true;
+        this._replyLines.setSize(0);
 
-        line = _controlInput.readLine();
+        line = this._controlInput.readLine();
 
         if (line == null)
             throw new FTPConnectionClosedException(
@@ -301,7 +301,7 @@ public class FTP extends TelnetClient
         try
         {
 			code = line.substring(0, 3);
-            _replyCode = Integer.parseInt(code);
+            this._replyCode = Integer.parseInt(code);
         }
         catch (NumberFormatException e)
         {
@@ -309,20 +309,20 @@ public class FTP extends TelnetClient
                 "Could not parse response code.\nServer Reply: " + line);
         }
 
-        _replyLines.addElement(line);
+        this._replyLines.addElement(line);
 
         // Get extra lines if message continues.
         if (length > 3 && line.charAt(3) == '-')
         {
             do
             {
-                line = _controlInput.readLine();
+                line = this._controlInput.readLine();
 
                 if (line == null)
                     throw new FTPConnectionClosedException(
                         "Connection closed without indication.");
 
-                _replyLines.addElement(line);
+                this._replyLines.addElement(line);
 
                 // The length() check handles problems that could arise from readLine()
                 // returning too soon after encountering a naked CR or some other
@@ -338,26 +338,27 @@ public class FTP extends TelnetClient
             // line.startsWith(code)));
         }
 
-        if (_commandSupport_.getListenerCount() > 0)
-            _commandSupport_.fireReplyReceived(_replyCode, getReplyString());
+        if (this._commandSupport_.getListenerCount() > 0)
+            this._commandSupport_.fireReplyReceived(this._replyCode, this.getReplyString());
 
-        if (_replyCode == FTPReply.SERVICE_NOT_AVAILABLE)
+        if (this._replyCode == FTPReply.SERVICE_NOT_AVAILABLE)
             throw new FTPConnectionClosedException(
                 "FTP response 421 received.  Server closed connection.");
     }
 
     // initiates control connections and gets initial reply
+    @Override
     protected void _connectAction_() throws IOException
     {
         super._connectAction_();
-        _controlInput =
-            new BufferedReader(new InputStreamReader(getInputStream()));
-        _controlOutput =
-            new BufferedWriter(new OutputStreamWriter(getOutputStream()));
-        __getReply();
+        this._controlInput =
+            new BufferedReader(new InputStreamReader(this.getInputStream()));
+        this._controlOutput =
+            new BufferedWriter(new OutputStreamWriter(this.getOutputStream()));
+        this.__getReply();
         // If we received code 120, we have to fetch completion reply.
-        if (FTPReply.isPositivePreliminary(_replyCode))
-            __getReply();
+        if (FTPReply.isPositivePreliminary(this._replyCode))
+            this.__getReply();
     }
 
 
@@ -369,7 +370,7 @@ public class FTP extends TelnetClient
      ***/
     public void addProtocolCommandListener(ProtocolCommandListener listener)
     {
-        _commandSupport_.addProtocolCommandListener(listener);
+        this._commandSupport_.addProtocolCommandListener(listener);
     }
 
     /***
@@ -380,7 +381,7 @@ public class FTP extends TelnetClient
      ***/
     public void removeProtocolCommandistener(ProtocolCommandListener listener)
     {
-        _commandSupport_.removeProtocolCommandListener(listener);
+        this._commandSupport_.removeProtocolCommandListener(listener);
     }
 
 
@@ -392,14 +393,15 @@ public class FTP extends TelnetClient
      * <p>
      * @exception IOException If an error occurs while disconnecting.
      ***/
+    @Override
     public void disconnect() throws IOException
     {
         super.disconnect();
-        _controlInput = null;
-        _controlOutput = null;
-        _replyLines.setSize(0);
-        _newReplyString = false;
-        _replyString = null;
+        this._controlInput = null;
+        this._controlOutput = null;
+        this._replyLines.setSize(0);
+        this._newReplyString = false;
+        this._replyString = null;
     }
 
 
@@ -427,24 +429,24 @@ public class FTP extends TelnetClient
     {
         String message;
 
-        __commandBuffer.setLength(0);
-        __commandBuffer.append(command);
+        this.__commandBuffer.setLength(0);
+        this.__commandBuffer.append(command);
 
         if (args != null)
         {
-            __commandBuffer.append(' ');
-            __commandBuffer.append(args);
+            this.__commandBuffer.append(' ');
+            this.__commandBuffer.append(args);
         }
-        __commandBuffer.append(SocketClient.NETASCII_EOL);
+        this.__commandBuffer.append(SocketClient.NETASCII_EOL);
 
-        _controlOutput.write(message = __commandBuffer.toString());
-        _controlOutput.flush();
+        this._controlOutput.write(message = this.__commandBuffer.toString());
+        this._controlOutput.flush();
 
-        if (_commandSupport_.getListenerCount() > 0)
-            _commandSupport_.fireCommandSent(command, message);
+        if (this._commandSupport_.getListenerCount() > 0)
+            this._commandSupport_.fireCommandSent(command, message);
 
-        __getReply();
-        return _replyCode;
+        this.__getReply();
+        return this._replyCode;
     }
 
 
@@ -471,7 +473,7 @@ public class FTP extends TelnetClient
      ***/
     public int sendCommand(int command, String args) throws IOException
     {
-        return sendCommand(FTPCommand._commands[command], args);
+        return this.sendCommand(FTPCommand._commands[command], args);
     }
 
 
@@ -495,7 +497,7 @@ public class FTP extends TelnetClient
      ***/
     public int sendCommand(String command) throws IOException
     {
-        return sendCommand(command, null);
+        return this.sendCommand(command, null);
     }
 
 
@@ -520,7 +522,7 @@ public class FTP extends TelnetClient
      ***/
     public int sendCommand(int command) throws IOException
     {
-        return sendCommand(command, null);
+        return this.sendCommand(command, null);
     }
 
 
@@ -534,7 +536,7 @@ public class FTP extends TelnetClient
      ***/
     public int getReplyCode()
     {
-        return _replyCode;
+        return this._replyCode;
     }
 
     /***
@@ -556,8 +558,8 @@ public class FTP extends TelnetClient
      ***/
     public int getReply() throws IOException
     {
-        __getReply();
-        return _replyCode;
+        this.__getReply();
+        return this._replyCode;
     }
 
 
@@ -571,8 +573,8 @@ public class FTP extends TelnetClient
     public String[] getReplyStrings()
     {
         String[] lines;
-        lines = new String[_replyLines.size()];
-        _replyLines.copyInto(lines);
+        lines = new String[this._replyLines.size()];
+        this._replyLines.copyInto(lines);
         return lines;
     }
 
@@ -588,20 +590,20 @@ public class FTP extends TelnetClient
         Enumeration enumReply;
         StringBuffer buffer;
 
-        if (!_newReplyString)
-            return _replyString;
+        if (!this._newReplyString)
+            return this._replyString;
 
         buffer = new StringBuffer(256);
-        enumReply = _replyLines.elements();
+        enumReply = this._replyLines.elements();
         while (enumReply.hasMoreElements())
         {
             buffer.append((String)enumReply.nextElement());
             buffer.append(SocketClient.NETASCII_EOL);
         }
 
-        _newReplyString = false;
+        this._newReplyString = false;
 
-        return (_replyString = buffer.toString());
+        return (this._replyString = buffer.toString());
     }
 
 
@@ -621,7 +623,7 @@ public class FTP extends TelnetClient
      ***/
     public int user(String username) throws IOException
     {
-        return sendCommand(FTPCommand.USER, username);
+        return this.sendCommand(FTPCommand.USER, username);
     }
 
     /***
@@ -640,7 +642,7 @@ public class FTP extends TelnetClient
      ***/
     public int pass(String password) throws IOException
     {
-        return sendCommand(FTPCommand.PASS, password);
+        return this.sendCommand(FTPCommand.PASS, password);
     }
 
     /***
@@ -659,7 +661,7 @@ public class FTP extends TelnetClient
      ***/
     public int acct(String account) throws IOException
     {
-        return sendCommand(FTPCommand.ACCT, account);
+        return this.sendCommand(FTPCommand.ACCT, account);
     }
 
 
@@ -678,7 +680,7 @@ public class FTP extends TelnetClient
      ***/
     public int abor() throws IOException
     {
-        return sendCommand(FTPCommand.ABOR);
+        return this.sendCommand(FTPCommand.ABOR);
     }
 
     /***
@@ -697,7 +699,7 @@ public class FTP extends TelnetClient
      ***/
     public int cwd(String directory) throws IOException
     {
-        return sendCommand(FTPCommand.CWD, directory);
+        return this.sendCommand(FTPCommand.CWD, directory);
     }
 
     /***
@@ -715,7 +717,7 @@ public class FTP extends TelnetClient
      ***/
     public int cdup() throws IOException
     {
-        return sendCommand(FTPCommand.CDUP);
+        return this.sendCommand(FTPCommand.CDUP);
     }
 
     /***
@@ -733,7 +735,7 @@ public class FTP extends TelnetClient
      ***/
     public int quit() throws IOException
     {
-        return sendCommand(FTPCommand.QUIT);
+        return this.sendCommand(FTPCommand.QUIT);
     }
 
     /***
@@ -751,7 +753,7 @@ public class FTP extends TelnetClient
      ***/
     public int rein() throws IOException
     {
-        return sendCommand(FTPCommand.REIN);
+        return this.sendCommand(FTPCommand.REIN);
     }
 
     /***
@@ -770,7 +772,7 @@ public class FTP extends TelnetClient
      ***/
     public int smnt(String dir) throws IOException
     {
-        return sendCommand(FTPCommand.SMNT);
+        return this.sendCommand(FTPCommand.SMNT);
     }
 
     /***
@@ -801,7 +803,7 @@ public class FTP extends TelnetClient
         num = port & 0xff;
         info.append(num);
 
-        return sendCommand(FTPCommand.PORT, info.toString());
+        return this.sendCommand(FTPCommand.PORT, info.toString());
     }
 
     /***
@@ -821,7 +823,7 @@ public class FTP extends TelnetClient
      ***/
     public int pasv() throws IOException
     {
-        return sendCommand(FTPCommand.PASV);
+        return this.sendCommand(FTPCommand.PASV);
     }
 
     /***
@@ -846,14 +848,14 @@ public class FTP extends TelnetClient
     {
         StringBuffer arg = new StringBuffer();
 
-        arg.append(__modes.charAt(fileType));
+        arg.append(FTP.__modes.charAt(fileType));
         arg.append(' ');
-        if (fileType == LOCAL_FILE_TYPE)
+        if (fileType == FTP.LOCAL_FILE_TYPE)
             arg.append(formatOrByteSize);
         else
-            arg.append(__modes.charAt(formatOrByteSize));
+            arg.append(FTP.__modes.charAt(formatOrByteSize));
 
-        return sendCommand(FTPCommand.TYPE, arg.toString());
+        return this.sendCommand(FTPCommand.TYPE, arg.toString());
     }
 
 
@@ -874,8 +876,8 @@ public class FTP extends TelnetClient
      ***/
     public int type(int fileType) throws IOException
     {
-        return sendCommand(FTPCommand.TYPE,
-                           __modes.substring(fileType, fileType + 1));
+        return this.sendCommand(FTPCommand.TYPE,
+                           FTP.__modes.substring(fileType, fileType + 1));
     }
 
     /***
@@ -895,8 +897,8 @@ public class FTP extends TelnetClient
      ***/
     public int stru(int structure) throws IOException
     {
-        return sendCommand(FTPCommand.STRU,
-                           __modes.substring(structure, structure + 1));
+        return this.sendCommand(FTPCommand.STRU,
+                           FTP.__modes.substring(structure, structure + 1));
     }
 
     /***
@@ -916,8 +918,8 @@ public class FTP extends TelnetClient
      ***/
     public int mode(int mode) throws IOException
     {
-        return sendCommand(FTPCommand.MODE,
-                           __modes.substring(mode, mode + 1));
+        return this.sendCommand(FTPCommand.MODE,
+                           FTP.__modes.substring(mode, mode + 1));
     }
 
     /***
@@ -939,7 +941,7 @@ public class FTP extends TelnetClient
      ***/
     public int retr(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.RETR, pathname);
+        return this.sendCommand(FTPCommand.RETR, pathname);
     }
 
     /***
@@ -962,7 +964,7 @@ public class FTP extends TelnetClient
      ***/
     public int stor(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.STOR, pathname);
+        return this.sendCommand(FTPCommand.STOR, pathname);
     }
 
     /***
@@ -983,7 +985,7 @@ public class FTP extends TelnetClient
      ***/
     public int stou() throws IOException
     {
-        return sendCommand(FTPCommand.STOU);
+        return this.sendCommand(FTPCommand.STOU);
     }
 
     /***
@@ -1007,7 +1009,7 @@ public class FTP extends TelnetClient
      ***/
     public int stou(String filename) throws IOException
     {
-        return sendCommand(FTPCommand.STOU, filename);
+        return this.sendCommand(FTPCommand.STOU, filename);
     }
 
     /***
@@ -1030,7 +1032,7 @@ public class FTP extends TelnetClient
      ***/
     public int appe(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.APPE, pathname);
+        return this.sendCommand(FTPCommand.APPE, pathname);
     }
 
     /***
@@ -1049,7 +1051,7 @@ public class FTP extends TelnetClient
      ***/
     public int allo(int bytes) throws IOException
     {
-        return sendCommand(FTPCommand.ALLO, Integer.toString(bytes));
+        return this.sendCommand(FTPCommand.ALLO, Integer.toString(bytes));
     }
 
     /***
@@ -1069,7 +1071,7 @@ public class FTP extends TelnetClient
      ***/
     public int allo(int bytes, int recordSize) throws IOException
     {
-        return sendCommand(FTPCommand.ALLO, Integer.toString(bytes) + " R " +
+        return this.sendCommand(FTPCommand.ALLO, Integer.toString(bytes) + " R " +
                            Integer.toString(recordSize));
     }
 
@@ -1089,7 +1091,7 @@ public class FTP extends TelnetClient
      ***/
     public int rest(String marker) throws IOException
     {
-        return sendCommand(FTPCommand.REST, marker);
+        return this.sendCommand(FTPCommand.REST, marker);
     }
 
     /***
@@ -1108,7 +1110,7 @@ public class FTP extends TelnetClient
      ***/
     public int rnfr(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.RNFR, pathname);
+        return this.sendCommand(FTPCommand.RNFR, pathname);
     }
 
     /***
@@ -1127,7 +1129,7 @@ public class FTP extends TelnetClient
      ***/
     public int rnto(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.RNTO, pathname);
+        return this.sendCommand(FTPCommand.RNTO, pathname);
     }
 
     /***
@@ -1146,7 +1148,7 @@ public class FTP extends TelnetClient
      ***/
     public int dele(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.DELE, pathname);
+        return this.sendCommand(FTPCommand.DELE, pathname);
     }
 
     /***
@@ -1165,7 +1167,7 @@ public class FTP extends TelnetClient
      ***/
     public int rmd(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.RMD, pathname);
+        return this.sendCommand(FTPCommand.RMD, pathname);
     }
 
     /***
@@ -1184,7 +1186,7 @@ public class FTP extends TelnetClient
      ***/
     public int mkd(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.MKD, pathname);
+        return this.sendCommand(FTPCommand.MKD, pathname);
     }
 
     /***
@@ -1202,7 +1204,7 @@ public class FTP extends TelnetClient
      ***/
     public int pwd() throws IOException
     {
-        return sendCommand(FTPCommand.PWD);
+        return this.sendCommand(FTPCommand.PWD);
     }
 
     /***
@@ -1223,7 +1225,7 @@ public class FTP extends TelnetClient
      ***/
     public int list() throws IOException
     {
-        return sendCommand(FTPCommand.LIST);
+        return this.sendCommand(FTPCommand.LIST);
     }
 
     /***
@@ -1245,7 +1247,7 @@ public class FTP extends TelnetClient
      ***/
     public int list(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.LIST, pathname);
+        return this.sendCommand(FTPCommand.LIST, pathname);
     }
 
     /***
@@ -1266,7 +1268,7 @@ public class FTP extends TelnetClient
      ***/
     public int nlst() throws IOException
     {
-        return sendCommand(FTPCommand.NLST);
+        return this.sendCommand(FTPCommand.NLST);
     }
 
     /***
@@ -1288,7 +1290,7 @@ public class FTP extends TelnetClient
      ***/
     public int nlst(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.NLST, pathname);
+        return this.sendCommand(FTPCommand.NLST, pathname);
     }
 
     /***
@@ -1307,7 +1309,7 @@ public class FTP extends TelnetClient
      ***/
     public int site(String parameters) throws IOException
     {
-        return sendCommand(FTPCommand.SITE, parameters);
+        return this.sendCommand(FTPCommand.SITE, parameters);
     }
 
     /***
@@ -1325,7 +1327,7 @@ public class FTP extends TelnetClient
      ***/
     public int syst() throws IOException
     {
-        return sendCommand(FTPCommand.SYST);
+        return this.sendCommand(FTPCommand.SYST);
     }
 
     /***
@@ -1343,7 +1345,7 @@ public class FTP extends TelnetClient
      ***/
     public int stat() throws IOException
     {
-        return sendCommand(FTPCommand.STAT);
+        return this.sendCommand(FTPCommand.STAT);
     }
 
     /***
@@ -1362,7 +1364,7 @@ public class FTP extends TelnetClient
      ***/
     public int stat(String pathname) throws IOException
     {
-        return sendCommand(FTPCommand.STAT, pathname);
+        return this.sendCommand(FTPCommand.STAT, pathname);
     }
 
     /***
@@ -1380,7 +1382,7 @@ public class FTP extends TelnetClient
      ***/
     public int help() throws IOException
     {
-        return sendCommand(FTPCommand.HELP);
+        return this.sendCommand(FTPCommand.HELP);
     }
 
     /***
@@ -1399,7 +1401,7 @@ public class FTP extends TelnetClient
      ***/
     public int help(String command) throws IOException
     {
-        return sendCommand(FTPCommand.HELP, command);
+        return this.sendCommand(FTPCommand.HELP, command);
     }
 
     /***
@@ -1417,7 +1419,7 @@ public class FTP extends TelnetClient
      ***/
     public int noop() throws IOException
     {
-        return sendCommand(FTPCommand.NOOP);
+        return this.sendCommand(FTPCommand.NOOP);
     }
 
 }
