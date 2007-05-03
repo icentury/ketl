@@ -16,7 +16,7 @@ public class ManagedFastInputChannel {
     public FieldLevelFastInputChannel mReader;
 
     public void close() throws IOException {
-        mfChannel.close();
+        this.mfChannel.close();
         if (this.mReader != null)
             this.mReader.close();
     }

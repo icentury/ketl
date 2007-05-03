@@ -6,9 +6,8 @@ package com.kni.etl.util;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class InputStreamHandler extends Thread
-{
-  
+public class InputStreamHandler extends Thread {
+
     static final int MAX_MESSAGE_SIZE = 1000;
 
     /**
@@ -23,36 +22,31 @@ public class InputStreamHandler extends Thread
 
     /**
      * Constructor.
+     * 
      * @param executor TODO
-     *
      * @param
      */
-    public InputStreamHandler( StringBuffer captureBuffer, InputStream stream)
-    {
-        m_stream = stream;
-        m_captureBuffer = captureBuffer;
-        start();
+    public InputStreamHandler(StringBuffer captureBuffer, InputStream stream) {
+        this.m_stream = stream;
+        this.m_captureBuffer = captureBuffer;
+        this.start();
     }
 
     /**
      * Stream the data.
      */
-    public void run()
-    {
-        try
-        {
+    @Override
+    public void run() {
+        try {
             int nextChar;
 
-            while ((nextChar = m_stream.read()) != -1)
-            {
-                m_captureBuffer.append((char) nextChar);
+            while ((nextChar = this.m_stream.read()) != -1) {
+                this.m_captureBuffer.append((char) nextChar);
 
-                if (m_captureBuffer.length() == MAX_MESSAGE_SIZE)
-                {
-                    m_captureBuffer.append("\n[Max message size reached trimming]");
+                if (this.m_captureBuffer.length() == InputStreamHandler.MAX_MESSAGE_SIZE) {
+                    this.m_captureBuffer.append("\n[Max message size reached trimming]");
 
-                    while ((nextChar = m_stream.read()) != -1)
-                    {
+                    while ((nextChar = this.m_stream.read()) != -1) {
                     }
 
                     ;
@@ -60,9 +54,7 @@ public class InputStreamHandler extends Thread
                     return;
                 }
             }
-        }
-        catch (IOException ioe)
-        {
+        } catch (IOException ioe) {
         }
     }
 }

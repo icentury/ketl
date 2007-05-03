@@ -31,16 +31,16 @@ public class LRUCache<K, V> {
      */
     public LRUCache(int cacheSize) {
         this.cacheSize = cacheSize;
-        int hashTableCapacity = (int) Math.ceil(cacheSize / hashTableLoadFactor) + 1;
-        map = new LinkedHashMap<K, V>(hashTableCapacity, hashTableLoadFactor, true) {
+        int hashTableCapacity = (int) Math.ceil(cacheSize / this.hashTableLoadFactor) + 1;
+        this.map = new LinkedHashMap<K, V>(hashTableCapacity, this.hashTableLoadFactor, true) {
 
             // (an anonymous inner class)
             private static final long serialVersionUID = 1;
 
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-                if (size() > LRUCache.this.cacheSize) {
-                    removingEntry(eldest);
+                if (this.size() > LRUCache.this.cacheSize) {
+                    LRUCache.this.removingEntry(eldest);
                     return true;
                 }
 
@@ -52,9 +52,9 @@ public class LRUCache<K, V> {
     protected void removingEntry(Map.Entry<K, V> eldest) {
 
     }
-    
-    protected Map getBackingMap(){
-    	return this.map;
+
+    protected Map getBackingMap() {
+        return this.map;
     }
 
     /**
@@ -65,7 +65,7 @@ public class LRUCache<K, V> {
      * @return the value associated to this key, or null if no value with this key exists in the cache.
      */
     public synchronized V get(K key) {
-        return map.get(key);
+        return this.map.get(key);
     }
 
     /**
@@ -75,14 +75,14 @@ public class LRUCache<K, V> {
      * @param value a value to be associated with the specified key.
      */
     public synchronized void put(K key, V value) {
-        map.put(key, value);        
+        this.map.put(key, value);
     }
 
     /**
      * Clears the cache.
      */
     public synchronized void clear() {
-        map.clear();
+        this.map.clear();
     }
 
     /**
@@ -91,7 +91,7 @@ public class LRUCache<K, V> {
      * @return the number of entries currently in the cache.
      */
     public synchronized int usedEntries() {
-        return map.size();
+        return this.map.size();
     }
 
     /**
@@ -100,7 +100,7 @@ public class LRUCache<K, V> {
      * @return a <code>Collection</code> with a copy of the cache content.
      */
     public synchronized Collection<Map.Entry<K, V>> getAll() {
-        return new ArrayList<Map.Entry<K, V>>(map.entrySet());
+        return new ArrayList<Map.Entry<K, V>>(this.map.entrySet());
     }
 
     public synchronized void remove(K key) {

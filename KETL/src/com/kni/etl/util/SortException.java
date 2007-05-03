@@ -1,6 +1,5 @@
 package com.kni.etl.util;
 
-
 public class SortException extends RuntimeException {
 
     public SortException(Throwable cause) {

@@ -19,9 +19,9 @@ public class ClassFromCode {
     static class NetworkClassLoader extends ClassLoader {
 
         public Class getClass(String pFileName, String pClassName) throws IOException {
-            byte[] b = loadClassData(pFileName);
+            byte[] b = this.loadClassData(pFileName);
 
-            return defineClass(pClassName, b, 0, b.length);
+            return this.defineClass(pClassName, b, 0, b.length);
         }
 
         private byte[] loadClassData(String pFileName) throws IOException {
@@ -52,7 +52,6 @@ public class ClassFromCode {
     public static Class getDynamicClass(ETLJob ejCurrentJob, String classCode, String className, boolean reuseExisting,
             boolean forceCompilation) throws ClassCompileException, IOException {
 
-        
         String tempdir = System.getProperty("java.io.tmpdir");
 
         if ((tempdir != null) && (tempdir.endsWith("/") == false) && (tempdir.endsWith("\\") == false)) {
@@ -109,9 +108,9 @@ public class ClassFromCode {
 
                     // if code matches then reuse existing
                     if (sb.toString().equals(classCode)) {
-                        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "Compiled copy already exists, using "
-                                + mJavaByteCodeFileName);
-                        reuseExisting = true;                                                
+                        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE,
+                                "Compiled copy already exists, using " + mJavaByteCodeFileName);
+                        reuseExisting = true;
                     }
                 }
             }
@@ -176,7 +175,7 @@ public class ClassFromCode {
         String mJavaFileName = tempdir + className + ".java";
         String mClassFileName = tempdir + className + ".class";
 
-        if (rebuildClass) {
+        if (ClassFromCode.rebuildClass) {
             // Create a new file output stream
             // connected to "myfile.txt"
             FileOutputStream out = new FileOutputStream(mJavaFileName);

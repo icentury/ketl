@@ -94,7 +94,7 @@ public class XMLHelper {
             NamedNodeMap nm = node.getAttributes();
 
             if (nm != null) {
-                Node x = nm.getNamedItem(PARAMETER_LIST_TAG);
+                Node x = nm.getNamedItem(XMLHelper.PARAMETER_LIST_TAG);
 
                 if (x != null) {
                     list.put(x.getNodeValue(), x.getNodeValue());
@@ -104,7 +104,7 @@ public class XMLHelper {
             NodeList nl = node.getChildNodes();
 
             for (int i = 0; i < nl.getLength(); i++) {
-                listParameterLists(nl.item(i), list);
+                XMLHelper.listParameterLists(nl.item(i), list);
             }
         }
     }
@@ -118,7 +118,7 @@ public class XMLHelper {
 
         for (int i = 0; i < attribs.getLength(); i++) {
             Node n = attribs.item(i);
-            sb.append(" " + n.getNodeName() + "=\"" + escapeXML(n.getNodeValue()) + "\"");
+            sb.append(" " + n.getNodeName() + "=\"" + XMLHelper.escapeXML(n.getNodeValue()) + "\"");
         }
 
         return sb.toString();
@@ -158,7 +158,7 @@ public class XMLHelper {
     }
 
     public static String outputXML(Node node) {
-        return outputXML(node, false);
+        return XMLHelper.outputXML(node, false);
     }
 
     public static String outputXML(Node node, boolean bTopLevel) {
@@ -167,10 +167,10 @@ public class XMLHelper {
         }
 
         if (bTopLevel)
-            return outputXML2(node);
+            return XMLHelper.outputXML2(node);
 
         StringBuffer sb = new StringBuffer("");
-        sb.append("<" + node.getNodeName() + dumpattributes(node.getAttributes()));
+        sb.append("<" + node.getNodeName() + XMLHelper.dumpattributes(node.getAttributes()));
 
         NodeList nl = node.getChildNodes();
         boolean endAdded = false;
@@ -184,7 +184,7 @@ public class XMLHelper {
                     endAdded = true;
                 }
 
-                sb.append(outputXML(nl.item(i)));
+                sb.append(XMLHelper.outputXML(nl.item(i)));
             }
             else if (n.getNodeType() == Node.TEXT_NODE) {
                 Node nc = node.getFirstChild();
@@ -200,7 +200,7 @@ public class XMLHelper {
                         endAdded = true;
                     }
 
-                    sb.append(escapeXML(val));
+                    sb.append(XMLHelper.escapeXML(val));
                 }
             }
         }
@@ -220,8 +220,8 @@ public class XMLHelper {
         try {
             return (Integer.parseInt(nmAttrs.getNamedItem(attributeName).getNodeValue()));
         } catch (NumberFormatException e1) {
-            ResourcePool.LogMessage(Thread.currentThread().getName(),
-                    ResourcePool.WARNING_MESSAGE,"Invalid number specified as attribute value"
+            ResourcePool.LogMessage(Thread.currentThread().getName(), ResourcePool.WARNING_MESSAGE,
+                    "Invalid number specified as attribute value"
                             + XMLHelper.outputXML(nmAttrs.getNamedItem(attributeName)));
 
             return defaultValue;
@@ -246,8 +246,8 @@ public class XMLHelper {
                 return defaultValue;
             }
         } catch (NumberFormatException e1) {
-            ResourcePool.LogMessage(Thread.currentThread().getName(),
-                    ResourcePool.WARNING_MESSAGE,"Invalid number specified as attribute value"
+            ResourcePool.LogMessage(Thread.currentThread().getName(), ResourcePool.WARNING_MESSAGE,
+                    "Invalid number specified as attribute value"
                             + XMLHelper.outputXML(nmAttrs.getNamedItem(attributeName)));
 
             return defaultValue;
@@ -260,11 +260,12 @@ public class XMLHelper {
 
     public static String getAttributeAsString(NamedNodeMap nmAttrs, String attributeName, String defaultValue) {
         try {
-            if(nmAttrs == null || nmAttrs.getNamedItem(attributeName) == null) return defaultValue;
-            
+            if (nmAttrs == null || nmAttrs.getNamedItem(attributeName) == null)
+                return defaultValue;
+
             String str = nmAttrs.getNamedItem(attributeName).getNodeValue();
 
-            return (decodeHex(str));
+            return (XMLHelper.decodeHex(str));
         } catch (NullPointerException e1) {
             return defaultValue;
         } catch (DOMException e1) {
@@ -332,10 +333,10 @@ public class XMLHelper {
 
     public static String getChildNodeValueAsString(Node xmlNode, String strTagName, String strElementAttribute,
             String strElementValue, String strDefaultValue) {
-        Node childNode = getElementByName(xmlNode, strTagName, strElementAttribute, strElementValue);
+        Node childNode = XMLHelper.getElementByName(xmlNode, strTagName, strElementAttribute, strElementValue);
 
         if (childNode != null) {
-            return getNodeValueAsString(childNode.getFirstChild(), strDefaultValue);
+            return XMLHelper.getNodeValueAsString(childNode.getFirstChild(), strDefaultValue);
         }
 
         return strDefaultValue;
@@ -344,7 +345,7 @@ public class XMLHelper {
     // Just a wrapper to return the first node we find (common case)
     public static Node getElementByName(Node xmlNode, String strTagName, String strElementAttribute,
             String strElementValue) {
-        Node[] nodes = getElementsByName(xmlNode, strTagName, strElementAttribute, strElementValue);
+        Node[] nodes = XMLHelper.getElementsByName(xmlNode, strTagName, strElementAttribute, strElementValue);
 
         if ((nodes == null) || (nodes.length == 0)) {
             return null;
@@ -363,7 +364,7 @@ public class XMLHelper {
 
         NodeList nl = xmlNode.getChildNodes();
 
-        return getElementsByName(nl, strTagName, strElementAttribute, strElementValue);
+        return XMLHelper.getElementsByName(nl, strTagName, strElementAttribute, strElementValue);
     }
 
     // Returns the first Node found in the given node's DOM of a particular tag type having a particular attribute with
@@ -384,7 +385,7 @@ public class XMLHelper {
             nl = xmlNode.getOwnerDocument().getElementsByTagName(strTagName);
         }
 
-        Node[] matchingNodes = getElementsByName(nl, strTagName, strElementAttribute, strElementValue);
+        Node[] matchingNodes = XMLHelper.getElementsByName(nl, strTagName, strElementAttribute, strElementValue);
 
         if ((matchingNodes == null) || (matchingNodes.length == 0)) {
             return null;
@@ -411,7 +412,7 @@ public class XMLHelper {
             nl = xmlNode.getOwnerDocument().getElementsByTagName(strTagName);
         }
 
-        Node[] matchingNodes = getElementsByName(nl, strTagName, strElementAttribute, strElementValue);
+        Node[] matchingNodes = XMLHelper.getElementsByName(nl, strTagName, strElementAttribute, strElementValue);
 
         if ((matchingNodes == null) || (matchingNodes.length == 0)) {
             return null;
@@ -474,8 +475,8 @@ public class XMLHelper {
         }
 
         if (alMatchingNodes == null)
-            return NONODES;
-        
+            return XMLHelper.NONODES;
+
         Node[] anResult = new Node[alMatchingNodes.size()];
 
         alMatchingNodes.toArray(anResult);
@@ -483,11 +484,11 @@ public class XMLHelper {
         return anResult;
     }
 
-    public static final String getTextContent(Node node){
-        return  node==null||node.getFirstChild()==null?null:node.getTextContent();
-        
+    public static final String getTextContent(Node node) {
+        return node == null || node.getFirstChild() == null ? null : node.getTextContent();
 
     }
+
     private static final Node[] NONODES = new Node[0];
 
     public static String getParameterValueAsString(Node xmlNode, String strParameterListName, String strParameterName,
@@ -512,20 +513,23 @@ public class XMLHelper {
             // check for parameter overrides, if the parameter name exists in the
             // <PARAMETER_OVERRIDE> tag
             // then use that else look in XML then db.
-            if ((node = XMLHelper.findElementByName(xmlNode, PARAMETER_LIST_TAG, PARAMETER_OVERRIDE_ATTRIB, "TRUE")) != null) {
-                Node[] overrideNodes = getElementsByName(node, PARAMETER_TAG, PARAMETER_LIST_TAG, strParameterListName);
+            if ((node = XMLHelper.findElementByName(xmlNode, XMLHelper.PARAMETER_LIST_TAG,
+                    XMLHelper.PARAMETER_OVERRIDE_ATTRIB, "TRUE")) != null) {
+                Node[] overrideNodes = XMLHelper.getElementsByName(node, XMLHelper.PARAMETER_TAG,
+                        XMLHelper.PARAMETER_LIST_TAG, strParameterListName);
                 String res = null;
 
                 if (overrideNodes != null) {
-                    for (int i = 0; i < overrideNodes.length; i++) {
-                        String paramName = getAttributeAsString(overrideNodes[i].getAttributes(), NAME_TAG, null);
+                    for (Node element : overrideNodes) {
+                        String paramName = XMLHelper.getAttributeAsString(element.getAttributes(), XMLHelper.NAME_TAG,
+                                null);
 
                         if ((paramName != null) && paramName.equals(strParameterName)) {
-                            if (overrideNodes[i].getNodeType() == Node.ELEMENT_NODE) {
-                                res = overrideNodes[i].getFirstChild().getNodeValue();
+                            if (element.getNodeType() == Node.ELEMENT_NODE) {
+                                res = element.getFirstChild().getNodeValue();
                             }
                             else {
-                                res = overrideNodes[i].getNodeValue();
+                                res = element.getNodeValue();
                             }
 
                             if (res != null) {
@@ -536,19 +540,20 @@ public class XMLHelper {
                 }
 
                 if (res == null) {
-                    overrideNodes = getElementsByName(node, PARAMETER_TAG, NAME_TAG, strParameterName);
+                    overrideNodes = XMLHelper.getElementsByName(node, XMLHelper.PARAMETER_TAG, XMLHelper.NAME_TAG,
+                            strParameterName);
 
                     if (overrideNodes != null) {
-                        for (int i = 0; i < overrideNodes.length; i++) {
-                            String hasName = getAttributeAsString(overrideNodes[i].getAttributes(), PARAMETER_LIST_TAG,
-                                    null);
+                        for (Node element : overrideNodes) {
+                            String hasName = XMLHelper.getAttributeAsString(element.getAttributes(),
+                                    XMLHelper.PARAMETER_LIST_TAG, null);
 
                             if (hasName == null) {
-                                if (overrideNodes[i].getNodeType() == Node.ELEMENT_NODE) {
-                                    res = overrideNodes[i].getFirstChild().getNodeValue();
+                                if (element.getNodeType() == Node.ELEMENT_NODE) {
+                                    res = element.getFirstChild().getNodeValue();
                                 }
                                 else {
-                                    res = overrideNodes[i].getNodeValue();
+                                    res = element.getNodeValue();
                                 }
 
                                 if (res != null) {
@@ -567,8 +572,10 @@ public class XMLHelper {
             // Allow local file declarations to shadow the metadata ones.
             // First dig from the root to find the connection information for the parameter list we're looking for...
             // If xmlNode is null, then getElement will return null...
-            if ((node = XMLHelper.findElementByName(xmlNode, PARAMETER_LIST_TAG, NAME_TAG, strParameterListName)) != null) {
-                Node paramNode = getElementByName(node, PARAMETER_TAG, NAME_TAG, strParameterName);
+            if ((node = XMLHelper.findElementByName(xmlNode, XMLHelper.PARAMETER_LIST_TAG, XMLHelper.NAME_TAG,
+                    strParameterListName)) != null) {
+                Node paramNode = XMLHelper.getElementByName(node, XMLHelper.PARAMETER_TAG, XMLHelper.NAME_TAG,
+                        strParameterName);
 
                 if (paramNode == null)
                     return strDefaultValue;
@@ -576,23 +583,22 @@ public class XMLHelper {
                 String val = XMLHelper.getTextContent(paramNode);
                 String[] requiredParameters = EngineConstants.getParametersFromText(val);
                 if (recurse && requiredParameters != null) {
-                    String subParam = XMLHelper.getAttributeAsString(paramNode.getAttributes(), PARAMETER_LIST_TAG,
-                            null);
-                    for (int i = 0; i < requiredParameters.length; i++) {
-                        String str = XMLHelper.getParameterValueAsString(xmlNode, strParameterListName,
-                                requiredParameters[i], null);
+                    String subParam = XMLHelper.getAttributeAsString(paramNode.getAttributes(),
+                            XMLHelper.PARAMETER_LIST_TAG, null);
+                    for (String element : requiredParameters) {
+                        String str = XMLHelper.getParameterValueAsString(xmlNode, strParameterListName, element, null);
 
                         if (str == null)
-                            str = XMLHelper.getParameterValueAsString(xmlNode, subParam, requiredParameters[i], null);
+                            str = XMLHelper.getParameterValueAsString(xmlNode, subParam, element, null);
                         if (str == null) {
                             Node n = paramNode.getParentNode();
-                            if (n != null && n.getNodeName().equals(PARAMETER_LIST_TAG)) {
-                                str = XMLHelper.getAttributeAsString(n.getAttributes(), NAME_TAG, null);
-                                str = XMLHelper.getParameterValueAsString(xmlNode, str, requiredParameters[i], null);
+                            if (n != null && n.getNodeName().equals(XMLHelper.PARAMETER_LIST_TAG)) {
+                                str = XMLHelper.getAttributeAsString(n.getAttributes(), XMLHelper.NAME_TAG, null);
+                                str = XMLHelper.getParameterValueAsString(xmlNode, str, element, null);
                             }
                         }
                         if (str != null)
-                            val = EngineConstants.replaceParameter(val, requiredParameters[i], str);
+                            val = EngineConstants.replaceParameter(val, element, str);
                     }
 
                 }
@@ -612,11 +618,11 @@ public class XMLHelper {
             return strDefaultValue;
         }
 
-        for (int i = 0; i < parameterList.length; i++) {
+        for (Object[] element : parameterList) {
             // If we found the parameter we're looking for, return it's value...
-            if (strParameterName.compareTo((String) parameterList[i][Metadata.PARAMETER_NAME]) == 0) {
+            if (strParameterName.compareTo((String) element[Metadata.PARAMETER_NAME]) == 0) {
 
-                String val = (String) parameterList[i][Metadata.PARAMETER_VALUE];
+                String val = (String) element[Metadata.PARAMETER_VALUE];
 
                 if (val == null)
                     return null;
@@ -624,17 +630,15 @@ public class XMLHelper {
                 String[] requiredParameters = EngineConstants.getParametersFromText(val);
 
                 if (requiredParameters != null) {
-                    for (int x = 0; x < requiredParameters.length; x++) {
-                        String str = XMLHelper.getParameterValueAsString(xmlNode, strParameterListName,
-                                requiredParameters[x], null);
+                    for (String element0 : requiredParameters) {
+                        String str = XMLHelper.getParameterValueAsString(xmlNode, strParameterListName, element0, null);
 
                         if (str == null) {
                             str = XMLHelper.getParameterValueAsString(xmlNode,
-                                    (String) parameterList[i][Metadata.SUB_PARAMETER_LIST_NAME], requiredParameters[x],
-                                    null);
+                                    (String) element[Metadata.SUB_PARAMETER_LIST_NAME], element0, null);
                         }
                         if (str != null)
-                            val = EngineConstants.replaceParameter(val, requiredParameters[x], str);
+                            val = EngineConstants.replaceParameter(val, element0, str);
                     }
                 }
                 return val;
@@ -662,7 +666,8 @@ public class XMLHelper {
         // First dig from the root to find the connection information for the parameter list we're looking for...
         // If xmlNode is null, then getElement will return null...
         if (xmlNode != null
-                && (node = XMLHelper.findElementByName(xmlNode, PARAMETER_LIST_TAG, NAME_TAG, strParameterListName)) != null) {
+                && (node = XMLHelper.findElementByName(xmlNode, XMLHelper.PARAMETER_LIST_TAG, XMLHelper.NAME_TAG,
+                        strParameterListName)) != null) {
             NodeList nl = node.getChildNodes();
 
             // get parameter list name from array of nodes which had parameter NAME equal to value
@@ -670,7 +675,7 @@ public class XMLHelper {
                 Node n = nl.item(i);
 
                 if (n.getNodeType() == Node.ELEMENT_NODE) {
-                    String parameterName = XMLHelper.getAttributeAsString(n.getAttributes(), NAME_TAG, null);
+                    String parameterName = XMLHelper.getAttributeAsString(n.getAttributes(), XMLHelper.NAME_TAG, null);
                     tmpList.add(parameterName);
                 }
             }
@@ -688,8 +693,8 @@ public class XMLHelper {
                 return null;
             }
 
-            for (int i = 0; i < parameterList.length; i++) {
-                tmpList.add(parameterList[i][Metadata.PARAMETER_NAME]);
+            for (Object[] element : parameterList) {
+                tmpList.add(element[Metadata.PARAMETER_NAME]);
             }
         }
 
@@ -724,23 +729,27 @@ public class XMLHelper {
         // First dig from the root to find the connection information for the parameter list we're looking for...
         // If xmlNode is null, then getElement will return null...
         if (xmlNode != null
-                && ((node = XMLHelper.findElementByName(xmlNode, PARAMETER_LIST_TAG, NAME_TAG, strParameterListName)) != null)) {
-            Node[] aNodes = getElementsByName(node, PARAMETER_TAG, NAME_TAG, strParameterName);
+                && ((node = XMLHelper.findElementByName(xmlNode, XMLHelper.PARAMETER_LIST_TAG, XMLHelper.NAME_TAG,
+                        strParameterListName)) != null)) {
+            Node[] aNodes = XMLHelper.getElementsByName(node, XMLHelper.PARAMETER_TAG, XMLHelper.NAME_TAG,
+                    strParameterName);
 
             if ((aNodes == null) || (aNodes.length == 0)) {
                 return null;
             }
 
-            // get parameter list name from array of nodes which had parameter NAME equal to value
-            for (int i = 0; i < aNodes.length; i++) {
-                String value = XMLHelper.getAttributeAsString(aNodes[i].getAttributes(), PARAMETER_LIST_TAG, null);
+            for (Node element : aNodes) {
+                String value = XMLHelper.getAttributeAsString(element.getAttributes(), XMLHelper.PARAMETER_LIST_TAG,
+                        null);
 
                 if (value != null) {
-                    Node[] nodes = XMLHelper.findElementsByName(xmlNode, PARAMETER_LIST_TAG, NAME_TAG, value);
+                    Node[] nodes = XMLHelper.findElementsByName(xmlNode, XMLHelper.PARAMETER_LIST_TAG,
+                            XMLHelper.NAME_TAG, value);
 
                     if (nodes != null) {
-                        for (int x = 0; x < nodes.length; x++) {
-                            tmpList.add(XMLHelper.getAttributeAsString(nodes[x].getAttributes(), NAME_TAG, null));
+                        for (Node element0 : nodes) {
+                            tmpList.add(XMLHelper.getAttributeAsString(element0.getAttributes(), XMLHelper.NAME_TAG,
+                                    null));
                         }
                     }
                     else if (ResourcePool.getMetadata() != null) // if not found in xml then look in db
@@ -749,8 +758,8 @@ public class XMLHelper {
                                 value.replaceAll("\\*", "%"));
 
                         if (res != null) {
-                            for (int x = 0; x < res.length; x++) {
-                                tmpList.add(res[x]);
+                            for (String element0 : res) {
+                                tmpList.add(element0);
                             }
                         }
                     }
@@ -768,19 +777,18 @@ public class XMLHelper {
 
             // If we can't find the parameter list there either, then we're in trouble...
             if (parameterList != null) {
-                for (int i = 0; i < parameterList.length; i++) {
+                for (Object[] element : parameterList) {
                     // If we found the parameter we're looking for then save it's name...
-                    if (strParameterName.compareTo((String) parameterList[i][Metadata.PARAMETER_NAME]) == 0) {
+                    if (strParameterName.compareTo((String) element[Metadata.PARAMETER_NAME]) == 0) {
                         // If it's null, then we'll just store the null for reference...
                         // if not null then find lists that matcgh pattern
-                        if (parameterList[i][Metadata.SUB_PARAMETER_LIST_NAME] != null) {
+                        if (element[Metadata.SUB_PARAMETER_LIST_NAME] != null) {
                             String[] res = ResourcePool.getMetadata().getValidParameterListName(
-                                    ((String) parameterList[i][Metadata.SUB_PARAMETER_LIST_NAME])
-                                            .replaceAll("\\*", "%"));
+                                    ((String) element[Metadata.SUB_PARAMETER_LIST_NAME]).replaceAll("\\*", "%"));
 
                             if (res != null) {
-                                for (int x = 0; x < res.length; x++) {
-                                    tmpList.add(res[x]);
+                                for (String element0 : res) {
+                                    tmpList.add(element0);
                                 }
                             }
                         }
@@ -822,7 +830,7 @@ public class XMLHelper {
             System.out.println("<" + n.getNodeName() + ">");
 
             for (int i = 1; i < nl.getLength(); i++) {
-                printTree(nl.item(i), depth + 1);
+                this.printTree(nl.item(i), depth + 1);
             }
 
             for (int j = 0; j < depth; j++)

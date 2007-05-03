@@ -14,42 +14,35 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+final public class DistinctCounter {
 
-final public class DistinctCounter
-{
     int counters = 2;
-    Map[] mCounters = new Map[counters + 1];
+    Map[] mCounters = new Map[this.counters + 1];
     static final int HASHMAP_MAXSIZE = 1000;
     static final int TREEMAP_MAXSIZE = 10000;
-    int currentListMaxSize = HASHMAP_MAXSIZE;
+    int currentListMaxSize = DistinctCounter.HASHMAP_MAXSIZE;
 
-    final public void reset()
-    {
-        for (int i = 0; i < mCounters.length; i++)
-        {
-            if (!(mCounters[i] == null))
-            {
-                mCounters[i].clear();
+    final public void reset() {
+        for (Map element : this.mCounters) {
+            if (!(element == null)) {
+                element.clear();
             }
         }
     }
 
-    final public int add(Object pRecord, int pPortID) throws Exception
-    {
-        if (pPortID > counters)
-        {
+    final public int add(Object pRecord, int pPortID) throws Exception {
+        if (pPortID > this.counters) {
             Map[] tmp = new Map[pPortID + 1];
-            counters = pPortID + 1;
+            this.counters = pPortID + 1;
             System.arraycopy(this.mCounters, 0, tmp, 0, tmp.length);
             this.mCounters = tmp;
         }
 
-        Map list = mCounters[pPortID];
+        Map list = this.mCounters[pPortID];
 
-        if (list == null)
-        {
+        if (list == null) {
             list = new HashMap();
-            mCounters[pPortID] = list;
+            this.mCounters[pPortID] = list;
             list.put(pRecord, null);
 
             return 1;
@@ -59,35 +52,30 @@ final public class DistinctCounter
 
         int size = list.size();
 
-        if (currentListMaxSize == TREEMAP_MAXSIZE && size > TREEMAP_MAXSIZE )
-        {
+        if (this.currentListMaxSize == DistinctCounter.TREEMAP_MAXSIZE && size > DistinctCounter.TREEMAP_MAXSIZE) {
             throw new Exception("Disk backed unique list still pending");
         }
-        else if (currentListMaxSize == HASHMAP_MAXSIZE && size > HASHMAP_MAXSIZE)
-        {
-            currentListMaxSize = TREEMAP_MAXSIZE;
-            mCounters[pPortID] = new TreeMap(list);
+        else if (this.currentListMaxSize == DistinctCounter.HASHMAP_MAXSIZE && size > DistinctCounter.HASHMAP_MAXSIZE) {
+            this.currentListMaxSize = DistinctCounter.TREEMAP_MAXSIZE;
+            this.mCounters[pPortID] = new TreeMap(list);
         }
 
         return size;
     }
 
-    final public int count(int pPortID) throws Exception
-    {
-        if (pPortID > counters)
-        {
+    final public int count(int pPortID) throws Exception {
+        if (pPortID > this.counters) {
             Map[] tmp = new Map[pPortID + 1];
-            counters = pPortID + 1;
+            this.counters = pPortID + 1;
             System.arraycopy(this.mCounters, 0, tmp, 0, tmp.length);
             this.mCounters = tmp;
         }
 
-        Map list = mCounters[pPortID];
+        Map list = this.mCounters[pPortID];
 
-        if (list == null)
-        {
+        if (list == null) {
             list = new HashMap();
-            mCounters[pPortID] = list;
+            this.mCounters[pPortID] = list;
 
             return 0;
         }

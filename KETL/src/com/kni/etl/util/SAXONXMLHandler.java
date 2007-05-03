@@ -26,32 +26,30 @@ public class SAXONXMLHandler extends XMLHandler {
     DocumentBuilder db;
 
     @Override
-    public DocumentBuilder getDocumentBuilder(boolean validate, boolean nameSpaceAware) throws InstantiationException, IllegalAccessException,
-            ClassNotFoundException, ParserConfigurationException {
-        if (db == null) {
+    public DocumentBuilder getDocumentBuilder(boolean validate, boolean nameSpaceAware) throws InstantiationException,
+            IllegalAccessException, ClassNotFoundException, ParserConfigurationException {
+        if (this.db == null) {
             DocumentBuilderFactoryImpl dmf = (DocumentBuilderFactoryImpl) Class.forName(
                     "net.sf.saxon.dom.DocumentBuilderFactoryImpl").newInstance();
-            db = dmf.newDocumentBuilder();
-            configureDocumentBuilderFactory(dmf, validate, nameSpaceAware);
+            this.db = dmf.newDocumentBuilder();
+            XMLHandler.configureDocumentBuilderFactory(dmf, validate, nameSpaceAware);
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "DOM engine - "
                     + dmf.getClass().getCanonicalName());
         }
 
-      
-  
-        return db;
+        return this.db;
     }
 
     @Override
-    public List evaluateXPath(XPathExpression path, Document node,List arg) throws XPathExpressionException {
+    public List evaluateXPath(XPathExpression path, Document node, List arg) throws XPathExpressionException {
 
         Object res = path.evaluate(node, XPathConstants.NODESET);
         if (res instanceof NodeList) {
-            if(arg == null)
+            if (arg == null)
                 arg = new ArrayList(((NodeList) res).getLength());
             else
                 arg.clear();
-            
+
             for (int i = ((NodeList) res).getLength() - 1; i >= 0; i--) {
                 arg.add(((NodeList) res).item(i));
             }
@@ -59,11 +57,11 @@ public class SAXONXMLHandler extends XMLHandler {
             return arg;
         }
 
-        ArrayList ar = new ArrayList(((List)res).size());
-        for(Object o:(List)res) {
-            ar.add(NodeOverNodeInfo.wrap((NodeInfo)o));
+        ArrayList ar = new ArrayList(((List) res).size());
+        for (Object o : (List) res) {
+            ar.add(NodeOverNodeInfo.wrap((NodeInfo) o));
         }
-        
+
         return ar;
     }
 
@@ -71,18 +69,16 @@ public class SAXONXMLHandler extends XMLHandler {
 
     @Override
     public XPath getNewXPath() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-        if (xpf == null) {
-            xpf = (XPathFactoryImpl) Class.forName("net.sf.saxon.xpath.XPathFactoryImpl").newInstance();
-            ((net.sf.saxon.dom.DocumentBuilderImpl) db).setConfiguration(xpf.getConfiguration());
-            
+        if (this.xpf == null) {
+            this.xpf = (XPathFactoryImpl) Class.forName("net.sf.saxon.xpath.XPathFactoryImpl").newInstance();
+            ((net.sf.saxon.dom.DocumentBuilderImpl) this.db).setConfiguration(this.xpf.getConfiguration());
+
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "XPath engine - "
-                    + xpf.getClass().getCanonicalName());
+                    + this.xpf.getClass().getCanonicalName());
         }
-        XPathEvaluator tmp = (XPathEvaluator) xpf.newXPath();
+        XPathEvaluator tmp = (XPathEvaluator) this.xpf.newXPath();
 
         return tmp;
     }
-
-   
 
 }

@@ -34,25 +34,25 @@ final public class Store {
 
         // get temp file
         File fd = File.createTempFile("KETL.", ".spool");
-        mTempFileName = fd.getAbsolutePath();
-        mOutputStream = new FileOutputStream(fd);
-        mFileChannel = mOutputStream.getChannel();
-        mByteOutputStream = java.nio.channels.Channels.newOutputStream(mFileChannel);
-        mObjectOutputStream = new ObjectOutputStream(this.mByteOutputStream);
+        this.mTempFileName = fd.getAbsolutePath();
+        this.mOutputStream = new FileOutputStream(fd);
+        this.mFileChannel = this.mOutputStream.getChannel();
+        this.mByteOutputStream = java.nio.channels.Channels.newOutputStream(this.mFileChannel);
+        this.mObjectOutputStream = new ObjectOutputStream(this.mByteOutputStream);
     }
 
     final public void add(Object pObject) throws IOException {
 
-        mObjectOutputStream.writeObject(pObject);
-        mRecordsHeld++;
+        this.mObjectOutputStream.writeObject(pObject);
+        this.mRecordsHeld++;
 
     }
 
     final public void add(Object[] pObject, int len) throws IOException {
 
         for (int i = 0; i < len; i++) {
-            mObjectOutputStream.writeObject(pObject[i]);
-            mRecordsHeld++;
+            this.mObjectOutputStream.writeObject(pObject[i]);
+            this.mRecordsHeld++;
         }
 
     }
@@ -62,7 +62,7 @@ final public class Store {
         this.writeClose();
         this.readClose();
 
-        File fd = new File(mTempFileName);
+        File fd = new File(this.mTempFileName);
 
         if (fd.exists()) {
             if (fd.delete() == false) {
@@ -74,38 +74,38 @@ final public class Store {
 
     final private void writeClose() {
         try {
-            mObjectOutputStream.close();
+            this.mObjectOutputStream.close();
         } catch (Exception e) {
         }
         try {
-            mByteOutputStream.close();
+            this.mByteOutputStream.close();
         } catch (Exception e) {
         }
         try {
-            mFileChannel.close();
+            this.mFileChannel.close();
         } catch (Exception e) {
         }
         try {
-            mOutputStream.close();
+            this.mOutputStream.close();
         } catch (Exception e) {
         }
     }
 
     final private void readClose() {
         try {
-            mObjectInputStream.close();
+            this.mObjectInputStream.close();
         } catch (Exception e) {
         }
         try {
-            mByteInputStream.close();
+            this.mByteInputStream.close();
         } catch (Exception e) {
         }
         try {
-            mFileChannel.close();
+            this.mFileChannel.close();
         } catch (Exception e) {
         }
         try {
-            mInputStream.close();
+            this.mInputStream.close();
         } catch (Exception e) {
         }
     }
@@ -116,6 +116,7 @@ final public class Store {
         this.writeClose();
     }
 
+    @Override
     final protected void finalize() throws Throwable {
         this.commit();
         this.close();
@@ -123,13 +124,13 @@ final public class Store {
     }
 
     final public boolean hasNext() {
-        return (mRecordsHeld == 0) ? false : true;
+        return (this.mRecordsHeld == 0) ? false : true;
     }
 
     final public Object next() throws IOException, ClassNotFoundException {
-        mRecordsHeld--;
-        
-       return this.mObjectInputStream.readObject();
+        this.mRecordsHeld--;
+
+        return this.mObjectInputStream.readObject();
     }
 
     final public void start(int readBufferSize, int objectBufferSize) throws IOException {
@@ -138,13 +139,11 @@ final public class Store {
          * this.mObjectBuffer = new Spoolable[this.mCurrentObjectBufferSize]; this.mObjectBufferPos =
          * this.mCurrentObjectBufferSize;
          */
-        mInputStream = new FileInputStream(mTempFileName);
+        this.mInputStream = new FileInputStream(this.mTempFileName);
 
-        mFileChannel = mInputStream.getChannel();
-        mByteInputStream = java.nio.channels.Channels.newInputStream(mFileChannel);
-        mObjectInputStream = new ObjectInputStream(mByteInputStream);                
+        this.mFileChannel = this.mInputStream.getChannel();
+        this.mByteInputStream = java.nio.channels.Channels.newInputStream(this.mFileChannel);
+        this.mObjectInputStream = new ObjectInputStream(this.mByteInputStream);
     }
-
-
 
 }

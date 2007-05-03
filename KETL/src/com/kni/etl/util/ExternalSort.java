@@ -46,8 +46,9 @@ final public class ExternalSort implements Set {
         ArrayList stores = new ArrayList();
         int storeCnt = 0;
 
+        @Override
         protected void finalize() throws Throwable {
-            if ((stores != null) & (stores.size() > 0)) {
+            if ((this.stores != null) & (this.stores.size() > 0)) {
                 this.close();
             }
 
@@ -57,17 +58,17 @@ final public class ExternalSort implements Set {
         final public Store createSet(int bufferSize) throws IOException {
             Store store = new Store(bufferSize);
 
-            stores.add(store);
+            this.stores.add(store);
 
             return store;
         }
 
         final public void close() throws Exception {
-            for (int i = 0; i < stores.size(); i++) {
-                ((Store) stores.get(i)).close();
+            for (int i = 0; i < this.stores.size(); i++) {
+                ((Store) this.stores.get(i)).close();
             }
 
-            stores.clear();
+            this.stores.clear();
         }
     }
 
@@ -75,7 +76,7 @@ final public class ExternalSort implements Set {
             int maxIndividualReadBufferSize, int writeBufferSize) {
         super();
 
-        db = new BufferedObjectStore();
+        this.db = new BufferedObjectStore();
 
         this.maxSortSize = maxSortSize;
         this.mMergeSize = mergeSize;
@@ -84,22 +85,22 @@ final public class ExternalSort implements Set {
         this.maxIndividualReadBufferSize = maxIndividualReadBufferSize;
         this.mComparator = cmp;
         this.data = new Object[maxSortSize];
-        currentPos = 0;
+        this.currentPos = 0;
     }
 
     Exception mLastException;
 
     final public boolean add(Object o) {
-        this.data[currentPos++] = o;
+        this.data[this.currentPos++] = o;
 
-        records++;
+        this.records++;
 
-        if (records == maxSortSize) {
-            totalRecords = totalRecords + records;
-            records = 0;
+        if (this.records == this.maxSortSize) {
+            this.totalRecords = this.totalRecords + this.records;
+            this.records = 0;
 
             try {
-                spool();
+                this.spool();
             } catch (Exception e) {
                 throw new SortException(e);
             }
@@ -113,26 +114,26 @@ final public class ExternalSort implements Set {
     }
 
     final public void commit() throws IOException, ClassNotFoundException {
-        if (records > 0) {
-            totalRecords = totalRecords + records;
-            records = 0;
+        if (this.records > 0) {
+            this.totalRecords = this.totalRecords + this.records;
+            this.records = 0;
         }
 
-        if ((spools.size() > 0) || (this.mergedSpools.size() > 0)) {
+        if ((this.spools.size() > 0) || (this.mergedSpools.size() > 0)) {
             if (this.currentPos > 0) {
-                spool();
+                this.spool();
             }
 
-            if ((spools.size() > this.mMergeSize) || (this.mergedSpools.size() > 0)) {
+            if ((this.spools.size() > this.mMergeSize) || (this.mergedSpools.size() > 0)) {
                 boolean merging = true;
 
                 while (merging) {
-                    merge();
+                    this.merge();
 
-                    if (spools.size() == 0) {
-                        spools = mergedSpools;
+                    if (this.spools.size() == 0) {
+                        this.spools = this.mergedSpools;
 
-                        if (spools.size() < this.mMergeSize) {
+                        if (this.spools.size() < this.mMergeSize) {
                             merging = false;
                         }
                     }
@@ -142,16 +143,16 @@ final public class ExternalSort implements Set {
             // release objects
             this.data = null;
 
-            prepSpoolsForMergeSortedList();
+            this.prepSpoolsForMergeSortedList();
 
-            spools = null;
+            this.spools = null;
         }
         else {
-            currentPos = totalRecords;
-            Sort.quickSort2(this.data, this.mComparator, 0, currentPos - 1);
+            this.currentPos = this.totalRecords;
+            Sort.quickSort2(this.data, this.mComparator, 0, this.currentPos - 1);
 
-            if (mDistinct) {
-                dedup();
+            if (this.mDistinct) {
+                this.dedup();
             }
         }
     }
@@ -160,7 +161,7 @@ final public class ExternalSort implements Set {
         Object current = this.data[0];
         ArrayList ar = new ArrayList();
 
-        for (int i = 1; i < currentPos; i++) {
+        for (int i = 1; i < this.currentPos; i++) {
             if (this.mComparator.compare(current, this.data[i]) != 0) {
                 ar.add(current);
                 current = this.data[i];
@@ -169,9 +170,9 @@ final public class ExternalSort implements Set {
 
         ar.add(current);
 
-        if (ar.size() < currentPos) {
+        if (ar.size() < this.currentPos) {
             ar.toArray(this.data);
-            currentPos = ar.size();
+            this.currentPos = ar.size();
         }
     }
 
@@ -186,25 +187,25 @@ final public class ExternalSort implements Set {
             iReadBufferSize = this.maxIndividualReadBufferSize;
         }
 
-        maStores = new Store[nSpools];
+        this.maStores = new Store[nSpools];
 
         for (int i = 0; i < nSpools; i++) {
-            maStores[i] = (Store) spools.get(i);
+            this.maStores[i] = (Store) this.spools.get(i);
 
-            maStores[i].start(iReadBufferSize, objectBufferSize);
+            this.maStores[i].start(iReadBufferSize, objectBufferSize);
         }
 
-        root = null;
+        this.root = null;
 
         for (int i = 0; i < nSpools; i++) {
-            spools.remove(maStores[i]);
+            this.spools.remove(this.maStores[i]);
 
-            if (maStores[i].hasNext()) {
-                if (root == null) {
-                    root = new SortedList(mComparator);
+            if (this.maStores[i].hasNext()) {
+                if (this.root == null) {
+                    this.root = new SortedList(this.mComparator);
                 }
 
-                Object o = maStores[i].next();
+                Object o = this.maStores[i].next();
 
                 this.addToSortedList(o, i);
             }
@@ -213,40 +214,40 @@ final public class ExternalSort implements Set {
     }
 
     private void addToSortedList(Object arg0, Object arg1) {
-        spoolLookup.put(arg0, arg1);
-        root.add(arg0);
+        this.spoolLookup.put(arg0, arg1);
+        this.root.add(arg0);
     }
 
     private HashMap spoolLookup = new HashMap();
 
     Comparator mComparator = null;
 
-    final void spool() throws IOException, ClassNotFoundException  {
+    final void spool() throws IOException, ClassNotFoundException {
         // sort data
-        Sort.quickSort2(this.data, this.mComparator, 0, currentPos - 1);
+        Sort.quickSort2(this.data, this.mComparator, 0, this.currentPos - 1);
 
         // if distinct sort required then dedup
-        if (mDistinct) {
-            dedup();
+        if (this.mDistinct) {
+            this.dedup();
         }
 
         // create store for result, with complete buffer
-        Store store = this.db.createSet(writeBufferSize);
+        Store store = this.db.createSet(this.writeBufferSize);
 
         // add data to store
-        store.add(data,currentPos -1);
+        store.add(this.data, this.currentPos - 1);
 
         // complete storage
         store.commit();
 
         // record spool for later use
-        spools.add(store);
+        this.spools.add(store);
 
         // if spools >= than merge size then merge
-        if (spools.size() >= this.mMergeSize) {
-            while (spools.size() > 0) {
-                ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,"Merging");
-                merge();
+        if (this.spools.size() >= this.mMergeSize) {
+            while (this.spools.size() > 0) {
+                ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Merging");
+                this.merge();
             }
         }
 
@@ -254,25 +255,25 @@ final public class ExternalSort implements Set {
         this.currentPos = 0;
     }
 
-    final void merge() throws IOException, ClassNotFoundException   {
+    final void merge() throws IOException, ClassNotFoundException {
         // if 1 spool left then don't merge it with itself.
-        if (spools.size() == 1) {
-            this.mergedSpools.add(spools.get(0));
-            spools.remove(0);
+        if (this.spools.size() == 1) {
+            this.mergedSpools.add(this.spools.get(0));
+            this.spools.remove(0);
 
             return;
         }
 
         // prep spools for merging
-        prepSpoolsForMergeSortedList();
+        this.prepSpoolsForMergeSortedList();
 
         // create output store
-        Store store = this.db.createSet(writeBufferSize);
+        Store store = this.db.createSet(this.writeBufferSize);
 
         Object o = null;
 
         // get next from spools and write to new store
-        while (!((o = getNextFromSpoolsSortedList()) == null)) {
+        while (!((o = this.getNextFromSpoolsSortedList()) == null)) {
             store.add(o);
         }
 
@@ -280,26 +281,26 @@ final public class ExternalSort implements Set {
         store.commit();
 
         // record store to merged stores pool
-        mergedSpools.add(store);
+        this.mergedSpools.add(store);
 
         this.currentPos = 0;
     }
 
     Object mPrevious = null;
 
-    final Object getNextFromSpoolsSortedList() throws IOException, ClassNotFoundException  {
-        Object first = root.removeFirst();
+    final Object getNextFromSpoolsSortedList() throws IOException, ClassNotFoundException {
+        Object first = this.root.removeFirst();
 
         if (first == null) {
             return null;
         }
 
         Integer pos = (Integer) this.spoolLookup.remove(first);
-        Store spool = (Store) this.maStores[pos];
+        Store spool = this.maStores[pos];
 
         if (spool.hasNext()) {
             Object o = spool.next();
-            addToSortedList(o, pos);
+            this.addToSortedList(o, pos);
         }
         else {
             spool.close();
@@ -309,48 +310,48 @@ final public class ExternalSort implements Set {
     }
 
     final public void close() throws Exception {
-        db.close();
+        this.db.close();
     }
 
     boolean commitPending = true;
 
-    final public Object getNext() throws IOException, ClassNotFoundException  {
-        if (commitPending) {
-            commitPending = false;
-            commit();
+    final public Object getNext() throws IOException, ClassNotFoundException {
+        if (this.commitPending) {
+            this.commitPending = false;
+            this.commit();
         }
 
         // if no spools then read directory from memory
-        if (maStores == null) {
-            if (pos == currentPos) {
+        if (this.maStores == null) {
+            if (this.pos == this.currentPos) {
                 return null;
             }
 
-            return this.data[pos++];
+            return this.data[this.pos++];
         }
 
         // if distinct results not required then pull next value
-        if (mDistinct == false) {
-            return getNextFromSpoolsSortedList();
+        if (this.mDistinct == false) {
+            return this.getNextFromSpoolsSortedList();
         }
 
-        Object current = getNextFromSpoolsSortedList();
+        Object current = this.getNextFromSpoolsSortedList();
 
-        if ((mPrevious == null) || (current == null)) {
-            mPrevious = current;
+        if ((this.mPrevious == null) || (current == null)) {
+            this.mPrevious = current;
 
             return current;
         }
 
         while (true) {
-            if (this.mComparator.compare(current, mPrevious) == 0) {
-                current = getNextFromSpoolsSortedList();
+            if (this.mComparator.compare(current, this.mPrevious) == 0) {
+                current = this.getNextFromSpoolsSortedList();
 
                 if (current == null)
                     return null;
             }
             else {
-                mPrevious = current;
+                this.mPrevious = current;
 
                 return current;
             }
@@ -362,7 +363,7 @@ final public class ExternalSort implements Set {
     }
 
     final public boolean isEmpty() {
-        return (records == 0) ? true : false;
+        return (this.records == 0) ? true : false;
     }
 
     public boolean contains(Object o) {

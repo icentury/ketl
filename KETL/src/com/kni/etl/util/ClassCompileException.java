@@ -1,6 +1,5 @@
 package com.kni.etl.util;
 
-
 public class ClassCompileException extends Exception {
 
     /**

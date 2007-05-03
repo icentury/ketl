@@ -29,7 +29,7 @@ final public class SortedList<E> implements List<E> {
 
     public SortedList(Comparator comparator) {
         super();
-        mComparator = comparator;
+        this.mComparator = comparator;
     }
 
     final private static int indexedBinarySearch(List list, Comparable key) {
@@ -80,45 +80,45 @@ final public class SortedList<E> implements List<E> {
 
     final public void add(Comparable arg0) {
         // Search for the non-existent item
-        int index = indexedBinarySearch(sortedList, arg0); // -4
+        int index = SortedList.indexedBinarySearch(this.sortedList, arg0); // -4
 
         // Add the non-existent item to the list
         if (index < 0) {
-            sortedList.add(-index - 1, arg0);
+            this.sortedList.add(-index - 1, arg0);
         }
         else {
-            sortedList.add(index, arg0);
+            this.sortedList.add(index, arg0);
         }
     }
 
     final public boolean add(Object arg0) {
         // Search for the non-existent item
-        int index = indexedBinarySearch(sortedList, arg0, this.mComparator); // -4
+        int index = SortedList.indexedBinarySearch(this.sortedList, arg0, this.mComparator); // -4
 
         // Add the non-existent item to the list
         if (index < 0) {
-            sortedList.add(-index - 1, arg0);
+            this.sortedList.add(-index - 1, arg0);
         }
         else {
-            sortedList.add(index, arg0);
+            this.sortedList.add(index, arg0);
         }
 
         return true;
     }
 
     final public Object removeFirst() {
-        if (sortedList.isEmpty()) {
+        if (this.sortedList.isEmpty()) {
             return null;
         }
 
-        return sortedList.remove(0);
+        return this.sortedList.remove(0);
     }
 
     private int size = 1;
     private int minBufferSize = 25000;
 
     public void releaseAll() {
-        minBufferSize = 0;
+        this.minBufferSize = 0;
     }
 
     public void add(int index, Object element) {
@@ -208,16 +208,16 @@ final public class SortedList<E> implements List<E> {
 
     public Object[] toArray() {
 
-        int currentSize = sortedList.size();
+        int currentSize = this.sortedList.size();
 
-        if (currentSize == 0 || ((currentSize - minBufferSize) < size))
+        if (currentSize == 0 || ((currentSize - this.minBufferSize) < this.size))
             return null;
 
         if (this.size > currentSize)
             this.size = currentSize;
-        Object[][] res = new Object[size][];
+        Object[][] res = new Object[this.size][];
 
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < this.size; i++) {
             res[i] = (Object[]) this.removeFirst();
         }
         return res;
@@ -225,9 +225,9 @@ final public class SortedList<E> implements List<E> {
     }
 
     public <T> T[] toArray(T[] batch) {
-        int currentSize = sortedList.size();
+        int currentSize = this.sortedList.size();
         int readSize = batch.length;
-        if ((currentSize - minBufferSize) < size)
+        if ((currentSize - this.minBufferSize) < this.size)
             return null;
 
         if (currentSize < readSize) {
@@ -241,10 +241,11 @@ final public class SortedList<E> implements List<E> {
     }
 
     public int fetchSize() {
-        if ((sortedList.size() - minBufferSize) < size)
+        if ((this.sortedList.size() - this.minBufferSize) < this.size)
             return 0;
 
-        return (sortedList.size() - minBufferSize) > 5000 ? 256 : (sortedList.size() - minBufferSize);
+        return (this.sortedList.size() - this.minBufferSize) > 5000 ? 256
+                : (this.sortedList.size() - this.minBufferSize);
     }
 
 }

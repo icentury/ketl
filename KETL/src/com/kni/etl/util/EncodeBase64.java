@@ -39,10 +39,10 @@ public class EncodeBase64 {
                 buf[1] = (byte) (((bytes[i] & 0x03) << 4) | ((bytes[i + 1] & 0xF0) >> 4));
                 buf[2] = (byte) (((bytes[i + 1] & 0x0F) << 2) | ((bytes[i + 2] & 0xC0) >> 6));
                 buf[3] = (byte) (bytes[i + 2] & 0x3F);
-                out.write(BaseTable[buf[0]]);
-                out.write(BaseTable[buf[1]]);
-                out.write(BaseTable[buf[2]]);
-                out.write(BaseTable[buf[3]]);
+                out.write(EncodeBase64.BaseTable[buf[0]]);
+                out.write(EncodeBase64.BaseTable[buf[1]]);
+                out.write(EncodeBase64.BaseTable[buf[2]]);
+                out.write(EncodeBase64.BaseTable[buf[3]]);
                 /*
                  * The above code can be written in more "optimized" way. Harder to understand but more compact. Thanks
                  * to J. Tordera for the tip! buf[0]= (byte)(b[i] >> 2); buf[1]= (byte)(((b[i] & 0x03) << 4)|(b[i+1]>>
@@ -73,11 +73,11 @@ public class EncodeBase64 {
                 // send the padding
                 if ((linelength += 4) >= 76)
                     out.write("\r\n");
-                out.write(BaseTable[buf[0]]);
-                out.write(BaseTable[buf[1]]);
+                out.write(EncodeBase64.BaseTable[buf[0]]);
+                out.write(EncodeBase64.BaseTable[buf[1]]);
                 // Thanks to R. Claerman for the bug fix here!
                 if (nrest == 2) {
-                    out.write(BaseTable[buf[2]]);
+                    out.write(EncodeBase64.BaseTable[buf[2]]);
                 }
                 else {
                     out.write("=");
