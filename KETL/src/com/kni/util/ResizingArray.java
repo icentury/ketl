@@ -13,13 +13,11 @@ package com.kni.util;
 import java.util.Collection;
 import java.util.Iterator;
 
-
 /**
- * @author nwakefield
- * Creation Date: Mar 18, 2003
+ * @author nwakefield Creation Date: Mar 18, 2003
  */
-public class ResizingArray implements Collection
-{
+public class ResizingArray implements Collection {
+
     private static int DEFAULT_SIZE = 5;
     private int[] aFreeElements;
     private Object[] aObjects;
@@ -28,19 +26,17 @@ public class ResizingArray implements Collection
      *
      */
     private int iMaxReleasedElement = -1;
-    private int iMaxSize = DEFAULT_SIZE;
+    private int iMaxSize = ResizingArray.DEFAULT_SIZE;
     private int iUsedElements = 0;
     private int iNextEndElements = 0;
 
-    public ResizingArray()
-    {
+    public ResizingArray() {
         super();
-        this.aObjects = new Object[DEFAULT_SIZE];
-        this.aFreeElements = new int[DEFAULT_SIZE];
+        this.aObjects = new Object[ResizingArray.DEFAULT_SIZE];
+        this.aFreeElements = new int[ResizingArray.DEFAULT_SIZE];
     }
 
-    public ResizingArray(int defaultSize)
-    {
+    public ResizingArray(int defaultSize) {
         super();
 
         this.aObjects = new Object[defaultSize];
@@ -48,8 +44,7 @@ public class ResizingArray implements Collection
         this.iMaxSize = defaultSize;
     }
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         ResizingArray aResize = new ResizingArray();
         Integer test = new Integer(0);
 
@@ -132,15 +127,12 @@ public class ResizingArray implements Collection
         aResize.add(new Integer(5));
     }
 
-    public boolean add(int index, Object arg0)
-    {
-        if (index >= this.iMaxSize)
-        {
+    public boolean add(int index, Object arg0) {
+        if (index >= this.iMaxSize) {
             // grow array
             int newSize = this.iMaxSize + (this.iMaxSize / 2);
 
-            if (newSize < index)
-            {
+            if (newSize < index) {
                 newSize = index + this.iMaxSize;
             }
 
@@ -153,12 +145,9 @@ public class ResizingArray implements Collection
             this.iMaxSize = newSize;
         }
 
-        if ((this.aObjects[index] == null) && (index < this.iNextEndElements))
-        {
-            for (int i = 0; i < this.iMaxReleasedElement; i++)
-            {
-                if (this.aFreeElements[i] == index)
-                {
+        if ((this.aObjects[index] == null) && (index < this.iNextEndElements)) {
+            for (int i = 0; i < this.iMaxReleasedElement; i++) {
+                if (this.aFreeElements[i] == index) {
                     // shuffle array back one place
                     System.arraycopy(this.aFreeElements, i + 1, this.aFreeElements, i, this.iMaxReleasedElement - i);
                     this.iMaxReleasedElement--;
@@ -168,10 +157,8 @@ public class ResizingArray implements Collection
                 }
             }
         }
-        else if (index > this.iNextEndElements)
-        {
-            for (int i = this.iNextEndElements; i < index; i++)
-            {
+        else if (index > this.iNextEndElements) {
+            for (int i = this.iNextEndElements; i < index; i++) {
                 this.iMaxReleasedElement++;
                 this.aFreeElements[this.iMaxReleasedElement] = i;
             }
@@ -179,8 +166,7 @@ public class ResizingArray implements Collection
             this.iUsedElements++;
             this.iNextEndElements = index + 1;
         }
-        else
-        {
+        else {
             this.iUsedElements++;
         }
 
@@ -189,13 +175,13 @@ public class ResizingArray implements Collection
         return true;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#add(java.lang.Object)
      */
-    public boolean add(Object arg0)
-    {
-        if (this.iMaxReleasedElement != -1)
-        {
+    public boolean add(Object arg0) {
+        if (this.iMaxReleasedElement != -1) {
             this.aObjects[this.aFreeElements[this.iMaxReleasedElement]] = arg0;
             this.iMaxReleasedElement--;
             this.iUsedElements++;
@@ -203,8 +189,7 @@ public class ResizingArray implements Collection
             return true;
         }
 
-        if (this.iUsedElements == this.iMaxSize)
-        {
+        if (this.iUsedElements == this.iMaxSize) {
             // grow array
             Object[] tmpObjects = new Object[this.iMaxSize + (this.iMaxSize / 2)];
             int[] tmpFreeElements = new int[this.iMaxSize + (this.iMaxSize / 2)];
@@ -221,12 +206,13 @@ public class ResizingArray implements Collection
         return true;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#clear()
      */
-    public void clear()
-    {
-        // NOTE: not sure if recreating array is quicker than clearing each node        
+    public void clear() {
+        // NOTE: not sure if recreating array is quicker than clearing each node
         for (int i = 0; i < this.iMaxSize; i++)
             this.aObjects[i] = null;
 
@@ -235,35 +221,30 @@ public class ResizingArray implements Collection
         this.iNextEndElements = 0;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#contains(java.lang.Object)
      */
-    public boolean contains(Object arg0)
-    {
-        if (this.indexOf(arg0) != -1)
-        {
+    public boolean contains(Object arg0) {
+        if (this.indexOf(arg0) != -1) {
             return true;
         }
 
         return false;
     }
 
-    public Object get(int index)
-    {
-        if (index >= this.iMaxSize)
-        {
+    public Object get(int index) {
+        if (index >= this.iMaxSize) {
             return null;
         }
 
         return this.aObjects[index];
     }
 
-    public int indexOf(Object arg0)
-    {
-        for (int i = 0; i < this.iMaxSize; i++)
-        {
-            if ((this.aObjects[i] != null) && this.aObjects[i].equals(arg0))
-            {
+    public int indexOf(Object arg0) {
+        for (int i = 0; i < this.iMaxSize; i++) {
+            if ((this.aObjects[i] != null) && this.aObjects[i].equals(arg0)) {
                 return i;
             }
         }
@@ -271,25 +252,22 @@ public class ResizingArray implements Collection
         return -1;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#isEmpty()
      */
-    public boolean isEmpty()
-    {
-        if (this.iUsedElements == 0)
-        {
+    public boolean isEmpty() {
+        if (this.iUsedElements == 0) {
             return true;
         }
 
         return false;
     }
 
-    public boolean remove(int index)
-    {
-        if (index < this.iMaxSize)
-        {
-            if (this.aObjects[index] != null)
-            {
+    public boolean remove(int index) {
+        if (index < this.iMaxSize) {
+            if (this.aObjects[index] != null) {
                 this.iUsedElements--;
                 this.iMaxReleasedElement++;
                 this.aFreeElements[this.iMaxReleasedElement] = index;
@@ -302,15 +280,15 @@ public class ResizingArray implements Collection
         return false;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#remove(java.lang.Object)
      */
-    public boolean remove(Object arg0)
-    {
+    public boolean remove(Object arg0) {
         int idx = this.indexOf(arg0);
 
-        if (idx != -1)
-        {
+        if (idx != -1) {
             this.iUsedElements--;
             this.iMaxReleasedElement++;
             this.aFreeElements[this.iMaxReleasedElement] = idx;
@@ -322,81 +300,89 @@ public class ResizingArray implements Collection
         return false;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#size()
      */
-    public int size()
-    {
+    public int size() {
         return this.iUsedElements;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#addAll(java.util.Collection)
      */
-    public boolean addAll(Collection arg0)
-    {
+    public boolean addAll(Collection arg0) {
         throw new UnsupportedOperationException();
 
-        //return null;
+        // return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#containsAll(java.util.Collection)
      */
-    public boolean containsAll(Collection arg0)
-    {
+    public boolean containsAll(Collection arg0) {
         throw new UnsupportedOperationException();
 
-        //return null;
+        // return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#iterator()
      */
-    public Iterator iterator()
-    {
+    public Iterator iterator() {
         throw new UnsupportedOperationException();
 
-        //return null;
+        // return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#removeAll(java.util.Collection)
      */
-    public boolean removeAll(Collection arg0)
-    {
+    public boolean removeAll(Collection arg0) {
         throw new UnsupportedOperationException();
 
-        //return null;
+        // return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#retainAll(java.util.Collection)
      */
-    public boolean retainAll(Collection arg0)
-    {
+    public boolean retainAll(Collection arg0) {
         throw new UnsupportedOperationException();
 
-        //return null;
+        // return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#toArray()
      */
-    public Object[] toArray()
-    {
+    public Object[] toArray() {
         throw new UnsupportedOperationException();
 
-        //return null;
+        // return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.util.Collection#toArray(java.lang.Object[])
      */
-    public Object[] toArray(Object[] arg0)
-    {
+    public Object[] toArray(Object[] arg0) {
         throw new UnsupportedOperationException();
 
-        //return null;
+        // return null;
     }
 }

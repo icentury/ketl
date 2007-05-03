@@ -29,29 +29,29 @@ public class ArgumentParserUtil {
         while (i < strToSplit.length()) {
             char c = strToSplit.charAt(i++);
 
-            if(escape){
+            if (escape) {
                 part.append(c);
                 escape = false;
                 continue;
             }
-            
+
             switch (c) {
             case '\\':
-                if(i<strToSplit.length() && strToSplit.charAt(i) == '"')
+                if (i < strToSplit.length() && strToSplit.charAt(i) == '"')
                     escape = true;
                 else
                     part.append(c);
                 break;
             case '"':
-                inQuotes = true;                
+                inQuotes = true;
                 while (inQuotes && i < strToSplit.length()) {
                     c = strToSplit.charAt(i++);
                     if (escape == false) {
                         if (c == '\\') {
-                            if(i<strToSplit.length() && strToSplit.charAt(i) == '"')
+                            if (i < strToSplit.length() && strToSplit.charAt(i) == '"')
                                 escape = true;
                             else
-                                part.append(c);                            
+                                part.append(c);
                             continue;
                         }
 
@@ -66,7 +66,7 @@ public class ArgumentParserUtil {
                 }
                 break;
             case ' ':
-                if (part.length()>0) {
+                if (part.length() > 0) {
                     res.add(part.toString());
                     part = new StringBuilder();
                 }
@@ -76,7 +76,7 @@ public class ArgumentParserUtil {
             }
         }
 
-        if (part.length()>0) {
+        if (part.length() > 0) {
             res.add(part.toString());
         }
         String[] tmp = new String[res.size()];

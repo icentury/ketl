@@ -2,8 +2,6 @@ package com.kni.util;
 
 import java.io.UnsupportedEncodingException;
 
-
-
 import com.kni.etl.ketl.exceptions.KETLError;
 
 final public class Bytes {
@@ -18,7 +16,7 @@ final public class Bytes {
     }
 
     public static long unpack8(byte[] arr, int offs) {
-        return ((long) unpack4(arr, offs) << 32) | (unpack4(arr, offs + 4) & 0xFFFFFFFFL);
+        return ((long) Bytes.unpack4(arr, offs) << 32) | (Bytes.unpack4(arr, offs + 4) & 0xFFFFFFFFL);
     }
 
     public static float unpackF4(byte[] arr, int offs) {
@@ -30,12 +28,12 @@ final public class Bytes {
     }
 
     public static String unpackStr(byte[] arr, int offs, String encoding) {
-        int len = unpack4(arr, offs);
+        int len = Bytes.unpack4(arr, offs);
         if (len >= 0) {
             char[] chars = new char[len];
             offs += 4;
             for (int i = 0; i < len; i++) {
-                chars[i] = (char) unpack2(arr, offs);
+                chars[i] = (char) Bytes.unpack2(arr, offs);
                 offs += 2;
             }
             return new String(chars);
@@ -68,16 +66,16 @@ final public class Bytes {
     }
 
     public static void pack8(byte[] arr, int offs, long val) {
-        pack4(arr, offs, (int) (val >> 32));
-        pack4(arr, offs + 4, (int) val);
+        Bytes.pack4(arr, offs, (int) (val >> 32));
+        Bytes.pack4(arr, offs + 4, (int) val);
     }
 
     public static void packF4(byte[] arr, int offs, float val) {
-        pack4(arr, offs, Float.floatToIntBits(val));
+        Bytes.pack4(arr, offs, Float.floatToIntBits(val));
     }
 
     public static void packF8(byte[] arr, int offs, double val) {
-        pack8(arr, offs, Double.doubleToLongBits(val));
+        Bytes.pack8(arr, offs, Double.doubleToLongBits(val));
     }
 
     public static int packStr(byte[] arr, int offs, String str, String encoding) {
@@ -97,7 +95,7 @@ final public class Bytes {
         else {
             try {
                 byte[] bytes = str.getBytes(encoding);
-                pack4(arr, offs, -2 - bytes.length);
+                Bytes.pack4(arr, offs, -2 - bytes.length);
                 System.arraycopy(bytes, 0, arr, offs + 4, bytes.length);
                 offs += 4 + bytes.length;
             } catch (UnsupportedEncodingException x) {
@@ -117,7 +115,7 @@ final public class Bytes {
     }
 
     public static int sizeof(byte[] arr, int offs) {
-        int len = unpack4(arr, offs);
+        int len = Bytes.unpack4(arr, offs);
         if (len >= 0) {
             return 4 + len * 2;
         }
@@ -128,7 +126,7 @@ final public class Bytes {
             return 4;
         }
     }
-    
+
     public static byte[] pack2(short val) {
         return new byte[] { (byte) (val >> 8), (byte) val };
     }
@@ -143,11 +141,11 @@ final public class Bytes {
     }
 
     public static byte[] packF4(float val) {
-        return pack4(Float.floatToIntBits(val));
+        return Bytes.pack4(Float.floatToIntBits(val));
     }
 
     public static byte[] packF8(double val) {
-        return pack8(Double.doubleToLongBits(val));
+        return Bytes.pack8(Double.doubleToLongBits(val));
     }
 
     public static byte[] packStr(String str, String encoding) throws UnsupportedEncodingException {
@@ -162,7 +160,7 @@ final public class Bytes {
         return str.getBytes(encoding);
 
     }
-    
+
     public static byte[] append(byte[] a, byte[] b) {
         byte[] z = new byte[a.length + b.length + 1];
         System.arraycopy(a, 0, z, 0, a.length);
@@ -170,10 +168,10 @@ final public class Bytes {
         System.arraycopy(b, 0, z, a.length, b.length);
         return z;
     }
-    
+
     public static byte[] join(byte[] a, byte[] b) {
-        byte[] z = new byte[a.length + b.length ];
-        System.arraycopy(a, 0, z, 0, a.length);  
+        byte[] z = new byte[a.length + b.length];
+        System.arraycopy(a, 0, z, 0, a.length);
         System.arraycopy(b, 0, z, a.length, b.length);
         return z;
     }

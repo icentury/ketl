@@ -34,7 +34,8 @@ final public class FileHelpers {
 
             if (fileSearch != null) {
                 filePattern = new StringMatcher(fileSearch);
-            } else {
+            }
+            else {
                 return null;
             }
 
@@ -46,11 +47,11 @@ final public class FileHelpers {
 
             File[] list = dir.listFiles();
 
-            for (int i = 0; i < list.length; i++) {
-                if (list[i].isFile()) {
-                    if (filePattern.match(list[i].getName())) {
-                        if (alist.contains(list[i].getPath()) == false)
-                            alist.add(list[i].getPath());
+            for (File element : list) {
+                if (element.isFile()) {
+                    if (filePattern.match(element.getName())) {
+                        if (alist.contains(element.getPath()) == false)
+                            alist.add(element.getPath());
                     }
                 }
             }
@@ -60,6 +61,5 @@ final public class FileHelpers {
         alist.toArray(tmp);
         return tmp;
     }
-
 
 }

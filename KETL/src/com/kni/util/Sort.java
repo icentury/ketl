@@ -63,12 +63,12 @@ public final class Sort {
         /* 1 */for (int i = a.length / 2; i >= 0; i--)
             /* buildHeap */
 
-            /* 2 */percDown(a, i, a.length);
+            /* 2 */Sort.percDown(a, i, a.length);
 
         /* 3 */for (int i = a.length - 1; i > 0; i--) {
-            /* 4 */swapReferences(a, 0, i); /* deleteMax */
+            /* 4 */Sort.swapReferences(a, 0, i); /* deleteMax */
 
-            /* 5 */percDown(a, 0, i);
+            /* 5 */Sort.percDown(a, 0, i);
         }
     }
 
@@ -93,8 +93,8 @@ public final class Sort {
         int child;
         Comparable tmp;
 
-        /* 1 */for (tmp = a[i]; leftChild(i) < n; i = child) {
-            /* 2 */child = leftChild(i);
+        /* 1 */for (tmp = a[i]; Sort.leftChild(i) < n; i = child) {
+            /* 2 */child = Sort.leftChild(i);
 
             /* 3 */if ((child != (n - 1)) && (a[child].compareTo(a[child + 1]) < 0)) {
                 /* 4 */child++;
@@ -119,13 +119,13 @@ public final class Sort {
     public static void mergeSort(Comparable[] a) {
         Comparable[] tmpArray = new Comparable[a.length];
 
-        mergeSort(a, tmpArray, 0, a.length - 1);
+        Sort.mergeSort(a, tmpArray, 0, a.length - 1);
     }
 
     public static void mergeSort(Comparable[] a, int left, int right) {
         Comparable[] tmpArray = new Comparable[right + 1];
 
-        mergeSort(a, tmpArray, left, right);
+        Sort.mergeSort(a, tmpArray, left, right);
     }
 
     /**
@@ -139,9 +139,9 @@ public final class Sort {
     private static void mergeSort(Comparable[] a, Comparable[] tmpArray, int left, int right) {
         if (left < right) {
             int center = (left + right) / 2;
-            mergeSort(a, tmpArray, left, center);
-            mergeSort(a, tmpArray, center + 1, right);
-            merge(a, tmpArray, left, center + 1, right);
+            Sort.mergeSort(a, tmpArray, left, center);
+            Sort.mergeSort(a, tmpArray, center + 1, right);
+            Sort.merge(a, tmpArray, left, center + 1, right);
         }
     }
 
@@ -190,7 +190,7 @@ public final class Sort {
      * @param a an array of Comparable items.
      */
     public static void quicksort(Comparable[] a) {
-        quicksort(a, 0, a.length - 1);
+        Sort.quicksort(a, 0, a.length - 1);
     }
 
     private static final int CUTOFF = 3;
@@ -215,19 +215,19 @@ public final class Sort {
         int center = (left + right) / 2;
 
         if (a[center].compareTo(a[left]) < 0) {
-            swapReferences(a, left, center);
+            Sort.swapReferences(a, left, center);
         }
 
         if (a[right].compareTo(a[left]) < 0) {
-            swapReferences(a, left, right);
+            Sort.swapReferences(a, left, right);
         }
 
         if (a[right].compareTo(a[center]) < 0) {
-            swapReferences(a, center, right);
+            Sort.swapReferences(a, center, right);
         }
 
         // Place pivot at position right - 1
-        swapReferences(a, center, right - 1);
+        Sort.swapReferences(a, center, right - 1);
 
         return a[right - 1];
     }
@@ -240,8 +240,8 @@ public final class Sort {
      * @param right the right-most index of the subarray.
      */
     public static void quicksort(Comparable[] a, int left, int right) {
-        /* 1 */if ((left + CUTOFF) <= right) {
-            /* 2 */Comparable pivot = median3(a, left, right);
+        /* 1 */if ((left + Sort.CUTOFF) <= right) {
+            /* 2 */Comparable pivot = Sort.median3(a, left, right);
 
             // Begin partitioning
 
@@ -259,22 +259,22 @@ public final class Sort {
                 }
 
                 /* 7 */if (i < j) {
-                    /* 8 */swapReferences(a, i, j);
+                    /* 8 */Sort.swapReferences(a, i, j);
                 }
                 else {
                     /* 9 */break;
                 }
             }
 
-            /* 10 */swapReferences(a, i, right - 1); // Restore pivot
+            /* 10 */Sort.swapReferences(a, i, right - 1); // Restore pivot
 
-            /* 11 */quicksort(a, left, i - 1); // Sort small elements
+            /* 11 */Sort.quicksort(a, left, i - 1); // Sort small elements
 
-            /* 12 */quicksort(a, i + 1, right); // Sort large elements
+            /* 12 */Sort.quicksort(a, i + 1, right); // Sort large elements
         }
         else { // Do an insertion sort on the subarray
 
-            /* 13 */insertionSort(a, left, right);
+            /* 13 */Sort.insertionSort(a, left, right);
         }
     }
 
@@ -304,7 +304,7 @@ public final class Sort {
      * @param k the desired rank (1 is minimum) in the entire array.
      */
     public static void quickSelect(Comparable[] a, int k) {
-        quickSelect(a, 0, a.length - 1, k);
+        Sort.quickSelect(a, 0, a.length - 1, k);
     }
 
     /**
@@ -317,8 +317,8 @@ public final class Sort {
      * @param k the desired index (1 is minimum) in the entire array.
      */
     public static void quickSelect(Comparable[] a, int left, int right, int k) {
-        /* 1 */if ((left + CUTOFF) <= right) {
-            /* 2 */Comparable pivot = median3(a, left, right);
+        /* 1 */if ((left + Sort.CUTOFF) <= right) {
+            /* 2 */Comparable pivot = Sort.median3(a, left, right);
 
             // Begin partitioning
 
@@ -337,30 +337,29 @@ public final class Sort {
 
                 /* 7 */if (i < j) { // Do an insertion sort on the subarray
 
-                    /* 8 */swapReferences(a, i, j);
+                    /* 8 */Sort.swapReferences(a, i, j);
                 }
                 else {
                     /* 9 */break;
                 }
             }
 
-            /* 10 */swapReferences(a, i, right - 1); // Restore pivot
+            /* 10 */Sort.swapReferences(a, i, right - 1); // Restore pivot
 
             /* 11 */if (k <= i) {
-                /* 12 */quickSelect(a, left, i - 1, k);
+                /* 12 */Sort.quickSelect(a, left, i - 1, k);
             }
 
             /* 13 */else if (k > (i + 1)) {
-                /* 14 */quickSelect(a, i + 1, right, k);
+                /* 14 */Sort.quickSelect(a, i + 1, right, k);
             }
         }
         else { // Do an insertion sort on the subarray
 
-            /* 15 */insertionSort(a, left, right);
+            /* 15 */Sort.insertionSort(a, left, right);
         }
     }
 
-   
     public static void quickSort2(Comparable[] c, int left, int right) {
         int i;
         int j;
