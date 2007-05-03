@@ -4,18 +4,16 @@ public class Last extends Aggregator {
 
     Object o;
 
-
-
     @Override
     public void add(Object arg0) {
-        o = arg0;
+        this.o = arg0;
 
     }
 
     @Override
     public Object getValue() {
-        Object res = o;
-        o = null;
+        Object res = this.o;
+        this.o = null;
         return res;
     }
 

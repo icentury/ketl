@@ -10,38 +10,34 @@ public class Sum extends Aggregator {
             byte.class, Integer.class, Float.class, Double.class, Short.class, Long.class, Byte.class };
     private static final int[] validClassTypes = { 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5 };
 
-
-    
-    
     @Override
     public void setValueClass(Class pOutputClass) throws AggregateException {
         super.setValueClass(pOutputClass);
-        int res = com.kni.util.Arrays.searchArray(validClasses, pOutputClass);
+        int res = com.kni.util.Arrays.searchArray(Sum.validClasses, pOutputClass);
         if (res < 0)
             throw new AggregateException("Cannot perform sum on class type: " + pOutputClass.getName());
 
-        type = validClassTypes[res];
+        this.type = Sum.validClassTypes[res];
     }
-    
 
     @Override
     public void add(Object arg0) {
-        if (counter == 0) {
-            bd = ((Number) arg0).doubleValue();
+        if (this.counter == 0) {
+            this.bd = ((Number) arg0).doubleValue();
         }
         else
-            bd += ((Number) arg0).doubleValue();
-        counter++;
+            this.bd += ((Number) arg0).doubleValue();
+        this.counter++;
 
     }
 
     @Override
     public Object getValue() {
 
-        Double res = bd;
-        counter = 0;
+        Double res = this.bd;
+        this.counter = 0;
 
-        switch (type) {
+        switch (this.type) {
         case 0:
             return res.intValue();
         case 1:
@@ -64,6 +60,5 @@ public class Sum extends Aggregator {
     public Class getValueClass() {
         return this.mOutputClass;
     }
-
 
 }

@@ -11,19 +11,18 @@ public class Min extends Aggregator {
 
     Comparable cmp = null;
 
-
     @Override
     public void add(Object arg0) {
         if (arg0 == null)
             return;
-        if (cmp==null||cmp.compareTo(arg0) > 0)
-            cmp = (Comparable) arg0;
+        if (this.cmp == null || this.cmp.compareTo(arg0) > 0)
+            this.cmp = (Comparable) arg0;
     }
 
     @Override
     public Object getValue() {
-        Object res = cmp;
-        cmp = null;
+        Object res = this.cmp;
+        this.cmp = null;
         return res;
     }
 

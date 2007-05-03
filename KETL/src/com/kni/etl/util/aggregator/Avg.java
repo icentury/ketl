@@ -10,38 +10,34 @@ public class Avg extends Aggregator {
             byte.class, Integer.class, Float.class, Double.class, Short.class, Long.class, Byte.class };
     private static final int[] validClassTypes = { 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5 };
 
-
-    
-    
     @Override
     public void setValueClass(Class pOutputClass) throws AggregateException {
         super.setValueClass(pOutputClass);
-        int res = com.kni.util.Arrays.searchArray(validClasses, pOutputClass);
+        int res = com.kni.util.Arrays.searchArray(Avg.validClasses, pOutputClass);
         if (res < 0)
             throw new AggregateException("Cannot perform average on class type: " + pOutputClass.getName());
 
-        type = validClassTypes[res];
+        this.type = Avg.validClassTypes[res];
     }
-    
 
     @Override
     public void add(Object arg0) {
-        if (counter == 0) {
-            bd = ((Number) arg0).doubleValue();
+        if (this.counter == 0) {
+            this.bd = ((Number) arg0).doubleValue();
         }
         else
-            bd += ((Number) arg0).doubleValue();
-        counter++;
+            this.bd += ((Number) arg0).doubleValue();
+        this.counter++;
 
     }
 
     @Override
     public Object getValue() {
 
-        Double res = bd / counter;
-        counter = 0;
+        Double res = this.bd / this.counter;
+        this.counter = 0;
 
-        switch (type) {
+        switch (this.type) {
         case 0:
             return res.intValue();
         case 1:

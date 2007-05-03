@@ -4,16 +4,15 @@ final public class Count extends Aggregator {
 
     private int counter = 0;
 
-
     @Override
     public void add(Object arg0) {
-        counter++;
+        this.counter++;
     }
 
     @Override
     public Object getValue() {
-        Integer res = counter;
-        counter = 0;
+        Integer res = this.counter;
+        this.counter = 0;
         return res;
     }
 

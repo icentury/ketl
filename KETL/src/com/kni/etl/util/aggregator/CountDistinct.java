@@ -7,17 +7,16 @@ final public class CountDistinct extends Aggregator {
 
     private Set set = new HashSet();
 
-
     @Override
     public void add(Object arg0) {
         // TODO Auto-generated method stub
-        set.add(arg0);
+        this.set.add(arg0);
     }
 
     @Override
     public Object getValue() {
-        Integer res = set.size();
-        set.clear();
+        Integer res = this.set.size();
+        this.set.clear();
         return res;
     }
 

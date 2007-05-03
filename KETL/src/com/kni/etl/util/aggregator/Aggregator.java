@@ -4,8 +4,6 @@ public abstract class Aggregator {
 
     Class mOutputClass;
 
-
-    
     public void setValueClass(Class cl) throws AggregateException {
         this.mOutputClass = cl;
     }

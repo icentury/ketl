@@ -4,17 +4,15 @@ public class Direct extends Aggregator {
 
     Object o;
 
-
-
     @Override
     public void add(Object arg0) {
-        o = arg0;
+        this.o = arg0;
 
     }
 
     @Override
     public Object getValue() {
-        return o;
+        return this.o;
     }
 
     @Override

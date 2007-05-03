@@ -4,18 +4,17 @@ public class First extends Aggregator {
 
     Object o = null;
 
- 
     @Override
     public void add(Object arg0) {
-        if (o == null)
-            o = arg0;
+        if (this.o == null)
+            this.o = arg0;
 
     }
 
     @Override
     public Object getValue() {
-        Object res = o;
-        o = null;
+        Object res = this.o;
+        this.o = null;
         return res;
     }
 
