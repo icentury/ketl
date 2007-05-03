@@ -102,11 +102,11 @@ public class SimpleSMTPHeader
      ***/
     public SimpleSMTPHeader(String from, String to, String subject)
     {
-        __to = to;
-        __from = from;
-        __subject = subject;
-        __headerFields = new StringBuffer();
-        __cc = null;
+        this.__to = to;
+        this.__from = from;
+        this.__subject = subject;
+        this.__headerFields = new StringBuffer();
+        this.__cc = null;
     }
 
     /***
@@ -123,10 +123,10 @@ public class SimpleSMTPHeader
      ***/
     public void addHeaderField(String headerField, String value)
     {
-        __headerFields.append(headerField);
-        __headerFields.append(": ");
-        __headerFields.append(value);
-        __headerFields.append('\n');
+        this.__headerFields.append(headerField);
+        this.__headerFields.append(": ");
+        this.__headerFields.append(value);
+        this.__headerFields.append('\n');
     }
 
 
@@ -137,12 +137,12 @@ public class SimpleSMTPHeader
      ***/
     public void addCC(String address)
     {
-        if (__cc == null)
-            __cc = new StringBuffer();
+        if (this.__cc == null)
+            this.__cc = new StringBuffer();
         else
-            __cc.append(", ");
+            this.__cc.append(", ");
 
-        __cc.append(address);
+        this.__cc.append(address);
     }
 
 
@@ -153,26 +153,27 @@ public class SimpleSMTPHeader
      * <p>
      * @return The message header in the form of a String.
      ***/
+    @Override
     public String toString()
     {
         StringBuffer header = new StringBuffer();
 
-        if (__headerFields.length() > 0)
-            header.append(__headerFields.toString());
+        if (this.__headerFields.length() > 0)
+            header.append(this.__headerFields.toString());
 
         header.append("From: ");
-        header.append(__from);
+        header.append(this.__from);
         header.append("\nTo: ");
-        header.append(__to);
+        header.append(this.__to);
 
-        if (__cc != null)
+        if (this.__cc != null)
         {
             header.append("\nCc: ");
-            header.append(__cc);
+            header.append(this.__cc);
         }
 
         header.append("\nSubject: ");
-        header.append(__subject);
+        header.append(this.__subject);
         header.append('\n');
 
         header.append('\n');

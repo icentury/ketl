@@ -203,7 +203,7 @@ public class SMTPClient extends SMTP
      ***/
     public boolean completePendingCommand() throws IOException
     {
-        return SMTPReply.isPositiveCompletion(getReply());
+        return SMTPReply.isPositiveCompletion(this.getReply());
     }
 
 
@@ -224,7 +224,7 @@ public class SMTPClient extends SMTP
      ***/
     public boolean login(String hostname) throws IOException
     {
-        return SMTPReply.isPositiveCompletion(helo(hostname));
+        return SMTPReply.isPositiveCompletion(this.helo(hostname));
     }
 
 
@@ -247,13 +247,13 @@ public class SMTPClient extends SMTP
         String name;
         InetAddress host;
 
-        host = getLocalAddress();
+        host = this.getLocalAddress();
         name = host.getHostName();
 
         if (name == null)
             return false;
 
-        return SMTPReply.isPositiveCompletion(helo(name));
+        return SMTPReply.isPositiveCompletion(this.helo(name));
     }
 
 
@@ -275,7 +275,7 @@ public class SMTPClient extends SMTP
      ***/
     public boolean setSender(RelayPath path) throws IOException
     {
-        return SMTPReply.isPositiveCompletion(mail(path.toString()));
+        return SMTPReply.isPositiveCompletion(this.mail(path.toString()));
     }
 
 
@@ -297,7 +297,7 @@ public class SMTPClient extends SMTP
      ***/
     public boolean setSender(String address) throws IOException
     {
-        return SMTPReply.isPositiveCompletion(mail("<" + address + ">"));
+        return SMTPReply.isPositiveCompletion(this.mail("<" + address + ">"));
     }
 
 
@@ -319,7 +319,7 @@ public class SMTPClient extends SMTP
      ***/
     public boolean addRecipient(RelayPath path) throws IOException
     {
-        return SMTPReply.isPositiveCompletion(rcpt(path.toString()));
+        return SMTPReply.isPositiveCompletion(this.rcpt(path.toString()));
     }
 
 
@@ -341,7 +341,7 @@ public class SMTPClient extends SMTP
      ***/
     public boolean addRecipient(String address) throws IOException
     {
-        return SMTPReply.isPositiveCompletion(rcpt("<" + address + ">"));
+        return SMTPReply.isPositiveCompletion(this.rcpt("<" + address + ">"));
     }
 
 
@@ -387,10 +387,10 @@ public class SMTPClient extends SMTP
      ***/
     public Writer sendMessageData() throws IOException
     {
-        if (!SMTPReply.isPositiveIntermediate(data()))
+        if (!SMTPReply.isPositiveIntermediate(this.data()))
             return null;
 
-        return new DotTerminatedMessageWriter(_writer);
+        return new DotTerminatedMessageWriter(this._writer);
     }
 
 
@@ -416,7 +416,7 @@ public class SMTPClient extends SMTP
     {
         Writer writer;
 
-        writer = sendMessageData();
+        writer = this.sendMessageData();
 
         if (writer == null)
             return false;
@@ -424,7 +424,7 @@ public class SMTPClient extends SMTP
         writer.write(message);
         writer.close();
 
-        return completePendingCommand();
+        return this.completePendingCommand();
     }
 
 
@@ -452,13 +452,13 @@ public class SMTPClient extends SMTP
                                      String message)
     throws IOException
     {
-        if (!setSender(sender))
+        if (!this.setSender(sender))
             return false;
 
-        if (!addRecipient(recipient))
+        if (!this.addRecipient(recipient))
             return false;
 
-        return sendShortMessageData(message);
+        return this.sendShortMessageData(message);
     }
 
 
@@ -490,19 +490,19 @@ public class SMTPClient extends SMTP
         boolean oneSuccess = false;
         int count;
 
-        if (!setSender(sender))
+        if (!this.setSender(sender))
             return false;
 
         for (count = 0; count < recipients.length; count++)
         {
-            if (addRecipient(recipients[count]))
+            if (this.addRecipient(recipients[count]))
                 oneSuccess = true;
         }
 
         if (!oneSuccess)
             return false;
 
-        return sendShortMessageData(message);
+        return this.sendShortMessageData(message);
     }
 
 
@@ -520,7 +520,7 @@ public class SMTPClient extends SMTP
      ***/
     public boolean logout() throws IOException
     {
-        return SMTPReply.isPositiveCompletion(quit());
+        return SMTPReply.isPositiveCompletion(this.quit());
     }
 
 
@@ -540,7 +540,7 @@ public class SMTPClient extends SMTP
      ***/
     public boolean reset() throws IOException
     {
-        return SMTPReply.isPositiveCompletion(rset());
+        return SMTPReply.isPositiveCompletion(this.rset());
     }
 
 
@@ -562,7 +562,7 @@ public class SMTPClient extends SMTP
     {
         int result;
 
-        result = vrfy(username);
+        result = this.vrfy(username);
 
         return (result == SMTPReply.ACTION_OK ||
                 result == SMTPReply.USER_NOT_LOCAL_WILL_FORWARD);
@@ -585,8 +585,8 @@ public class SMTPClient extends SMTP
      ***/
     public String listHelp() throws IOException
     {
-        if (SMTPReply.isPositiveCompletion(help()))
-            return getReplyString();
+        if (SMTPReply.isPositiveCompletion(this.help()))
+            return this.getReplyString();
         return null;
     }
 
@@ -608,8 +608,8 @@ public class SMTPClient extends SMTP
      ***/
     public String listHelp(String command) throws IOException
     {
-        if (SMTPReply.isPositiveCompletion(help(command)))
-            return getReplyString();
+        if (SMTPReply.isPositiveCompletion(this.help(command)))
+            return this.getReplyString();
         return null;
     }
 
@@ -629,7 +629,7 @@ public class SMTPClient extends SMTP
      ***/
     public boolean sendNoOp() throws IOException
     {
-        return SMTPReply.isPositiveCompletion(noop());
+        return SMTPReply.isPositiveCompletion(this.noop());
     }
 
 }

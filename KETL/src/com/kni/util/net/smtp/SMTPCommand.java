@@ -85,22 +85,22 @@ public final class SMTPCommand
     public static final int TURN = 12;
     public static final int QUIT = 13;
 
-    public static final int HELLO = HELO;
-    public static final int LOGIN = HELO;
-    public static final int MAIL_FROM = MAIL;
-    public static final int RECIPIENT = RCPT;
-    public static final int SEND_MESSAGE_DATA = DATA;
-    public static final int SEND_FROM = SEND;
-    public static final int SEND_OR_MAIL_FROM = SOML;
-    public static final int SEND_AND_MAIL_FROM = SAML;
-    public static final int RESET = RSET;
-    public static final int VERIFY = VRFY;
-    public static final int EXPAND = EXPN;
+    public static final int HELLO = SMTPCommand.HELO;
+    public static final int LOGIN = SMTPCommand.HELO;
+    public static final int MAIL_FROM = SMTPCommand.MAIL;
+    public static final int RECIPIENT = SMTPCommand.RCPT;
+    public static final int SEND_MESSAGE_DATA = SMTPCommand.DATA;
+    public static final int SEND_FROM = SMTPCommand.SEND;
+    public static final int SEND_OR_MAIL_FROM = SMTPCommand.SOML;
+    public static final int SEND_AND_MAIL_FROM = SMTPCommand.SAML;
+    public static final int RESET = SMTPCommand.RSET;
+    public static final int VERIFY = SMTPCommand.VRFY;
+    public static final int EXPAND = SMTPCommand.EXPN;
     // public static final int HELP = HELP;
     // public static final int NOOP = NOOP;
     // public static final int TURN = TURN;
     // public static final int QUIT = QUIT;
-    public static final int LOGOUT = QUIT;
+    public static final int LOGOUT = SMTPCommand.QUIT;
 
     // Cannot be instantiated
     private SMTPCommand()
@@ -122,7 +122,7 @@ public final class SMTPCommand
      ***/
     public static final String getCommand(int command)
     {
-        return _commands[command];
+        return SMTPCommand._commands[command];
     }
 
 }

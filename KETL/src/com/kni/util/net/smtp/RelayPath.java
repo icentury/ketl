@@ -81,8 +81,8 @@ public final class RelayPath
      ***/
     public RelayPath(String emailAddress)
     {
-        _path = new Vector();
-        _emailAddress = emailAddress;
+        this._path = new Vector();
+        this._emailAddress = emailAddress;
     }
 
     /***
@@ -99,7 +99,7 @@ public final class RelayPath
      ***/
     public void addRelay(String hostname)
     {
-        _path.addElement(hostname);
+        this._path.addElement(hostname);
     }
 
     /***
@@ -107,6 +107,7 @@ public final class RelayPath
      * <p>
      * @return The properly formatted string representation of the relay path.
      ***/
+    @Override
     public String toString()
     {
         StringBuffer buffer = new StringBuffer();
@@ -114,7 +115,7 @@ public final class RelayPath
 
         buffer.append('<');
 
-        hosts = _path.elements();
+        hosts = this._path.elements();
 
         if (hosts.hasMoreElements())
         {
@@ -129,7 +130,7 @@ public final class RelayPath
             buffer.append(':');
         }
 
-        buffer.append(_emailAddress);
+        buffer.append(this._emailAddress);
         buffer.append('>');
 
         return buffer.toString();

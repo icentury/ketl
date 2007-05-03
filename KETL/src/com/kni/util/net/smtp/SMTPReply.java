@@ -92,27 +92,27 @@ public final class SMTPReply
     public static final int CODE_553 = 553;
     public static final int CODE_554 = 554;
 
-    public static final int SYSTEM_STATUS = CODE_211;
-    public static final int HELP_MESSAGE = CODE_214;
-    public static final int SERVICE_READY = CODE_220;
-    public static final int SERVICE_CLOSING_TRANSMISSION_CHANNEL = CODE_221;
-    public static final int ACTION_OK = CODE_250;
-    public static final int USER_NOT_LOCAL_WILL_FORWARD = CODE_251;
-    public static final int START_MAIL_INPUT = CODE_354;
-    public static final int SERVICE_NOT_AVAILABLE = CODE_421;
-    public static final int ACTION_NOT_TAKEN = CODE_450;
-    public static final int ACTION_ABORTED = CODE_451;
-    public static final int INSUFFICIENT_STORAGE = CODE_452;
-    public static final int UNRECOGNIZED_COMMAND = CODE_500;
-    public static final int SYNTAX_ERROR_IN_ARGUMENTS = CODE_501;
-    public static final int COMMAND_NOT_IMPLEMENTED = CODE_502;
-    public static final int BAD_COMMAND_SEQUENCE = CODE_503;
-    public static final int COMMAND_NOT_IMPLEMENTED_FOR_PARAMETER = CODE_504;
-    public static final int MAILBOX_UNAVAILABLE = CODE_550;
-    public static final int USER_NOT_LOCAL = CODE_551;
-    public static final int STORAGE_ALLOCATION_EXCEEDED = CODE_552;
-    public static final int MAILBOX_NAME_NOT_ALLOWED = CODE_553;
-    public static final int TRANSACTION_FAILED = CODE_554;
+    public static final int SYSTEM_STATUS = SMTPReply.CODE_211;
+    public static final int HELP_MESSAGE = SMTPReply.CODE_214;
+    public static final int SERVICE_READY = SMTPReply.CODE_220;
+    public static final int SERVICE_CLOSING_TRANSMISSION_CHANNEL = SMTPReply.CODE_221;
+    public static final int ACTION_OK = SMTPReply.CODE_250;
+    public static final int USER_NOT_LOCAL_WILL_FORWARD = SMTPReply.CODE_251;
+    public static final int START_MAIL_INPUT = SMTPReply.CODE_354;
+    public static final int SERVICE_NOT_AVAILABLE = SMTPReply.CODE_421;
+    public static final int ACTION_NOT_TAKEN = SMTPReply.CODE_450;
+    public static final int ACTION_ABORTED = SMTPReply.CODE_451;
+    public static final int INSUFFICIENT_STORAGE = SMTPReply.CODE_452;
+    public static final int UNRECOGNIZED_COMMAND = SMTPReply.CODE_500;
+    public static final int SYNTAX_ERROR_IN_ARGUMENTS = SMTPReply.CODE_501;
+    public static final int COMMAND_NOT_IMPLEMENTED = SMTPReply.CODE_502;
+    public static final int BAD_COMMAND_SEQUENCE = SMTPReply.CODE_503;
+    public static final int COMMAND_NOT_IMPLEMENTED_FOR_PARAMETER = SMTPReply.CODE_504;
+    public static final int MAILBOX_UNAVAILABLE = SMTPReply.CODE_550;
+    public static final int USER_NOT_LOCAL = SMTPReply.CODE_551;
+    public static final int STORAGE_ALLOCATION_EXCEEDED = SMTPReply.CODE_552;
+    public static final int MAILBOX_NAME_NOT_ALLOWED = SMTPReply.CODE_553;
+    public static final int TRANSACTION_FAILED = SMTPReply.CODE_554;
 
     // Cannot be instantiated
     private SMTPReply()

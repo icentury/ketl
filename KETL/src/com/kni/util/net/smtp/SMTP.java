@@ -148,12 +148,12 @@ public class SMTP extends SocketClient
      ***/
     public SMTP()
     {
-        setDefaultPort(DEFAULT_PORT);
-        __commandBuffer = new StringBuffer();
-        _replyLines = new Vector();
-        _newReplyString = false;
-        _replyString = null;
-        _commandSupport_ = new ProtocolCommandSupport(this);
+        this.setDefaultPort(SMTP.DEFAULT_PORT);
+        this.__commandBuffer = new StringBuffer();
+        this._replyLines = new Vector();
+        this._newReplyString = false;
+        this._replyString = null;
+        this._commandSupport_ = new ProtocolCommandSupport(this);
     }
 
     private int __sendCommand(String command, String args, boolean includeSpace)
@@ -161,32 +161,32 @@ public class SMTP extends SocketClient
     {
         String message;
 
-        __commandBuffer.setLength(0);
-        __commandBuffer.append(command);
+        this.__commandBuffer.setLength(0);
+        this.__commandBuffer.append(command);
 
         if (args != null)
         {
             if (includeSpace)
-                __commandBuffer.append(' ');
-            __commandBuffer.append(args);
+                this.__commandBuffer.append(' ');
+            this.__commandBuffer.append(args);
         }
 
-        __commandBuffer.append(SocketClient.NETASCII_EOL);
+        this.__commandBuffer.append(SocketClient.NETASCII_EOL);
 
-        _writer.write(message = __commandBuffer.toString());
-        _writer.flush();
+        this._writer.write(message = this.__commandBuffer.toString());
+        this._writer.flush();
 
-        if (_commandSupport_.getListenerCount() > 0)
-            _commandSupport_.fireCommandSent(command, message);
+        if (this._commandSupport_.getListenerCount() > 0)
+            this._commandSupport_.fireCommandSent(command, message);
 
-        __getReply();
-        return _replyCode;
+        this.__getReply();
+        return this._replyCode;
     }
 
     private int __sendCommand(int command, String args, boolean includeSpace)
     throws IOException
     {
-        return __sendCommand(SMTPCommand._commands[command], args, includeSpace);
+        return this.__sendCommand(SMTPCommand._commands[command], args, includeSpace);
     }
 
     private void __getReply() throws IOException
@@ -194,10 +194,10 @@ public class SMTP extends SocketClient
         int length;
         String line, code;
 
-        _newReplyString = true;
-        _replyLines.setSize(0);
+        this._newReplyString = true;
+        this._replyLines.setSize(0);
 
-        line = _reader.readLine();
+        line = this._reader.readLine();
 
         if (line == null)
             throw new SMTPConnectionClosedException(
@@ -213,7 +213,7 @@ public class SMTP extends SocketClient
         try
         {
 			code = line.substring(0, 3);
-            _replyCode = Integer.parseInt(code);
+            this._replyCode = Integer.parseInt(code);
         }
         catch (NumberFormatException e)
         {
@@ -221,20 +221,20 @@ public class SMTP extends SocketClient
                 "Could not parse response code.\nServer Reply: " + line);
         }
 
-        _replyLines.addElement(line);
+        this._replyLines.addElement(line);
 
         // Get extra lines if message continues.
         if (length > 3 && line.charAt(3) == '-')
         {
             do
             {
-                line = _reader.readLine();
+                line = this._reader.readLine();
 
                 if (line == null)
                     throw new SMTPConnectionClosedException(
                         "Connection closed without indication.");
 
-                _replyLines.addElement(line);
+                this._replyLines.addElement(line);
 
                 // The length() check handles problems that could arise from readLine()
                 // returning too soon after encountering a naked CR or some other
@@ -247,23 +247,24 @@ public class SMTP extends SocketClient
             // line.startsWith(code)));
         }
 
-        if (_commandSupport_.getListenerCount() > 0)
-            _commandSupport_.fireReplyReceived(_replyCode, getReplyString());
+        if (this._commandSupport_.getListenerCount() > 0)
+            this._commandSupport_.fireReplyReceived(this._replyCode, this.getReplyString());
 
-        if (_replyCode == SMTPReply.SERVICE_NOT_AVAILABLE)
+        if (this._replyCode == SMTPReply.SERVICE_NOT_AVAILABLE)
             throw new SMTPConnectionClosedException(
                 "SMTP response 421 received.  Server closed connection.");
     }
 
     /*** Initiates control connections and gets initial reply. ***/
+    @Override
     protected void _connectAction_() throws IOException
     {
         super._connectAction_();
-        _reader =
-            new BufferedReader(new InputStreamReader(_input_));
-        _writer =
-            new BufferedWriter(new OutputStreamWriter(_output_));
-        __getReply();
+        this._reader =
+            new BufferedReader(new InputStreamReader(this._input_));
+        this._writer =
+            new BufferedWriter(new OutputStreamWriter(this._output_));
+        this.__getReply();
     }
 
 
@@ -275,7 +276,7 @@ public class SMTP extends SocketClient
      ***/
     public void addProtocolCommandListener(ProtocolCommandListener listener)
     {
-        _commandSupport_.addProtocolCommandListener(listener);
+        this._commandSupport_.addProtocolCommandListener(listener);
     }
 
     /***
@@ -286,7 +287,7 @@ public class SMTP extends SocketClient
      ***/
     public void removeProtocolCommandistener(ProtocolCommandListener listener)
     {
-        _commandSupport_.removeProtocolCommandListener(listener);
+        this._commandSupport_.removeProtocolCommandListener(listener);
     }
 
 
@@ -298,14 +299,15 @@ public class SMTP extends SocketClient
      * <p>
      * @exception IOException If an error occurs while disconnecting.
      ***/
+    @Override
     public void disconnect() throws IOException
     {
         super.disconnect();
-        _reader = null;
-        _writer = null;
-        _replyString = null;
-        _replyLines.setSize(0);
-        _newReplyString = false;
+        this._reader = null;
+        this._writer = null;
+        this._replyString = null;
+        this._replyLines.setSize(0);
+        this._newReplyString = false;
     }
 
 
@@ -331,7 +333,7 @@ public class SMTP extends SocketClient
      ***/
     public int sendCommand(String command, String args) throws IOException
     {
-        return __sendCommand(command, args, true);
+        return this.__sendCommand(command, args, true);
     }
 
 
@@ -358,7 +360,7 @@ public class SMTP extends SocketClient
      ***/
     public int sendCommand(int command, String args) throws IOException
     {
-        return sendCommand(SMTPCommand._commands[command], args);
+        return this.sendCommand(SMTPCommand._commands[command], args);
     }
 
 
@@ -382,7 +384,7 @@ public class SMTP extends SocketClient
      ***/
     public int sendCommand(String command) throws IOException
     {
-        return sendCommand(command, null);
+        return this.sendCommand(command, null);
     }
 
 
@@ -407,7 +409,7 @@ public class SMTP extends SocketClient
      ***/
     public int sendCommand(int command) throws IOException
     {
-        return sendCommand(command, null);
+        return this.sendCommand(command, null);
     }
 
 
@@ -421,7 +423,7 @@ public class SMTP extends SocketClient
      ***/
     public int getReplyCode()
     {
-        return _replyCode;
+        return this._replyCode;
     }
 
     /***
@@ -443,8 +445,8 @@ public class SMTP extends SocketClient
      ***/
     public int getReply() throws IOException
     {
-        __getReply();
-        return _replyCode;
+        this.__getReply();
+        return this._replyCode;
     }
 
 
@@ -458,8 +460,8 @@ public class SMTP extends SocketClient
     public String[] getReplyStrings()
     {
         String[] lines;
-        lines = new String[_replyLines.size()];
-        _replyLines.copyInto(lines);
+        lines = new String[this._replyLines.size()];
+        this._replyLines.copyInto(lines);
         return lines;
     }
 
@@ -475,20 +477,20 @@ public class SMTP extends SocketClient
         Enumeration enumReply;
         StringBuffer buffer;
 
-        if (!_newReplyString)
-            return _replyString;
+        if (!this._newReplyString)
+            return this._replyString;
 
         buffer = new StringBuffer(256);
-        enumReply = _replyLines.elements();
+        enumReply = this._replyLines.elements();
         while (enumReply.hasMoreElements())
         {
             buffer.append((String)enumReply.nextElement());
             buffer.append(SocketClient.NETASCII_EOL);
         }
 
-        _newReplyString = false;
+        this._newReplyString = false;
 
-        return (_replyString = buffer.toString());
+        return (this._replyString = buffer.toString());
     }
 
 
@@ -508,7 +510,7 @@ public class SMTP extends SocketClient
      ***/
     public int helo(String hostname) throws IOException
     {
-        return sendCommand(SMTPCommand.HELO, hostname);
+        return this.sendCommand(SMTPCommand.HELO, hostname);
     }
 
 
@@ -528,7 +530,7 @@ public class SMTP extends SocketClient
      ***/
     public int mail(String reversePath) throws IOException
     {
-        return __sendCommand(SMTPCommand.MAIL, reversePath, false);
+        return this.__sendCommand(SMTPCommand.MAIL, reversePath, false);
     }
 
 
@@ -548,7 +550,7 @@ public class SMTP extends SocketClient
      ***/
     public int rcpt(String forwardPath) throws IOException
     {
-        return __sendCommand(SMTPCommand.RCPT, forwardPath, false);
+        return this.__sendCommand(SMTPCommand.RCPT, forwardPath, false);
     }
 
 
@@ -567,7 +569,7 @@ public class SMTP extends SocketClient
      ***/
     public int data() throws IOException
     {
-        return sendCommand(SMTPCommand.DATA);
+        return this.sendCommand(SMTPCommand.DATA);
     }
 
 
@@ -587,7 +589,7 @@ public class SMTP extends SocketClient
      ***/
     public int send(String reversePath) throws IOException
     {
-        return sendCommand(SMTPCommand.SEND, reversePath);
+        return this.sendCommand(SMTPCommand.SEND, reversePath);
     }
 
 
@@ -607,7 +609,7 @@ public class SMTP extends SocketClient
      ***/
     public int soml(String reversePath) throws IOException
     {
-        return sendCommand(SMTPCommand.SOML, reversePath);
+        return this.sendCommand(SMTPCommand.SOML, reversePath);
     }
 
 
@@ -627,7 +629,7 @@ public class SMTP extends SocketClient
      ***/
     public int saml(String reversePath) throws IOException
     {
-        return sendCommand(SMTPCommand.SAML, reversePath);
+        return this.sendCommand(SMTPCommand.SAML, reversePath);
     }
 
 
@@ -646,7 +648,7 @@ public class SMTP extends SocketClient
      ***/
     public int rset() throws IOException
     {
-        return sendCommand(SMTPCommand.RSET);
+        return this.sendCommand(SMTPCommand.RSET);
     }
 
 
@@ -666,7 +668,7 @@ public class SMTP extends SocketClient
      ***/
     public int vrfy(String user) throws IOException
     {
-        return sendCommand(SMTPCommand.VRFY, user);
+        return this.sendCommand(SMTPCommand.VRFY, user);
     }
 
 
@@ -686,7 +688,7 @@ public class SMTP extends SocketClient
      ***/
     public int expn(String name) throws IOException
     {
-        return sendCommand(SMTPCommand.EXPN, name);
+        return this.sendCommand(SMTPCommand.EXPN, name);
     }
 
     /***
@@ -704,7 +706,7 @@ public class SMTP extends SocketClient
      ***/
     public int help() throws IOException
     {
-        return sendCommand(SMTPCommand.HELP);
+        return this.sendCommand(SMTPCommand.HELP);
     }
 
     /***
@@ -723,7 +725,7 @@ public class SMTP extends SocketClient
      ***/
     public int help(String command) throws IOException
     {
-        return sendCommand(SMTPCommand.HELP, command);
+        return this.sendCommand(SMTPCommand.HELP, command);
     }
 
     /***
@@ -741,7 +743,7 @@ public class SMTP extends SocketClient
      ***/
     public int noop() throws IOException
     {
-        return sendCommand(SMTPCommand.NOOP);
+        return this.sendCommand(SMTPCommand.NOOP);
     }
 
 
@@ -760,7 +762,7 @@ public class SMTP extends SocketClient
      ***/
     public int turn() throws IOException
     {
-        return sendCommand(SMTPCommand.TURN);
+        return this.sendCommand(SMTPCommand.TURN);
     }
 
 
@@ -779,7 +781,7 @@ public class SMTP extends SocketClient
      ***/
     public int quit() throws IOException
     {
-        return sendCommand(SMTPCommand.QUIT);
+        return this.sendCommand(SMTPCommand.QUIT);
     }
 
 }
