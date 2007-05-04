@@ -25,6 +25,7 @@ import com.kni.etl.ketl.ETLPort;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
+import com.kni.etl.ketl.smp.DefaultSplitCore;
 import com.kni.etl.ketl.smp.ETLSplit;
 import com.kni.etl.ketl.smp.ETLSplitCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
@@ -363,7 +364,7 @@ public class Sessionizer extends ETLSplit {
                                 .getAttributes(), Sessionizer.CASESENSITIVE, false));
 
                         sId.Weight = priority;
-                        
+
                         for (int x = 0; x < this.mItemMap.length; x++) {
                             if (this.mItemMap[x] == sId.ObjectType)
                                 sId.addSessionIdentifierMap(x);
@@ -509,13 +510,14 @@ public class Sessionizer extends ETLSplit {
 
         }
 
+        @Override
         final public void setDataTypeFromPort(ETLPort in) throws KETLThreadException, ClassNotFoundException {
             if (this.miSource != -1) {
                 if (this.miType == Sessionizer.SESSION)
-                    ((Element) this.getXMLConfig()).setAttribute(SessionizerETLOutPort.DATATYPE,
+                    (this.getXMLConfig()).setAttribute(SessionizerETLOutPort.DATATYPE,
                             Sessionizer.ValidSessionColumnTypes[this.miSource].getCanonicalName());
                 else if (this.miType == Sessionizer.HIT)
-                    ((Element) this.getXMLConfig()).setAttribute(SessionizerETLOutPort.DATATYPE,
+                    (this.getXMLConfig()).setAttribute(SessionizerETLOutPort.DATATYPE,
                             Sessionizer.ValidHitColumnTypes[this.miSource].getCanonicalName());
 
                 this.setPortClass();
@@ -560,7 +562,6 @@ public class Sessionizer extends ETLSplit {
     protected String getRecordExecuteMethodFooter() {
         return " return ((" + this.getClass().getCanonicalName() + ")this.getOwner()).recordType();}";
     }
-
 
     public static final int TEMP_SESSION_ID = 0;
 
@@ -616,28 +617,29 @@ public class Sessionizer extends ETLSplit {
     Object[] pageview = null;
     Holder currentPageHolder, pageHolder = AnalyzePageview.newHolder();
     private int[] mItemMap;
-    private int defaultReturnType = ETLSplitCore.SUCCESS;
+    private int defaultReturnType = DefaultSplitCore.SUCCESS;
     private boolean returnRecord = false;
+
     public int recordType() {
-        
-        if(this.returnRecord){
-            this.returnRecord  = false;
-            return ETLSplitCore.SUCCESS;            
+
+        if (this.returnRecord) {
+            this.returnRecord = false;
+            return DefaultSplitCore.SUCCESS;
         }
-        
+
         if (this.skipRecord) {
             this.skipRecord = false;
             return ETLSplitCore.SKIP_RECORD;
         }
-        return defaultReturnType;
+        return this.defaultReturnType;
     }
 
     public Object getValue(int channel, int source) throws KETLTransformException {
-    
+
         if (channel == Sessionizer.HIT) {
             if (this.currentPageHolder == null)
                 throw new KETLTransformException("Session was null");
-    
+
             switch (source) {
             case TEMP_SESSION_ID:
                 return this.currentPageHolder.currentSession.ID;
@@ -657,21 +659,21 @@ public class Sessionizer extends ETLSplit {
                 return this.currentPageHolder.iPageSequence;
             case ASSOCIATED_HITS:
                 return this.currentPageHolder.iAssociatedHits;
-    
+
             }
         }
         else if (channel == Sessionizer.SESSION) {
-    
+
             int pendingSessions = this.mCompleteSessionList.size();
             if (pendingSessions == 0) {
                 this.skipRecord = true;
                 return null;
-            } 
-            
-            returnRecord = true;
-            
+            }
+
+            this.returnRecord = true;
+
             Session res = this.mCompleteSessionList.remove(0);
-    
+
             switch (source) {
             case TEMP_SESSION_ID:
                 return res.ID;
@@ -704,7 +706,7 @@ public class Sessionizer extends ETLSplit {
                 else {
                     this.sBuf.delete(0, EngineConstants.MAX_KEEP_VARIABLE_LENGTH - 1);
                 }
-    
+
                 for (int i = res.CookieKeepVariables.length - 1; i >= 0; i--) {
                     this.sBuf.append(res.CookieKeepVariables[i][0]).append('=').append(res.CookieKeepVariables[i][1])
                             .append(';');
@@ -714,19 +716,19 @@ public class Sessionizer extends ETLSplit {
                 return res.StartPersistantIdentifier;
             }
         }
-    
+
         throw new KETLTransformException("Invalid channel type");
-    
+
     }
 
     private boolean skipPageScan = false;
 
     public void loadValue(Object[] data) throws KETLTransformException {
 
-        if (skipPageScan) {
+        if (this.skipPageScan) {
             return;
         }
-        
+
         this.pageHolder.isPageView = false;
         this.pageHolder.currentSession = null;
         this.pageHolder.pageView = data;
@@ -747,9 +749,9 @@ public class Sessionizer extends ETLSplit {
     @Override
     protected boolean remainingRecords() {
 
-        skipPageScan = true;
-        defaultReturnType = ETLSplitCore.SKIP_RECORD;
-        
+        this.skipPageScan = true;
+        this.defaultReturnType = ETLSplitCore.SKIP_RECORD;
+
         if (this.mRestartSessions) {
             this.mAnalyzePageview.close(false);
         }

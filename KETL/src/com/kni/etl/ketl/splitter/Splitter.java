@@ -6,10 +6,10 @@ import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.smp.ETLSplit;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 
-
 public class Splitter extends ETLSplit {
 
-    public Splitter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+    public Splitter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
+            throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
