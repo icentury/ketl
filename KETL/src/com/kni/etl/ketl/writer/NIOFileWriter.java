@@ -70,12 +70,13 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
     private String msDefaultDelimiter = null;
     private int miDestFieldArrayLength = -1;
     private String mCharSet = null;
-    String[] msRequiredTags = { FILEPATH };
+    String[] msRequiredTags = { NIOFileWriter.FILEPATH };
 
     ArrayList mWriterList = new ArrayList();
     OutputFile[] mWriters;
     private String msEscapeChar;
 
+    @Override
     public int complete() throws KETLThreadException {
         // If there were no input rows, then we won't even have an upsert object...
         if (this.mWriters == null) {
@@ -84,14 +85,13 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
             return 0;
         }
 
-        // Make sure we've stored all our data...
-        for (int i = 0; i < this.mWriters.length; i++)
+        for (OutputFile element : this.mWriters)
             try {
-                mWriters[i].close();
+                element.close();
             } catch (IOException e) {
                 throw new KETLThreadException(e, this);
             }
-        mWriters = null;
+        this.mWriters = null;
 
         return 0;
     }
@@ -103,21 +103,22 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
         Writer writer;
 
         void open(String filePath) throws FileNotFoundException {
-            stream = new FileOutputStream(filePath);
-            channel = stream.getChannel();
-            CharsetEncoder charSet = (mCharSet == null ? java.nio.charset.Charset.defaultCharset().newEncoder()
-                    : java.nio.charset.Charset.forName(mCharSet).newEncoder());
+            this.stream = new FileOutputStream(filePath);
+            this.channel = this.stream.getChannel();
+            CharsetEncoder charSet = (NIOFileWriter.this.mCharSet == null ? java.nio.charset.Charset.defaultCharset()
+                    .newEncoder() : java.nio.charset.Charset.forName(NIOFileWriter.this.mCharSet).newEncoder());
 
             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Writing to file " + filePath
                     + ", character set " + charSet.charset().displayName());
-            writer = java.nio.channels.Channels.newWriter(channel, charSet, miOutputBufferSize);
+            this.writer = java.nio.channels.Channels.newWriter(this.channel, charSet,
+                    NIOFileWriter.this.miOutputBufferSize);
 
         }
 
         void close() throws IOException {
-            writer.close();
-            channel.close();
-            stream.close();
+            this.writer.close();
+            this.channel.close();
+            this.stream.close();
         }
     }
 
@@ -129,6 +130,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
     }
 
     // Return 0 if success, otherwise error code...
+    @Override
     public int initialize(Node xmlDestNode) throws KETLThreadException {
         int cd = super.initialize(xmlDestNode);
 
@@ -137,7 +139,8 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
         // Get the attributes
         NamedNodeMap nmAttrs = xmlDestNode.getAttributes();
-        mCharSet = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), CHARACTERSET_ATTRIB, null);
+        this.mCharSet = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.CHARACTERSET_ATTRIB,
+                null);
 
         if (nmAttrs == null) {
             return 2;
@@ -145,12 +148,12 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
         if (this.maParameters == null) {
             throw new KETLThreadException("No complete parameter sets found, check that the following exist:\n"
-                    + getRequiredTagsMessage(), this);
+                    + this.getRequiredTagsMessage(), this);
         }
 
         ArrayList files = new ArrayList();
         for (int i = 0; i < this.maParameters.size(); i++) {
-            String filePath = this.getParameterValue(i, FILEPATH);
+            String filePath = this.getParameterValue(i, NIOFileWriter.FILEPATH);
 
             if (filePath != null) {
                 files.add(filePath);
@@ -181,12 +184,15 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
         boolean AppendLineFeed = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(),
                 NIOFileWriter.ENABLE_LINEFEED, true);
-        mbDelimiterAtEnd = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), NIOFileWriter.DELIMITER_AT_END,
-                false);
-        msDefaultDelimiter = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), DELIMITER, "\t");
-        msEscapeChar = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), ESCAPE_CHARACTER_STRING, "\\");
+        this.mbDelimiterAtEnd = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(),
+                NIOFileWriter.DELIMITER_AT_END, false);
+        this.msDefaultDelimiter = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.DELIMITER,
+                "\t");
+        this.msEscapeChar = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(),
+                NIOFileWriter.ESCAPE_CHARACTER_STRING, "\\");
 
-        String tmpLineFeed = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), LINEFEED_CHARACTER, "DOS");
+        String tmpLineFeed = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(),
+                NIOFileWriter.LINEFEED_CHARACTER, "DOS");
 
         if (tmpLineFeed.compareTo("DOS") == 0) {
             this.mLinefeed = new String("\r\n");
@@ -195,28 +201,30 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
             this.mLinefeed = new String("\n");
         }
 
-        this.miOutputBufferSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(), WRITE_BUFFER,
+        this.miOutputBufferSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(), NIOFileWriter.WRITE_BUFFER,
                 this.miOutputBufferSize);
 
         if (this.miOutputBufferSize == 0) {
-            this.miOutputBufferSize = DEFAULT_BUFFER_SIZE;
+            this.miOutputBufferSize = NIOFileWriter.DEFAULT_BUFFER_SIZE;
         }
 
         for (int i = 0; i < nl.getLength(); i++) {
             // See if we can match the name of the datasource...
-            if (nl.item(i).getNodeName().compareTo(IN) == 0) {
-                DestinationFieldDefinition destFieldDefinition = new DestinationFieldDefinition(mCharSet);
+            if (nl.item(i).getNodeName().compareTo(NIOFileWriter.IN) == 0) {
+                DestinationFieldDefinition destFieldDefinition = new DestinationFieldDefinition(this.mCharSet);
                 nmAttrs = nl.item(i).getAttributes();
-                nmAttrs.getNamedItem(NAME);
+                nmAttrs.getNamedItem(NIOFileWriter.NAME);
 
-                destFieldDefinition.MaxLength = XMLHelper.getAttributeAsInt(nmAttrs, MAXIMUM_LENGTH,
+                destFieldDefinition.MaxLength = XMLHelper.getAttributeAsInt(nmAttrs, NIOFileWriter.MAXIMUM_LENGTH,
                         destFieldDefinition.MaxLength);
-                destFieldDefinition.FixedWidth = XMLHelper.getAttributeAsBoolean(nmAttrs, FIXEDWIDTH, false);
+                destFieldDefinition.FixedWidth = XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileWriter.FIXEDWIDTH,
+                        false);
 
-                destFieldDefinition.Delimiter = XMLHelper.getAttributeAsString(nmAttrs, DELIMITER, msDefaultDelimiter);
-                destFieldDefinition.FormatString = XMLHelper.getAttributeAsString(nmAttrs, FORMAT_STRING,
+                destFieldDefinition.Delimiter = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.DELIMITER,
+                        this.msDefaultDelimiter);
+                destFieldDefinition.FormatString = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.FORMAT_STRING,
                         destFieldDefinition.FormatString);
-                destFieldDefinition.DefaultValue = XMLHelper.getAttributeAsString(nmAttrs, DEFAULT_VALUE,
+                destFieldDefinition.DefaultValue = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.DEFAULT_VALUE,
                         destFieldDefinition.DefaultValue);
 
                 destFieldDefinitions.add(destFieldDefinition);
@@ -225,21 +233,21 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
         // give file format configuration to parallel file reader.
         Object[] res = destFieldDefinitions.toArray();
-        miDestFieldArrayLength = res.length;
+        this.miDestFieldArrayLength = res.length;
 
-        DestinationFieldDefinition[] sRes = new DestinationFieldDefinition[miDestFieldArrayLength];
+        DestinationFieldDefinition[] sRes = new DestinationFieldDefinition[this.miDestFieldArrayLength];
 
-        System.arraycopy(res, 0, sRes, 0, miDestFieldArrayLength);
+        System.arraycopy(res, 0, sRes, 0, this.miDestFieldArrayLength);
 
         if (AppendLineFeed) {
-            sRes[miDestFieldArrayLength - 1].AppendLineFeed = true;
+            sRes[this.miDestFieldArrayLength - 1].AppendLineFeed = true;
         }
 
-        if (mbDelimiterAtEnd == false) {
-            sRes[miDestFieldArrayLength - 1].Delimiter = null;
+        if (this.mbDelimiterAtEnd == false) {
+            sRes[this.miDestFieldArrayLength - 1].Delimiter = null;
         }
 
-        mDestFieldDefinitions = sRes;
+        this.mDestFieldDefinitions = sRes;
 
         // NOTE: Should return a declared constant not 0 or 1
         return 0;
@@ -252,7 +260,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
         // Read record and write to output buffer.
         for (int i = 0; i < pRecordWidth; i++) {
-            int pos = sb.length();
+            int pos = this.sb.length();
             // if record exists
             try {
                 Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue()
@@ -261,42 +269,43 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
                 // if byte array is null then apply default value
                 if (data == null) {
                     if (this.mDestFieldDefinitions[i].DefaultValue != null) {
-                        sb.append(escape(this.mDestFieldDefinitions[i].DefaultValue,
+                        this.sb.append(this.escape(this.mDestFieldDefinitions[i].DefaultValue,
                                 this.mDestFieldDefinitions[i].Delimiter, !this.mDestFieldDefinitions[i].FixedWidth));
                     }
                 }
                 else {
                     if (this.mDestFieldDefinitions[i].FormatString != null) {
                         int idx = this.mInPorts[i].getSourcePortIndex();
-                        sb.append(escape(this.mDestFieldDefinitions[i].getFormat(pExpectedDataTypes[idx]).format(data),
-                                this.mDestFieldDefinitions[i].Delimiter, !this.mDestFieldDefinitions[i].FixedWidth));
+                        this.sb.append(this.escape(this.mDestFieldDefinitions[i].getFormat(pExpectedDataTypes[idx])
+                                .format(data), this.mDestFieldDefinitions[i].Delimiter,
+                                !this.mDestFieldDefinitions[i].FixedWidth));
                     }
                     else
-                        sb.append(escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter,
+                        this.sb.append(this.escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter,
                                 !this.mDestFieldDefinitions[i].FixedWidth));
                 }
 
                 // get max length of item to place inoutput buffer
                 if ((this.mDestFieldDefinitions[i].MaxLength != -1)
-                        && (sb.length() - pos > this.mDestFieldDefinitions[i].MaxLength)) {
-                    sb.setLength(pos + this.mDestFieldDefinitions[i].MaxLength);
+                        && (this.sb.length() - pos > this.mDestFieldDefinitions[i].MaxLength)) {
+                    this.sb.setLength(pos + this.mDestFieldDefinitions[i].MaxLength);
                 }
                 else if (this.mDestFieldDefinitions[i].FixedWidth) {
-                    int rem = (pos + this.mDestFieldDefinitions[i].MaxLength) - sb.length();
+                    int rem = (pos + this.mDestFieldDefinitions[i].MaxLength) - this.sb.length();
                     while (rem > 0) {
-                        sb.append(' ');
+                        this.sb.append(' ');
                         rem--;
                     }
                 }
 
                 // write delimiter to main buffer
                 if (this.mDestFieldDefinitions[i].Delimiter != null) {
-                    sb.append(this.mDestFieldDefinitions[i].Delimiter);
+                    this.sb.append(this.mDestFieldDefinitions[i].Delimiter);
                 }
 
                 // write linefeed is required
                 if (this.mDestFieldDefinitions[i].AppendLineFeed) {
-                    sb.append(this.mLinefeed);
+                    this.sb.append(this.mLinefeed);
                 }
             } catch (Exception e1) {
                 throw new KETLWriteException(e1);
@@ -306,13 +315,13 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
         // all done write to streams
         for (int i = this.mWriters.length - 1; i >= 0; i--) {
             try {
-                this.mWriters[i].writer.append(sb.toString());
+                this.mWriters[i].writer.append(this.sb.toString());
             } catch (IOException e) {
                 throw new KETLWriteException(e);
             }
         }
 
-        sb.setLength(0);
+        this.sb.setLength(0);
         return this.mWriters.length;
     }
 
@@ -327,7 +336,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
     @Override
     protected void close(boolean success) {
-        if (mWriters == null)
+        if (this.mWriters == null)
             return;
 
         for (int i = this.mWriters.length - 1; i >= 0; i--) {

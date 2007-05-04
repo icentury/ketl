@@ -62,23 +62,23 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
 
             NamedNodeMap attr = xmlNode.getAttributes();
 
-            mKey = XMLHelper.getAttributeAsInt(attr, KEY_ATTRIB, -1);
-            mValue = XMLHelper.getAttributeAsInt(attr, VALUE_ATTRIB, -1);
+            this.mKey = XMLHelper.getAttributeAsInt(attr, LookupWriter.KEY_ATTRIB, -1);
+            this.mValue = XMLHelper.getAttributeAsInt(attr, LookupWriter.VALUE_ATTRIB, -1);
 
-            if (mKey != -1) {
-                if (mKey < 1)
+            if (this.mKey != -1) {
+                if (this.mKey < 1)
                     throw new KETLThreadException("Port " + this.mesStep.getName() + "." + this.getPortName()
-                            + " KEY order starts at 1, invalid value of " + mKey, this);
-                mKeys++;
-                mKey--;
+                            + " KEY order starts at 1, invalid value of " + this.mKey, this);
+                LookupWriter.this.mKeys++;
+                this.mKey--;
             }
-            if (mValue != -1) {
-                if (mValue < 1)
+            if (this.mValue != -1) {
+                if (this.mValue < 1)
                     throw new KETLThreadException("Port " + this.mesStep.getName() + "." + this.getPortName()
-                            + " VALUE order starts at 1, invalid value of " + mValue, this);
+                            + " VALUE order starts at 1, invalid value of " + this.mValue, this);
 
-                mValues++;
-                mValue--;
+                LookupWriter.this.mValues++;
+                this.mValue--;
             }
             return 0;
         }
@@ -112,49 +112,49 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
             return res;
 
         int minSize = NumberFormatter.convertToBytes(EngineConstants.getDefaultCacheSize());
-        cachePersistence = EngineConstants.JOB_PERSISTENCE;
+        this.cachePersistence = EngineConstants.JOB_PERSISTENCE;
 
         String tmp = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "PERSISTENCE", null);
         if (tmp == null || tmp.equalsIgnoreCase("JOB")) {
             this.mCachePersistenceID = ((Long) this.getJobExecutionID()).intValue();
-            cachePersistence = EngineConstants.JOB_PERSISTENCE;
+            this.cachePersistence = EngineConstants.JOB_PERSISTENCE;
         }
         else if (tmp.equalsIgnoreCase("LOAD")) {
             this.mCachePersistenceID = this.mkjExecutor.getCurrentETLJob().getLoadID();
-            cachePersistence = EngineConstants.LOAD_PERSISTENCE;
+            this.cachePersistence = EngineConstants.LOAD_PERSISTENCE;
         }
         else if (tmp.equalsIgnoreCase("STATIC")) {
-            cachePersistence = EngineConstants.STATIC_PERSISTENCE;
+            this.cachePersistence = EngineConstants.STATIC_PERSISTENCE;
             this.mCachePersistenceID = null;
         }
         else
             throw new KETLThreadException("PERSISTENCE has to be either JOB,LOAD or STATIC", this);
 
-        mCacheSize = NumberFormatter.convertToBytes(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
+        this.mCacheSize = NumberFormatter.convertToBytes(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
                 "CACHESIZE", null));
 
-        if (mCacheSize == -1)
-            mCacheSize = minSize;
-        if (mCacheSize < minSize) {
+        if (this.mCacheSize == -1)
+            this.mCacheSize = minSize;
+        if (this.mCacheSize < minSize) {
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
                     "Cache cannot be less than 64kb, defaulting to 64kb");
-            mCacheSize = minSize;
+            this.mCacheSize = minSize;
         }
 
-        if (mKeys == 0) {
+        if (this.mKeys == 0) {
             throw new KETLThreadException("No keys have been specified", this);
         }
-        if (mValues == 0) {
+        if (this.mValues == 0) {
             throw new KETLThreadException("No return values have been specified", this);
         }
-        if (mKeys > 4) {
+        if (this.mKeys > 4) {
             ResourcePool
                     .LogMessage(this, ResourcePool.INFO_MESSAGE,
                             "Currently lookups are limited to no more than 4 keys, unless you use a an array object to represent the compound key");
         }
 
         this.mLookup = ((KETLJob) this.getJobExecutor().getCurrentETLJob()).registerLookupWriteLock(this.getName(),
-                this, cachePersistence);
+                this, this.cachePersistence);
         this.lookupLocked = true;
 
         return 0;
@@ -167,11 +167,11 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
      */
     public PersistentMap getLookup() {
 
-        Class[] types = new Class[mKeys];
-        Class[] values = new Class[mValues];
-        String[] valueFields = new String[mValues];
-        for (int i = 0; i < this.mInPorts.length; i++) {
-            LookupWriterInPort port = (LookupWriterInPort) this.mInPorts[i];
+        Class[] types = new Class[this.mKeys];
+        Class[] values = new Class[this.mValues];
+        String[] valueFields = new String[this.mValues];
+        for (ETLInPort element : this.mInPorts) {
+            LookupWriterInPort port = (LookupWriterInPort) element;
 
             if (port.mKey != -1)
                 types[port.mKey] = port.getPortClass();
@@ -182,72 +182,56 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
             }
 
         }
-        
-        
-       String lookupClass = XMLHelper.getAttributeAsString(this.getXMLConfig()
-				.getAttributes(), "LOOKUPCLASS", EngineConstants
-				.getDefaultLookupClass());
 
-		try {
-			return EngineConstants.getInstanceOfPersistantMap(lookupClass, this
-					.getName(), mCacheSize, this.mCachePersistenceID,
-					EngineConstants.CACHE_PATH, types, values, valueFields,
-					cachePersistence == EngineConstants.JOB_PERSISTENCE ? true
-							: false);
-		} catch (Throwable e) {
-			ResourcePool.LogMessage(Thread.currentThread(),
-					ResourcePool.WARNING_MESSAGE,
-					"Lookup cache creation failed, trying again, check stack trace");
-			e.printStackTrace();
-			try {
-				return EngineConstants
-						.getInstanceOfPersistantMap(
-								lookupClass,
-								this.getName(),
-								mCacheSize,
-								this.mCachePersistenceID,
-								EngineConstants.CACHE_PATH,
-								types,
-								values,
-								valueFields,
-								cachePersistence == EngineConstants.JOB_PERSISTENCE ? true
-										: false);
-			} catch (Throwable e1) {
+        String lookupClass = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "LOOKUPCLASS",
+                EngineConstants.getDefaultLookupClass());
 
-				e1.printStackTrace();
-				throw new KETLError("LOOKUPCLASS " + lookupClass
-						+ " could not be found: " + e.getMessage(), e);
-			}
-		}
-       
+        try {
+            return EngineConstants.getInstanceOfPersistantMap(lookupClass, this.getName(), this.mCacheSize,
+                    this.mCachePersistenceID, EngineConstants.CACHE_PATH, types, values, valueFields,
+                    this.cachePersistence == EngineConstants.JOB_PERSISTENCE ? true : false);
+        } catch (Throwable e) {
+            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+                    "Lookup cache creation failed, trying again, check stack trace");
+            e.printStackTrace();
+            try {
+                return EngineConstants.getInstanceOfPersistantMap(lookupClass, this.getName(), this.mCacheSize,
+                        this.mCachePersistenceID, EngineConstants.CACHE_PATH, types, values, valueFields,
+                        this.cachePersistence == EngineConstants.JOB_PERSISTENCE ? true : false);
+            } catch (Throwable e1) {
+
+                e1.printStackTrace();
+                throw new KETLError("LOOKUPCLASS " + lookupClass + " could not be found: " + e.getMessage(), e);
+            }
+        }
+
     }
 
     private PersistentMap mLookup;
 
-    public int putNextRecord(Object[] o, Class[] pExpectedDataTypes,
-			int pRecordWidth) throws KETLWriteException {
-		/*
-		 * if (mKeys == 1 && mValues == 1) putKeyObjectDataObject(o); else if
-		 * (mKeys == 1 && mValues > 1) putKeyObjectDataArray(o); else
-		 */
-		// if ( mKeys > 1 && mValues == 1)
-		// putKeyArrayDataObject(o);
-		// else if (/* mKeys > 1 && mValues > 1)
-		try {
-			putKeyArrayDataArray(o);
-		} catch (Error e) {
-			throw new KETLWriteException(e.getMessage());
-		}
+    public int putNextRecord(Object[] o, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
+        /*
+         * if (mKeys == 1 && mValues == 1) putKeyObjectDataObject(o); else if (mKeys == 1 && mValues > 1)
+         * putKeyObjectDataArray(o); else
+         */
+        // if ( mKeys > 1 && mValues == 1)
+        // putKeyArrayDataObject(o);
+        // else if (/* mKeys > 1 && mValues > 1)
+        try {
+            this.putKeyArrayDataArray(o);
+        } catch (Error e) {
+            throw new KETLWriteException(e.getMessage());
+        }
 
-		return 1;
-	}
+        return 1;
+    }
 
     private void putKeyArrayDataArray(Object[] o) {
         Object[] elements = new Object[this.mKeys];
         Object[] values = new Object[this.mValues];
-        for (int i = 0; i < this.mInPorts.length; i++) {
+        for (ETLInPort element : this.mInPorts) {
 
-            LookupWriterInPort port = (LookupWriterInPort) this.mInPorts[i];
+            LookupWriterInPort port = (LookupWriterInPort) element;
             if (port.mKey != -1) {
                 elements[port.mKey] = o[port.getSourcePortIndex()];
             }
@@ -261,7 +245,7 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
     }
 
     boolean lookupLocked = false;
-    
+
     @Override
     public int complete() throws KETLThreadException {
         int res = super.complete();
@@ -269,9 +253,9 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
         if (res != 0)
             return res;
         // submit lookup for use
-        if(lookupLocked){
+        if (this.lookupLocked) {
             this.mLookup.commit(true);
-        	((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
+            ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
         }
         return 0;
     }
@@ -283,8 +267,8 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
 
     @Override
     protected void close(boolean success) {
-    	if(lookupLocked)
-        	((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
+        if (this.lookupLocked)
+            ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
 
         if (this.cachePersistence == EngineConstants.JOB_PERSISTENCE) {
             ((KETLJob) this.getJobExecutor().getCurrentETLJob()).deleteLookup(this.getName());

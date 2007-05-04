@@ -34,6 +34,7 @@ import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
+import com.kni.etl.ketl.smp.BatchManager;
 import com.kni.etl.ketl.smp.DefaultWriterCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.WriterBatchManager;
@@ -121,7 +122,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     private int[] miFieldPopulationOrder;
     int miInsertCount = 0;
     int miMaxTransactionSize = -1;
-    int miReplaceTechnique = SWAP_TABLE;
+    int miReplaceTechnique = DatabaseELTWriter.SWAP_TABLE;
     private boolean mPrimaryKeySpecified = false;
     private String msAllColumns;
     private String msInBatchSQLStatement = null;
@@ -169,7 +170,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
             @Override
             public Class getSourceClass() {
-                return getPortClass();
+                return JDBCETLInPort.this.getPortClass();
             }
 
             public JDBCDatabaseColumnDefinition(Node pNode, String pColumnName, int pDataType) {
@@ -186,47 +187,51 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             super.initialize(xmlNode);
 
             // Create a new column definition with the default properties...
-            dcdNewColumn = new JDBCDatabaseColumnDefinition(xmlNode, "", 0);
+            this.dcdNewColumn = new JDBCDatabaseColumnDefinition(xmlNode, "", 0);
 
             NamedNodeMap attr = xmlNode.getAttributes();
             // Get the column's target name...
-            dcdNewColumn.setColumnName(this.getPortName());
+            this.dcdNewColumn.setColumnName(this.getPortName());
 
-            dcdNewColumn.setAlternateInsertValue(XMLHelper.getAttributeAsString(attr, ALTERNATE_INSERT_VALUE, null));
-            dcdNewColumn.setAlternateUpdateValue(XMLHelper.getAttributeAsString(attr, ALTERNATE_UPDATE_VALUE, null));
-            dcdNewColumn.setValueWrapper(XMLHelper.getAttributeAsString(attr, WRAP_ATTRIB, null));
+            this.dcdNewColumn.setAlternateInsertValue(XMLHelper.getAttributeAsString(attr,
+                    DatabaseELTWriter.ALTERNATE_INSERT_VALUE, null));
+            this.dcdNewColumn.setAlternateUpdateValue(XMLHelper.getAttributeAsString(attr,
+                    DatabaseELTWriter.ALTERNATE_UPDATE_VALUE, null));
+            this.dcdNewColumn
+                    .setValueWrapper(XMLHelper.getAttributeAsString(attr, DatabaseELTWriter.WRAP_ATTRIB, null));
 
             // Find out what the upsert flags are for this input...
-            if (XMLHelper.getAttributeAsBoolean(attr, PK_ATTRIB, false)) {
-                dcdNewColumn.setProperty(DatabaseColumnDefinition.PRIMARY_KEY);
-                mPrimaryKeySpecified = true;
+            if (XMLHelper.getAttributeAsBoolean(attr, DatabaseELTWriter.PK_ATTRIB, false)) {
+                this.dcdNewColumn.setProperty(DatabaseColumnDefinition.PRIMARY_KEY);
+                DatabaseELTWriter.this.mPrimaryKeySpecified = true;
             }
 
             // Source key
-            if (XMLHelper.getAttributeAsBoolean(attr, SK_ATTRIB, false)) {
-                dcdNewColumn.setProperty(DatabaseColumnDefinition.SRC_UNIQUE_KEY);
-                mSourceKeySpecified = true;
+            if (XMLHelper.getAttributeAsBoolean(attr, DatabaseELTWriter.SK_ATTRIB, false)) {
+                this.dcdNewColumn.setProperty(DatabaseColumnDefinition.SRC_UNIQUE_KEY);
+                DatabaseELTWriter.this.mSourceKeySpecified = true;
             }
 
             // Insert field
-            if (XMLHelper.getAttributeAsBoolean(attr, INSERT_ATTRIB, true)) {
-                dcdNewColumn.setProperty(DatabaseColumnDefinition.INSERT_COLUMN);
+            if (XMLHelper.getAttributeAsBoolean(attr, DatabaseELTWriter.INSERT_ATTRIB, true)) {
+                this.dcdNewColumn.setProperty(DatabaseColumnDefinition.INSERT_COLUMN);
             }
 
             // Update field
-            if (XMLHelper.getAttributeAsBoolean(attr, UPDATE_ATTRIB, true)) {
-                dcdNewColumn.setProperty(DatabaseColumnDefinition.UPDATE_COLUMN);
+            if (XMLHelper.getAttributeAsBoolean(attr, DatabaseELTWriter.UPDATE_ATTRIB, true)) {
+                this.dcdNewColumn.setProperty(DatabaseColumnDefinition.UPDATE_COLUMN);
             }
 
             // Compare field, drives updates
-            if (XMLHelper.getAttributeAsBoolean(attr, COMPARE_ATTRIB, true)) {
-                dcdNewColumn.setProperty(DatabaseColumnDefinition.UPDATE_TRIGGER_COLUMN);
+            if (XMLHelper.getAttributeAsBoolean(attr, DatabaseELTWriter.COMPARE_ATTRIB, true)) {
+                this.dcdNewColumn.setProperty(DatabaseColumnDefinition.UPDATE_TRIGGER_COLUMN);
             }
 
-            dcdNewColumn.exists = false;
+            this.dcdNewColumn.exists = false;
             // It's ok if not specified
-            mvColumns.add(dcdNewColumn);
-            mvColumnIndex.put(dcdNewColumn.getColumnName(null, mDBCase), dcdNewColumn);
+            DatabaseELTWriter.this.mvColumns.add(this.dcdNewColumn);
+            DatabaseELTWriter.this.mvColumnIndex.put(this.dcdNewColumn.getColumnName(null,
+                    DatabaseELTWriter.this.mDBCase), this.dcdNewColumn);
 
             return 0;
         }
@@ -247,8 +252,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
         dcdNewColumn.exists = false;
 
-        mvColumns.add(0, dcdNewColumn);
-        mvColumnIndex.put(dcdNewColumn.getColumnName(null, mDBCase), dcdNewColumn);
+        this.mvColumns.add(0, dcdNewColumn);
+        this.mvColumnIndex.put(dcdNewColumn.getColumnName(null, this.mDBCase), dcdNewColumn);
 
         return dcdNewColumn;
     }
@@ -261,9 +266,9 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         // INSERT NEW ROWS OR DELETE ROWS
         ArrayList sql = new ArrayList();
 
-        if (this.mType == UPSERT) {
+        if (this.mType == DatabaseELTWriter.UPSERT) {
             if (this.mStreamChanges)
-                getUpsertSQL(sql);
+                this.getUpsertSQL(sql);
         }
         return sql.toArray();
 
@@ -272,7 +277,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     private void getUpsertSQL(ArrayList sql) throws KETLThreadException, SQLException {
 
         if (this.mStreamChanges == false) {
-            String template = this.getStepTemplate(mDBType, "CREATEINDEX", true);
+            String template = this.getStepTemplate(this.mDBType, "CREATEINDEX", true);
 
             template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrSchemaName
                     + this.msTempTableName);
@@ -282,15 +287,15 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             sql.add(template);
         }
 
-        String sqlToExecute = this.getStepTemplate(mDBType, "ANALYZETABLE", true);
+        String sqlToExecute = this.getStepTemplate(this.mDBType, "ANALYZETABLE", true);
         sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "TABLENAME", this.mstrSchemaName
                 + this.msTempTableName);
         sql.add(sqlToExecute);
 
-        miAnalyzePos = sql.indexOf(sqlToExecute);
+        this.miAnalyzePos = sql.indexOf(sqlToExecute);
 
         if (this.mHandleDuplicateKeys) {
-            sqlToExecute = this.getStepTemplate(mDBType, "DELETEDUPLICATES", true);
+            sqlToExecute = this.getStepTemplate(this.mDBType, "DELETEDUPLICATES", true);
             sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "JOIN", this.msJoin);
             sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "DESTINATIONTABLENAME", "aSub");
             sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "SOURCETABLENAME", this.mstrSchemaName
@@ -305,7 +310,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         if (this.mbReplaceMode) {
             // delete from target rows coming in
 
-            sqlToExecute = this.getStepTemplate(mDBType, "DELETESTATICROWS", true);
+            sqlToExecute = this.getStepTemplate(this.mDBType, "DELETESTATICROWS", true);
             if (sqlToExecute != null && sqlToExecute.equals("") == false) {
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "JOIN", this.msJoin);
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "NAMEDSOURCECOLUMNS",
@@ -315,7 +320,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                         .replaceParameterV2(sqlToExecute, "UPDATETRIGGERS", this.msUpdateTriggers);
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "SOURCETABLENAME", this.mstrSchemaName
                         + this.msTempTableName);
-                sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "FIRSTSK", mFirstSK);
+                sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "FIRSTSK", this.mFirstSK);
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "KEYS", this.msJoinColumns);
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "SOURCEKEYS", this.msTempTableName
                         + "." + this.msJoinColumns.replace(",", "," + this.msTempTableName + "."));
@@ -324,7 +329,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 sql.add(sqlToExecute);
             }
 
-            sqlToExecute = this.getStepTemplate(mDBType, "DELETETARGET", true);
+            sqlToExecute = this.getStepTemplate(this.mDBType, "DELETETARGET", true);
             if (sqlToExecute != null && sqlToExecute.equals("") == false) {
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "SOURCETABLENAME", this.mstrSchemaName
                         + this.msTempTableName);
@@ -334,7 +339,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 sql.add(sqlToExecute);
             }
 
-            sqlToExecute = this.getStepTemplate(mDBType, "INSERTTARGET", true);
+            sqlToExecute = this.getStepTemplate(this.mDBType, "INSERTTARGET", true);
             if (sqlToExecute != null && sqlToExecute.equals("") == false) {
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "SOURCECOLUMNS", this.getAllColumns());
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "INSERTCOLUMNS",
@@ -350,7 +355,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
         }
         else {
-            sqlToExecute = this.getStepTemplate(mDBType, "UPDATEPOSTBATCH", true);
+            sqlToExecute = this.getStepTemplate(this.mDBType, "UPDATEPOSTBATCH", true);
             if (sqlToExecute != null && sqlToExecute.equals("") == false) {
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "JOIN", this.msJoin);
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "UPDATECOLUMNS", this.msUpdateColumns);
@@ -364,7 +369,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 sql.add(sqlToExecute);
             }
 
-            sqlToExecute = this.getStepTemplate(mDBType, "INSERTPOSTBATCH", true);
+            sqlToExecute = this.getStepTemplate(this.mDBType, "INSERTPOSTBATCH", true);
             if (sqlToExecute != null && sqlToExecute.equals("") == false) {
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "JOIN", this.msJoin);
                 sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "SOURCECOLUMNS", this.getAllColumns());
@@ -386,7 +391,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 sql.add(sqlToExecute);
             }
         }
-        sqlToExecute = this.getStepTemplate(mDBType, "TRUNCATETABLE", true);
+        sqlToExecute = this.getStepTemplate(this.mDBType, "TRUNCATETABLE", true);
         sqlToExecute = EngineConstants.replaceParameterV2(sqlToExecute, "TABLENAME", this.mstrSchemaName
                 + this.msTempTableName);
         sql.add(sqlToExecute);
@@ -404,7 +409,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
             case ROLL:
                 String sh = this.setDBCase(XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(),
-                        SCHEMA_ATTRIB, null));
+                        DatabaseELTWriter.SCHEMA_ATTRIB, null));
 
                 ResultSet rs = this.mcDBConnection.getMetaData()
                         .getIndexInfo(null, sh, this.mstrTableName, false, true);
@@ -429,34 +434,34 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                     idx.mColumns.add(col);
                 }
 
-                String tableName = getUniqueObjectName(this.mstrTableName);
-                String indexName = getUniqueObjectName("i");
+                String tableName = this.getUniqueObjectName(this.mstrTableName);
+                String indexName = this.getUniqueObjectName("i");
                 StringBuffer sb = new StringBuffer();
                 StringBuffer si = new StringBuffer();
                 StringBuffer ssk = new StringBuffer();
                 StringBuffer spk = new StringBuffer();
                 StringBuffer addPK = new StringBuffer();
 
-                for (int i = 0; i < madcdColumns.length; i++) {
+                for (DatabaseColumnDefinition element : this.madcdColumns) {
                     if (sb.length() > 0) {
                         sb.append(",\n\t");
                     }
 
                     String prim = "a.", sec = "b.";
-                    if (madcdColumns[i].hasProperty(DatabaseColumnDefinition.PRIMARY_KEY)
-                            || madcdColumns[i].hasProperty(DatabaseColumnDefinition.SRC_UNIQUE_KEY)) {
+                    if (element.hasProperty(DatabaseColumnDefinition.PRIMARY_KEY)
+                            || element.hasProperty(DatabaseColumnDefinition.SRC_UNIQUE_KEY)) {
                         prim = "b.";
                         sec = "a.";
                     }
-                    sb.append(coalesce((madcdColumns[i].getAlternateUpdateValue() == null ? prim
-                            + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase) : madcdColumns[i]
-                            .getAlternateUpdateValue().replace(ALTERNATE_VALUE_SUB,
-                                    prim + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase))),
-                            (madcdColumns[i].getAlternateInsertValue() == null ? sec
-                                    + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase) : madcdColumns[i]
-                                    .getAlternateInsertValue().replace(ALTERNATE_VALUE_SUB,
-                                            sec + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase))))
-                            + " AS " + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                    sb.append(this.coalesce((element.getAlternateUpdateValue() == null ? prim
+                            + element.getColumnName(this.getIDQuote(), this.mDBCase) : element
+                            .getAlternateUpdateValue().replace(DatabaseELTWriter.ALTERNATE_VALUE_SUB,
+                                    prim + element.getColumnName(this.getIDQuote(), this.mDBCase))), (element
+                            .getAlternateInsertValue() == null ? sec
+                            + element.getColumnName(this.getIDQuote(), this.mDBCase) : element
+                            .getAlternateInsertValue().replace(DatabaseELTWriter.ALTERNATE_VALUE_SUB,
+                                    sec + element.getColumnName(this.getIDQuote(), this.mDBCase))))
+                            + " AS " + element.getColumnName(this.getIDQuote(), this.mDBCase));
 
                 }
 
@@ -464,12 +469,12 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
                 sb = new StringBuffer();
 
-                for (int i = 0; i < maOtherColumns.length; i++) {
+                for (int i = 0; i < this.maOtherColumns.length; i++) {
                     if (i > 0) {
                         sb.append(",\n\t");
                     }
 
-                    sb.append("b." + maOtherColumns[i]);
+                    sb.append("b." + this.maOtherColumns[i]);
                 }
 
                 String otherColumns = sb.toString();
@@ -479,8 +484,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
                 sb = new StringBuffer();
 
-                for (int i = 0; i < madcdColumns.length; i++) {
-                    if (madcdColumns[i].hasProperty(DatabaseColumnDefinition.SRC_UNIQUE_KEY)) {
+                for (DatabaseColumnDefinition element : this.madcdColumns) {
+                    if (element.hasProperty(DatabaseColumnDefinition.SRC_UNIQUE_KEY)) {
                         if (sb.length() > 0) {
                             sb.append(" AND \n\t");
                             si.append(',');
@@ -488,17 +493,17 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                             addPK.append(',');
                         }
 
-                        sb.append("a." + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase) + " = b."
-                                + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                        si.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                        ssk.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                        addPK.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                        sb.append("a." + element.getColumnName(this.getIDQuote(), this.mDBCase) + " = b."
+                                + element.getColumnName(this.getIDQuote(), this.mDBCase));
+                        si.append(element.getColumnName(this.getIDQuote(), this.mDBCase));
+                        ssk.append(element.getColumnName(this.getIDQuote(), this.mDBCase));
+                        addPK.append(element.getColumnName(this.getIDQuote(), this.mDBCase));
                     }
                 }
 
                 // CREATE TABLE ${NEWTABLENAME} AS SELECT ${KEYCOLUMNS} ${OTHERCOLUMNS} FROM ${STGTABLE} as a full outer
                 // join ${ORIGTABLE} as b on (${JOIN})
-                String rollSQL = this.getStepTemplate(mDBType, "MERGETONEWTABLE", true);
+                String rollSQL = this.getStepTemplate(this.mDBType, "MERGETONEWTABLE", true);
                 rollSQL = EngineConstants.replaceParameterV2(rollSQL, "NEWTABLENAME", this.mstrSchemaName + tableName);
                 rollSQL = EngineConstants.replaceParameterV2(rollSQL, "KEYCOLUMNS", keyColumns);
                 rollSQL = EngineConstants.replaceParameterV2(rollSQL, "OTHERCOLUMNS", otherColumns);
@@ -508,49 +513,49 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                         + this.mstrTableName);
                 rollSQL = EngineConstants.replaceParameterV2(rollSQL, "JOIN", sb.toString());
 
-                for (int i = 0; i < madcdColumns.length; i++) {
-                    if (madcdColumns[i].hasProperty(DatabaseColumnDefinition.PRIMARY_KEY)) {
+                for (DatabaseColumnDefinition element : this.madcdColumns) {
+                    if (element.hasProperty(DatabaseColumnDefinition.PRIMARY_KEY)) {
                         if (spk.length() > 0) {
                             spk.append(',');
                         }
 
-                        spk.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                        spk.append(element.getColumnName(this.getIDQuote(), this.mDBCase));
                     }
                 }
 
                 // add source unique key end to source table
                 sql.add(EngineConstants.replaceParameterV2(EngineConstants.replaceParameterV2(EngineConstants
-                        .replaceParameterV2(this.getStepTemplate(mDBType, "CREATEUNIQUEINDEX", true), "INDEXNAME",
+                        .replaceParameterV2(this.getStepTemplate(this.mDBType, "CREATEUNIQUEINDEX", true), "INDEXNAME",
                                 indexName), "TABLENAME", this.mstrSchemaName + this.msTempTableName), "COLUMNS", si
                         .toString()));
                 sql.add(rollSQL);
-                sql.add(EngineConstants.replaceParameterV2(this.getStepTemplate(mDBType, "DROPTABLE", true),
+                sql.add(EngineConstants.replaceParameterV2(this.getStepTemplate(this.mDBType, "DROPTABLE", true),
                         "TABLENAME", this.mstrSchemaName + this.msTempTableName));
                 // source primary key index
                 if (this.mPrimaryKeySpecified) {
                     sql.add(EngineConstants.replaceParameterV2(EngineConstants.replaceParameterV2(EngineConstants
-                            .replaceParameterV2(this.getStepTemplate(mDBType, "CREATEUNIQUEINDEX", true), "INDEXNAME",
-                                    getUniqueObjectName("PK_" + tableName)), "TABLENAME", this.mstrSchemaName
-                            + tableName), "COLUMNS", spk.toString()));
+                            .replaceParameterV2(this.getStepTemplate(this.mDBType, "CREATEUNIQUEINDEX", true),
+                                    "INDEXNAME", this.getUniqueObjectName("PK_" + tableName)), "TABLENAME",
+                            this.mstrSchemaName + tableName), "COLUMNS", spk.toString()));
                     // add primary key
                     sql.add(EngineConstants.replaceParameterV2(EngineConstants.replaceParameterV2(this.getStepTemplate(
-                            mDBType, "ADDPRIMARYKEY", true), "TABLENAME", this.mstrSchemaName + tableName), "COLUMNS",
-                            addPK.toString()));
+                            this.mDBType, "ADDPRIMARYKEY", true), "TABLENAME", this.mstrSchemaName + tableName),
+                            "COLUMNS", addPK.toString()));
                 }
                 if (this.mSourceKeySpecified) {
                     // source uniqe key
                     sql.add(EngineConstants.replaceParameterV2(EngineConstants.replaceParameterV2(EngineConstants
-                            .replaceParameterV2(this.getStepTemplate(mDBType, "CREATEUNIQUEINDEX", true), "INDEXNAME",
-                                    getUniqueObjectName("SK_" + tableName)), "TABLENAME", this.mstrSchemaName
-                            + tableName), "COLUMNS", ssk.toString()));
+                            .replaceParameterV2(this.getStepTemplate(this.mDBType, "CREATEUNIQUEINDEX", true),
+                                    "INDEXNAME", this.getUniqueObjectName("SK_" + tableName)), "TABLENAME",
+                            this.mstrSchemaName + tableName), "COLUMNS", ssk.toString()));
                 }
 
-                switch (miReplaceTechnique) {
+                switch (this.miReplaceTechnique) {
                 case SWAP_PARTITION:
                     ;
 
                 case SWAP_TABLE:
-                    String template = this.getStepTemplate(mDBType, "RENAMETABLE", true);
+                    String template = this.getStepTemplate(this.mDBType, "RENAMETABLE", true);
                     sql.add(StatementManager.COMMIT);
                     sql.add(EngineConstants.replaceParameterV2(EngineConstants.replaceParameterV2(template,
                             "TABLENAME", this.mstrSchemaName + this.mstrTableName), "NEWTABLENAME", this
@@ -562,8 +567,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 break;
             case UPSERT:
                 if (this.mStreamChanges == false)
-                    getUpsertSQL(sql);
-                rollSQL = this.getStepTemplate(mDBType, "DROPTABLE", true);
+                    this.getUpsertSQL(sql);
+                rollSQL = this.getStepTemplate(this.mDBType, "DROPTABLE", true);
                 rollSQL = EngineConstants.replaceParameterV2(rollSQL, "TABLENAME", this.mstrSchemaName
                         + this.msTempTableName);
 
@@ -586,8 +591,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         switch (this.mType) {
         case ROLL:
         case UPSERT:
-               sql.add(EngineConstants.replaceParameterV2(this.getStepTemplate(mDBType, "DROPTABLE", true), "TABLENAME",
-                    this.mstrSchemaName + this.msTempTableName));
+            sql.add(EngineConstants.replaceParameterV2(this.getStepTemplate(this.mDBType, "DROPTABLE", true),
+                    "TABLENAME", this.mstrSchemaName + this.msTempTableName));
             break;
         }
 
@@ -602,9 +607,9 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
         ArrayList sql = new ArrayList();
 
-        if (this.mType == UPSERT) {
+        if (this.mType == DatabaseELTWriter.UPSERT) {
 
-            String template = this.getStepTemplate(mDBType, "CREATETABLE", true);
+            String template = this.getStepTemplate(this.mDBType, "CREATETABLE", true);
 
             template = EngineConstants.replaceParameterV2(template, "NEWTABLENAME", this.mstrSchemaName
                     + this.msTempTableName);
@@ -618,7 +623,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             sql.add(template);
 
             if (this.mStreamChanges) {
-                template = this.getStepTemplate(mDBType, "CREATEINDEX", true);
+                template = this.getStepTemplate(this.mDBType, "CREATEINDEX", true);
 
                 template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrSchemaName
                         + this.msTempTableName);
@@ -633,7 +638,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     }
 
     private String coalesce(String arg1, String arg2) throws Exception {
-        return EngineConstants.replaceParameterV2(EngineConstants.replaceParameterV2(this.getStepTemplate(mDBType,
+        return EngineConstants.replaceParameterV2(EngineConstants.replaceParameterV2(this.getStepTemplate(this.mDBType,
                 "COALESCE", true), "ARG1", arg1), "ARG2", arg2);
     }
 
@@ -653,8 +658,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         int res = super.complete();
 
         try {
-            stmt.close();
-            stmt = null;
+            this.stmt.close();
+            this.stmt = null;
         } catch (Exception e) {
             ResourcePool.LogException(e, this);
         }
@@ -672,11 +677,12 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 }
             } catch (Exception e) {
                 try {
-                    if(this.debug()==false)
+                    if (this.debug() == false)
                         StatementManager.executeStatements(this.getFailureCleanupLoadSQL(), this.mcDBConnection,
-                            mStatementSeperator, StatementManager.END, this, true);
+                                this.mStatementSeperator, StatementManager.END, this, true);
                     else {
-                        ResourcePool.LogMessage(this,ResourcePool.DEBUG_MESSAGE,"Cleanup statements were skipped, manual deletion of temp tables may be necessary");                        
+                        ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE,
+                                "Cleanup statements were skipped, manual deletion of temp tables may be necessary");
                     }
                 } catch (Exception e1) {
 
@@ -721,9 +727,10 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     }
 
     private void getColumnDataTypes() throws SQLException {
-        ResultSet rs = this.mcDBConnection.getMetaData().getColumns(null,
-                XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), SCHEMA_ATTRIB, null),
-                this.mstrTableName, "%");
+        ResultSet rs = this.mcDBConnection.getMetaData().getColumns(
+                null,
+                XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), DatabaseELTWriter.SCHEMA_ATTRIB,
+                        null), this.mstrTableName, "%");
 
         boolean found = false;
         while (rs.next()) {
@@ -766,7 +773,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
         // check for temp table existance
         while (notFound) {
-            res = this.setDBCase(pPrefix + Integer.toString(x++) + "_" + mTempTableFeed++);
+            res = this.setDBCase(pPrefix + Integer.toString(x++) + "_" + DatabaseELTWriter.mTempTableFeed++);
             notFound = false;
 
             ResultSet rs = this.mcDBConnection.getMetaData().getTables(null, null, res, null);
@@ -800,7 +807,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
     protected String getIDQuote() {
         if (this.idQuoteEnabled)
-            return idQuote;
+            return this.idQuote;
 
         return null;
     }
@@ -823,42 +830,43 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         NamedNodeMap nmAttrs = nConfig.getAttributes();
 
         // Pull the parameters from the list...
-        strUserName = this.getParameterValue(0, USER_ATTRIB);
-        strPassword = this.getParameterValue(0, PASSWORD_ATTRIB);
-        strURL = this.getParameterValue(0, URL_ATTRIB);
-        strDriverClass = this.getParameterValue(0, DRIVER_ATTRIB);
-        strPreSQL = this.getParameterValue(0, PRESQL_ATTRIB);
+        this.strUserName = this.getParameterValue(0, DBConnection.USER_ATTRIB);
+        this.strPassword = this.getParameterValue(0, DBConnection.PASSWORD_ATTRIB);
+        this.strURL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
+        this.strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
+        this.strPreSQL = this.getParameterValue(0, DBConnection.PRESQL_ATTRIB);
 
         this.mbReinitOnError = XMLHelper.getAttributeAsBoolean(nmAttrs, "RECONNECTONERROR", true);
         this.mbReplaceMode = XMLHelper.getAttributeAsBoolean(nmAttrs, "REPLACEROWS", false);
-        
-        
-        
-        this.mStreamChanges = XMLHelper.getAttributeAsBoolean(nmAttrs, STREAM_ATTRIB, this.mStreamChanges);
+
+        this.mStreamChanges = XMLHelper.getAttributeAsBoolean(nmAttrs, DatabaseELTWriter.STREAM_ATTRIB,
+                this.mStreamChanges);
         this.mManageIndexes = XMLHelper.getAttributeAsBoolean(nmAttrs, "MANAGEINDEXES", false);
 
-        this.mbIgnoreInvalidColumns = XMLHelper.getAttributeAsBoolean(nmAttrs, IGNOREINVALIDCOLUMNS_ATTRIB, false);
-        String tmpType = XMLHelper.getAttributeAsString(nmAttrs, TYPE_ATTRIB, "BULK");
-        this.mBatchData = XMLHelper.getAttributeAsBoolean(nmAttrs, BATCH_ATTRIB, this.mBatchData);
+        this.mbIgnoreInvalidColumns = XMLHelper.getAttributeAsBoolean(nmAttrs,
+                DatabaseELTWriter.IGNOREINVALIDCOLUMNS_ATTRIB, false);
+        String tmpType = XMLHelper.getAttributeAsString(nmAttrs, DatabaseELTWriter.TYPE_ATTRIB, "BULK");
+        this.mBatchData = XMLHelper.getAttributeAsBoolean(nmAttrs, DatabaseELTWriter.BATCH_ATTRIB, this.mBatchData);
         ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Duplicates keys will be "
                 + (this.mHandleDuplicateKeys ? "handled" : "not be handled"));
 
         this.idQuoteEnabled = XMLHelper.getAttributeAsBoolean(nmAttrs, "IDQUOTE", false);
-        String hdl = XMLHelper.getAttributeAsString(nmAttrs, HANDLER_ATTRIB, null);
+        String hdl = XMLHelper.getAttributeAsString(nmAttrs, DatabaseELTWriter.HANDLER_ATTRIB, null);
 
-        this.jdbcHelper = instantiateHelper(hdl);
+        this.jdbcHelper = this.instantiateHelper(hdl);
 
         if (tmpType.equalsIgnoreCase("ROLL"))
-            this.mType = ROLL;
+            this.mType = DatabaseELTWriter.ROLL;
         else if (tmpType.equalsIgnoreCase("UPSERT")) {
-            this.mType = UPSERT;
-            this.mHandleDuplicateKeys = XMLHelper.getAttributeAsBoolean(nmAttrs, HANDLE_DUPLICATES_ATTRIB,
-                    this.mHandleDuplicateKeys);
-            
-            this.mHashColumn = XMLHelper.getAttributeAsString(nmAttrs, HASH_COLUMN_ATTRIB, null);
-            
-            if(this.mHashColumn != null)
-                this.mHashCompareOnly = XMLHelper.getAttributeAsBoolean(nmAttrs, HASH_COMPARE_ONLY_ATTRIB, false);
+            this.mType = DatabaseELTWriter.UPSERT;
+            this.mHandleDuplicateKeys = XMLHelper.getAttributeAsBoolean(nmAttrs,
+                    DatabaseELTWriter.HANDLE_DUPLICATES_ATTRIB, this.mHandleDuplicateKeys);
+
+            this.mHashColumn = XMLHelper.getAttributeAsString(nmAttrs, DatabaseELTWriter.HASH_COLUMN_ATTRIB, null);
+
+            if (this.mHashColumn != null)
+                this.mHashCompareOnly = XMLHelper.getAttributeAsBoolean(nmAttrs,
+                        DatabaseELTWriter.HASH_COMPARE_ONLY_ATTRIB, false);
 
             if (this.mHashColumn != null) {
                 this.mHashColumnDefinition = this.defineHashColumn(this.mHashColumn);
@@ -866,11 +874,11 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
         }
         else if (tmpType.equalsIgnoreCase("BULK"))
-            this.mType = BULK;
+            this.mType = DatabaseELTWriter.BULK;
 
         try {
-            this.mcDBConnection = ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword,
-                    strPreSQL, true);
+            this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName,
+                    this.strPassword, this.strPreSQL, true);
 
             this.mcDBConnection.setAutoCommit(false);
             this.mDBType = this.mcDBConnection.getMetaData().getDatabaseProductName();
@@ -878,26 +886,28 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
             DatabaseMetaData md = this.mcDBConnection.getMetaData();
 
-            idQuote = md.getIdentifierQuoteString();
-            if (idQuote == null || idQuote.equals(" "))
-                idQuote = "";
+            this.idQuote = md.getIdentifierQuoteString();
+            if (this.idQuote == null || this.idQuote.equals(" "))
+                this.idQuote = "";
 
             if (md.storesUpperCaseIdentifiers()) {
-                this.mDBCase = UPPER_CASE;
+                this.mDBCase = DatabaseELTWriter.UPPER_CASE;
             }
             else if (md.storesLowerCaseIdentifiers()) {
-                this.mDBCase = LOWER_CASE;
+                this.mDBCase = DatabaseELTWriter.LOWER_CASE;
             }
             else if (md.storesMixedCaseIdentifiers()) {
-                this.mDBCase = MIXED_CASE;
+                this.mDBCase = DatabaseELTWriter.MIXED_CASE;
             }
         } catch (Exception e) {
             throw new KETLThreadException(e, this);
         }
 
         // Pull the name of the table to be written to...
-        this.mstrTableName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs, TABLE_ATTRIB, null));
-        this.mstrSchemaName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs, SCHEMA_ATTRIB, null));
+        this.mstrTableName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs, DatabaseELTWriter.TABLE_ATTRIB,
+                null));
+        this.mstrSchemaName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs, DatabaseELTWriter.SCHEMA_ATTRIB,
+                null));
 
         if (this.mstrSchemaName == null)
             this.mstrSchemaName = "";
@@ -905,22 +915,23 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             this.mstrSchemaName = this.mstrSchemaName + ".";
 
         // Pull the commit size...
-        this.miCommitSize = XMLHelper.getAttributeAsInt(nmAttrs, COMMITSIZE_ATTRIB, 20000);
+        this.miCommitSize = XMLHelper.getAttributeAsInt(nmAttrs, DatabaseELTWriter.COMMITSIZE_ATTRIB, 20000);
         this.mLowMemoryThreashold = this.miCommitSize * 100 * this.mInPorts.length;
-        this.miMaxTransactionSize = XMLHelper.getAttributeAsInt(nmAttrs, MAXTRANSACTIONSIZE_ATTRIB, -1);
+        this.miMaxTransactionSize = XMLHelper.getAttributeAsInt(nmAttrs, DatabaseELTWriter.MAXTRANSACTIONSIZE_ATTRIB,
+                -1);
         this.mStatementSeperator = this.getStepTemplate(this.mDBType, "STATEMENTSEPERATOR", true);
         if (this.mStatementSeperator != null && this.mStatementSeperator.length() == 0)
             this.mStatementSeperator = null;
 
         // Convert the vector we've been building into a more common array...
-        this.madcdColumns = (DatabaseColumnDefinition[]) mvColumns.toArray(new DatabaseColumnDefinition[0]);
+        this.madcdColumns = (DatabaseColumnDefinition[]) this.mvColumns.toArray(new DatabaseColumnDefinition[0]);
 
         // get column datatype from the database
         try {
-            getColumnDataTypes();
+            this.getColumnDataTypes();
 
             if (this.mHashColumnDefinition != null && this.mHashColumnDefinition.exists == false) {
-                String template = this.getStepTemplate(mDBType, "ADDHASHCOLUMN", true);
+                String template = this.getStepTemplate(this.mDBType, "ADDHASHCOLUMN", true);
 
                 template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrSchemaName
                         + this.mstrTableName);
@@ -928,7 +939,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                         + this.mHashColumn);
 
                 throw new KETLThreadException("Hash column does not exist in target table, expected column "
-                        + this.mHashColumnDefinition.getColumnName(getIDQuote(), this.mDBCase)
+                        + this.mHashColumnDefinition.getColumnName(this.getIDQuote(), this.mDBCase)
                         + ", execute the following SQL command to add the hash column '" + template + "'", this);
             }
 
@@ -953,17 +964,18 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             StringBuffer joinColumns = new StringBuffer();
             StringBuffer insertValues = new StringBuffer();
 
-            String updColFormat = this.getStepTemplate(mDBType, "UPDATECOLUMNFORMAT", true);
+            String updColFormat = this.getStepTemplate(this.mDBType, "UPDATECOLUMNFORMAT", true);
 
             ArrayList fieldPopulationOrder = new ArrayList();
             ArrayList hashFields = new ArrayList();
             int cntJoinColumns = 0, cntInsertColumns = 0, cntUpdateTriggers = 0, cntUpdateCols = 0, cntBestJoinColumns = 0, allColumnCount = 0;
 
-            for (int i = 0; i < madcdColumns.length; i++) {
+            for (int i = 0; i < this.madcdColumns.length; i++) {
 
-                if (this.mbIgnoreInvalidColumns && madcdColumns[i].exists == false) {
+                if (this.mbIgnoreInvalidColumns && this.madcdColumns[i].exists == false) {
                     ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Column "
-                            + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase) + " not found, skipping");
+                            + this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase)
+                            + " not found, skipping");
                     continue;
                 }
 
@@ -978,15 +990,15 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                         }
                         cntUpdateCols++;
 
-                        String tmp = EngineConstants.replaceParameterV2(updColFormat, "TARGETCOLUMN", madcdColumns[i]
-                                .getColumnName(getIDQuote(), this.mDBCase));
+                        String tmp = EngineConstants.replaceParameterV2(updColFormat, "TARGETCOLUMN",
+                                this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
 
-                        if (madcdColumns[i].getAlternateUpdateValue() == null) {
+                        if (this.madcdColumns[i].getAlternateUpdateValue() == null) {
                             tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN", "${SOURCETABLENAME}."
-                                    + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                    + this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
                         }
                         else {
-                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN", madcdColumns[i]
+                            tmp = EngineConstants.replaceParameterV2(tmp, "SOURCECOLUMN", this.madcdColumns[i]
                                     .getAlternateUpdateValue());
                         }
 
@@ -1001,7 +1013,6 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                         else if (i != 0)
                             hashFields.add(new Integer(i - 1));
 
-                        
                         if (this.mHashColumn == null || (this.mHashCompareOnly && i == 0)
                                 || (this.mHashCompareOnly == false)) {
                             if (cntUpdateTriggers > 0) {
@@ -1009,28 +1020,32 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                             }
                             cntUpdateTriggers++;
 
-                            
                             updateTriggers.append("((${DESTINATIONTABLENAME}.");
-                            updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                            updateTriggers.append(this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
                             updateTriggers.append(" != ${SOURCETABLENAME}.");
-                            updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                            updateTriggers.append(this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
                             updateTriggers.append(") OR (");
 
                             if (i == 0 && this.mHashColumn != null) {
                                 updateTriggers.append("${DESTINATIONTABLENAME}."
-                                        + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase) + " is null))");
+                                        + this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase)
+                                        + " is null))");
                             }
                             else {
                                 updateTriggers.append("${DESTINATIONTABLENAME}.");
-                                updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                updateTriggers.append(this.madcdColumns[i].getColumnName(this.getIDQuote(),
+                                        this.mDBCase));
                                 updateTriggers.append(" is null and ${SOURCETABLENAME}.");
-                                updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                updateTriggers.append(this.madcdColumns[i].getColumnName(this.getIDQuote(),
+                                        this.mDBCase));
                                 updateTriggers.append(" is not null");
                                 updateTriggers.append(") OR (");
                                 updateTriggers.append("${DESTINATIONTABLENAME}.");
-                                updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                updateTriggers.append(this.madcdColumns[i].getColumnName(this.getIDQuote(),
+                                        this.mDBCase));
                                 updateTriggers.append(" is not null and ${SOURCETABLENAME}.");
-                                updateTriggers.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                updateTriggers.append(this.madcdColumns[i].getColumnName(this.getIDQuote(),
+                                        this.mDBCase));
                                 updateTriggers.append(" is null))");
                             }
                         }
@@ -1043,16 +1058,16 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                         bestjoin.append("\n\tAND ");
                     }
                     else {
-                        mFirstSK = " ${DESTINATIONTABLENAME}."
-                                + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase);
+                        this.mFirstSK = " ${DESTINATIONTABLENAME}."
+                                + this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase);
                     }
 
                     cntBestJoinColumns++;
 
                     bestjoin.append(" ${DESTINATIONTABLENAME}.");
-                    bestjoin.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                    bestjoin.append(this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
                     bestjoin.append(" = ${SOURCETABLENAME}.");
-                    bestjoin.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                    bestjoin.append(this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
                 }
 
                 if (joinKey != -1 && this.madcdColumns[i].hasProperty(joinKey)) {
@@ -1064,11 +1079,11 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
                     cntJoinColumns++;
 
-                    joinColumns.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                    joinColumns.append(this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
                     join.append(" ${DESTINATIONTABLENAME}.");
-                    join.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                    join.append(this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
                     join.append(" = ${SOURCETABLENAME}.");
-                    join.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                    join.append(this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
                 }
 
                 if (this.madcdColumns[i].hasProperty(DatabaseColumnDefinition.INSERT_COLUMN)) {
@@ -1077,13 +1092,13 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                         insertSourceColumns.append(',');
                     }
 
-                    insertColumns.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                    insertColumns.append(this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
 
-                    if (madcdColumns[i].getAlternateInsertValue() == null)
+                    if (this.madcdColumns[i].getAlternateInsertValue() == null)
                         insertSourceColumns.append("${SOURCETABLENAME}."
-                                + madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
+                                + this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
                     else
-                        insertSourceColumns.append(madcdColumns[i].getAlternateInsertValue());
+                        insertSourceColumns.append(this.madcdColumns[i].getAlternateInsertValue());
 
                     cntInsertColumns++;
                 }
@@ -1094,8 +1109,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 }
 
                 allColumnCount++;
-                allColumns.append(madcdColumns[i].getColumnName(getIDQuote(), this.mDBCase));
-                insertValues.append(madcdColumns[i].getParameterDefinition());
+                allColumns.append(this.madcdColumns[i].getColumnName(this.getIDQuote(), this.mDBCase));
+                insertValues.append(this.madcdColumns[i].getParameterDefinition());
 
                 // if hash column then first column is hash column so offset columns by 1
                 fieldPopulationOrder.add(this.mHashColumnDefinition == null ? new Integer(i) : i == 0 ? new Integer(-1)
@@ -1107,25 +1122,25 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 insertValues.append(",?");
             }
 
-            miFieldPopulationOrder = new int[fieldPopulationOrder.size()];
+            this.miFieldPopulationOrder = new int[fieldPopulationOrder.size()];
             for (int i = 0; i < fieldPopulationOrder.size(); i++) {
-                miFieldPopulationOrder[i] = ((Integer) fieldPopulationOrder.get(i)).intValue();
+                this.miFieldPopulationOrder[i] = ((Integer) fieldPopulationOrder.get(i)).intValue();
             }
 
-            miHashFields = new int[hashFields.size()];
+            this.miHashFields = new int[hashFields.size()];
             for (int i = 0; i < hashFields.size(); i++) {
-                miHashFields[i] = ((Integer) hashFields.get(i)).intValue();
+                this.miHashFields[i] = ((Integer) hashFields.get(i)).intValue();
             }
 
-            msUpdateColumns = updateColumns.toString();
-            setAllColumns(allColumns.toString());
-            msJoin = join.toString();
-            msBestJoin = bestjoin.toString();
-            msInsertColumns = insertColumns.toString();
+            this.msUpdateColumns = updateColumns.toString();
+            this.setAllColumns(allColumns.toString());
+            this.msJoin = join.toString();
+            this.msBestJoin = bestjoin.toString();
+            this.msInsertColumns = insertColumns.toString();
             this.msInsertSourceColumns = insertSourceColumns.toString();
-            setInsertValues(insertValues.toString());
-            msJoinColumns = joinColumns.toString();
-            msUpdateTriggers = (cntUpdateTriggers == 0 ? "1=0" : updateTriggers.toString());
+            this.setInsertValues(insertValues.toString());
+            this.msJoinColumns = joinColumns.toString();
+            this.msUpdateTriggers = (cntUpdateTriggers == 0 ? "1=0" : updateTriggers.toString());
             this.getAllIndexes(XMLHelper.getAttributeAsString(nmAttrs, "JOININDEX", null));
 
             // if roll then table needs to be created to dump data too
@@ -1139,7 +1154,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                     return -1;
                 }
 
-                this.msTempTableName = getUniqueObjectName("t");
+                this.msTempTableName = this.getUniqueObjectName("t");
                 this.maOtherColumns = this.getAllOtherTableColumns();
                 break;
             case BULK:
@@ -1147,14 +1162,14 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 break;
             }
 
-            this.msPreLoadSQL = buildPreLoadSQL();
-            this.msPostLoadSQL = buildPostLoadSQL();
+            this.msPreLoadSQL = this.buildPreLoadSQL();
+            this.msPostLoadSQL = this.buildPostLoadSQL();
             this.msInBatchSQLStatement = this.buildInBatchSQL(this.mstrSchemaName + this.msTempTableName);
 
             if (this.debug())
                 ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Insert statement: "
                         + this.msInBatchSQLStatement);
-            this.stmt = prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement, this.jdbcHelper);
+            this.stmt = this.prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement, this.jdbcHelper);
 
             this.maxCharLength = this.mcDBConnection.getMetaData().getMaxCharLiteralLength();
             this.supportsSetSavepoint = this.mcDBConnection.getMetaData().supportsSavepoints();
@@ -1177,7 +1192,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 }
 
             }
-            this.msPostBatchSQL = buildPostBatchSQL();
+            this.msPostBatchSQL = this.buildPostBatchSQL();
 
             this.mIncrementalCommit = XMLHelper.getAttributeAsBoolean(nmAttrs, "INCREMENTALCOMMIT", true);
 
@@ -1192,7 +1207,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         } catch (Exception e) {
             try {
                 StatementManager.executeStatements(this.getFailureCleanupLoadSQL(), this.mcDBConnection,
-                        mStatementSeperator, StatementManager.END, this, true);
+                        this.mStatementSeperator, StatementManager.END, this, true);
             } catch (Exception e1) {
 
             }
@@ -1204,7 +1219,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
     private void getAllIndexes(String string) throws SQLException, KETLThreadException {
 
-        if (mManageIndexes == false)
+        if (this.mManageIndexes == false)
             return;
 
         ResultSet indexRs = this.mcDBConnection.getMetaData().getIndexInfo(null, this.mstrSchemaName,
@@ -1220,7 +1235,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         indexRs.close();
 
         if (this.partitionID == 0) {
-            String idxEnable = this.getStepTemplate(mDBType, "ENABLEINDEX", true);
+            String idxEnable = this.getStepTemplate(this.mDBType, "ENABLEINDEX", true);
 
             if (idxEnable != null && idxEnable.length() > 0) {
                 for (Object o : indexList) {
@@ -1230,7 +1245,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         }
 
         if (this.partitionID == 0) {
-            String idxDisable = this.getStepTemplate(mDBType, "DISABLEINDEX", true);
+            String idxDisable = this.getStepTemplate(this.mDBType, "DISABLEINDEX", true);
 
             if (idxDisable != null && idxDisable.length() > 0) {
                 for (Object o : indexList) {
@@ -1271,7 +1286,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             int cols = this.miFieldPopulationOrder.length;
             for (int i = 1; i <= cols; i++) {
                 if (this.mHandleDuplicateKeys && i == cols) {
-                    this.stmt.setParameterFromClass(i, Integer.class, dedupeCounter++, maxCharLength, null);
+                    this.stmt.setParameterFromClass(i, Integer.class, this.dedupeCounter++, this.maxCharLength, null);
                 }
                 else {
                     Class datumClass;
@@ -1279,8 +1294,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                     int fieldID = this.miFieldPopulationOrder[i - 1];
 
                     if (fieldID == -1 && this.mHashColumn != null) {
-                        this.stmt.setParameterFromClass(i, Integer.class, getHashCode(pInputRecords), maxCharLength,
-                                null);
+                        this.stmt.setParameterFromClass(i, Integer.class, this.getHashCode(pInputRecords),
+                                this.maxCharLength, null);
                     }
                     else {
                         ETLInPort port = this.mInPorts[fieldID];
@@ -1294,7 +1309,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
                         try {
                             this.stmt.setParameterFromClass(i, datumClass, port.isConstant() ? port.getConstantValue()
-                                    : pInputRecords[idx], maxCharLength, port.getXMLConfig());
+                                    : pInputRecords[idx], this.maxCharLength, port.getXMLConfig());
                         } catch (ClassCastException e1) {
                             throw new KETLWriteException("Error with port "
                                     + port.mstrName
@@ -1310,13 +1325,13 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             }
 
             if (this.mBatchData) {
-                stmt.addBatch();
-                logBatch(pInputRecords);
+                this.stmt.addBatch();
+                this.logBatch(pInputRecords);
 
                 this.mBatchCounter++;
             }
             else {
-                res = stmt.executeUpdate();
+                res = this.stmt.executeUpdate();
             }
         } catch (SQLException e) {
             throw new KETLWriteException(e);
@@ -1329,7 +1344,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     int recordNumBatchStart;
 
     private void logBatch(Object[] inputRecords) {
-        mBatchLog.add(inputRecords);
+        this.mBatchLog.add(inputRecords);
     }
 
     public Connection getConnection() {
@@ -1353,7 +1368,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             // reset statement as some drivers fail after a failure has occured
             try {
                 this.stmt.close();
-                this.stmt = prepareStatementWrapper(mcDBConnection, this.msInBatchSQLStatement, this.jdbcHelper);
+                this.stmt = this.prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement,
+                        this.jdbcHelper);
             } catch (SQLException e) {
                 throw new KETLWriteException(e);
             }
@@ -1364,22 +1380,23 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                     try {
                         if (this.mbReinitOnError) {
                             this.stmt.close();
-                            this.stmt = prepareStatementWrapper(mcDBConnection, this.msInBatchSQLStatement,
+                            this.stmt = this.prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement,
                                     this.jdbcHelper);
                         }
 
                         int cols = this.miFieldPopulationOrder.length;
                         for (int i = 1; i <= cols; i++) {
                             if (this.mHandleDuplicateKeys && i == cols) {
-                                this.stmt.setParameterFromClass(i, Integer.class, dedupeCounter++, maxCharLength, null);
+                                this.stmt.setParameterFromClass(i, Integer.class, this.dedupeCounter++,
+                                        this.maxCharLength, null);
                             }
                             else {
                                 Class datumClass;
                                 int fieldID = this.miFieldPopulationOrder[i - 1];
 
                                 if (fieldID == -1 && this.mHashColumn != null) {
-                                    this.stmt.setParameterFromClass(i, Integer.class, getHashCode(record),
-                                            maxCharLength, null);
+                                    this.stmt.setParameterFromClass(i, Integer.class, this.getHashCode(record),
+                                            this.maxCharLength, null);
 
                                 }
                                 else {
@@ -1393,7 +1410,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                                     }
 
                                     this.stmt.setParameterFromClass(i, datumClass, port.isConstant() ? port
-                                            .getConstantValue() : record[idx], maxCharLength, port.getXMLConfig());
+                                            .getConstantValue() : record[idx], this.maxCharLength, port.getXMLConfig());
                                 }
                             }
                         }
@@ -1402,7 +1419,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                         this.stmt.executeUpdate();
                         result++;
                         this.mFailedBatchElements.remove(x);
-                        if (mIncrementalCommit)
+                        if (this.mIncrementalCommit)
                             this.mcDBConnection.commit();
 
                     } catch (SQLException e) {
@@ -1413,7 +1430,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
                         try {
                             this.stmt.close();
-                            this.stmt = prepareStatementWrapper(mcDBConnection, this.msInBatchSQLStatement,
+                            this.stmt = this.prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement,
                                     this.jdbcHelper);
                         } catch (SQLException e1) {
                             throw new KETLWriteException(e1);
@@ -1438,8 +1455,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
         int result = 1;
 
-        for (int i = 0; i < this.miHashFields.length; i++) {
-            ETLInPort port = this.mInPorts[this.miHashFields[i]];
+        for (int element : this.miHashFields) {
+            ETLInPort port = this.mInPorts[element];
             int hash;
             if (port.isConstant())
                 hash = port.getConstantValue().hashCode();
@@ -1460,20 +1477,20 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         try {
             if (this.mBatchData
                     && (this.mBatchCounter >= this.miCommitSize
-                            || (this.mBatchCounter > 0 && this.isMemoryLow(mLowMemoryThreashold)) || (len == LASTBATCH && this.mBatchCounter > 0))) {
-                dedupeCounter = 0;
+                            || (this.mBatchCounter > 0 && this.isMemoryLow(this.mLowMemoryThreashold)) || (len == BatchManager.LASTBATCH && this.mBatchCounter > 0))) {
+                this.dedupeCounter = 0;
                 boolean errorsOccured = false;
                 Savepoint savepoint = null;
                 try {
 
-                    if (supportsSetSavepoint) {
+                    if (this.supportsSetSavepoint) {
                         savepoint = this.mcDBConnection.setSavepoint();
                     }
 
                     Exception e1 = null;
                     int[] res = null;
                     try {
-                        res = stmt.executeBatch();
+                        res = this.stmt.executeBatch();
 
                         if (this.supportsReleaseSavepoint && savepoint != null) {
                             this.mcDBConnection.releaseSavepoint(savepoint);
@@ -1519,22 +1536,22 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
                 }
 
                 if (errorsOccured && this.miRetryBatch > 0) {
-                    result = retryBatch();
+                    result = this.retryBatch();
                 }
 
-                clearBatchLogBatch();
+                this.clearBatchLogBatch();
 
                 this.miInsertCount += this.mBatchCounter;
                 this.mBatchCounter = 0;
 
-                if (mIncrementalCommit)
+                if (this.mIncrementalCommit)
                     this.mcDBConnection.commit();
                 this.executePostBatchStatements();
-                firePreBatch = true;
+                this.firePreBatch = true;
 
             }
             else if (this.mBatchData == false) {
-                if (mIncrementalCommit)
+                if (this.mIncrementalCommit)
                     this.mcDBConnection.commit();
             }
 
@@ -1568,7 +1585,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         try {
             if (this.firePreBatch && this.mBatchData) {
                 this.executePreBatchStatements();
-                recordNumBatchStart = this.getRecordsProcessed();
+                this.recordNumBatchStart = this.getRecordsProcessed();
                 this.firePreBatch = false;
             }
 
@@ -1583,10 +1600,10 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         StatementManager.executeStatements(this.msPostLoadSQL, this.mcDBConnection, this.mStatementSeperator,
                 StatementManager.END, this, false);
 
-        if (this.mType == UPSERT && miAnalyzePos != -1) {
+        if (this.mType == DatabaseELTWriter.UPSERT && this.miAnalyzePos != -1) {
             // remove analyzes they should only happen once
-            this.msPostLoadSQL[miAnalyzePos] = null;
-            miAnalyzePos = -1;
+            this.msPostLoadSQL[this.miAnalyzePos] = null;
+            this.miAnalyzePos = -1;
         }
 
         if (this.isLastThreadToEnterCompletePhase()) {
@@ -1628,7 +1645,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
     public void executePostBatchStatements() throws SQLException {
         this.setWaiting("post batch statements to run");
-        StatementManager.executeStatements(msPostBatchSQL, this.mcDBConnection, mStatementSeperator,
+        StatementManager.executeStatements(this.msPostBatchSQL, this.mcDBConnection, this.mStatementSeperator,
                 StatementManager.END, this, false);
         StatementManager.executeStatements(this, this, "POSTBATCHSQL");
         this.setWaiting(null);
@@ -1668,7 +1685,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             if (success == false && this.debug() == false) {
                 try {
                     StatementManager.executeStatements(this.getFailureCleanupLoadSQL(), this.mcDBConnection,
-                            mStatementSeperator, StatementManager.END, this, true);
+                            this.mStatementSeperator, StatementManager.END, this, true);
                 } catch (Exception e1) {
                 }
             }
@@ -1681,7 +1698,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     }
 
     String getAllColumns() {
-        return msAllColumns;
+        return this.msAllColumns;
     }
 
     void setInsertValues(String msInsertValues) {
@@ -1689,7 +1706,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     }
 
     String getInsertValues() {
-        return msInsertValues;
+        return this.msInsertValues;
     }
 
 }

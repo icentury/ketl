@@ -50,12 +50,12 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
     }
 
     protected void authenticateCall() throws MalformedURLException, ServiceException, AxisFault, RemoteException {
-        String user = this.getParameterValue(0, USER_ATTRIB);
-        String password = this.getParameterValue(0, PASSWORD_ATTRIB);
+        String user = this.getParameterValue(0, SOAPConnection.USER_ATTRIB);
+        String password = this.getParameterValue(0, SOAPConnection.PASSWORD_ATTRIB);
 
         if (user != null) {
-            call.setUsername(user);
-            call.setPassword(password);
+            this.call.setUsername(user);
+            this.call.setPassword(password);
         }
     }
 
@@ -64,8 +64,8 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
 
         int res = super.complete();
 
-        if (mOriginalHostnameVerifier != null) {
-            HttpsURLConnection.setDefaultHostnameVerifier(mOriginalHostnameVerifier);
+        if (this.mOriginalHostnameVerifier != null) {
+            HttpsURLConnection.setDefaultHostnameVerifier(this.mOriginalHostnameVerifier);
         }
 
         return res;
@@ -79,23 +79,23 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
             return res;
 
         try {
-            setupService();
+            this.setupService();
         } catch (Exception e) {
             throw new KETLThreadException(e, this);
         }
 
-        parameterTypes = new Class[this.mInPorts.length];
+        this.parameterTypes = new Class[this.mInPorts.length];
         for (int x = 0; x < this.mInPorts.length; x++) {
 
             QName param = this.mNamespace == null ? new QName(this.mInPorts[x].mstrName) : new QName(this.mNamespace,
                     this.mInPorts[x].mstrName);
 
-            ParameterDesc pd = call.getOperation().getParamByQName(param);
+            ParameterDesc pd = this.call.getOperation().getParamByQName(param);
             if (pd == null) {
                 ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Parameter " + this.mInPorts[x].mstrName
                         + " not in service definition and will be ignored");
-                if (dumpedParams == false) {
-                    ArrayList params = call.getOperation().getParameters();
+                if (this.dumpedParams == false) {
+                    ArrayList params = this.call.getOperation().getParameters();
 
                     String str = "Expected parameters:\n";
                     for (int i = 0; i < params.size(); i++) {
@@ -107,14 +107,14 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
                             str += p.toString();
                     }
                     ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, str);
-                    dumpedParams = true;
+                    this.dumpedParams = true;
                 }
             }
             else
-                parameterTypes[x] = pd.getJavaType();
+                this.parameterTypes[x] = pd.getJavaType();
         }
 
-        callMsg = new Object[this.mInPorts.length];
+        this.callMsg = new Object[this.mInPorts.length];
 
         return 0;
     }
@@ -122,20 +122,20 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
     public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
             throws KETLWriteException {
         for (int x = 0; x < pRecordWidth; x++) {
-            if (parameterTypes[x] != null)
-                callMsg[x] = this.mInPorts[x].isConstant() ? this.mInPorts[x].getConstantValue()
+            if (this.parameterTypes[x] != null)
+                this.callMsg[x] = this.mInPorts[x].isConstant() ? this.mInPorts[x].getConstantValue()
                         : pInputRecords[this.mInPorts[x].getSourcePortIndex()];
         }
 
         try {
-            Object resp = call.invoke(callMsg);
+            Object resp = this.call.invoke(this.callMsg);
 
             if (resp instanceof java.rmi.RemoteException) {
                 throw new KETLWriteException((Exception) resp);
             }
 
             try {
-                List ls = call.getOutputValues();
+                List ls = this.call.getOutputValues();
 
                 if (ls != null) {
                     Object[] items = ls.toArray();
@@ -152,11 +152,11 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
         } catch (AxisFault e) {
             String req = "N/A", res = "N/A";
             try {
-                req = call.getMessageContext().getRequestMessage().getSOAPPartAsString();
+                req = this.call.getMessageContext().getRequestMessage().getSOAPPartAsString();
             } catch (Exception e1) {
             }
             try {
-                res = call.getMessageContext().getCurrentMessage().getSOAPPartAsString();
+                res = this.call.getMessageContext().getCurrentMessage().getSOAPPartAsString();
             } catch (Exception e1) {
             }
 
@@ -176,19 +176,21 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
             RemoteException {
         // startup code
         try {
-            mURL = new URL(this.getParameterValue(0, SOAPURL_ATTRIB));
+            this.mURL = new URL(this.getParameterValue(0, SOAPConnection.SOAPURL_ATTRIB));
         } catch (MalformedURLException e) {
-            throw new KETLThreadException("Could not connect to URL " + this.getParameterValue(0, SOAPURL_ATTRIB), e, this);
+            throw new KETLThreadException("Could not connect to URL "
+                    + this.getParameterValue(0, SOAPConnection.SOAPURL_ATTRIB), e, this);
         }
-        mNamespace = this.getParameterValue(0, NAMESPACE_ATTRIB);
-        mMethod = this.getParameterValue(0, METHOD_ATTRIB);
-        String wsdl = this.getParameterValue(0, WSDL_ATTRIB);
-        if (XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), TYPE_ATTRIB, SOAP_TYPES[SOAP_RPC])
-                .equalsIgnoreCase(SOAP_TYPES[SOAP_RPC])) {
-            mSOAPType = SOAP_RPC;
+        this.mNamespace = this.getParameterValue(0, SOAPConnection.NAMESPACE_ATTRIB);
+        this.mMethod = this.getParameterValue(0, SOAPConnection.METHOD_ATTRIB);
+        String wsdl = this.getParameterValue(0, SOAPConnection.WSDL_ATTRIB);
+        if (XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), SOAPConnection.TYPE_ATTRIB,
+                SOAPConnection.SOAP_TYPES[SOAPConnection.SOAP_RPC]).equalsIgnoreCase(
+                SOAPConnection.SOAP_TYPES[SOAPConnection.SOAP_RPC])) {
+            this.mSOAPType = SOAPConnection.SOAP_RPC;
         }
         else
-            mSOAPType = SOAP_DOC;
+            this.mSOAPType = SOAPConnection.SOAP_DOC;
 
         if (XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(),
                 SOAPConnection.DISABLEHOSTNAME_VERIFICATION_ATTRIB, false)) {
@@ -201,24 +203,25 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
 
             }
 
-            mOriginalHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+            this.mOriginalHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
 
             HttpsURLConnection.setDefaultHostnameVerifier(new MyHostnameVerifier());
 
         }
 
-        String targetNamespace = this.getParameterValue(0, TARGET_NAMESPACE_ATTRIB);
-        QName service = targetNamespace == null ? new QName(this.getParameterValue(0, SERVICENAME_ATTRIB)) : new QName(
-                targetNamespace, this.getParameterValue(0, SERVICENAME_ATTRIB));
+        String targetNamespace = this.getParameterValue(0, SOAPConnection.TARGET_NAMESPACE_ATTRIB);
+        QName service = targetNamespace == null ? new QName(this
+                .getParameterValue(0, SOAPConnection.SERVICENAME_ATTRIB)) : new QName(targetNamespace, this
+                .getParameterValue(0, SOAPConnection.SERVICENAME_ATTRIB));
 
-        mService = new Service(new URL(wsdl), service);
-        Iterator it = mService.getPorts();
+        this.mService = new Service(new URL(wsdl), service);
+        Iterator it = this.mService.getPorts();
         StringBuilder sb = new StringBuilder();
         boolean multiplePorts = false;
         while (it.hasNext()) {
-            if (mDefaultPort == null) {
-                mDefaultPort = (QName) it.next();
-                sb.append(mDefaultPort.toString());
+            if (this.mDefaultPort == null) {
+                this.mDefaultPort = (QName) it.next();
+                sb.append(this.mDefaultPort.toString());
             }
             else {
                 multiplePorts = true;
@@ -233,14 +236,15 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
         }
 
         // generate SOAP call
-        QName method = mNamespace == null ? new QName(mMethod) : new QName(mNamespace, mMethod);
+        QName method = this.mNamespace == null ? new QName(this.mMethod) : new QName(this.mNamespace, this.mMethod);
 
-        call = (Call) mService.createCall(mDefaultPort, method);
+        this.call = (Call) this.mService.createCall(this.mDefaultPort, method);
 
-        ResourcePool.LogMessage(toString(), ResourcePool.INFO_MESSAGE, "Found web service " + call.getOperationName());
+        ResourcePool.LogMessage(this.toString(), ResourcePool.INFO_MESSAGE, "Found web service "
+                + this.call.getOperationName());
 
-        call.setTargetEndpointAddress(mURL);
-        call.setOperationStyle(SOAP_TYPES[mSOAPType]);
+        this.call.setTargetEndpointAddress(this.mURL);
+        this.call.setOperationStyle(SOAPConnection.SOAP_TYPES[this.mSOAPType]);
 
         this.authenticateCall();
     }
@@ -251,11 +255,11 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
     }
 
     final protected Call getCall() {
-        return call;
+        return this.call;
     }
 
     final public String getNamespace() {
-        return mNamespace;
+        return this.mNamespace;
     }
 
 }

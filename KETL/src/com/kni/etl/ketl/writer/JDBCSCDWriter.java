@@ -62,7 +62,7 @@ public class JDBCSCDWriter extends SCDWriter {
     @Override
     protected String buildInBatchSQL(String pTable) throws Exception {
 
-        String template = this.getStepTemplate(mDBType, "INSERT", true);
+        String template = this.getStepTemplate(this.mDBType, "INSERT", true);
 
         template = EngineConstants.replaceParameterV2(template, "DEDUPECOLUMN", ",seqcol");
         template = EngineConstants.replaceParameterV2(template, "DESTINATIONTABLENAME", pTable);

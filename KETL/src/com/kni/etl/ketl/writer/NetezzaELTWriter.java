@@ -15,6 +15,7 @@ import com.kni.etl.dbutils.BulkLoaderStatementWrapper;
 import com.kni.etl.dbutils.JDBCItemHelper;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.dbutils.StatementWrapper;
+import com.kni.etl.ketl.DBConnection;
 import com.kni.etl.ketl.dbutils.netezza.NetezzaStatementWrapper;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.smp.ETLThreadManager;
@@ -33,8 +34,8 @@ public class NetezzaELTWriter extends BulkLoaderELTWriter {
     StatementWrapper prepareStatementWrapper(Connection Connection, String loadStatement, JDBCItemHelper jdbcHelper)
             throws SQLException {
 
-        return NetezzaStatementWrapper.prepareStatement(Connection, mEncoding, mTargetTable, loadStatement,
-                madcdColumns, jdbcHelper, this.pipeData());
+        return NetezzaStatementWrapper.prepareStatement(Connection, this.mEncoding, this.mTargetTable, loadStatement,
+                this.madcdColumns, jdbcHelper, this.pipeData());
     }
 
     private String mOSCommand;
@@ -46,9 +47,9 @@ public class NetezzaELTWriter extends BulkLoaderELTWriter {
     @Override
     protected String buildInBatchSQL(String pTable) throws Exception {
 
-        mOSCommand = this.getStepTemplate(mDBType, "NZLOAD", true);
+        this.mOSCommand = this.getStepTemplate(this.mDBType, "NZLOAD", true);
 
-        String URL = this.getParameterValue(0, URL_ATTRIB);
+        String URL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
         int hostStartPos = URL.indexOf("//");
         int hostEndPos = URL.indexOf(":", hostStartPos);
         if (hostEndPos == -1)
@@ -57,21 +58,22 @@ public class NetezzaELTWriter extends BulkLoaderELTWriter {
         if (hostStartPos == -1 || hostEndPos == -1)
             throw new KETLThreadException("Could not determine hostname from URL", this);
 
-        mHostname = URL.substring(hostStartPos + 2, hostEndPos);
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "HOSTNAME", mHostname);
+        this.mHostname = URL.substring(hostStartPos + 2, hostEndPos);
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "HOSTNAME", this.mHostname);
 
         int dbStartPos = URL.lastIndexOf("/");
-        mDBName = URL.substring(dbStartPos + 1);
+        this.mDBName = URL.substring(dbStartPos + 1);
 
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "DATABASE", mDBName);
-        mEncoding = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "MULTIBYTE", false) ? "UTF8"
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "DATABASE", this.mDBName);
+        this.mEncoding = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "MULTIBYTE", false) ? "UTF8"
                 : "LATIN9";
 
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "PASSWORD", this.getParameterValue(0,
-                PASSWORD_ATTRIB));
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "USER", this.getParameterValue(0, USER_ATTRIB));
-        mTargetTable = pTable;
-        return mOSCommand;
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "PASSWORD", this.getParameterValue(0,
+                DBConnection.PASSWORD_ATTRIB));
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "USER", this.getParameterValue(0,
+                DBConnection.USER_ATTRIB));
+        this.mTargetTable = pTable;
+        return this.mOSCommand;
     }
 
     @Override
@@ -80,9 +82,11 @@ public class NetezzaELTWriter extends BulkLoaderELTWriter {
                 && ((BulkLoaderStatementWrapper) this.stmt).loaderExecuted()) {
             // run nzreclaim
             try {
-                ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE, "nzreclaim will be executed to cleanup the target table");
-                ((NetezzaStatementWrapper) this.stmt).reclaim(this.getParameterValue(0, USER_ATTRIB), this
-                        .getParameterValue(0, PASSWORD_ATTRIB), mTargetTable, mDBName, mHostname);
+                ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
+                        "nzreclaim will be executed to cleanup the target table");
+                ((NetezzaStatementWrapper) this.stmt).reclaim(this.getParameterValue(0, DBConnection.USER_ATTRIB), this
+                        .getParameterValue(0, DBConnection.PASSWORD_ATTRIB), this.mTargetTable, this.mDBName,
+                        this.mHostname);
             } catch (IOException e) {
                 ResourcePool.LogException(e, Thread.currentThread());
                 e.printStackTrace();

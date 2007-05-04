@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import org.w3c.dom.Node;
 
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.ETLInPort;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
 import com.kni.etl.ketl.smp.DefaultWriterCore;
@@ -65,17 +66,17 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
             fn = new File(filePath);
 
             // stream the file to the browser for download
-            out = new PrintWriter(fn);
+            this.out = new PrintWriter(fn);
 
-            xmlOut = new BufferedWriter(out);
+            this.xmlOut = new BufferedWriter(this.out);
 
-            writeData("<?xml version=\"1.0\"?>\n" + "<?mso-application progid=\"Excel.Sheet\"?>"
+            this.writeData("<?xml version=\"1.0\"?>\n" + "<?mso-application progid=\"Excel.Sheet\"?>"
                     + "<ss:Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" "
                     + "xmlns:o=\"urn:schemas-microsoft-com:office:office\" "
                     + "xmlns:x=\"urn:schemas-microsoft-com:office:excel\"  "
                     + "xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"  "
                     + "xmlns:html=\"http://www.w3.org/TR/REC-html40\">");
-            writeData("<ss:Styles><Style ss:ID=\"Default\" ss:Name=\"Normal\"><Font ss:Size=\"8\"/>"
+            this.writeData("<ss:Styles><Style ss:ID=\"Default\" ss:Name=\"Normal\"><Font ss:Size=\"8\"/>"
                     + "</Style><ss:Style ss:ID=\"1\"><Borders><Border ss:Position=\"Bottom\""
                     + " ss:LineStyle=\"Continuous\" ss:Weight=\"1\"/></Borders></ss:Style>"
                     + "<Style ss:ID=\"s22\"><NumberFormat" + " ss:Format=\"m/d/yy\\ h:mm;@\"/>"
@@ -103,13 +104,13 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
     private Object mCurrentTab = null;
 
     private void addHeaders() throws IOException {
-        writeData("<ss:Row ss:StyleID=\"1\">");
+        this.writeData("<ss:Row ss:StyleID=\"1\">");
 
-        for (int i = 0; i < this.mInPorts.length; i++) {
+        for (ETLInPort element : this.mInPorts) {
 
-            printCell(this.mInPorts[i].mstrName, String.class);
+            this.printCell(element.mstrName, String.class);
         }
-        writeData("</ss:Row>");
+        this.writeData("</ss:Row>");
 
     }
 
@@ -120,26 +121,25 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
                 Object data = this.mInPorts[this.mTabPortIndex].isConstant() ? this.mInPorts[this.mTabPortIndex]
                         .getConstantValue() : o[this.mInPorts[this.mTabPortIndex].getSourcePortIndex()];
-                if (mCurrentTab == null || mCurrentTab.equals(data) == false) {
+                if (this.mCurrentTab == null || this.mCurrentTab.equals(data) == false) {
 
                     if (this.mCurrentTab != null) {
                         this.closeSheet();
                     }
-                    mCurrentTab = data;
+                    this.mCurrentTab = data;
                     this.createSheet(data.toString());
                 }
             }
 
-            writeData("<ss:Row>");
-            for (int i = 0; i < this.mInPorts.length; i++) {
+            this.writeData("<ss:Row>");
+            for (ETLInPort element : this.mInPorts) {
 
-                Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : o[this.mInPorts[i]
-                        .getSourcePortIndex()];
+                Object data = element.isConstant() ? element.getConstantValue() : o[element.getSourcePortIndex()];
 
-                this.printCell(data, this.mInPorts[i].getPortClass());
+                this.printCell(data, element.getPortClass());
             }
 
-            writeData("</ss:Row>");
+            this.writeData("</ss:Row>");
         } catch (IOException e) {
             throw new KETLWriteException(e.getMessage());
         }
@@ -150,13 +150,13 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
     @Override
     protected void close(boolean success) {
         try {
-            if (xmlOut != null) {
-                xmlOut.close();
-                xmlOut = null;
+            if (this.xmlOut != null) {
+                this.xmlOut.close();
+                this.xmlOut = null;
             }
 
-            if (out != null) {
-                out = null;
+            if (this.out != null) {
+                this.out = null;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -164,11 +164,11 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
     }
 
     void writeData(String pData) throws IOException {
-        xmlOut.write(pData);
+        this.xmlOut.write(pData);
     }
 
     void createSheet(String pName) throws IOException {
-        writeData("<ss:Worksheet ss:Name=\"" + checkAndEscapeXMLData(pName) + "\"><ss:Table>");
+        this.writeData("<ss:Worksheet ss:Name=\"" + this.checkAndEscapeXMLData(pName) + "\"><ss:Table>");
         this.addHeaders();
     }
 
@@ -177,25 +177,25 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
     void printCell(Object pValue, Class pClass) throws IOException {
 
         if (pValue == null)
-            writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
+            this.writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
         else if (pClass == String.class) {
-            writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
-            writeData(checkAndEscapeXMLData((String)pValue));
+            this.writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
+            this.writeData(this.checkAndEscapeXMLData((String) pValue));
         }
         else if (pClass == BigDecimal.class) {
-            writeData("<ss:Cell><ss:Data ss:Type=\"Number\">");
-            writeData(checkAndEscapeXMLData(Double.toString(((BigDecimal) pValue).doubleValue())));
+            this.writeData("<ss:Cell><ss:Data ss:Type=\"Number\">");
+            this.writeData(this.checkAndEscapeXMLData(Double.toString(((BigDecimal) pValue).doubleValue())));
         }
         else if (pClass == Timestamp.class) {
-            writeData("<ss:Cell ss:StyleID=\"s22\"><ss:Data ss:Type=\"DateTime\">");
-            writeData(checkAndEscapeXMLData(customDateFormat.format((Timestamp) pValue)));
+            this.writeData("<ss:Cell ss:StyleID=\"s22\"><ss:Data ss:Type=\"DateTime\">");
+            this.writeData(this.checkAndEscapeXMLData(this.customDateFormat.format((Timestamp) pValue)));
         }
         else {
-            writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
-            writeData(checkAndEscapeXMLData(pValue.toString()));
+            this.writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
+            this.writeData(this.checkAndEscapeXMLData(pValue.toString()));
         }
 
-        writeData("</ss:Data></ss:Cell>");
+        this.writeData("</ss:Data></ss:Cell>");
     }
 
     public static String padNull(String arg0) {
@@ -206,7 +206,7 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
     }
 
     void closeSheet() throws IOException {
-        writeData("</ss:Table></ss:Worksheet>");
+        this.writeData("</ss:Table></ss:Worksheet>");
     }
 
     private boolean mDataLengthWarning = true;
@@ -215,10 +215,10 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
         if (pXML.length() > 255) {
             pXML = pXML.substring(0, 254);
-            if (mDataLengthWarning) {
+            if (this.mDataLengthWarning) {
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Data length over 255, actual length "
                         + pXML.length());
-                mDataLengthWarning = false;
+                this.mDataLengthWarning = false;
             }
         }
 
@@ -241,16 +241,16 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
         try {
             this.closeSheet();
-            writeData("</ss:Workbook>");
+            this.writeData("</ss:Workbook>");
 
-            if (xmlOut != null) {
-                xmlOut.close();
-                xmlOut = null;
+            if (this.xmlOut != null) {
+                this.xmlOut.close();
+                this.xmlOut = null;
             }
 
-            if (out != null) {
-                out.flush();
-                out = null;
+            if (this.out != null) {
+                this.out.flush();
+                this.out = null;
             }
         } catch (IOException e) {
             throw new KETLThreadException(e, e.getMessage());

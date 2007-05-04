@@ -11,12 +11,10 @@ import org.w3c.dom.Node;
 
 import com.kni.etl.EngineConstants;
 import com.kni.etl.dbutils.JDBCItemHelper;
-import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.dbutils.StatementWrapper;
-import com.kni.etl.ketl.dbutils.oracle.SQLLoaderItemHelper;
+import com.kni.etl.ketl.DBConnection;
 import com.kni.etl.ketl.dbutils.oracle.SQLLoaderStatementWrapper;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
-import com.kni.etl.ketl.exceptions.KETLWriteException;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 
@@ -33,8 +31,8 @@ public class SQLLoaderELTWriter extends BulkLoaderELTWriter {
     StatementWrapper prepareStatementWrapper(Connection Connection, String loadStatement, JDBCItemHelper jdbcHelper)
             throws SQLException {
 
-        return SQLLoaderStatementWrapper.prepareStatement(Connection, mTargetTable, loadStatement, madcdColumns,
-                jdbcHelper, this.pipeData());
+        return SQLLoaderStatementWrapper.prepareStatement(Connection, this.mTargetTable, loadStatement,
+                this.madcdColumns, jdbcHelper, this.pipeData());
     }
 
     private String mOSCommand;
@@ -43,32 +41,33 @@ public class SQLLoaderELTWriter extends BulkLoaderELTWriter {
     @Override
     protected String buildInBatchSQL(String pTable) throws Exception {
 
-        mOSCommand = this.getStepTemplate(mDBType, "SQLLDR", true);
+        this.mOSCommand = this.getStepTemplate(this.mDBType, "SQLLDR", true);
 
         boolean parallel = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "PARALLEL", true);
 
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "CONNECTIONSTRING", this.getParameterValue(0,
-                CONNECTIONSTRING_ATTRIB));
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "BINDSIZE", "BINDSIZE="
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "CONNECTIONSTRING", this
+                .getParameterValue(0, SQLLoaderELTWriter.CONNECTIONSTRING_ATTRIB));
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "BINDSIZE", "BINDSIZE="
                 + Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "BINDSIZE", 1000)));
 
         if (parallel)
-            mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "ROWS", "");
+            this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "ROWS", "");
         else
-            mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "ROWS", "ROWS="
+            this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "ROWS", "ROWS="
                     + Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "ROWS",
                             this.miCommitSize)));
 
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "PARALLEL", "PARALLEL="
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "PARALLEL", "PARALLEL="
                 + (parallel ? "TRUE" : "FALSE"));
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "DIRECT", "DIRECT="
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "DIRECT", "DIRECT="
                 + (XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "DIRECT", true) ? "TRUE"
                         : "FALSE"));
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "PASSWORD", this.getParameterValue(0,
-                PASSWORD_ATTRIB));
-        mOSCommand = EngineConstants.replaceParameterV2(mOSCommand, "USER", this.getParameterValue(0, USER_ATTRIB));
-        mTargetTable = pTable;
-        return mOSCommand;
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "PASSWORD", this.getParameterValue(0,
+                DBConnection.PASSWORD_ATTRIB));
+        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "USER", this.getParameterValue(0,
+                DBConnection.USER_ATTRIB));
+        this.mTargetTable = pTable;
+        return this.mOSCommand;
     }
 
 }

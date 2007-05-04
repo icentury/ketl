@@ -49,10 +49,11 @@ public class NullWriter extends ETLWriter implements DefaultWriterCore {
         if (res != 0)
             return res;
 
-        this.mReportBack = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), LOGEVERY_ATTRIB, (int) mReportBack);
-        this.mLog = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), LOG_ATTRIB, true);
+        this.mReportBack = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), this.LOGEVERY_ATTRIB,
+                (int) this.mReportBack);
+        this.mLog = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), this.LOG_ATTRIB, true);
 
-        mSharedCounter = this.getJobExecutor().getCurrentETLJob().getCounter(this.getName());
+        this.mSharedCounter = this.getJobExecutor().getCurrentETLJob().getCounter(this.getName());
         return res;
     }
 
@@ -61,9 +62,9 @@ public class NullWriter extends ETLWriter implements DefaultWriterCore {
     public int putNextRecord(Object[] o, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 
         if (this.mLog) {
-            if (mSharedCounter.increment(1) % mReportBack == 0)
-                ResourcePool
-                        .LogMessage(this, ResourcePool.INFO_MESSAGE, "Records processed: " + mSharedCounter.value());
+            if (this.mSharedCounter.increment(1) % this.mReportBack == 0)
+                ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Records processed: "
+                        + this.mSharedCounter.value());
         }
         return 1;
     }
@@ -76,11 +77,11 @@ public class NullWriter extends ETLWriter implements DefaultWriterCore {
     @Override
     public int complete() throws KETLThreadException {
         int res = super.complete();
-        
+
         if (this.mLog && this.isLastThreadToEnterCompletePhase())
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Total Records processed: "
                     + this.mSharedCounter.value());
-       return res;
+        return res;
     }
 
     @Override

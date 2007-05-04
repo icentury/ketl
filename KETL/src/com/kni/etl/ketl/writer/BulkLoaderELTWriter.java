@@ -15,21 +15,16 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
 
 abstract public class BulkLoaderELTWriter extends JDBCWriter {
 
-    
-    public BulkLoaderELTWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+    public BulkLoaderELTWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
+            throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
-
     private boolean mPipeData = !System.getProperty("os.name").startsWith("Windows");
-
-  
 
     final protected boolean pipeData() {
         return this.mPipeData;
     }
-
-  
 
     @Override
     final public int finishBatch(int len) throws KETLWriteException {
@@ -58,7 +53,6 @@ abstract public class BulkLoaderELTWriter extends JDBCWriter {
         }
     }
 
-   
     @Override
     final public int complete() throws KETLThreadException {
 
@@ -76,8 +70,8 @@ abstract public class BulkLoaderELTWriter extends JDBCWriter {
             } catch (Exception e) {
 
                 try {
-                    stmt.close();
-                    stmt = null;
+                    this.stmt.close();
+                    this.stmt = null;
                 } catch (Exception e1) {
                     ResourcePool.LogException(e1, this);
                 }

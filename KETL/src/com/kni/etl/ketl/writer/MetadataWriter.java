@@ -18,6 +18,7 @@ import org.w3c.dom.Node;
 import com.kni.etl.EngineConstants;
 import com.kni.etl.Metadata;
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
 import com.kni.etl.ketl.smp.DefaultWriterCore;
@@ -53,6 +54,7 @@ public class MetadataWriter extends ETLWriter implements DefaultWriterCore {
      * 
      * @see com.kni.etl.ketl.ETLStep#getRequiredTags()
      */
+    @Override
     protected String[] getRequiredTags() {
         return null;
     }
@@ -73,7 +75,7 @@ public class MetadataWriter extends ETLWriter implements DefaultWriterCore {
         if ((res = super.initialize(pConfig)) != 0)
             return res;
 
-        mMetadata = ResourcePool.getMetadata();
+        this.mMetadata = ResourcePool.getMetadata();
 
         if (this.mMetadata == null) {
             ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "The " + this.getName()
@@ -89,11 +91,11 @@ public class MetadataWriter extends ETLWriter implements DefaultWriterCore {
             ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, e.getMessage());
             return -3;
         }
-        mDocument = builder.newDocument(); // Create from whole cloth
-        mParamList = mDocument.createElement(EngineConstants.PARAMETER_LIST);
-        mParameter = mDocument.createElement(EngineConstants.PARAMETER);
-        mDocument.appendChild(mParamList);
-        mParamList.appendChild(mParameter);
+        this.mDocument = builder.newDocument(); // Create from whole cloth
+        this.mParamList = this.mDocument.createElement(EngineConstants.PARAMETER_LIST);
+        this.mParameter = this.mDocument.createElement(EngineConstants.PARAMETER);
+        this.mDocument.appendChild(this.mParamList);
+        this.mParamList.appendChild(this.mParameter);
 
         HashSet hs = new HashSet();
 
@@ -143,12 +145,12 @@ public class MetadataWriter extends ETLWriter implements DefaultWriterCore {
                     "IN tags named PARAMETER_LIST,VALUE and NAME required; SUB_PARAMETER_LIST optional");
         }
 
-        mParameter.setAttribute(NAME_ATTRIB, paramName);
-        mParameter.setTextContent(paramValue);
-        mParamList.setAttribute(NAME_ATTRIB, paramList);
+        this.mParameter.setAttribute(ETLStep.NAME_ATTRIB, paramName);
+        this.mParameter.setTextContent(paramValue);
+        this.mParamList.setAttribute(ETLStep.NAME_ATTRIB, paramList);
 
         if (subParamList == null) {
-            mParameter.removeAttribute(EngineConstants.PARAMETER_LIST);
+            this.mParameter.removeAttribute(EngineConstants.PARAMETER_LIST);
         }
         else {
             int id = this.mMetadata.getParameterListID(subParamList);
@@ -164,11 +166,11 @@ public class MetadataWriter extends ETLWriter implements DefaultWriterCore {
 
             }
 
-            mParameter.setAttribute(EngineConstants.PARAMETER_LIST, subParamList);
+            this.mParameter.setAttribute(EngineConstants.PARAMETER_LIST, subParamList);
         }
 
         try {
-            this.mMetadata.importParameterList(mParamList);
+            this.mMetadata.importParameterList(this.mParamList);
         } catch (Exception e) {
             throw new KETLWriteException(e);
         }

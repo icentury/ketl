@@ -61,7 +61,8 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
 
     public static final String COMMITSIZE_ATTRIB = "COMMITSIZE";
     public static final String TABLE_ATTRIB = "TABLE";
-    String[] msRequiredTags = { USER_ATTRIB, PASSWORD_ATTRIB, URL_ATTRIB, DRIVER_ATTRIB };
+    String[] msRequiredTags = { DBConnection.USER_ATTRIB, DBConnection.PASSWORD_ATTRIB, DBConnection.URL_ATTRIB,
+            DBConnection.DRIVER_ATTRIB };
     private Connection mcDBConnection;
     int miRowCount;
     int miDeleteEstimate;
@@ -75,7 +76,7 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
 
     // Get the current connection object...
     public Connection getConnection() {
-        return mcDBConnection;
+        return this.mcDBConnection;
     }
 
     int miInCount = 0;
@@ -86,25 +87,25 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
     public int finishBatch(int rows) throws KETLWriteException {
         int iDeletes = 0;
 
-        if (miBatchCount > 0) {
+        if (this.miBatchCount > 0) {
 
-            miBatchCount = 0;
+            this.miBatchCount = 0;
             try {
 
-                if (miInCount > 0) {
-                    while (miInCount < this.miMaxInSize) {
+                if (this.miInCount > 0) {
+                    while (this.miInCount < this.miMaxInSize) {
                         for (int a = 0; a < this.mInPorts.length; a++) {
-                            mStmt.setNull(miInCount + 1 + a, mDataTypes[a]);
+                            this.mStmt.setNull(this.miInCount + 1 + a, this.mDataTypes[a]);
 
                         }
-                        miInCount++;
+                        this.miInCount++;
                     }
-                    mStmt.addBatch();
+                    this.mStmt.addBatch();
                 }
 
-                int res[] = mStmt.executeBatch();
-                for (int i = 0; i < res.length; i++) {
-                    iDeletes += res[i];
+                int res[] = this.mStmt.executeBatch();
+                for (int element : res) {
+                    iDeletes += element;
                 }
 
                 this.executePostBatchStatements();
@@ -116,7 +117,7 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
             if (iDeletes == 0)
                 iDeletes = this.miDeleteEstimate;
 
-            rowsEffected = true;
+            this.rowsEffected = true;
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Deletes in batch estimated to be " + iDeletes);
 
         }
@@ -124,11 +125,12 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
         return iDeletes;
     }
 
+    @Override
     public int complete() throws KETLThreadException {
 
         // final batch
         try {
-            if (rowsEffected) {
+            if (this.rowsEffected) {
                 // Commit any last data in the transaction...
                 this.mcDBConnection.commit();
             }
@@ -149,7 +151,8 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
         this.mcDBConnection = null;
 
         ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Job Results: ");
-        ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, miDeleteEstimate + " records expected to be deleted");
+        ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, this.miDeleteEstimate
+                + " records expected to be deleted");
 
         return 0;
     }
@@ -157,6 +160,7 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
     private JDBCItemHelper jdbcHelper;
 
     // Return 0 if success, otherwise error code...
+    @Override
     public int initialize(Node xmlDestNode) throws KETLThreadException {
         // String strDataStoreName = null;
         String strUserName = null;
@@ -171,7 +175,8 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
             return res;
 
         // Pull the name of the table to be written to...
-        mstrTableName = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), TABLE_ATTRIB, null);
+        this.mstrTableName = XMLHelper
+                .getAttributeAsString(xmlDestNode.getAttributes(), JDBCDeleter.TABLE_ATTRIB, null);
 
         String hdl = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), "HANDLER", null);
 
@@ -186,21 +191,22 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
             }
         }
 
-        if (mstrTableName == null)
+        if (this.mstrTableName == null)
             throw new KETLThreadException("No table specified", this);
 
         this.miMaxInSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(), "MAXINSIZE", 256);
 
         // Pull the commit size...
-        miCommitSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(), COMMITSIZE_ATTRIB, this.batchSize);
+        this.miCommitSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(), JDBCDeleter.COMMITSIZE_ATTRIB,
+                this.batchSize);
 
         // Pull the parameters from the list...
         // Pull the parameters from the list...
-        strUserName = this.getParameterValue(0, USER_ATTRIB);
-        strPassword = this.getParameterValue(0, PASSWORD_ATTRIB);
-        strURL = this.getParameterValue(0, URL_ATTRIB);
-        strDriverClass = this.getParameterValue(0, DRIVER_ATTRIB);
-        strPreSQL = this.getParameterValue(0, PRESQL_ATTRIB);
+        strUserName = this.getParameterValue(0, DBConnection.USER_ATTRIB);
+        strPassword = this.getParameterValue(0, DBConnection.PASSWORD_ATTRIB);
+        strURL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
+        strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
+        strPreSQL = this.getParameterValue(0, DBConnection.PRESQL_ATTRIB);
 
         try {
             this.setConnection(ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword, strPreSQL,
@@ -245,39 +251,40 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
     // one connection per reader, so this closes and releases any previous one.
     public void setConnection(Connection conn) {
         // Close any existing connection...
-        if (mcDBConnection != null) {
+        if (this.mcDBConnection != null) {
             try {
                 ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE,
                         "Closing connection for unexpected reason, connection not returned to resource pool");
-                ResourcePool.releaseConnection(mcDBConnection);
+                ResourcePool.releaseConnection(this.mcDBConnection);
             } catch (Exception e) {
             } finally {
-                mcDBConnection = null;
+                this.mcDBConnection = null;
             }
         }
 
         // Point to the new connection...
-        mcDBConnection = conn;
+        this.mcDBConnection = conn;
     }
 
     public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
             throws KETLWriteException {
         try {
             for (int a = 0; a < pRecordWidth; a++) {
-                this.jdbcHelper.setParameterFromClass(mStmt, miInCount + 1 + a, pExpectedDataTypes[this.mInPorts[a]
-                        .getSourcePortIndex()], this.mInPorts[a].isConstant() ? this.mInPorts[a].getConstantValue()
-                        : pInputRecords[this.mInPorts[a].getSourcePortIndex()], this.maxCharLength, this.mInPorts[a]
-                        .getXMLConfig());
+                this.jdbcHelper.setParameterFromClass(this.mStmt, this.miInCount + 1 + a,
+                        pExpectedDataTypes[this.mInPorts[a].getSourcePortIndex()],
+                        this.mInPorts[a].isConstant() ? this.mInPorts[a].getConstantValue()
+                                : pInputRecords[this.mInPorts[a].getSourcePortIndex()], this.maxCharLength,
+                        this.mInPorts[a].getXMLConfig());
             }
 
-            miDeleteEstimate++;
-            miInCount++;
+            this.miDeleteEstimate++;
+            this.miInCount++;
             // protect against massive in statements
-            if (miInCount >= this.miMaxInSize) {
-                mStmt.addBatch();
-                miInCount = 0;
+            if (this.miInCount >= this.miMaxInSize) {
+                this.mStmt.addBatch();
+                this.miInCount = 0;
             }
-            miBatchCount++;
+            this.miBatchCount++;
             return 0;
         } catch (SQLException e) {
             throw new KETLWriteException(e);

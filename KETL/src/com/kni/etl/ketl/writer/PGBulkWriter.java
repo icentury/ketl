@@ -22,6 +22,7 @@ import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.dbutils.postgresql.PGCopyWriter;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
+import com.kni.etl.ketl.smp.BatchManager;
 import com.kni.etl.ketl.smp.DefaultWriterCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.WriterBatchManager;
@@ -83,6 +84,7 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
      * @return DOCUMENT ME!
      * @throws KETLThreadException
      */
+    @Override
     public int initialize(Node nConfig) throws KETLThreadException {
         int res = super.initialize(nConfig);
 
@@ -94,22 +96,22 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
         NamedNodeMap nmAttrs = nConfig.getAttributes();
 
         // Pull the parameters from the list...
-        strUserName = this.getParameterValue(0, USER_ATTRIB);
-        strPassword = this.getParameterValue(0, PASSWORD_ATTRIB);
-        strURL = this.getParameterValue(0, URL_ATTRIB);
-        strDriverClass = this.getParameterValue(0, DRIVER_ATTRIB);
-        strPreSQL = this.getParameterValue(0, PRESQL_ATTRIB);
+        this.strUserName = this.getParameterValue(0, DBConnection.USER_ATTRIB);
+        this.strPassword = this.getParameterValue(0, DBConnection.PASSWORD_ATTRIB);
+        this.strURL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
+        this.strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
+        this.strPreSQL = this.getParameterValue(0, DBConnection.PRESQL_ATTRIB);
 
         // Convert the vector we've been building into a more common array...
-        madcdColumns = (DatabaseColumnDefinition[]) mvColumns.toArray(new DatabaseColumnDefinition[0]);
+        this.madcdColumns = (DatabaseColumnDefinition[]) this.mvColumns.toArray(new DatabaseColumnDefinition[0]);
 
         if (res != 0)
             return res;
         // Pull the name of the table to be written to...
-        mstrTableName = XMLHelper.getAttributeAsString(nmAttrs, TABLE_ATTRIB, null);
+        this.mstrTableName = XMLHelper.getAttributeAsString(nmAttrs, PGBulkWriter.TABLE_ATTRIB, null);
 
         // Pull the commit size...
-        this.batchSize = XMLHelper.getAttributeAsInt(nmAttrs, COMMITSIZE_ATTRIB, this.batchSize);
+        this.batchSize = XMLHelper.getAttributeAsInt(nmAttrs, PGBulkWriter.COMMITSIZE_ATTRIB, this.batchSize);
 
         ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Commit and Batch size: " + this.batchSize);
 
@@ -119,13 +121,13 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
         }
 
         try {
-            this.mcDBConnection = ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword,
-                    strPreSQL, true);
+            this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName,
+                    this.strPassword, this.strPreSQL, true);
             this.executePreStatements();
             this.executePreBatchStatements();
 
-            stmt = new PGCopyWriter(this.mcDBConnection);
-            stmt.createLoadCommand(this.mstrTableName, cols);
+            this.stmt = new PGCopyWriter(this.mcDBConnection);
+            this.stmt.createLoadCommand(this.mstrTableName, cols);
 
         } catch (Exception e) {
             throw new KETLThreadException(e, this);
@@ -156,7 +158,7 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
                     null));
 
             // It's ok if not specified
-            mvColumns.add(dcdNewColumn);
+            PGBulkWriter.this.mvColumns.add(dcdNewColumn);
 
             return 0;
         }
@@ -181,9 +183,9 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
             return res;
         try {
 
-            if (recordsInBatch > 0) {
-                stmt.executeBatch();
-                recordsInBatch = 0;
+            if (this.recordsInBatch > 0) {
+                this.stmt.executeBatch();
+                this.recordsInBatch = 0;
                 this.executePostBatchStatements();
             }
 
@@ -193,12 +195,12 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
         } finally {
 
             try {
-                stmt.close();
+                this.stmt.close();
             } catch (SQLException e) {
                 ResourcePool.LogException(e, this);
             }
 
-            stmt = null;
+            this.stmt = null;
 
             ResourcePool.releaseConnection(this.getConnection());
             this.mcDBConnection = null;
@@ -233,7 +235,7 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
                 else if (cl == Double.class || cl == double.class)
                     this.stmt.setDouble(i + 1, (Double) data, 20);
                 else if (cl == Long.class || cl == long.class)
-                    stmt.setLong(i + 1, (Long) data);
+                    this.stmt.setLong(i + 1, (Long) data);
                 else if (cl == Float.class || cl == Float.class)
                     this.stmt.setFloat(i + 1, (Float) data);
                 else if (cl == java.util.Date.class || cl == java.sql.Timestamp.class || cl == java.sql.Time.class
@@ -251,7 +253,7 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
         } catch (Exception e) {
             throw new KETLWriteException(e);
         }
-        recordsInBatch++;
+        this.recordsInBatch++;
         return 1;
     }
 
@@ -260,15 +262,15 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
     }
 
     public int finishBatch(int len) throws KETLWriteException {
-        if (recordsInBatch == this.batchSize || (recordsInBatch > 0 && len == LASTBATCH)) {
+        if (this.recordsInBatch == this.batchSize || (this.recordsInBatch > 0 && len == BatchManager.LASTBATCH)) {
             try {
-                stmt.executeBatch();
+                this.stmt.executeBatch();
                 this.executePostBatchStatements();
                 this.executePreBatchStatements();
             } catch (Exception e) {
                 throw new KETLWriteException(e);
             }
-            recordsInBatch = 0;
+            this.recordsInBatch = 0;
         }
         return len;
     }
@@ -298,8 +300,8 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
     protected void close(boolean success) {
 
         try {
-            if(stmt != null)
-                stmt.close();
+            if (this.stmt != null)
+                this.stmt.close();
         } catch (SQLException e) {
             ResourcePool.LogException(e, this);
         }
@@ -307,7 +309,5 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
         if (this.mcDBConnection != null)
             ResourcePool.releaseConnection(this.mcDBConnection);
     }
-
-
 
 }
