@@ -38,7 +38,6 @@ public class FilterTransformation extends ETLTransformation {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
-    
     @Override
     protected String getRecordExecuteMethodHeader() throws KETLThreadException {
         StringBuilder sb = new StringBuilder(super.getRecordExecuteMethodHeader());
@@ -46,18 +45,18 @@ public class FilterTransformation extends ETLTransformation {
         Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "FILTER", "*", "*");
 
         if (nl != null) {
-            for (int i = 0; i < nl.length; i++) {
+            for (Node element : nl) {
 
-                String code = XMLHelper.getTextContent(nl[i]);
-                
-                if(code == null || code.length() == 0)
+                String code = XMLHelper.getTextContent(element);
+
+                if (code == null || code.length() == 0)
                     throw new KETLThreadException("Filter tag requires an expression", this);
-                
+
                 String[] parms = EngineConstants.getParametersFromText(code);
 
-                for (int x = 0; x < parms.length; x++) {
-                    ETLInPort port = this.getInPort(parms[x]);
-                    code = EngineConstants.replaceParameter(code, parms[x], port.generateReference());
+                for (String element0 : parms) {
+                    ETLInPort port = this.getInPort(element0);
+                    code = EngineConstants.replaceParameter(code, element0, port.generateReference());
                 }
 
                 sb.append("if(!(" + code + ")) return SKIP_RECORD;");
@@ -68,11 +67,10 @@ public class FilterTransformation extends ETLTransformation {
         return sb.toString();
     }
 
-
     @Override
     protected void close(boolean success) {
         // TODO Auto-generated method stub
-        
+
     }
 
 }

@@ -57,12 +57,12 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
     Class[] parameterTypes;
 
     protected void authenticateCall() throws MalformedURLException, ServiceException, AxisFault, RemoteException {
-        String user = this.getParameterValue(0, USER_ATTRIB);
-        String password = this.getParameterValue(0, PASSWORD_ATTRIB);
+        String user = this.getParameterValue(0, SOAPConnection.USER_ATTRIB);
+        String password = this.getParameterValue(0, SOAPConnection.PASSWORD_ATTRIB);
 
         if (user != null) {
-            call.setUsername(user);
-            call.setPassword(password);
+            this.call.setUsername(user);
+            this.call.setPassword(password);
         }
     }
 
@@ -74,19 +74,21 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
                 EngineConstants.PARAMETER_LIST, null));
 
         try {
-            mURL = new URL(this.getParameterValue(0, SOAPURL_ATTRIB));
+            this.mURL = new URL(this.getParameterValue(0, SOAPConnection.SOAPURL_ATTRIB));
         } catch (MalformedURLException e) {
-            throw new KETLThreadException("Could not connect to URL " + this.getParameterValue(0, SOAPURL_ATTRIB), e, this);
+            throw new KETLThreadException("Could not connect to URL "
+                    + this.getParameterValue(0, SOAPConnection.SOAPURL_ATTRIB), e, this);
         }
-        mNamespace = this.getParameterValue(0, NAMESPACE_ATTRIB);
-        mMethod = this.getParameterValue(0, METHOD_ATTRIB);
-        String wsdl = this.getParameterValue(0, WSDL_ATTRIB);
-        if (XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), TYPE_ATTRIB, SOAP_TYPES[SOAP_RPC])
-                .equalsIgnoreCase(SOAP_TYPES[SOAP_RPC])) {
-            mSOAPType = SOAP_RPC;
+        this.mNamespace = this.getParameterValue(0, SOAPConnection.NAMESPACE_ATTRIB);
+        this.mMethod = this.getParameterValue(0, SOAPConnection.METHOD_ATTRIB);
+        String wsdl = this.getParameterValue(0, SOAPConnection.WSDL_ATTRIB);
+        if (XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), SOAPConnection.TYPE_ATTRIB,
+                SOAPConnection.SOAP_TYPES[SOAPConnection.SOAP_RPC]).equalsIgnoreCase(
+                SOAPConnection.SOAP_TYPES[SOAPConnection.SOAP_RPC])) {
+            this.mSOAPType = SOAPConnection.SOAP_RPC;
         }
         else
-            mSOAPType = SOAP_DOC;
+            this.mSOAPType = SOAPConnection.SOAP_DOC;
 
         if (XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(),
                 SOAPConnection.DISABLEHOSTNAME_VERIFICATION_ATTRIB, false)) {
@@ -99,24 +101,25 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
 
             }
 
-            mOriginalHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+            this.mOriginalHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
 
             HttpsURLConnection.setDefaultHostnameVerifier(new MyHostnameVerifier());
 
         }
 
-        String targetNamespace = this.getParameterValue(0, TARGET_NAMESPACE_ATTRIB);
-        QName service = targetNamespace == null ? new QName(this.getParameterValue(0, SERVICENAME_ATTRIB)) : new QName(
-                targetNamespace, this.getParameterValue(0, SERVICENAME_ATTRIB));
+        String targetNamespace = this.getParameterValue(0, SOAPConnection.TARGET_NAMESPACE_ATTRIB);
+        QName service = targetNamespace == null ? new QName(this
+                .getParameterValue(0, SOAPConnection.SERVICENAME_ATTRIB)) : new QName(targetNamespace, this
+                .getParameterValue(0, SOAPConnection.SERVICENAME_ATTRIB));
 
-        mService = new Service(new URL(wsdl), service);
-        Iterator it = mService.getPorts();
+        this.mService = new Service(new URL(wsdl), service);
+        Iterator it = this.mService.getPorts();
         StringBuilder sb = new StringBuilder();
         boolean multiplePorts = false;
         while (it.hasNext()) {
-            if (mDefaultPort == null) {
-                mDefaultPort = (QName) it.next();
-                sb.append(mDefaultPort.toString());
+            if (this.mDefaultPort == null) {
+                this.mDefaultPort = (QName) it.next();
+                sb.append(this.mDefaultPort.toString());
             }
             else {
                 multiplePorts = true;
@@ -131,14 +134,15 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
         }
 
         // generate SOAP call
-        QName method = mNamespace == null ? new QName(mMethod) : new QName(mNamespace, mMethod);
+        QName method = this.mNamespace == null ? new QName(this.mMethod) : new QName(this.mNamespace, this.mMethod);
 
-        call = (Call) mService.createCall(mDefaultPort, method);
+        this.call = (Call) this.mService.createCall(this.mDefaultPort, method);
 
-        ResourcePool.LogMessage(toString(), ResourcePool.INFO_MESSAGE, "Found web service " + call.getOperationName());
+        ResourcePool.LogMessage(this.toString(), ResourcePool.INFO_MESSAGE, "Found web service "
+                + this.call.getOperationName());
 
-        call.setTargetEndpointAddress(mURL);
-        call.setOperationStyle(SOAP_TYPES[mSOAPType]);
+        this.call.setTargetEndpointAddress(this.mURL);
+        this.call.setOperationStyle(SOAPConnection.SOAP_TYPES[this.mSOAPType]);
 
         this.authenticateCall();
     }
@@ -153,9 +157,10 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             if (super.initialize(xmlConfig) != 0)
                 return -1;
-            QName param = mNamespace == null ? new QName(this.mstrName) : new QName(mNamespace, this.mstrName);
+            QName param = SOAPTransformation.this.mNamespace == null ? new QName(this.mstrName) : new QName(
+                    SOAPTransformation.this.mNamespace, this.mstrName);
 
-            ParameterDesc pd = call.getOperation().getParamByQName(param);
+            ParameterDesc pd = SOAPTransformation.this.call.getOperation().getParamByQName(param);
             if (pd != null) {
                 this.parameter = true;
                 this.parameterPos = pd.getOrder();
@@ -184,11 +189,12 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
                 return -1;
 
             if (this.parameter) {
-                QName param = mNamespace == null ? new QName(this.mstrName) : new QName(mNamespace, this.mstrName);
+                QName param = SOAPTransformation.this.mNamespace == null ? new QName(this.mstrName) : new QName(
+                        SOAPTransformation.this.mNamespace, this.mstrName);
 
-                ArrayList res = call.getOperation().getOutParams();
+                ArrayList res = SOAPTransformation.this.call.getOperation().getOutParams();
                 if (res.size() > 0) {
-                    ParameterDesc pd = call.getOperation().getParamByQName(param);
+                    ParameterDesc pd = SOAPTransformation.this.call.getOperation().getParamByQName(param);
                     if (pd != null) {
                         this.parameterPos = pd.getOrder();
                         this.getXMLConfig().setAttribute("DATATYPE", pd.getJavaType().getCanonicalName());
@@ -198,7 +204,7 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
                 }
                 else {
                     this.getXMLConfig().setAttribute("DATATYPE",
-                            call.getOperation().getReturnClass().getCanonicalName());
+                            SOAPTransformation.this.call.getOperation().getReturnClass().getCanonicalName());
                     this.parameterPos = -1;
                 }
 
@@ -221,9 +227,10 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
                 return this.mstrName;
 
             if (XMLHelper.getElementsByName(this.getXMLConfig(), "OUT", "CHANNEL", null) == null)
-                ((Element) this.getXMLConfig()).setAttribute("CHANNEL", "DEFAULT");
+                (this.getXMLConfig()).setAttribute("CHANNEL", "DEFAULT");
 
-            mstrName = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), NAME_ATTRIB, null);
+            this.mstrName = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), ETLPort.NAME_ATTRIB,
+                    null);
 
             if (this.getCode() == null) {
                 this.parameter = true;
@@ -231,8 +238,8 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
             else if (this.isConstant() == false && this.containsCode() == false) {
                 ETLPort port = this.getAssociatedInPort();
 
-                if (mstrName == null)
-                    ((Element) this.getXMLConfig()).setAttribute("NAME", port.mstrName);
+                if (this.mstrName == null)
+                    (this.getXMLConfig()).setAttribute("NAME", port.mstrName);
             }
 
             return this.mstrName;
@@ -245,7 +252,7 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
         try {
-            setupService();
+            this.setupService();
         } catch (Exception e) {
             throw new KETLThreadException(e, this);
         }
@@ -272,14 +279,14 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
 
         int pos = 0;
 
-        for (int x = 0; x < this.mInPorts.length; x++) {
+        for (ETLInPort element : this.mInPorts) {
 
-            if (((SOAPETLInPort) this.mInPorts[x]).parameter)
+            if (((SOAPETLInPort) element).parameter)
                 pos++;
 
         }
 
-        callMsg = new Object[pos];
+        this.callMsg = new Object[pos];
 
         return 0;
     }
@@ -290,31 +297,31 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
 
         try {
 
-            for (int i = 0; i < this.mInPorts.length; i++) {
-                SOAPETLInPort port = (SOAPETLInPort) this.mInPorts[i];
+            for (ETLInPort element : this.mInPorts) {
+                SOAPETLInPort port = (SOAPETLInPort) element;
 
                 if (port.parameter) {
-                    callMsg[port.parameterPos] = pInputData[port.getSourcePortIndex()];
+                    this.callMsg[port.parameterPos] = pInputData[port.getSourcePortIndex()];
                 }
             }
 
-            Object resp = call.invoke(callMsg);
+            Object resp = this.call.invoke(this.callMsg);
 
             if (resp instanceof java.rmi.RemoteException) {
                 throw new KETLWriteException((Exception) resp);
             }
 
-            List ls = call.getOutputValues();
-            items = ls.toArray();
+            List ls = this.call.getOutputValues();
+            this.items = ls.toArray();
 
         } catch (AxisFault e) {
             String req = "N/A", res = "N/A";
             try {
-                req = call.getMessageContext().getRequestMessage().getSOAPPartAsString();
+                req = this.call.getMessageContext().getRequestMessage().getSOAPPartAsString();
             } catch (Exception e1) {
             }
             try {
-                res = call.getMessageContext().getCurrentMessage().getSOAPPartAsString();
+                res = this.call.getMessageContext().getCurrentMessage().getSOAPPartAsString();
             } catch (Exception e1) {
             }
 
@@ -341,7 +348,7 @@ public class SOAPTransformation extends ETLTransformation implements SOAPConnect
 
                 if (port.isUsed()) {
                     if (port.parameter) {
-                        pOutputData[i] = items[port.parameterPos == -1 ? 0 : port.parameterPos];
+                        pOutputData[i] = this.items[port.parameterPos == -1 ? 0 : port.parameterPos];
                     }
                 }
             }

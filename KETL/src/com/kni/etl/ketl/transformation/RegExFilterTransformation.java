@@ -44,18 +44,19 @@ public class RegExFilterTransformation extends ETLTransformation {
 
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
-            String regexID = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), REGEXPR_ATTRIB, null);
+            String regexID = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
+                    RegExFilterTransformation.REGEXPR_ATTRIB, null);
 
             if (regexID != null) {
                 String regex = XMLHelper.getChildNodeValueAsString(xmlConfig.getParentNode(), "REGEXPR", "ID", regexID,
                         null);
                 if (regex != null) {
 
-                    nullMatches = XMLHelper
-                            .getAttributeAsBoolean(xmlConfig.getAttributes(), "NULLMATCHES", nullMatches);
+                    this.nullMatches = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), "NULLMATCHES",
+                            this.nullMatches);
 
                     Pattern pattern = Pattern.compile(regex);
-                    matcher = pattern.matcher("");
+                    this.matcher = pattern.matcher("");
                 }
             }
 
@@ -72,6 +73,7 @@ public class RegExFilterTransformation extends ETLTransformation {
 
         }
 
+        @Override
         public String generateCode(int portReferenceIndex) throws KETLThreadException {
 
             String tmp = super.generateCode(portReferenceIndex);
@@ -114,18 +116,18 @@ public class RegExFilterTransformation extends ETLTransformation {
         Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "FILTER", "*", "*");
 
         if (nl != null) {
-            for (int i = 0; i < nl.length; i++) {
+            for (Node element : nl) {
 
-                String code = XMLHelper.getTextContent(nl[i]);
+                String code = XMLHelper.getTextContent(element);
 
                 if (code == null || code.length() == 0)
                     throw new KETLThreadException("Filter tag requires an expression", this);
 
                 String[] parms = EngineConstants.getParametersFromText(code);
 
-                for (int x = 0; x < parms.length; x++) {
-                    ETLInPort port = this.getInPort(parms[x]);
-                    code = EngineConstants.replaceParameter(code, parms[x], port.generateReference());
+                for (String element0 : parms) {
+                    ETLInPort port = this.getInPort(element0);
+                    code = EngineConstants.replaceParameter(code, element0, port.generateReference());
                 }
 
                 sb.append("if(!(" + code + ")) return SKIP_RECORD;");

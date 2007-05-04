@@ -37,13 +37,14 @@ public class Aggregate extends ETLTransformation implements AggregatingTransform
                     this.aggregator = new Direct();
                 }
                 else {
-                    Class cl = Class.forName(function.contains(".") ? function : "com.kni.etl.util.aggregator." + function);
+                    Class cl = Class.forName(function.contains(".") ? function : "com.kni.etl.util.aggregator."
+                            + function);
                     this.aggregator = (Aggregator) cl.newInstance();
-                    
-                    if(this.aggregator instanceof ToArray){
+
+                    if (this.aggregator instanceof ToArray) {
                         int limit = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), "MAXELEMENTS", -1);
-                        if(limit > 0)
-                            ((ToArray)this.aggregator).setArrayLimit(limit);
+                        if (limit > 0)
+                            ((ToArray) this.aggregator).setArrayLimit(limit);
                     }
                 }
 
@@ -61,10 +62,11 @@ public class Aggregate extends ETLTransformation implements AggregatingTransform
         @Override
         public Class getPortClass() throws AggregateException {
             Class cl = super.getPortClass();
-            
-            if(cl == null) return null;
-            
-            this.aggregator.setValueClass(cl);            
+
+            if (cl == null)
+                return null;
+
+            this.aggregator.setValueClass(cl);
             return this.aggregator.getValueClass();
         }
 
@@ -80,11 +82,11 @@ public class Aggregate extends ETLTransformation implements AggregatingTransform
     }
 
     public Aggregator[] getAggregates() {
-        
+
         ArrayList res = new ArrayList();
-        for (int i = 0; i < this.mOutPorts.length; i++)
-            if(this.mOutPorts[i].isUsed())
-            res.add( ((AggregateETLOutPort) this.mOutPorts[i]).aggregator);
+        for (ETLOutPort element : this.mOutPorts)
+            if (element.isUsed())
+                res.add(((AggregateETLOutPort) element).aggregator);
 
         Aggregator[] result = new Aggregator[res.size()];
         res.toArray(result);
@@ -94,7 +96,7 @@ public class Aggregate extends ETLTransformation implements AggregatingTransform
     @Override
     protected void close(boolean success) {
         // TODO Auto-generated method stub
-        
+
     }
 
 }

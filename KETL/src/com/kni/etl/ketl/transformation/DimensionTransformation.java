@@ -42,6 +42,7 @@ import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
 import com.kni.etl.ketl.lookup.LookupCreatorImpl;
 import com.kni.etl.ketl.lookup.PersistentMap;
+import com.kni.etl.ketl.smp.BatchManager;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.TransformBatchManager;
 import com.kni.etl.stringtools.NumberFormatter;
@@ -78,17 +79,20 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             // Get the column's target name...
             dcdNewColumn.setColumnName(this.getPortName());
 
-            dcdNewColumn.setAlternateInsertValue(XMLHelper.getAttributeAsString(attr, ALTERNATE_INSERT_VALUE, null));
-            dcdNewColumn.setAlternateUpdateValue(XMLHelper.getAttributeAsString(attr, ALTERNATE_UPDATE_VALUE, null));
+            dcdNewColumn.setAlternateInsertValue(XMLHelper.getAttributeAsString(attr,
+                    DimensionTransformation.ALTERNATE_INSERT_VALUE, null));
+            dcdNewColumn.setAlternateUpdateValue(XMLHelper.getAttributeAsString(attr,
+                    DimensionTransformation.ALTERNATE_UPDATE_VALUE, null));
 
-            this.effectiveDate = XMLHelper.getAttributeAsBoolean(attr, EFFECTIVE_DATE_ATTRIB, false);
+            this.effectiveDate = XMLHelper.getAttributeAsBoolean(attr, DimensionTransformation.EFFECTIVE_DATE_ATTRIB,
+                    false);
 
-            if (effectiveDate && ((Element) xmlNode).hasAttribute("DATATYPE") == false)
+            if (this.effectiveDate && ((Element) xmlNode).hasAttribute("DATATYPE") == false)
                 ((Element) xmlNode).setAttribute("DATATYPE", "DATE");
 
-            if (effectiveDate) {
-                if (effectiveDatePort == null)
-                    effectiveDatePort = this;
+            if (this.effectiveDate) {
+                if (DimensionTransformation.this.effectiveDatePort == null)
+                    DimensionTransformation.this.effectiveDatePort = this;
                 else
                     throw new KETLThreadException("Only one effective date port is allowed", this);
             }
@@ -96,38 +100,38 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             // Find out what the upsert flags are for this input...
 
             // Source key
-            int skIdx = XMLHelper.getAttributeAsInt(attr, SK_ATTRIB, -1);
+            int skIdx = XMLHelper.getAttributeAsInt(attr, DimensionTransformation.SK_ATTRIB, -1);
             if (skIdx != -1) {
                 if (skIdx < 1)
                     throw new KETLThreadException("Port " + this.mesStep.getName() + "." + this.getPortName()
                             + " KEY order starts at 1, invalid value of " + skIdx, this);
 
                 dcdNewColumn.setProperty(DatabaseColumnDefinition.SRC_UNIQUE_KEY);
-                sk = true;
-                skColIndex = skIdx - 1;
-                mSKColCount++;
+                this.sk = true;
+                this.skColIndex = skIdx - 1;
+                DimensionTransformation.this.mSKColCount++;
             }
 
             // Insert field
-            if (XMLHelper.getAttributeAsBoolean(attr, INSERT_ATTRIB, false)) {
+            if (XMLHelper.getAttributeAsBoolean(attr, DimensionTransformation.INSERT_ATTRIB, false)) {
                 dcdNewColumn.setProperty(DatabaseColumnDefinition.INSERT_COLUMN);
-                insert = true;
+                this.insert = true;
             }
 
             // Update field
-            if (XMLHelper.getAttributeAsBoolean(attr, UPDATE_ATTRIB, false)) {
+            if (XMLHelper.getAttributeAsBoolean(attr, DimensionTransformation.UPDATE_ATTRIB, false)) {
                 dcdNewColumn.setProperty(DatabaseColumnDefinition.UPDATE_COLUMN);
-                update = true;
+                this.update = true;
             }
 
             // Compare field, drives updates
-            if (XMLHelper.getAttributeAsBoolean(attr, COMPARE_ATTRIB, false)) {
+            if (XMLHelper.getAttributeAsBoolean(attr, DimensionTransformation.COMPARE_ATTRIB, false)) {
                 dcdNewColumn.setProperty(DatabaseColumnDefinition.UPDATE_TRIGGER_COLUMN);
-                compare = true;
+                this.compare = true;
             }
 
-            if (sk || insert || update || compare)
-                mColumn = dcdNewColumn;
+            if (this.sk || this.insert || this.update || this.compare)
+                this.mColumn = dcdNewColumn;
 
             return 0;
         }
@@ -148,9 +152,11 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
         @Override
         public String generateCode(int portReferenceIndex) throws KETLThreadException {
-            if (pk) {
-                return this.getCodeGenerationReferenceObject() + "[" + getUsedPortIndex(pkPort) + "] =  (("
-                        + this.mesStep.getClass().getCanonicalName() + ")this.getOwner()).getPK(pInputRecords);";
+            if (this.pk) {
+                return this.getCodeGenerationReferenceObject() + "["
+                        + DimensionTransformation.this.getUsedPortIndex(DimensionTransformation.this.pkPort)
+                        + "] =  ((" + this.mesStep.getClass().getCanonicalName()
+                        + ")this.getOwner()).getPK(pInputRecords);";
             }
             else
                 return super.generateCode(portReferenceIndex);
@@ -158,7 +164,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
         @Override
         public ETLPort getAssociatedInPort() throws KETLThreadException {
-            if (pk)
+            if (this.pk)
                 return null;
 
             return super.getAssociatedInPort();
@@ -166,52 +172,54 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
         @Override
         public String getCode() throws KETLThreadException {
-            if (pk)
+            if (this.pk)
                 return "";
             return super.getCode();
         }
 
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
-            this.pk = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), PK_ATTRIB, false);
-            this.expiration_dt = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), EXPIRATION_DATE_ATTRIB,
+            this.pk = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), DimensionTransformation.PK_ATTRIB,
                     false);
-            this.dirtyFlag = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), DIRTY_FLAG_ATTRIB, false);
+            this.expiration_dt = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(),
+                    DimensionTransformation.EXPIRATION_DATE_ATTRIB, false);
+            this.dirtyFlag = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(),
+                    DimensionTransformation.DIRTY_FLAG_ATTRIB, false);
 
-            if (pk && ((Element) xmlConfig).hasAttribute("DATATYPE") == false)
+            if (this.pk && ((Element) xmlConfig).hasAttribute("DATATYPE") == false)
                 ((Element) xmlConfig).setAttribute("DATATYPE", Integer.class.getCanonicalName());
 
-            if (expiration_dt && ((Element) xmlConfig).hasAttribute("DATATYPE") == false)
+            if (this.expiration_dt && ((Element) xmlConfig).hasAttribute("DATATYPE") == false)
                 ((Element) xmlConfig).setAttribute("DATATYPE", "DATE");
 
-            if (dirtyFlag && ((Element) xmlConfig).hasAttribute("DATATYPE") == false)
+            if (this.dirtyFlag && ((Element) xmlConfig).hasAttribute("DATATYPE") == false)
                 ((Element) xmlConfig).setAttribute("DATATYPE", "BOOLEAN");
 
-            if (pk) {
-                outColIndex = mPKColCount++;
+            if (this.pk) {
+                this.outColIndex = DimensionTransformation.this.mPKColCount++;
             }
 
             int res = super.initialize(xmlConfig);
             if (res != 0)
                 return res;
 
-            if (pk && pkPort == null) {
-                pkPort = this;
+            if (this.pk && DimensionTransformation.this.pkPort == null) {
+                DimensionTransformation.this.pkPort = this;
             }
-            else if (pk && pkPort != null) {
+            else if (this.pk && DimensionTransformation.this.pkPort != null) {
                 throw new KETLThreadException("Only one primary key port is allowed", this);
             }
 
-            if (dirtyFlag) {
-                if (dirtyFlagPort == null)
-                    dirtyFlagPort = this;
+            if (this.dirtyFlag) {
+                if (DimensionTransformation.this.dirtyFlagPort == null)
+                    DimensionTransformation.this.dirtyFlagPort = this;
                 else
                     throw new KETLThreadException("Only one dirty flag port is allowed", this);
             }
 
-            if (expiration_dt) {
-                if (expirationDatePort == null)
-                    expirationDatePort = this;
+            if (this.expiration_dt) {
+                if (DimensionTransformation.this.expirationDatePort == null)
+                    DimensionTransformation.this.expirationDatePort = this;
                 else
                     throw new KETLThreadException("Only one expiration date port is allowed", this);
             }
@@ -349,7 +357,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
         String template = null;
         if (this.msKeyTableAllColumns != null) {
-            template = this.getStepTemplate(mDBType, multiStatement ? "MULTIINSERT" : "INSERT", true);
+            template = this.getStepTemplate(this.mDBType, multiStatement ? "MULTIINSERT" : "INSERT", true);
 
             template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);
             template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
@@ -359,9 +367,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         }
         if (this.msAllColumns != null) {
             template = multiStatement ? template
-                    + (this.getStepTemplate(mDBType, "STATEMENTSEPERATOR", true) == null ? "" : this.getStepTemplate(
-                            mDBType, "STATEMENTSEPERATOR", true)) : template;
-            template = template + this.getStepTemplate(mDBType, multiStatement ? "MULTIINSERT" : "INSERT", true);
+                    + (this.getStepTemplate(this.mDBType, "STATEMENTSEPERATOR", true) == null ? "" : this
+                            .getStepTemplate(this.mDBType, "STATEMENTSEPERATOR", true)) : template;
+            template = template + this.getStepTemplate(this.mDBType, multiStatement ? "MULTIINSERT" : "INSERT", true);
 
             template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrTableName);
             template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
@@ -371,7 +379,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         }
 
         if (multiStatement) {
-            String wrapper = this.getStepTemplate(mDBType, "MULTIINSERTWRAPPER", true);
+            String wrapper = this.getStepTemplate(this.mDBType, "MULTIINSERTWRAPPER", true);
             template = EngineConstants.replaceParameterV2(wrapper, "STATEMENT", template);
             template = EngineConstants.replaceParameterV2(template, "VALUES", this.getInsertValues());
         }
@@ -388,11 +396,11 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
         try {
 
-        	if(lookupLocked){
-        		// release any write lock
+            if (this.lookupLocked) {
+                // release any write lock
                 ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
-        	}
-        	
+            }
+
             if (this.mcDBConnection != null && this.mIncrementalCommit == false && success == false
                     && this.getRecordsProcessed() > 0) {
                 this.mcDBConnection.rollback();
@@ -418,7 +426,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     }
 
     private boolean lookupLocked = false;
-    
+
     @Override
     public int complete() throws KETLThreadException {
         int res = super.complete();
@@ -438,11 +446,11 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         }
 
         // submit lookup for use
-        if(lookupLocked){
-        		// release any write lock
-                ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
+        if (this.lookupLocked) {
+            // release any write lock
+            ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
         }
-        
+
         return res;
     }
 
@@ -455,25 +463,25 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                 ETLPort idx = this.miFieldPopulationOrder[i];
 
                 if (idx == this.pkPort)
-                    this.stmt.setParameterFromClass(i + 1, Integer.class, data, maxCharLength, this.pkPort
+                    this.stmt.setParameterFromClass(i + 1, Integer.class, data, this.maxCharLength, this.pkPort
                             .getXMLConfig());
                 else {
                     ETLInPort inport = (ETLInPort) idx;
 
                     this.stmt.setParameterFromClass(i + 1, inport.getPortClass(), inport.isConstant() ? inport
-                            .getConstantValue() : pInputRecords[inport.getSourcePortIndex()], maxCharLength, inport
-                            .getXMLConfig());
+                            .getConstantValue() : pInputRecords[inport.getSourcePortIndex()], this.maxCharLength,
+                            inport.getXMLConfig());
                 }
             }
 
             if (this.mBatchData) {
-                stmt.addBatch();
-                logBatch(pInputRecords);
+                this.stmt.addBatch();
+                this.logBatch(pInputRecords);
 
                 this.mBatchCounter++;
             }
             else {
-                stmt.executeUpdate();
+                this.stmt.executeUpdate();
             }
         } catch (SQLException e) {
             throw new KETLTransformException(e);
@@ -483,7 +491,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
          * if (mSKColCount == 1) putKeyObjectDataObject(pInputRecords, data); else
          */
         try {
-            putKeyArrayDataArray(pInputRecords, data);
+            this.putKeyArrayDataArray(pInputRecords, data);
         } catch (Error e) {
             throw new KETLTransformException(e.getMessage());
         }
@@ -511,19 +519,19 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         int result = 0;
         try {
             if (this.mBatchData
-                    && (this.mBatchCounter >= this.miCommitSize || (len == LASTBATCH && this.mBatchCounter > 0))) {
+                    && (this.mBatchCounter >= this.miCommitSize || (len == BatchManager.LASTBATCH && this.mBatchCounter > 0))) {
                 boolean errorsOccured = false;
                 Savepoint savepoint = null;
                 try {
 
-                    if (supportsSetSavepoint) {
+                    if (this.supportsSetSavepoint) {
                         savepoint = this.mcDBConnection.setSavepoint();
                     }
 
                     Exception e1 = null;
                     int[] res = null;
                     try {
-                        res = stmt.executeBatch();
+                        res = this.stmt.executeBatch();
 
                         if (this.supportsReleaseSavepoint && savepoint != null) {
                             this.mcDBConnection.releaseSavepoint(savepoint);
@@ -570,22 +578,22 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                 }
 
                 if (errorsOccured && this.miRetryBatch > 0) {
-                    result = retryBatch();
+                    result = this.retryBatch();
                 }
 
-                clearBatchLogBatch();
+                this.clearBatchLogBatch();
 
                 this.miInsertCount += this.mBatchCounter;
                 this.mBatchCounter = 0;
 
-                if (mIncrementalCommit)
+                if (this.mIncrementalCommit)
                     this.mcDBConnection.commit();
                 this.executePostBatchStatements();
-                firePreBatch = true;
+                this.firePreBatch = true;
 
             }
             else if (this.mBatchData == false) {
-                if (mIncrementalCommit)
+                if (this.mIncrementalCommit)
                     this.mcDBConnection.commit();
             }
 
@@ -596,7 +604,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     }
 
     String getAllColumns() {
-        return msAllColumns;
+        return this.msAllColumns;
     }
 
     public Connection getConnection() throws SQLException, ClassNotFoundException {
@@ -604,7 +612,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     }
 
     String getInsertValues() {
-        return msInsertValues;
+        return this.msInsertValues;
     }
 
     String getKeyTableAllColumns() {
@@ -622,18 +630,18 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
      */
     public PersistentMap getLookup() {
 
-        Class[] types = new Class[mSKColCount];
-        Class[] values = new Class[mPKColCount];
-        String[] valueFields = new String[mPKColCount];
-        for (int i = 0; i < this.mInPorts.length; i++) {
-            DimensionETLInPort port = (DimensionETLInPort) this.mInPorts[i];
+        Class[] types = new Class[this.mSKColCount];
+        Class[] values = new Class[this.mPKColCount];
+        String[] valueFields = new String[this.mPKColCount];
+        for (ETLInPort element : this.mInPorts) {
+            DimensionETLInPort port = (DimensionETLInPort) element;
 
             if (port.skColIndex != -1)
                 types[port.skColIndex] = port.getPortClass();
         }
 
-        for (int i = 0; i < this.mOutPorts.length; i++) {
-            DimensionETLOutPort port = (DimensionETLOutPort) this.mOutPorts[i];
+        for (ETLOutPort element : this.mOutPorts) {
+            DimensionETLOutPort port = (DimensionETLOutPort) element;
 
             if (port.outColIndex != -1) {
                 values[port.outColIndex] = port.getPortClass();
@@ -647,18 +655,18 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                 EngineConstants.getDefaultLookupClass());
 
         try {
-            return EngineConstants.getInstanceOfPersistantMap(lookupClass, this.getName(), mCacheSize,
+            return EngineConstants.getInstanceOfPersistantMap(lookupClass, this.getName(), this.mCacheSize,
                     this.mCachePersistenceID, EngineConstants.CACHE_PATH, types, values, valueFields,
-                    cachePersistence == EngineConstants.JOB_PERSISTENCE ? true : false);
+                    this.cachePersistence == EngineConstants.JOB_PERSISTENCE ? true : false);
         } catch (Throwable e) {
             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
                     "Lookup cache creation failed, trying again, check stack trace");
             e.printStackTrace();
 
             try {
-                return EngineConstants.getInstanceOfPersistantMap(lookupClass, this.getName(), mCacheSize,
+                return EngineConstants.getInstanceOfPersistantMap(lookupClass, this.getName(), this.mCacheSize,
                         this.mCachePersistenceID, EngineConstants.CACHE_PATH, types, values, valueFields,
-                        cachePersistence == EngineConstants.JOB_PERSISTENCE ? true : false);
+                        this.cachePersistence == EngineConstants.JOB_PERSISTENCE ? true : false);
             } catch (Throwable e1) {
 
                 e1.printStackTrace();
@@ -688,23 +696,22 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             throw new KETLTransformException(e.getMessage());
         }
         // if not found then create new value in index
-        if (res == null && mAllowInsert)
+        if (res == null && this.mAllowInsert)
             return this.createNewSurrogateKey(pInputRecords);
 
         return res;
     }
 
     private String getPrimaryKeyColumns() {
-        return idQuote + this.pkPort.mstrName + idQuote;
+        return this.idQuote + this.pkPort.mstrName + this.idQuote;
     }
 
     private String getSourceKeyColumns() {
         String res = null;
-        for (int i = 0; i < this.mInPorts.length; i++) {
-            if (((DimensionETLInPort) this.mInPorts[i]).sk) {
-                res = (res == null ? ((DimensionETLInPort) this.mInPorts[i]).mColumn.getColumnName(idQuote,
-                        this.mDBCase) : res + ","
-                        + ((DimensionETLInPort) this.mInPorts[i]).mColumn.getColumnName(idQuote, this.mDBCase));
+        for (ETLInPort element : this.mInPorts) {
+            if (((DimensionETLInPort) element).sk) {
+                res = (res == null ? ((DimensionETLInPort) element).mColumn.getColumnName(this.idQuote, this.mDBCase)
+                        : res + "," + ((DimensionETLInPort) element).mColumn.getColumnName(this.idQuote, this.mDBCase));
             }
         }
         return res;
@@ -713,18 +720,19 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     final private Integer getSurrogateKey(Object[] pInputRecords) {
 
         for (int i = 0; i < this.mSKColCount; i++)
-            skData[i] = pInputRecords[skIndx[i]];
+            this.skData[i] = pInputRecords[this.skIndx[i]];
 
-       
-        Object res = this.mLookup.get(skData, null);
-        
-        ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "getSurrogateKey:In->" + java.util.Arrays.toString(skData) + ", Out->" + res);
+        Object res = this.mLookup.get(this.skData, null);
+
+        ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "getSurrogateKey:In->"
+                + java.util.Arrays.toString(this.skData) + ", Out->" + res);
 
         return (Integer) res;
     }
 
     private int mSCD;
     private boolean purgeCache;
+
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
         int res = super.initialize(xmlConfig);
@@ -736,46 +744,46 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                 this.pkPort == null ? int.class : this.pkPort.getPortClass());
 
         // Pull the parameters from the list...
-        strUserName = this.getParameterValue(0, USER_ATTRIB);
-        strPassword = this.getParameterValue(0, PASSWORD_ATTRIB);
-        strURL = this.getParameterValue(0, URL_ATTRIB);
-        strDriverClass = this.getParameterValue(0, DRIVER_ATTRIB);
-        strPreSQL = this.getParameterValue(0, PRESQL_ATTRIB);
+        this.strUserName = this.getParameterValue(0, DBConnection.USER_ATTRIB);
+        this.strPassword = this.getParameterValue(0, DBConnection.PASSWORD_ATTRIB);
+        this.strURL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
+        this.strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
+        this.strPreSQL = this.getParameterValue(0, DBConnection.PRESQL_ATTRIB);
         NamedNodeMap nmAttrs = xmlConfig.getAttributes();
 
         int minSize = NumberFormatter.convertToBytes(EngineConstants.getDefaultCacheSize());
-        cachePersistence = EngineConstants.JOB_PERSISTENCE;
+        this.cachePersistence = EngineConstants.JOB_PERSISTENCE;
 
-        mSCD = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), SCD_ATTRIB, 1);
+        this.mSCD = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), DimensionTransformation.SCD_ATTRIB, 1);
         this.purgeCache = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), "PURGECACHE", true);
 
-        ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Slowly changing dimension mode = " + mSCD);
+        ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Slowly changing dimension mode = " + this.mSCD);
 
         String tmp = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "PERSISTENCE", null);
         if (tmp == null || tmp.equalsIgnoreCase("JOB")) {
             this.mCachePersistenceID = ((Long) this.getJobExecutionID()).intValue();
-            cachePersistence = EngineConstants.JOB_PERSISTENCE;
+            this.cachePersistence = EngineConstants.JOB_PERSISTENCE;
         }
         else if (tmp.equalsIgnoreCase("LOAD")) {
             this.mCachePersistenceID = this.mkjExecutor.getCurrentETLJob().getLoadID();
-            cachePersistence = EngineConstants.LOAD_PERSISTENCE;
+            this.cachePersistence = EngineConstants.LOAD_PERSISTENCE;
         }
         else if (tmp.equalsIgnoreCase("STATIC")) {
-            cachePersistence = EngineConstants.STATIC_PERSISTENCE;
+            this.cachePersistence = EngineConstants.STATIC_PERSISTENCE;
             this.mCachePersistenceID = null;
         }
         else
             throw new KETLThreadException("PERSISTENCE has to be either JOB,LOAD or STATIC", this);
 
-        mCacheSize = NumberFormatter.convertToBytes(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
+        this.mCacheSize = NumberFormatter.convertToBytes(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
                 "CACHESIZE", null));
 
-        if (mCacheSize == -1)
-            mCacheSize = minSize;
-        if (mCacheSize < minSize) {
+        if (this.mCacheSize == -1)
+            this.mCacheSize = minSize;
+        if (this.mCacheSize < minSize) {
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
                     "Cache cannot be less than 64kb, defaulting to 64kb");
-            mCacheSize = minSize;
+            this.mCacheSize = minSize;
         }
 
         if (this.mSKColCount > 6) {
@@ -786,18 +794,17 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         else if (this.mSKColCount < 1)
             throw new KETLThreadException("Source key has not been specified e.g. SK=\"1\"", this);
 
-        if(this.purgeCache)
+        if (this.purgeCache)
             ((KETLJob) this.getJobExecutor().getCurrentETLJob()).deleteLookup(this.getName());
-        
+
         this.mLookup = ((KETLJob) this.getJobExecutor().getCurrentETLJob()).registerLookupWriteLock(this.getName(),
-                this, cachePersistence);
-        
-        
+                this, this.cachePersistence);
+
         this.lookupLocked = true;
 
         try {
-            this.mcDBConnection = ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword,
-                    strPreSQL, true);
+            this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName,
+                    this.strPassword, this.strPreSQL, true);
 
             this.mUsedConnections.add(this.mcDBConnection);
 
@@ -806,49 +813,52 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             this.mDBType = md.getDatabaseProductName();
             this.maxCharLength = md.getMaxCharLiteralLength();
             this.supportsSetSavepoint = md.supportsSavepoints();
-            this.mBatchData = XMLHelper.getAttributeAsBoolean(nmAttrs, BATCH_ATTRIB, this.mBatchData);
+            this.mBatchData = XMLHelper.getAttributeAsBoolean(nmAttrs, DimensionTransformation.BATCH_ATTRIB,
+                    this.mBatchData);
             this.idQuoteEnabled = XMLHelper.getAttributeAsBoolean(nmAttrs, "IDQUOTE", false);
 
-            String hdl = XMLHelper.getAttributeAsString(nmAttrs, HANDLER_ATTRIB, null);
-            this.jdbcHelper = instantiateHelper(hdl);
+            String hdl = XMLHelper.getAttributeAsString(nmAttrs, DimensionTransformation.HANDLER_ATTRIB, null);
+            this.jdbcHelper = this.instantiateHelper(hdl);
 
             if (md.storesUpperCaseIdentifiers()) {
-                this.mDBCase = UPPER_CASE;
+                this.mDBCase = DimensionTransformation.UPPER_CASE;
             }
             else if (md.storesLowerCaseIdentifiers()) {
-                this.mDBCase = LOWER_CASE;
+                this.mDBCase = DimensionTransformation.LOWER_CASE;
             }
             else if (md.storesMixedCaseIdentifiers()) {
-                this.mDBCase = MIXED_CASE;
+                this.mDBCase = DimensionTransformation.MIXED_CASE;
 
             }
 
             // Pull the name of the table to be written to...
-            this.mstrTableName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs, TABLE_ATTRIB, null));
-            this.mstrSchemaName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs, SCHEMA_ATTRIB, null));
+            this.mstrTableName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs,
+                    DimensionTransformation.TABLE_ATTRIB, null));
+            this.mstrSchemaName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs,
+                    DimensionTransformation.SCHEMA_ATTRIB, null));
             boolean namedValueList = false;
 
             tmp = XMLHelper.getAttributeAsString(nmAttrs, "MODE", "BOTH");
             if (tmp.equalsIgnoreCase("BOTH")) {
-                this.miMode = LOAD_KEY_TABLE_DIMENSION;
+                this.miMode = DimensionTransformation.LOAD_KEY_TABLE_DIMENSION;
                 namedValueList = Boolean.parseBoolean(this.getStepTemplate(this.mDBType, "NAMEDVALUELIST", true));
             }
             else if (tmp.equalsIgnoreCase("KEYTABLEONLY")) {
-                this.miMode = KEY_TABLE_ONLY;
+                this.miMode = DimensionTransformation.KEY_TABLE_ONLY;
             }
             else if (tmp.equalsIgnoreCase("TABLEONLY"))
-                this.miMode = TABLE_ONLY;
+                this.miMode = DimensionTransformation.TABLE_ONLY;
             else
                 throw new KETLThreadException(
                         "Invalid MODE, valid values are BOTH (default), KEYTABLEONLY and TABLEONLY", this);
 
             if (this.idQuoteEnabled) {
-                idQuote = md.getIdentifierQuoteString();
-                if (idQuote == null || idQuote.equals(" "))
-                    idQuote = "";
+                this.idQuote = md.getIdentifierQuoteString();
+                if (this.idQuote == null || this.idQuote.equals(" "))
+                    this.idQuote = "";
             }
             else {
-                idQuote = "";
+                this.idQuote = "";
             }
 
             ResultSet rsDBResultSet = md.getTables(null, this.mstrSchemaName, this.mstrTableName, null);
@@ -873,63 +883,65 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
             int cnt;
 
-            if (this.miMode == LOAD_KEY_TABLE_DIMENSION || this.miMode == KEY_TABLE_ONLY) {
-                this.mstrKeyTableName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs, KEY_TABLE_ATTRIB,
-                        this.mstrTableName + "_KEY"));
+            if (this.miMode == DimensionTransformation.LOAD_KEY_TABLE_DIMENSION
+                    || this.miMode == DimensionTransformation.KEY_TABLE_ONLY) {
+                this.mstrKeyTableName = this.setDBCase(XMLHelper.getAttributeAsString(nmAttrs,
+                        DimensionTransformation.KEY_TABLE_ATTRIB, this.mstrTableName + "_KEY"));
                 cnt = 0;
                 StringBuilder keyTableAllColumns = new StringBuilder();
                 StringBuilder keyTableInsertValues = new StringBuilder();
                 if (this.pkPort != null) {
-                    keyTableAllColumns.append(idQuote + pkPort.mstrName + idQuote);
+                    keyTableAllColumns.append(this.idQuote + this.pkPort.mstrName + this.idQuote);
 
                     keyTableInsertValues.append('?');
                     if (namedValueList == false)
-                        fieldPopulationOrder.add(pkPort);
+                        fieldPopulationOrder.add(this.pkPort);
 
                     cnt++;
                 }
 
-                for (int i = 0; i < this.mInPorts.length; i++) {
-                    DimensionETLInPort port = (DimensionETLInPort) this.mInPorts[i];
+                for (ETLInPort element : this.mInPorts) {
+                    DimensionETLInPort port = (DimensionETLInPort) element;
                     if (port.mColumn != null && port.sk) {
                         if (cnt > 0) {
                             keyTableAllColumns.append(',');
                             keyTableInsertValues.append(',');
                         }
-                        keyTableAllColumns.append(port.mColumn.getColumnName(idQuote, this.mDBCase));
+                        keyTableAllColumns.append(port.mColumn.getColumnName(this.idQuote, this.mDBCase));
                         keyTableInsertValues.append('?');
                         if (namedValueList == false)
                             fieldPopulationOrder.add(port);
                         cnt++;
                     }
                 }
-                setKeyTableAllColumns(keyTableAllColumns.toString());
-                setKeyTableInsertValues(keyTableInsertValues.toString());
+                this.setKeyTableAllColumns(keyTableAllColumns.toString());
+                this.setKeyTableInsertValues(keyTableInsertValues.toString());
             }
 
-            if (this.miMode == LOAD_KEY_TABLE_DIMENSION || this.miMode == TABLE_ONLY) {
+            if (this.miMode == DimensionTransformation.LOAD_KEY_TABLE_DIMENSION
+                    || this.miMode == DimensionTransformation.TABLE_ONLY) {
 
                 cnt = 0;
                 if (this.pkPort != null) {
-                    allColumns.append(idQuote + pkPort.mstrName + idQuote);
+                    allColumns.append(this.idQuote + this.pkPort.mstrName + this.idQuote);
                     if (namedValueList)
-                        insertValues.append("? as " + idQuote + pkPort.mstrName + idQuote);
+                        insertValues.append("? as " + this.idQuote + this.pkPort.mstrName + this.idQuote);
                     else
                         insertValues.append('?');
-                    fieldPopulationOrder.add(pkPort);
+                    fieldPopulationOrder.add(this.pkPort);
                     cnt++;
                 }
 
-                for (int i = 0; i < this.mInPorts.length; i++) {
-                    DimensionETLInPort port = (DimensionETLInPort) this.mInPorts[i];
+                for (ETLInPort element : this.mInPorts) {
+                    DimensionETLInPort port = (DimensionETLInPort) element;
                     if (port.mColumn != null) {
                         if (cnt > 0) {
                             allColumns.append(',');
                             insertValues.append(',');
                         }
-                        allColumns.append(port.mColumn.getColumnName(idQuote, this.mDBCase));
+                        allColumns.append(port.mColumn.getColumnName(this.idQuote, this.mDBCase));
                         if (namedValueList)
-                            insertValues.append("? as " + port.mColumn.getColumnName(idQuote, this.mDBCase));
+                            insertValues.append("? as " + port.mColumn.getColumnName(this.idQuote, this.mDBCase));
                         else
                             insertValues.append('?');
 
@@ -937,16 +949,16 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                         cnt++;
                     }
                 }
-                setAllColumns(allColumns.toString());
-                setInsertValues(insertValues.toString());
+                this.setAllColumns(allColumns.toString());
+                this.setInsertValues(insertValues.toString());
             }
 
-            miFieldPopulationOrder = new ETLPort[fieldPopulationOrder.size()];
+            this.miFieldPopulationOrder = new ETLPort[fieldPopulationOrder.size()];
             fieldPopulationOrder.toArray(this.miFieldPopulationOrder);
 
             this.msInBatchSQLStatement = this.buildInBatchSQL();
 
-            this.stmt = prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement, this.jdbcHelper);
+            this.stmt = this.prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement, this.jdbcHelper);
 
             if (this.supportsSetSavepoint) {
                 Savepoint sPoint = null;
@@ -986,15 +998,17 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         this.mAllowInsert = XMLHelper.getAttributeAsBoolean(nmAttrs, "INSERT", true);
 
         // Pull the commit size...
-        this.miCommitSize = XMLHelper.getAttributeAsInt(nmAttrs, COMMITSIZE_ATTRIB, this.batchSize);
+        this.miCommitSize = XMLHelper.getAttributeAsInt(nmAttrs, DimensionTransformation.COMMITSIZE_ATTRIB,
+                this.batchSize);
         // this.miMaxTransactionSize = XMLHelper.getAttributeAsInt(nmAttrs, MAXTRANSACTIONSIZE_ATTRIB, -1);
 
         this.mstrPrimaryKeyColumns = this.getPrimaryKeyColumns();
         this.mstrSourceKeyColumns = this.getSourceKeyColumns();
 
         try {
-            if (this.miMode == LOAD_KEY_TABLE_DIMENSION || this.miMode == KEY_TABLE_ONLY) {
-                prepareForKeyTable();
+            if (this.miMode == DimensionTransformation.LOAD_KEY_TABLE_DIMENSION
+                    || this.miMode == DimensionTransformation.KEY_TABLE_ONLY) {
+                this.prepareForKeyTable();
             }
 
             this.executePreStatements();
@@ -1005,9 +1019,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         this.skData = new Object[this.mSKColCount];
         this.skIndx = new int[this.mSKColCount];
 
-        for (int i = 0; i < this.mInPorts.length; i++)
-            if (((DimensionETLInPort) this.mInPorts[i]).skColIndex != -1)
-                this.skIndx[((DimensionETLInPort) this.mInPorts[i]).skColIndex] = this.mInPorts[i].getSourcePortIndex();
+        for (ETLInPort element : this.mInPorts)
+            if (((DimensionETLInPort) element).skColIndex != -1)
+                this.skIndx[((DimensionETLInPort) element).skColIndex] = element.getSourcePortIndex();
 
         return 0;
     }
@@ -1020,7 +1034,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             }
             if (this.firePreBatch && this.mBatchData) {
                 this.executePreBatchStatements();
-                recordNumBatchStart = this.getRecordsProcessed();
+                this.recordNumBatchStart = this.getRecordsProcessed();
                 this.firePreBatch = false;
             }
 
@@ -1044,7 +1058,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     }
 
     private void logBatch(Object[] inputRecords) {
-        mBatchLog.add(inputRecords);
+        this.mBatchLog.add(inputRecords);
     }
 
     private void prepareForKeyTable() throws KETLThreadException {
@@ -1054,7 +1068,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             try {
                 Statement mStmt = this.mcDBConnection.createStatement();
 
-                template = this.getStepTemplate(mDBType, "CHECKFORKEYTABLE", true);
+                template = this.getStepTemplate(this.mDBType, "CHECKFORKEYTABLE", true);
                 template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);
                 template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
 
@@ -1071,7 +1085,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                 }
 
                 if (exists == false) {
-                    template = this.getStepTemplate(mDBType, "CREATEKEYTABLE", true);
+                    template = this.getStepTemplate(this.mDBType, "CREATEKEYTABLE", true);
 
                     template = EngineConstants.replaceParameterV2(template, "KEYTABLENAME", this.mstrKeyTableName);
 
@@ -1083,14 +1097,14 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
                     mStmt.executeUpdate(template);
 
-                    template = this.getStepTemplate(mDBType, "CREATEKEYTABLEPKINDEX", true);
+                    template = this.getStepTemplate(this.mDBType, "CREATEKEYTABLEPKINDEX", true);
                     template = EngineConstants.replaceParameterV2(template, "COLUMNS", this.mstrPrimaryKeyColumns);
                     template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);
                     template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
 
                     mStmt.executeUpdate(template);
 
-                    template = this.getStepTemplate(mDBType, "CREATEKEYTABLESKINDEX", true);
+                    template = this.getStepTemplate(this.mDBType, "CREATEKEYTABLESKINDEX", true);
                     template = EngineConstants.replaceParameterV2(template, "COLUMNS", this.mstrSourceKeyColumns);
                     template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);
                     template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
@@ -1116,7 +1130,8 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             elements[i] = o[this.skIndx[i]];
         }
 
-        ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE,"putKeyArrayDataArray:"+ java.util.Arrays.toString(elements));
+        ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "putKeyArrayDataArray:"
+                + java.util.Arrays.toString(elements));
         this.mLookup.put(elements, new Object[] { data });
     }
 
@@ -1130,7 +1145,8 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             // reset statement as some drivers fail after a failure has occured
             try {
                 this.stmt.close();
-                this.stmt = prepareStatementWrapper(mcDBConnection, this.msInBatchSQLStatement, this.jdbcHelper);
+                this.stmt = this.prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement,
+                        this.jdbcHelper);
             } catch (SQLException e) {
                 throw new KETLTransformException(e);
             }
@@ -1141,7 +1157,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                     try {
                         if (this.mbReinitOnError) {
                             this.stmt.close();
-                            this.stmt = prepareStatementWrapper(mcDBConnection, this.msInBatchSQLStatement,
+                            this.stmt = this.prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement,
                                     this.jdbcHelper);
                         }
                         for (int i = 0; i < this.miFieldPopulationOrder.length; i++) {
@@ -1150,7 +1166,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                             if (idx == this.pkPort) {
                                 try {
                                     this.stmt.setParameterFromClass(i + 1, Integer.class, this.getSurrogateKey(record),
-                                            maxCharLength, this.pkPort.getXMLConfig());
+                                            this.maxCharLength, this.pkPort.getXMLConfig());
                                 } catch (Error e) {
                                     throw new KETLTransformException(e.getMessage());
                                 }
@@ -1160,14 +1176,14 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
                                 this.stmt.setParameterFromClass(i + 1, inport.getPortClass(),
                                         inport.isConstant() ? inport.getConstantValue() : record[inport
-                                                .getSourcePortIndex()], maxCharLength, inport.getXMLConfig());
+                                                .getSourcePortIndex()], this.maxCharLength, inport.getXMLConfig());
                             }
                         }
                         submitted++;
                         this.stmt.executeUpdate();
                         result++;
                         this.mFailedBatchElements.remove(x);
-                        if (mIncrementalCommit)
+                        if (this.mIncrementalCommit)
                             this.mcDBConnection.commit();
 
                     } catch (SQLException e) {
@@ -1179,7 +1195,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
                         try {
                             this.stmt.close();
-                            this.stmt = prepareStatementWrapper(mcDBConnection, this.msInBatchSQLStatement,
+                            this.stmt = this.prepareStatementWrapper(this.mcDBConnection, this.msInBatchSQLStatement,
                                     this.jdbcHelper);
                         } catch (SQLException e1) {
                             throw new KETLTransformException(e1);
@@ -1198,10 +1214,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     }
 
     protected void seedLookup() throws KETLThreadException {
-    	
-        
+
         this.setWaiting("lookup to seed");
-        String template = this.getStepTemplate(mDBType, "SEEDLOOKUP", true);
+        String template = this.getStepTemplate(this.mDBType, "SEEDLOOKUP", true);
         if (this.msKeyTableAllColumns != null) {
 
             template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);
@@ -1248,7 +1263,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                  * if (mSKColCount == 1) putKeyObjectDataObject(key, sk); else
                  */
                 try {
-                    putKeyArrayDataArray(key, sk);
+                    this.putKeyArrayDataArray(key, sk);
                 } catch (Error e) {
                     throw new KETLTransformException(e);
                 }
@@ -1258,59 +1273,54 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             }
 
             rs.close();
-            
+
             this.mLookup.commit(true);
             int size = this.mLookup.size();
-            if(size != x)
-                throw new KETLThreadException("Cache has failed load all elements, cache corruption, size = " + size + ", expected size = " + x,this);
+            if (size != x)
+                throw new KETLThreadException("Cache has failed load all elements, cache corruption, size = " + size
+                        + ", expected size = " + x, this);
             else {
-                ResourcePool.LogMessage(this,ResourcePool.INFO_MESSAGE,"Cache loaded with " + x + " elements");                
+                ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Cache loaded with " + x + " elements");
             }
-            
+
             this.setWaiting("maximum surrogate value");
-			String maxStatement = "select max(${PKCOLUMNS}) from ${SCHEMANAME}.${TABLENAME}";
-			if (this.mstrKeyTableName != null) {
-				template = EngineConstants.replaceParameterV2(maxStatement,
-						"TABLENAME", this.mstrKeyTableName);
-				template = EngineConstants.replaceParameterV2(template,
-						"SCHEMANAME", this.mstrSchemaName);
-				template = EngineConstants.replaceParameterV2(template,
-						"PKCOLUMNS", this.getPrimaryKeyColumns());
+            String maxStatement = "select max(${PKCOLUMNS}) from ${SCHEMANAME}.${TABLENAME}";
+            if (this.mstrKeyTableName != null) {
+                template = EngineConstants.replaceParameterV2(maxStatement, "TABLENAME", this.mstrKeyTableName);
+                template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
+                template = EngineConstants.replaceParameterV2(template, "PKCOLUMNS", this.getPrimaryKeyColumns());
 
-				rs = mStmt.executeQuery(template);
-				while (rs.next()) {
-					Integer sk = rs.getInt(1);
+                rs = mStmt.executeQuery(template);
+                while (rs.next()) {
+                    Integer sk = rs.getInt(1);
 
-					if (sk > this.mKeySource.value()) {
-						this.mKeySource.set(sk);
-					}
-				}
-				rs.close();
-			}
+                    if (sk > this.mKeySource.value()) {
+                        this.mKeySource.set(sk);
+                    }
+                }
+                rs.close();
+            }
 
-			if (this.mstrTableName != null) {
-				template = EngineConstants.replaceParameterV2(maxStatement,
-						"TABLENAME", this.mstrTableName);
-				template = EngineConstants.replaceParameterV2(template,
-						"SCHEMANAME", this.mstrSchemaName);
-				template = EngineConstants.replaceParameterV2(template,
-						"PKCOLUMNS", this.getPrimaryKeyColumns());
+            if (this.mstrTableName != null) {
+                template = EngineConstants.replaceParameterV2(maxStatement, "TABLENAME", this.mstrTableName);
+                template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
+                template = EngineConstants.replaceParameterV2(template, "PKCOLUMNS", this.getPrimaryKeyColumns());
 
-				rs = mStmt.executeQuery(template);
-				while (rs.next()) {
-					Integer sk = rs.getInt(1);
+                rs = mStmt.executeQuery(template);
+                while (rs.next()) {
+                    Integer sk = rs.getInt(1);
 
-					if (sk > this.mKeySource.value()) {
-						this.mKeySource.set(sk);
-					}
-				}
-				rs.close();
-			}
-        	
+                    if (sk > this.mKeySource.value()) {
+                        this.mKeySource.set(sk);
+                    }
+                }
+                rs.close();
+            }
+
             mStmt.close();
-            
+
             this.setWaiting(null);
-            
+
         } catch (Exception e) {
             if (mStmt != null)
                 try {
