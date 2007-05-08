@@ -167,16 +167,15 @@ public abstract class QAEventGenerator extends QA {
             return 'd';
         }
 
+        // couldn't convert directly therefore check for abbreviations
+        for (int i = 1; i < QAEventGenerator.timeAbrevs.length; i++) {
+            String tmp = size.substring(size.length() - QAEventGenerator.timeAbrevs[i].length());
 
-            // couldn't convert directly therefore check for abbreviations
-            for (int i = 1; i < QAEventGenerator.timeAbrevs.length; i++) {
-                String tmp = size.substring(size.length() - QAEventGenerator.timeAbrevs[i].length());
-
-                if (tmp.equalsIgnoreCase(QAEventGenerator.timeAbrevs[i])) {
-                    return QAEventGenerator.timeAbrevs[i].charAt(0);
-                }
+            if (tmp.equalsIgnoreCase(QAEventGenerator.timeAbrevs[i])) {
+                return QAEventGenerator.timeAbrevs[i].charAt(0);
             }
-        
+        }
+
         return 'd';
     }
 
@@ -236,7 +235,7 @@ public abstract class QAEventGenerator extends QA {
     protected final void fireEvent(ETLEvent event) throws KETLQAException {
         List aetTriggers = null;
 
-        if ((event != null) && (step != null) && ((aetTriggers = step.getTriggers()) != null)) {
+        if ((event != null) && (this.step != null) && ((aetTriggers = this.step.getTriggers()) != null)) {
 
             event.setReturnCode(this.miErrorCode);
 
@@ -256,13 +255,14 @@ public abstract class QAEventGenerator extends QA {
 
     protected String setQAName() throws KETLThreadException {
 
-        mstrQAName = XMLHelper.getAttributeAsString(this.nQADefinition.getParentNode().getAttributes(), "NAME", null);
+        this.mstrQAName = XMLHelper.getAttributeAsString(this.nQADefinition.getParentNode().getAttributes(), "NAME",
+                null);
 
         // if a name has been given for the individual test then append it the name
         String extName = XMLHelper.getAttributeAsString(this.nQADefinition.getAttributes(), "NAME", null);
 
         if (extName != null) {
-            mstrQAName = mstrQAName + "-" + extName;
+            this.mstrQAName = this.mstrQAName + "-" + extName;
         }
 
         return this.mstrQAName;
@@ -273,36 +273,44 @@ public abstract class QAEventGenerator extends QA {
      * 
      * @see com.kni.etl.ketl.qa.QA#initialize(com.kni.etl.ketl.ETLStep, org.w3c.dom.Node)
      */
+    @Override
     public void initialize(ETLStep eStep, Node nXMLConfig) throws KETLThreadException {
         super.initialize(eStep, nXMLConfig);
 
-        mstrQAName = XMLHelper.getAttributeAsString(this.nQADefinition.getParentNode().getAttributes(), "NAME", null);
+        this.mstrQAName = XMLHelper.getAttributeAsString(this.nQADefinition.getParentNode().getAttributes(), "NAME",
+                null);
         this.setQAName();
 
         ResourcePool.LogMessage(eStep, ResourcePool.INFO_MESSAGE, "Initializing QA test " + this.toString());
 
-        miErrorCode = XMLHelper.getAttributeAsInt(this.nQADefinition.getAttributes(), ERROR_CODE_ATTRIB, 1);
+        this.miErrorCode = XMLHelper.getAttributeAsInt(this.nQADefinition.getAttributes(),
+                QAEventGenerator.ERROR_CODE_ATTRIB, 1);
 
-        mbLogOnWarning = XMLHelper.getAttributeAsBoolean(this.nQADefinition.getAttributes(), LOG_ON_WARNING_ATTRIB,
-                false);
+        this.mbLogOnWarning = XMLHelper.getAttributeAsBoolean(this.nQADefinition.getAttributes(),
+                QAEventGenerator.LOG_ON_WARNING_ATTRIB, false);
 
-        mEventToGenerate = XMLHelper.getAttributeAsString(this.nQADefinition.getAttributes(), EVENT_ATTRIB, null);
+        this.mEventToGenerate = XMLHelper.getAttributeAsString(this.nQADefinition.getAttributes(),
+                QAEventGenerator.EVENT_ATTRIB, null);
 
         // get comparison values if offered
         NodeList nl = this.nQADefinition.getChildNodes();
-        mComparisonValues = new ArrayList();
+        this.mComparisonValues = new ArrayList();
 
         if ((nl != null) && (nl.getLength() > 0)) {
             for (int i = 0; i < nl.getLength(); i++) {
                 // Check to make sure that the element has the correct tag name...
-                if (COMPARE_TAG.equals(nl.item(i).getNodeName()) == true) {
+                if (QAEventGenerator.COMPARE_TAG.equals(nl.item(i).getNodeName()) == true) {
                     Node n = nl.item(i);
-                    String strJobID = XMLHelper.getAttributeAsString(n.getAttributes(), JOB_ATTRIB, null);
-                    String strStepID = XMLHelper.getAttributeAsString(n.getAttributes(), STEP_ATTRIB, null);
-                    String strQAID = XMLHelper.getAttributeAsString(n.getAttributes(), QA_ATTRIB, null);
-                    String strQAType = XMLHelper.getAttributeAsString(n.getAttributes(), TYPEID_ATTRIB, null);
+                    String strJobID = XMLHelper.getAttributeAsString(n.getAttributes(), QAEventGenerator.JOB_ATTRIB,
+                            null);
+                    String strStepID = XMLHelper.getAttributeAsString(n.getAttributes(), QAEventGenerator.STEP_ATTRIB,
+                            null);
+                    String strQAID = XMLHelper
+                            .getAttributeAsString(n.getAttributes(), QAEventGenerator.QA_ATTRIB, null);
+                    String strQAType = XMLHelper.getAttributeAsString(n.getAttributes(),
+                            QAEventGenerator.TYPEID_ATTRIB, null);
                     String strAttribute = XMLHelper.getAttributeAsString(n.getAttributes(), "ATTRIBUTE", null);
-                    String[] previous = getHistory(strJobID, strStepID, strQAID, strQAType, 0, 1);
+                    String[] previous = QAEventGenerator.getHistory(strJobID, strStepID, strQAID, strQAType, 0, 1);
 
                     if (previous != null) {
                         DocumentBuilderFactory dmfFactory;
@@ -314,8 +322,8 @@ public abstract class QAEventGenerator extends QA {
                         try {
                             builder = dmfFactory.newDocumentBuilder();
 
-                            for (int x = 0; x < previous.length; x++) {
-                                xmlDOM = builder.parse(new InputSource(new StringReader(previous[x])));
+                            for (String element : previous) {
+                                xmlDOM = builder.parse(new InputSource(new StringReader(element)));
 
                                 Node root = xmlDOM.getFirstChild();
 
@@ -345,7 +353,7 @@ public abstract class QAEventGenerator extends QA {
                                 }
 
                                 if (val != null) {
-                                    mComparisonValues.add(val);
+                                    this.mComparisonValues.add(val);
                                 }
                             }
                         } catch (Exception e) {
@@ -356,11 +364,12 @@ public abstract class QAEventGenerator extends QA {
             }
         }
 
-        getParameters();
+        this.getParameters();
     }
 
+    @Override
     public String toString() {
-        return this.getClass().getName() + "[" + mstrQAName + "]";
+        return this.getClass().getName() + "[" + this.mstrQAName + "]";
     }
 
     public final void setXMLHistory(String strXML) {
@@ -376,19 +385,22 @@ public abstract class QAEventGenerator extends QA {
             }
         }
 
-        mstrHistoryXML = "<" + QA_HISTORY_TAG + " " + JOB_ATTRIB + "=" + quote
-                + step.getJobExecutor().getCurrentETLJob().getJobID() + quote + " " + QA_ATTRIB + "=" + quote
-                + mstrQAName + quote + " " + STEP_ATTRIB + "=" + quote + this.step.toString() + quote + " "
-                + TYPEID_ATTRIB + "=" + quote + this.nQADefinition.getNodeName() + quote + " " + DATE_ATTRIB + "="
-                + quote + step.getJobExecutor().getCurrentETLJob().getCreationDate() + quote + strParams + " >"
-                + strXML + "</" + QA_HISTORY_TAG + ">";
+        this.mstrHistoryXML = "<" + QAEventGenerator.QA_HISTORY_TAG + " " + QAEventGenerator.JOB_ATTRIB + "="
+                + QAEventGenerator.quote + this.step.getJobExecutor().getCurrentETLJob().getJobID()
+                + QAEventGenerator.quote + " " + QAEventGenerator.QA_ATTRIB + "=" + QAEventGenerator.quote
+                + this.mstrQAName + QAEventGenerator.quote + " " + QAEventGenerator.STEP_ATTRIB + "="
+                + QAEventGenerator.quote + this.step.toString() + QAEventGenerator.quote + " "
+                + QAEventGenerator.TYPEID_ATTRIB + "=" + QAEventGenerator.quote + this.nQADefinition.getNodeName()
+                + QAEventGenerator.quote + " " + QAEventGenerator.DATE_ATTRIB + "=" + QAEventGenerator.quote
+                + this.step.getJobExecutor().getCurrentETLJob().getCreationDate() + QAEventGenerator.quote + strParams
+                + " >" + strXML + "</" + QAEventGenerator.QA_HISTORY_TAG + ">";
     }
 
     /**
      * @return Returns the miErrorCode.
      */
     public int getErrorCode() {
-        return miErrorCode;
+        return this.miErrorCode;
     }
 
     String mEventToGenerate;

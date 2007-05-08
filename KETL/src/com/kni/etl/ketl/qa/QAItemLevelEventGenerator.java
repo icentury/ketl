@@ -50,6 +50,7 @@ public abstract class QAItemLevelEventGenerator extends QAEventGenerator {
         super.initialize(eStep, pConfig);
     }
 
+    @Override
     protected String setQAName() throws KETLThreadException {
         super.setQAName();
 

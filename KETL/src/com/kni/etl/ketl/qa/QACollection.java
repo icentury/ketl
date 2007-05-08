@@ -46,18 +46,19 @@ public class QACollection extends QA {
 
         // inialize all objects
         // get Step QA items
-        String sQAName = XMLHelper.getAttributeAsString(nXMLConfig.getAttributes(), QA, null);
+        String sQAName = XMLHelper.getAttributeAsString(nXMLConfig.getAttributes(), QACollection.QA, null);
 
         // get initialize items
         // get record level items
         if (sQAName != null) {
-            addQAForStep(sQAName);
+            this.addQAForStep(sQAName);
         }
 
     }
 
     final public boolean addQAForItem(ETLPort eiItem, Node xmlNode) {
-        Node QANode = getQAItemNode(XMLHelper.getAttributeAsString(xmlNode.getAttributes(), QA, null));
+        Node QANode = this
+                .getQAItemNode(XMLHelper.getAttributeAsString(xmlNode.getAttributes(), QACollection.QA, null));
 
         if (QANode == null) {
             return false;
@@ -74,7 +75,7 @@ public class QACollection extends QA {
                 continue;
             }
 
-            String sQAClass = step.getQAClass(n.getNodeName());
+            String sQAClass = this.step.getQAClass(n.getNodeName());
 
             if (sQAClass == null) {
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Step does not support QA type of "
@@ -91,14 +92,14 @@ public class QACollection extends QA {
                     if (qaObject != null) {
                         if (this.aItemsToCheck == null) {
                             this.aItemsToCheck = new QAItemLevelEventGenerator[1];
-                            this.aItemsToCheck[0] = (QAItemLevelEventGenerator) qaObject;
+                            this.aItemsToCheck[0] = qaObject;
                         }
                         else {
                             QAItemLevelEventGenerator[] tmp = new QAItemLevelEventGenerator[this.aItemsToCheck.length + 1];
                             System.arraycopy(this.aItemsToCheck, 0, tmp, 0, this.aItemsToCheck.length);
                             this.aItemsToCheck = tmp;
 
-                            this.aItemsToCheck[this.aItemsToCheck.length - 1] = (QAItemLevelEventGenerator) qaObject;
+                            this.aItemsToCheck[this.aItemsToCheck.length - 1] = qaObject;
                         }
                         qaItems.add(qaObject);
                     }
@@ -122,7 +123,7 @@ public class QACollection extends QA {
     }
 
     final protected void addQAForStep(String QAName) {
-        Node QANode = getQAItemNode(QAName);
+        Node QANode = this.getQAItemNode(QAName);
 
         if (QANode == null) {
             return;
@@ -148,7 +149,7 @@ public class QACollection extends QA {
                 continue;
             }
 
-            String sQAClass = step.getQAClass(n.getNodeName());
+            String sQAClass = this.step.getQAClass(n.getNodeName());
 
             if (sQAClass == null) {
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Step does not support QA type of "
@@ -210,7 +211,8 @@ public class QACollection extends QA {
         }
 
         // get QA nodes <ETL><QA></QA></ETL>
-        Node[] aQANodes = XMLHelper.findElementsByName(this.nQADefinition, QA, ETLStep.NAME_ATTRIB, QAName);
+        Node[] aQANodes = XMLHelper
+                .findElementsByName(this.nQADefinition, QACollection.QA, ETLStep.NAME_ATTRIB, QAName);
 
         if (aQANodes == null) {
             ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Could not locate QA item " + QAName);
@@ -228,47 +230,47 @@ public class QACollection extends QA {
     public void completeCheck() throws KETLQAException {
         Metadata md = ResourcePool.getMetadata();
 
-        if (recordLevel != null) {
-            for (int i = recordLevel.length - 1; i >= 0; i--) {
-                ETLEvent res = recordLevel[i].completeCheck();
+        if (this.recordLevel != null) {
+            for (int i = this.recordLevel.length - 1; i >= 0; i--) {
+                ETLEvent res = this.recordLevel[i].completeCheck();
                 if (res != null)
-                    recordLevel[i].fireEvent(res);
+                    this.recordLevel[i].fireEvent(res);
                 if (md != null) {
-                    recordHistory(md, recordLevel[i]);
+                    this.recordHistory(md, this.recordLevel[i]);
                 }
             }
         }
 
         if (this.aItemsToCheck != null) {
-            for (int i = aItemsToCheck.length - 1; i >= 0; i--) {
-                ETLEvent res = aItemsToCheck[i].completeCheck();
+            for (int i = this.aItemsToCheck.length - 1; i >= 0; i--) {
+                ETLEvent res = this.aItemsToCheck[i].completeCheck();
                 if (res != null)
-                    aItemsToCheck[i].fireEvent(res);
+                    this.aItemsToCheck[i].fireEvent(res);
                 if (md != null) {
-                    recordHistory(md, aItemsToCheck[i]);
+                    this.recordHistory(md, this.aItemsToCheck[i]);
                 }
             }
         }
 
-        if (initializeLevel != null) {
-            for (int i = initializeLevel.length - 1; i >= 0; i--) {
+        if (this.initializeLevel != null) {
+            for (int i = this.initializeLevel.length - 1; i >= 0; i--) {
 
                 if (md != null) {
-                    recordHistory(md, initializeLevel[i]);
+                    this.recordHistory(md, this.initializeLevel[i]);
                 }
             }
         }
     }
 
     public void initializeCheck() throws KETLThreadException {
-        if (initializeLevel == null) {
+        if (this.initializeLevel == null) {
             return;
         }
 
-        for (int i = initializeLevel.length - 1; i >= 0; i--) {
-            ETLEvent res = initializeLevel[i].InitializeCheck();
+        for (int i = this.initializeLevel.length - 1; i >= 0; i--) {
+            ETLEvent res = this.initializeLevel[i].InitializeCheck();
             if (res != null)
-                initializeLevel[i].fireEvent(res);
+                this.initializeLevel[i].fireEvent(res);
         }
     }
 
@@ -278,37 +280,38 @@ public class QACollection extends QA {
      * @see com.kni.etl.ketl.qa.QA#postPutNextRecordCheck()
      */
     public void recordCheck(Object[] rr, Exception e) throws KETLQAException {
-        if (recordLevel == null) {
+        if (this.recordLevel == null) {
             return;
         }
 
-        for (int i = recordLevel.length - 1; i >= 0; i--) {
-            ETLEvent res = recordLevel[i].recordCheck(rr, e);
+        for (int i = this.recordLevel.length - 1; i >= 0; i--) {
+            ETLEvent res = this.recordLevel[i].recordCheck(rr, e);
             if (res != null)
-                recordLevel[i].fireEvent(res);
+                this.recordLevel[i].fireEvent(res);
         }
     }
 
     final boolean recordHistory(Metadata md, QAEventGenerator qa) {
         if ((qa.getXMLHistory() != null) && qa.recordHistory()) {
-            return md.recordQAHistory(step.getJobExecutor().getCurrentETLJob().getJobID(), this.step.toString(),
-                    qa.mstrQAName, qa.getQAType(), step.getJobExecutor().getCurrentETLJob().getCreationDate(), qa
+            return md.recordQAHistory(this.step.getJobExecutor().getCurrentETLJob().getJobID(), this.step.toString(),
+                    qa.mstrQAName, qa.getQAType(), this.step.getJobExecutor().getCurrentETLJob().getCreationDate(), qa
                             .getXMLHistory());
         }
 
         return true;
     }
 
+    @Override
     public String toString() {
         return ("QA Collection for step " + this.step);
     }
 
     public void itemChecks(Object[] di, Exception e) throws KETLQAException {
         if (this.aItemsToCheck != null) {
-            for (int i = aItemsToCheck.length - 1; i >= 0; i--) {
-                ETLEvent res = aItemsToCheck[i].itemCheck(di, e);
+            for (int i = this.aItemsToCheck.length - 1; i >= 0; i--) {
+                ETLEvent res = this.aItemsToCheck[i].itemCheck(di, e);
                 if (res != null)
-                    aItemsToCheck[i].fireEvent(res);
+                    this.aItemsToCheck[i].fireEvent(res);
 
             }
         }

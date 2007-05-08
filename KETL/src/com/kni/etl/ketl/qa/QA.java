@@ -29,8 +29,8 @@ public abstract class QA {
      * @throws KETLThreadException
      */
     public void initialize(ETLStep eStep, Node nXMLConfig) throws KETLThreadException {
-        step = eStep;
-        nQADefinition = nXMLConfig;
+        this.step = eStep;
+        this.nQADefinition = nXMLConfig;
 
     }
 
