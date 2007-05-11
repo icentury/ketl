@@ -37,18 +37,19 @@ public class ETLJobManager {
      */
     public ETLJobManager(String strJobExecutorClass, int iMaxNumThreads, int iMaxQueueSize) {
         super();
-        mjmsStatus = new ETLJobManagerStatus();
-        mstrJobExecutorClass = strJobExecutorClass;
-        cjeExecutorThreads = new ArrayList(iMaxNumThreads);
-        mllPendingQueue = new LinkedList();
-        miMaxNumThreads = iMaxNumThreads;
-        miMaxQueueSize = iMaxQueueSize;
+        this.mjmsStatus = new ETLJobManagerStatus();
+        this.mstrJobExecutorClass = strJobExecutorClass;
+        this.cjeExecutorThreads = new ArrayList(iMaxNumThreads);
+        this.mllPendingQueue = new LinkedList();
+        this.miMaxNumThreads = iMaxNumThreads;
+        this.miMaxQueueSize = iMaxQueueSize;
 
-        mjmsStatus.setStatusCode(ETLJobManagerStatus.INITIALIZING); // We'll set this to READY once we have a thread
-                                                                    // available
+        this.mjmsStatus.setStatusCode(ETLJobManagerStatus.INITIALIZING); // We'll set this to READY once we have a
+                                                                            // thread
+        // available
 
-        if (startExecutorThreads() == 0) {
-            mjmsStatus.setStatusCode(ETLJobManagerStatus.ERROR);
+        if (this.startExecutorThreads() == 0) {
+            this.mjmsStatus.setStatusCode(ETLJobManagerStatus.ERROR);
         }
     }
 
@@ -59,9 +60,9 @@ public class ETLJobManager {
      * @param param com.kni.etl.ETLJob
      */
     public boolean cancelJob(ETLJob ejJob) {
-        synchronized (mllPendingQueue) {
+        synchronized (this.mllPendingQueue) {
             // Remove it from the queue...if it's not there, then the worker thread must have already pulled it...
-            mllPendingQueue.remove(ejJob);
+            this.mllPendingQueue.remove(ejJob);
         }
 
         // Mark it as cancelled in case anyone's working on it...
@@ -77,12 +78,12 @@ public class ETLJobManager {
         int[] aiStatusCounts = null;
 
         // Check if each thread is still alive and mark it's status...
-        for (int i = 0; i < cjeExecutorThreads.size(); i++) {
-            ETLJobExecutor je = (ETLJobExecutor) cjeExecutorThreads.get(i);
+        for (int i = 0; i < this.cjeExecutorThreads.size(); i++) {
+            ETLJobExecutor je = (ETLJobExecutor) this.cjeExecutorThreads.get(i);
 
             // If the thread is dead, remove it from our collection...
             if (je.isAlive() == false) {
-                cjeExecutorThreads.remove(je);
+                this.cjeExecutorThreads.remove(je);
 
                 // Reset our index to one back, so when our for loop increments,
                 // we'll be pointing at the right next element...
@@ -102,7 +103,7 @@ public class ETLJobManager {
         }
 
         // If all our threads are dead, return null...
-        if (cjeExecutorThreads.size() == 0) {
+        if (this.cjeExecutorThreads.size() == 0) {
             return null;
         }
 
@@ -116,8 +117,8 @@ public class ETLJobManager {
      */
     public void kill() {
         // Check if each thread is still alive and kill it if it is...
-        for (int i = 0; i < cjeExecutorThreads.size(); i++) {
-            ETLJobExecutor je = (ETLJobExecutor) cjeExecutorThreads.get(i);
+        for (int i = 0; i < this.cjeExecutorThreads.size(); i++) {
+            ETLJobExecutor je = (ETLJobExecutor) this.cjeExecutorThreads.get(i);
 
             // If the thread is dead, remove it from our collection...
             if (je.isAlive() == false) {
@@ -132,7 +133,7 @@ public class ETLJobManager {
      * @return int
      */
     public int getCurrentJobCount() {
-        return getCurrentQueueSize() + getCurrentWorkingThreadCount();
+        return this.getCurrentQueueSize() + this.getCurrentWorkingThreadCount();
     }
 
     /**
@@ -141,8 +142,8 @@ public class ETLJobManager {
      * @return int
      */
     public int getCurrentQueueSize() {
-        synchronized (mllPendingQueue) {
-            return mllPendingQueue.size();
+        synchronized (this.mllPendingQueue) {
+            return this.mllPendingQueue.size();
         }
     }
 
@@ -154,7 +155,7 @@ public class ETLJobManager {
     public int getCurrentWorkingThreadCount() {
         int[] aiStatusArray;
 
-        if ((aiStatusArray = checkExecutorThreads()) == null) {
+        if ((aiStatusArray = this.checkExecutorThreads()) == null) {
             return 0;
         }
 
@@ -165,7 +166,7 @@ public class ETLJobManager {
      * Insert the method's description here. Creation date: (5/8/2002 5:43:10 PM)
      */
     public String getJobExecutorClassName() {
-        return mstrJobExecutorClass;
+        return this.mstrJobExecutorClass;
     }
 
     /**
@@ -174,7 +175,7 @@ public class ETLJobManager {
      * @return int
      */
     public int getMaxNumThreads() {
-        return miMaxNumThreads;
+        return this.miMaxNumThreads;
     }
 
     /**
@@ -183,7 +184,7 @@ public class ETLJobManager {
      * @return int
      */
     public int getMaxQueueSize() {
-        return miMaxQueueSize;
+        return this.miMaxQueueSize;
     }
 
     /**
@@ -192,10 +193,10 @@ public class ETLJobManager {
      * @return int
      */
     public int getNumThreads() {
-        checkExecutorThreads();
+        this.checkExecutorThreads();
 
         // The size of the collection is the number of happy threads...
-        return cjeExecutorThreads.size();
+        return this.cjeExecutorThreads.size();
     }
 
     /**
@@ -205,9 +206,9 @@ public class ETLJobManager {
      * @return int
      */
     public ETLJobManagerStatus getStatus() {
-        updateStatus();
+        this.updateStatus();
 
-        return mjmsStatus;
+        return this.mjmsStatus;
     }
 
     /**
@@ -217,7 +218,7 @@ public class ETLJobManager {
      * @param newMaxQueueSize int
      */
     public void setMaxQueueSize(int newMaxQueueSize) {
-        miMaxQueueSize = newMaxQueueSize;
+        this.miMaxQueueSize = newMaxQueueSize;
     }
 
     /**
@@ -226,15 +227,15 @@ public class ETLJobManager {
      * @return boolean
      */
     public boolean shutdown() {
-        mbShutdown = true;
+        this.mbShutdown = true;
 
         // Set the shutdown flag on each thread...
-        for (int i = 0; i < cjeExecutorThreads.size(); i++) {
-            ETLJobExecutor je = (ETLJobExecutor) cjeExecutorThreads.get(i);
+        for (int i = 0; i < this.cjeExecutorThreads.size(); i++) {
+            ETLJobExecutor je = (ETLJobExecutor) this.cjeExecutorThreads.get(i);
 
             // If the thread is dead, remove it from our collection...
             if (je.isAlive() == false) {
-                cjeExecutorThreads.remove(je);
+                this.cjeExecutorThreads.remove(je);
 
                 // Reset our index to one back, so when our for loop increments,
                 // we'll be pointing at the right next element...
@@ -247,7 +248,7 @@ public class ETLJobManager {
         }
 
         // If there were no threads to shut down, return false, but otherwise, our work here is done...
-        if (cjeExecutorThreads.size() == 0) {
+        if (this.cjeExecutorThreads.size() == 0) {
             return false;
         }
 
@@ -263,24 +264,24 @@ public class ETLJobManager {
         ETLJobExecutor jeExecutorThread = null;
 
         // Starting at miNumThreads allows us to restart to our max if desired...
-        for (int i = cjeExecutorThreads.size(); i < miMaxNumThreads; i++) {
+        for (int i = this.cjeExecutorThreads.size(); i < this.miMaxNumThreads; i++) {
             try {
-                jeExecutorThread = (ETLJobExecutor) Class.forName(mstrJobExecutorClass).newInstance();
+                jeExecutorThread = (ETLJobExecutor) Class.forName(this.mstrJobExecutorClass).newInstance();
             } catch (Exception e) {
                 // Keep storing the last error message, since it's likely to be the same for all threads...
-                mjmsStatus.setErrorCode(1);
-                mjmsStatus.setErrorMessage("Error starting thread for class '" + mstrJobExecutorClass + "': "
+                this.mjmsStatus.setErrorCode(1);
+                this.mjmsStatus.setErrorMessage("Error starting thread for class '" + this.mstrJobExecutorClass + "': "
                         + e.getMessage());
 
                 continue;
             }
 
-            jeExecutorThread.setPendingQueue(mllPendingQueue);
+            jeExecutorThread.setPendingQueue(this.mllPendingQueue);
             jeExecutorThread.start();
-            cjeExecutorThreads.add(jeExecutorThread); // Add the thread to our collection
+            this.cjeExecutorThreads.add(jeExecutorThread); // Add the thread to our collection
         }
 
-        return cjeExecutorThreads.size(); // Number of active threads
+        return this.cjeExecutorThreads.size(); // Number of active threads
     }
 
     /**
@@ -291,7 +292,7 @@ public class ETLJobManager {
      */
     public boolean submitJob(ETLJob ejNewJob) {
         // Don't accept jobs if we're in a bad state...
-        switch (getStatus().getStatusCode()) {
+        switch (this.getStatus().getStatusCode()) {
         case ETLJobManagerStatus.ERROR:
         case ETLJobManagerStatus.FULL:
             return false;
@@ -299,7 +300,7 @@ public class ETLJobManager {
 
         // Make sure that the job executor supports this type of job...(just use the first object
         // we have - they should all return the same answer...
-        if (((ETLJobExecutor) cjeExecutorThreads.get(0)).supportsJobType(ejNewJob) == false) {
+        if (((ETLJobExecutor) this.cjeExecutorThreads.get(0)).supportsJobType(ejNewJob) == false) {
             ejNewJob.getStatus().setStatusCode(ETLJobStatus.REJECTED);
 
             return false;
@@ -314,8 +315,8 @@ public class ETLJobManager {
         ejNewJob.getStatus().setStatusCode(ETLJobStatus.QUEUED_FOR_EXECUTION);
 
         // Add the job to the queue...
-        synchronized (mllPendingQueue) {
-            return mllPendingQueue.add(ejNewJob);
+        synchronized (this.mllPendingQueue) {
+            return this.mllPendingQueue.add(ejNewJob);
         }
     }
 
@@ -337,24 +338,24 @@ public class ETLJobManager {
         int iAvailableCapacity; // = (iMaxJobsInQueue - iNumJobsInQueue) + number of threads in READY state
         int iImmediateCapacity; // = number of threads in READY state - iNumJobsInQueue
 
-        synchronized (mllPendingQueue) {
+        synchronized (this.mllPendingQueue) {
             // Get all of our current thread statuses...
-            aiNumThreadsAtStatus = checkExecutorThreads();
+            aiNumThreadsAtStatus = this.checkExecutorThreads();
 
             // Any dead threads will be pulled from the collection, so that size is the current thread count...
-            iNumThreads = cjeExecutorThreads.size();
+            iNumThreads = this.cjeExecutorThreads.size();
 
             if ((aiNumThreadsAtStatus == null) && (iNumThreads > 0)) {
                 ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE,
                         "No status array, but there are still threads in the collection...");
-                aiNumThreadsAtStatus = checkExecutorThreads();
+                aiNumThreadsAtStatus = this.checkExecutorThreads();
             }
 
             // Take a snapshot of the number of jobs in queue...
-            iNumJobsInQueue = getCurrentQueueSize();
+            iNumJobsInQueue = this.getCurrentQueueSize();
 
             // Our max doesn't change much, but get a snapshot here anyways...
-            iMaxJobsInQueue = getMaxQueueSize();
+            iMaxJobsInQueue = this.getMaxQueueSize();
         }
 
         // Check for special states TERMINATED, SHUTTING_DOWN or ERROR, since they are computed differently than the
@@ -363,21 +364,21 @@ public class ETLJobManager {
         /** ** TERMINATED *** */
 
         // If we are already terminated, there's no coming back...
-        if (mjmsStatus.getStatusCode() == ETLJobManagerStatus.TERMINATED) {
+        if (this.mjmsStatus.getStatusCode() == ETLJobManagerStatus.TERMINATED) {
             return ETLJobManagerStatus.TERMINATED;
         }
 
         // If we were shutting down, and the threads are finally all put to bed (or dead), then we can terminate too...
-        if (mbShutdown) {
+        if (this.mbShutdown) {
             // If no more threads, we're shut down...
             if (iNumThreads == 0) {
-                return mjmsStatus.setStatusCode(ETLJobManagerStatus.TERMINATED);
+                return this.mjmsStatus.setStatusCode(ETLJobManagerStatus.TERMINATED);
             }
 
             /** ** SHUTTING_DOWN *** */
 
             // Else, we're still shutting down...
-            return mjmsStatus.setStatusCode(ETLJobManagerStatus.SHUTTING_DOWN);
+            return this.mjmsStatus.setStatusCode(ETLJobManagerStatus.SHUTTING_DOWN);
         }
 
         /** ** ERROR *** */
@@ -385,7 +386,7 @@ public class ETLJobManager {
         // If we are not shutting down or terminated, and there are no more living threads in our pool, that's bad...
         // NOTE: this check should be done before any peeking in the thread status array, since it will be null
         if (iNumThreads == 0) {
-            return mjmsStatus.setStatusCode(ETLJobManagerStatus.ERROR);
+            return this.mjmsStatus.setStatusCode(ETLJobManagerStatus.ERROR);
         }
 
         // Now, perform the logic to determine our status (we have already taken the trouble states out of the way to
@@ -401,36 +402,36 @@ public class ETLJobManager {
 
         // If we have threads, but none are done initializing, then the status of the manager is INITIALIZING...
         if (aiNumThreadsAtStatus[ETLJobExecutorStatus.INITIALIZING] == iNumThreads) {
-            return mjmsStatus.setStatusCode(ETLJobManagerStatus.INITIALIZING);
+            return this.mjmsStatus.setStatusCode(ETLJobManagerStatus.INITIALIZING);
         }
 
         /** ** READY *** */
 
         // Check to see if we have the ability to run a job immediately (READY)...
         if (iImmediateCapacity > 0) {
-            return mjmsStatus.setStatusCode(ETLJobManagerStatus.READY);
+            return this.mjmsStatus.setStatusCode(ETLJobManagerStatus.READY);
         }
 
         /** ** QUEUEING *** */
 
         // If we weren't READY, but we still have available capacity, then we must have some space left on the queue...
         if (iAvailableCapacity > 0) {
-            return mjmsStatus.setStatusCode(ETLJobManagerStatus.QUEUEING);
+            return this.mjmsStatus.setStatusCode(ETLJobManagerStatus.QUEUEING);
         }
 
         /** ** FULL *** */
 
         // Check to see if we're at (or past) maximum capacity...
         if (iSubmittedJobs >= iTotalCapacity) {
-            return mjmsStatus.setStatusCode(ETLJobManagerStatus.FULL);
+            return this.mjmsStatus.setStatusCode(ETLJobManagerStatus.FULL);
         }
 
         // We should never get to this state...so there must be an error in our counts. The safest thing to do here is
         // to signal FULL and wait for the jobs to move around... but set the warning flag...
-        mjmsStatus.setWarningCode(1);
-        mjmsStatus
+        this.mjmsStatus.setWarningCode(1);
+        this.mjmsStatus
                 .setWarningMessage("Unexpected state derived when checking job and executor status.  Temporarily setting to FULL.");
 
-        return mjmsStatus.setStatusCode(ETLJobManagerStatus.FULL);
+        return this.mjmsStatus.setStatusCode(ETLJobManagerStatus.FULL);
     }
 }
