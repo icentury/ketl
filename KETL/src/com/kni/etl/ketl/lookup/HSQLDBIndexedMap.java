@@ -1,7 +1,24 @@
 /*
- * Copyright (c) 2006 Kinetic Networks, Inc. All Rights Reserved.
- * Created on Sep 25, 2006
- * 
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.lookup;
 
@@ -25,44 +42,80 @@ import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.stringtools.NumberFormatter;
 import com.kni.util.Bytes;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class HSQLDBIndexedMap.
+ * 
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- *         Generation&gt;Code and Comments
+ * Generation&gt;Code and Comments
  */
 final public class HSQLDBIndexedMap implements PersistentMap {
 
+    /**
+     * The Class HashWrapper.
+     */
     final class HashWrapper {
 
+        /** The data. */
         Object[] data;
 
+        /**
+         * Instantiates a new hash wrapper.
+         * 
+         * @param data the data
+         */
         public HashWrapper(Object[] data) {
             super();
             this.data = data;
         }
 
+        /* (non-Javadoc)
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
         @Override
         public boolean equals(Object obj) {
-            return java.util.Arrays.equals(data, ((HashWrapper) obj).data);
+            return java.util.Arrays.equals(this.data, ((HashWrapper) obj).data);
         }
 
+        /* (non-Javadoc)
+         * @see java.lang.Object#hashCode()
+         */
         @Override
         public int hashCode() {
-            return java.util.Arrays.hashCode(data);
+            return java.util.Arrays.hashCode(this.data);
         }
 
     }
 
+    /** The commit count. */
     private int commitCount = 0;
+    
+    /** The count. */
     private int count = 0;
+    
+    /** The field index. */
     private HashMap fieldIndex = new HashMap();
+    
+    /** The data objs. */
     private String keyFlds = "", keyFldsSel = "", keyParms = "", keyObjs = "", dataFlds = "", dataParms = "",
             dataFldsSel = "", dataObjs = "";
 
+    /** The m cache dir. */
     private String mCacheDir = null;
+    
+    /** The m values is array. */
     private boolean mKeyIsArray, mValuesIsArray;
+    
+    /** The m key types. */
     private Class[] mKeyTypes;
+    
+    /** The m name. */
     private String mName;
+    
+    /** The m persistance ID. */
     private Integer mPersistanceID;
+    
+    /** The m remove. */
     private PreparedStatement mSelect, mInsert, mRemove;
 
     /*
@@ -71,42 +124,75 @@ final public class HSQLDBIndexedMap implements PersistentMap {
      * @see com.kni.etl.ketl.lookup.KETLMap#get(java.lang.Object)
      */
 
+    /** The m value fields. */
     private String[] mValueFields;
 
+    /** The m value types. */
     private Class[] mValueTypes;
 
+    /** The stmt. */
     private Statement stmt;
 
+    /** The storage. */
     private Connection storage = null;
+    
+    /** The m size. */
     private int mSize;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#getKeyTypes()
+     */
     public Class[] getKeyTypes() {
         return this.mKeyTypes;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#getValueFields()
+     */
     public String[] getValueFields() {
         return this.mValueFields;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#getValueTypes()
+     */
     public Class[] getValueTypes() {
         return this.mValueTypes;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#getCacheSize()
+     */
     public int getCacheSize() {
         return this.mSize;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#getName()
+     */
     public String getName() {
         return this.mName;
     }
 
+    /**
+     * Instantiates a new HSQLDB indexed map.
+     * 
+     * @param pName the name
+     * @param pSize the size
+     * @param pPersistanceID the persistance ID
+     * @param pCacheDir the cache dir
+     * @param pKeyTypes the key types
+     * @param pValueTypes the value types
+     * @param pValueFields the value fields
+     * @param pPurgeCache the purge cache
+     */
     public HSQLDBIndexedMap(String pName, int pSize, Integer pPersistanceID, String pCacheDir, Class[] pKeyTypes,
             Class[] pValueTypes, String[] pValueFields, boolean pPurgeCache) {
         super();
 
-        mPersistanceID = pPersistanceID;
-        mName = pName;
-        mSize = pSize;
+        this.mPersistanceID = pPersistanceID;
+        this.mName = pName;
+        this.mSize = pSize;
         this.mCacheDir = pCacheDir;
         this.mKeyTypes = pKeyTypes;
         this.mValueTypes = pValueTypes;
@@ -114,29 +200,33 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         this.mValuesIsArray = true; // pValueTypes.length == 1 ? false : true;
         this.mValueFields = pValueFields;
         for (int i = 0; i < pValueFields.length; i++) {
-            fieldIndex.put(pValueFields[i], i);
+            this.fieldIndex.put(pValueFields[i], i);
         }
         this.mJDBCItemHelper = new HSQLDBItemHelper();
         try {
-            init();
+            this.init();
         } catch (Exception e) {
             throw new KETLError(e);
         }
 
     }
 
+    /** The m JDBC item helper. */
     private HSQLDBItemHelper mJDBCItemHelper;
 
+    /* (non-Javadoc)
+     * @see java.util.Map#clear()
+     */
     public void clear() {
 
         {
             try {
-                mSelect.close();
-                mRemove.close();
-                mInsert.close();
-                stmt.executeUpdate("drop table " + mName);
-                createCacheTable();
-                prepareStatements();
+                this.mSelect.close();
+                this.mRemove.close();
+                this.mInsert.close();
+                this.stmt.executeUpdate("drop table " + this.mName);
+                this.createCacheTable();
+                this.prepareStatements();
 
             } catch (SQLException e) {
                 // TODO Auto-generated catch block
@@ -145,14 +235,17 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#commit(boolean)
+     */
     public synchronized void commit(boolean force) {
-        if (commitCount > 0) {
-            commitCount = 0;
-            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Lookup '" + mName + "' Size: "
+        if (this.commitCount > 0) {
+            this.commitCount = 0;
+            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Lookup '" + this.mName + "' Size: "
                     + NumberFormatter.format(new File(this.getCacheFileName()).length()) + ", Approximate Count: "
                     + this.count);
             try {
-                storage.commit();
+                this.storage.commit();
             } catch (SQLException e) {
                 throw new KETLError(e);
 
@@ -160,44 +253,61 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         }
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#containsKey(java.lang.Object)
+     */
     public boolean containsKey(Object key) {
         return this.get(key) != null;
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#containsValue(java.lang.Object)
+     */
     public boolean containsValue(Object value) {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Creates the cache table.
+     * 
+     * @throws SQLException the SQL exception
+     */
     private void createCacheTable() throws SQLException {
         try {
-            stmt.execute("drop table " + mName);
+            this.stmt.execute("drop table " + this.mName);
         } catch (Exception e) {
         }
-        stmt.execute("create cached table " + mName + "(" + keyObjs + "," + dataObjs + ")");
-        stmt.execute("create unique index idx" + mName + " on " + mName + "(" + keyFlds + ")");
+        this.stmt.execute("create cached table " + this.mName + "(" + this.keyObjs + "," + this.dataObjs + ")");
+        this.stmt.execute("create unique index idx" + this.mName + " on " + this.mName + "(" + this.keyFlds + ")");
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#delete()
+     */
     public synchronized void delete() {
         this.deleteCache();
     }
 
+    /**
+     * Delete cache.
+     */
     public synchronized void deleteCache() {
 
-        if (storage != null) {
+        if (this.storage != null) {
             try {
                 try {
-                    Statement stmt = storage.createStatement();
-                    stmt.executeQuery("drop table " + mName);
+                    Statement stmt = this.storage.createStatement();
+                    stmt.executeQuery("drop table " + this.mName);
                 } catch (Exception e) {
                 }
 
-                storage.close();
+                this.storage.close();
             } catch (SQLException e) {
                 throw new KETLError(e);
 
             }
 
-            storage = null;
+            this.storage = null;
         }
         File fl = new File(this.getCacheFileName());
         if (fl.exists())
@@ -205,14 +315,23 @@ final public class HSQLDBIndexedMap implements PersistentMap {
 
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#entrySet()
+     */
     public Set entrySet() {
         throw new UnsupportedOperationException();
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#get(java.lang.Object)
+     */
     public Object get(Object key) {
         return this.get(key, null);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#get(java.lang.Object, java.lang.String)
+     */
     public Object get(Object pkey, String pField) {
 
         Object res = null;
@@ -244,6 +363,16 @@ final public class HSQLDBIndexedMap implements PersistentMap {
 
     }
 
+    /**
+     * Gets the as key.
+     * 
+     * @param obj the obj
+     * @param cl the cl
+     * 
+     * @return the as key
+     * 
+     * @throws Error the error
+     */
     private byte[] getAsKey(Object obj, Class cl) throws Error {
 
         if (obj == null)
@@ -287,61 +416,72 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         throw new KETLError("Unsupported key type " + cl.getName());
     }
 
+    /**
+     * Gets the cache file name.
+     * 
+     * @return the cache file name
+     */
     private String getCacheFileName() {
         if (this.mPersistanceID == null)
-            return new File(mCacheDir + File.separator + "KETL." + mName + "cache").getAbsolutePath();
+            return new File(this.mCacheDir + File.separator + "KETL." + this.mName + "cache").getAbsolutePath();
         else
-            return new File(mCacheDir + File.separator + "KETL." + mName + "." + this.mPersistanceID + ".cache")
+            return new File(this.mCacheDir + File.separator + "KETL." + this.mName + "." + this.mPersistanceID + ".cache")
                     .getAbsolutePath();
 
     }
 
+    /**
+     * Init.
+     * 
+     * @throws ClassNotFoundException the class not found exception
+     * @throws SQLException the SQL exception
+     */
     void init() throws ClassNotFoundException, SQLException {
 
         this.deleteCache();
 
         for (int i = 0; i < this.mKeyTypes.length; i++) {
             if (i > 0) {
-                keyFlds += ",";
-                keyObjs += ",";
-                keyFldsSel += " AND ";
-                keyParms += ",";
+                this.keyFlds += ",";
+                this.keyObjs += ",";
+                this.keyFldsSel += " AND ";
+                this.keyParms += ",";
             }
-            keyFldsSel += " keyFld" + i + " = ?";
-            keyFlds += "keyFld" + i;
-            keyObjs += "keyFld" + i + " VARBINARY";
-            keyParms += "?";
+            this.keyFldsSel += " keyFld" + i + " = ?";
+            this.keyFlds += "keyFld" + i;
+            this.keyObjs += "keyFld" + i + " VARBINARY";
+            this.keyParms += "?";
         }
         for (int i = 0; i < this.mValueTypes.length; i++) {
             if (i > 0) {
-                dataFlds += ",";
-                dataFldsSel += " AND ";
-                dataParms += ",";
-                dataObjs += ",";
+                this.dataFlds += ",";
+                this.dataFldsSel += " AND ";
+                this.dataParms += ",";
+                this.dataObjs += ",";
             }
-            dataFldsSel += " dataFld" + i + " = ?";
-            dataFlds += "dataFld" + i;
-            dataParms += "?";
-            dataObjs += "dataFld" + i + " " + HSQLDBItemHelper.getType(this.mValueTypes[i], false);
+            this.dataFldsSel += " dataFld" + i + " = ?";
+            this.dataFlds += "dataFld" + i;
+            this.dataParms += "?";
+            this.dataObjs += "dataFld" + i + " " + HSQLDBItemHelper.getType(this.mValueTypes[i], false);
         }
 
-        if (storage == null) {
+        if (this.storage == null) {
             Class.forName("org.hsqldb.jdbcDriver");
-            storage = DriverManager.getConnection("jdbc:hsqldb:file:" + this.getCacheFileName(), "sa", "");
+            this.storage = DriverManager.getConnection("jdbc:hsqldb:file:" + this.getCacheFileName(), "sa", "");
         }
 
-        stmt = storage.createStatement();
+        this.stmt = this.storage.createStatement();
         boolean exists = false;
         try {
-            ResultSet rs = stmt.executeQuery("select " + keyFlds + "," + dataFlds + " from " + mName);
+            ResultSet rs = this.stmt.executeQuery("select " + this.keyFlds + "," + this.dataFlds + " from " + this.mName);
             while (rs.next() && exists == false) {
 
                 int pos = 1;
-                for (int i = 0; i <= this.mKeyTypes.length; i++) {
-                    this.mJDBCItemHelper.getObjectFromResultSet(rs, pos++, this.mKeyTypes[i], -1);
+                for (Class element : this.mKeyTypes) {
+                    this.mJDBCItemHelper.getObjectFromResultSet(rs, pos++, element, -1);
                 }
-                for (int i = 0; i <= this.mValueTypes.length; i++) {
-                    this.mJDBCItemHelper.getObjectFromResultSet(rs, pos++, this.mValueTypes[i], -1);
+                for (Class element : this.mValueTypes) {
+                    this.mJDBCItemHelper.getObjectFromResultSet(rs, pos++, element, -1);
                 }
 
                 exists = true;
@@ -354,11 +494,11 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         }
 
         if (exists == false) {
-            createCacheTable();
+            this.createCacheTable();
         }
-        stmt.execute("SET WRITE_DELAY TRUE");
+        this.stmt.execute("SET WRITE_DELAY TRUE");
 
-        prepareStatements();
+        this.prepareStatements();
 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "- Initializing lookup: "
                 + this.mName + ", Key Type(s):" + java.util.Arrays.toString(this.mKeyTypes) + ", Key Field(s):"
@@ -366,20 +506,31 @@ final public class HSQLDBIndexedMap implements PersistentMap {
                 + java.util.Arrays.toString(this.mValueTypes));
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#isEmpty()
+     */
     public boolean isEmpty() {
         return this.size() == 0;
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#keySet()
+     */
     public Set keySet() {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Prepare statements.
+     * 
+     * @throws SQLException the SQL exception
+     */
     private void prepareStatements() throws SQLException {
 
-        mSelect = storage.prepareStatement("select " + dataFlds + " from " + mName + " where " + keyFldsSel);
-        mRemove = storage.prepareStatement("delete from " + mName + " where " + keyFldsSel);
-        mInsert = storage.prepareStatement("insert into " + mName + "(" + keyFlds + "," + dataFlds + ") values("
-                + keyParms + "," + dataParms + ")");
+        this.mSelect = this.storage.prepareStatement("select " + this.dataFlds + " from " + this.mName + " where " + this.keyFldsSel);
+        this.mRemove = this.storage.prepareStatement("delete from " + this.mName + " where " + this.keyFldsSel);
+        this.mInsert = this.storage.prepareStatement("insert into " + this.mName + "(" + this.keyFlds + "," + this.dataFlds + ") values("
+                + this.keyParms + "," + this.dataParms + ")");
     }
 
     /*
@@ -398,11 +549,11 @@ final public class HSQLDBIndexedMap implements PersistentMap {
                 Object[] tmp = (Object[]) pkey;
 
                 for (int i = 0; i < tmp.length; i++) {
-                    this.mInsert.setBytes(pos++, getAsKey(tmp[i], this.mKeyTypes[i]));
+                    this.mInsert.setBytes(pos++, this.getAsKey(tmp[i], this.mKeyTypes[i]));
                 }
             }
             else {
-                this.mInsert.setBytes(pos++, getAsKey(pkey, pkey == null ? null : pkey.getClass()));
+                this.mInsert.setBytes(pos++, this.getAsKey(pkey, pkey == null ? null : pkey.getClass()));
             }
 
             if (this.mValuesIsArray) {
@@ -417,7 +568,7 @@ final public class HSQLDBIndexedMap implements PersistentMap {
                 this.mJDBCItemHelper.setParameterFromClass(this.mInsert, pos++, pValue.getClass(), pValue, -1, null);
             }
 
-            mInsert.executeUpdate();
+            this.mInsert.executeUpdate();
             this.count++;
             if (this.commitCount++ > 50000) {
                 this.commit(false);
@@ -433,10 +584,16 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#putAll(java.util.Map)
+     */
     public void putAll(Map t) {
 
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#remove(java.lang.Object)
+     */
     public Object remove(Object pkey) {
         // local hashed cached
 
@@ -446,14 +603,14 @@ final public class HSQLDBIndexedMap implements PersistentMap {
                 Object[] tmp = (Object[]) pkey;
 
                 for (int i = 0; i < tmp.length; i++) {
-                    this.mRemove.setBytes(pos++, getAsKey(tmp[i], this.mKeyTypes[i]));
+                    this.mRemove.setBytes(pos++, this.getAsKey(tmp[i], this.mKeyTypes[i]));
                 }
             }
             else {
-                this.mRemove.setBytes(pos++, getAsKey(pkey, pkey == null ? null : pkey.getClass()));
+                this.mRemove.setBytes(pos++, this.getAsKey(pkey, pkey == null ? null : pkey.getClass()));
             }
 
-            mRemove.executeUpdate();
+            this.mRemove.executeUpdate();
         } catch (SQLException e) {
             throw new KETLError(e);
 
@@ -461,9 +618,12 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#size()
+     */
     public int size() {
         try {
-            ResultSet rs = stmt.executeQuery("select count(*) from " + mName);
+            ResultSet rs = this.stmt.executeQuery("select count(*) from " + this.mName);
 
             int size = -1;
             while (rs.next()) {
@@ -476,10 +636,16 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#switchToReadOnlyMode()
+     */
     public void switchToReadOnlyMode() {
 
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
         String exampleValue = "N/A", exampleKey = "N/A";
@@ -494,21 +660,27 @@ final public class HSQLDBIndexedMap implements PersistentMap {
 
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Map#values()
+     */
     public Collection values() {
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#getItem(java.lang.Object)
+     */
     public Object getItem(Object pkey) throws Exception {
         int pos = 1;
         if (this.mKeyIsArray) {
             Object[] tmp = (Object[]) pkey;
 
             for (int i = 0; i < tmp.length; i++) {
-                this.mSelect.setBytes(pos++, getAsKey(tmp[i], this.mKeyTypes[i]));
+                this.mSelect.setBytes(pos++, this.getAsKey(tmp[i], this.mKeyTypes[i]));
             }
         }
         else {
-            this.mSelect.setBytes(pos++, getAsKey(pkey, pkey == null ? null : pkey.getClass()));
+            this.mSelect.setBytes(pos++, this.getAsKey(pkey, pkey == null ? null : pkey.getClass()));
         }
 
         Object res = null;
@@ -531,15 +703,24 @@ final public class HSQLDBIndexedMap implements PersistentMap {
         return res;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#getStorageClass()
+     */
     public Class getStorageClass() {
         return this.getClass();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#close()
+     */
     public void close() {
         // TODO Auto-generated method stub
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.PersistentMap#closeCacheEnvironment()
+     */
     public void closeCacheEnvironment() {
         // TODO Auto-generated method stub
         

@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import java.sql.Connection;
@@ -22,16 +40,32 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SQLJobExecutor.
+ */
 public class SQLJobExecutor extends ETLJobExecutor {
 
+    /** The monitor. */
     private SQLJobMonitor monitor;
 
+    /**
+     * The Class SQLJobMonitor.
+     */
     private class SQLJobMonitor extends Thread {
 
+        /** The alive. */
         boolean alive = true;
+        
+        /** The current job. */
         SQLJob currentJob = null;
+        
+        /** The stmt. */
         public Statement stmt = null;;
 
+        /* (non-Javadoc)
+         * @see java.lang.Thread#run()
+         */
         @Override
         public void run() {
             try {
@@ -63,8 +97,20 @@ public class SQLJobExecutor extends ETLJobExecutor {
         super();
     }
 
+    /** The db connection. */
     Connection dbConnection = null;
 
+    /**
+     * Wrap execution.
+     * 
+     * @param stmt the stmt
+     * @param curSQL the cur SQL
+     * @param debug the debug
+     * 
+     * @return the long
+     * 
+     * @throws SQLException the SQL exception
+     */
     private long wrapExecution(Statement stmt, String curSQL, boolean debug) throws SQLException {
         long start = (System.currentTimeMillis() - 1);
         if (debug)
@@ -86,8 +132,9 @@ public class SQLJobExecutor extends ETLJobExecutor {
     /**
      * Insert the method's description here. Creation date: (5/4/2002 5:37:52 PM)
      * 
+     * @param ejJob the ej job
+     * 
      * @return boolean
-     * @param param com.kni.etl.ETLJob
      */
     @Override
     protected boolean executeJob(ETLJob ejJob) {
@@ -324,6 +371,8 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
     /**
      * Insert the method's description here. Creation date: (5/7/2002 11:55:23 AM)
+     * 
+     * @return true, if initialize
      */
     @Override
     protected boolean initialize() {
@@ -334,8 +383,9 @@ public class SQLJobExecutor extends ETLJobExecutor {
     /**
      * Insert the method's description here. Creation date: (5/8/2002 2:52:39 PM)
      * 
-     * @return boolean
      * @param jJob com.kni.etl.ETLJob
+     * 
+     * @return boolean
      */
     @Override
     public boolean supportsJobType(ETLJob jJob) {
@@ -345,6 +395,8 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
     /**
      * Insert the method's description here. Creation date: (5/7/2002 11:56:15 AM)
+     * 
+     * @return true, if terminate
      */
     @Override
     protected boolean terminate() {
@@ -366,6 +418,11 @@ public class SQLJobExecutor extends ETLJobExecutor {
         return new SQLJob();
     }
 
+    /**
+     * The main method.
+     * 
+     * @param args the arguments
+     */
     public static void main(String[] args) {
         ETLJobExecutor.execute(args, new SQLJobExecutor(), true);
     }

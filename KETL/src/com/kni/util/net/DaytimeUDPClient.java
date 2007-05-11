@@ -100,11 +100,11 @@ public final class DaytimeUDPClient extends DatagramSocketClient
         DatagramPacket sendPacket, receivePacket;
 
         sendPacket =
-            new DatagramPacket(__dummyData, __dummyData.length, host, port);
-        receivePacket = new DatagramPacket(__timeData, __timeData.length);
+            new DatagramPacket(this.__dummyData, this.__dummyData.length, host, port);
+        receivePacket = new DatagramPacket(this.__timeData, this.__timeData.length);
 
-        _socket_.send(sendPacket);
-        _socket_.receive(receivePacket);
+        this._socket_.send(sendPacket);
+        this._socket_.receive(receivePacket);
 
         return new String(receivePacket.getData(), 0, receivePacket.getLength());
     }
@@ -112,7 +112,7 @@ public final class DaytimeUDPClient extends DatagramSocketClient
     /*** Same as <code>getTime(host, DaytimeUDPClient.DEFAULT_PORT);</code> ***/
     public String getTime(InetAddress host) throws IOException
     {
-        return getTime(host, DEFAULT_PORT);
+        return this.getTime(host, DaytimeUDPClient.DEFAULT_PORT);
     }
 
 }

@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import java.io.File;
@@ -20,6 +38,7 @@ import com.kni.etl.ketl.lookup.PersistentMap;
 import com.kni.etl.stringtools.NumberFormatter;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
  * Insert the type's description here. Creation date: (5/15/2002 4:49:06 PM)
  * 
@@ -27,68 +46,187 @@ import com.kni.etl.util.XMLHelper;
  */
 public class EngineConstants {
 
+    /** The Constant SESSION_BROWSER. */
     public final static int SESSION_BROWSER = 11;
+    
+    /** The Constant SESSION_FIRST_CLICK_IDENTIFIER. */
     public final static int SESSION_FIRST_CLICK_IDENTIFIER = 10;
+    
+    /** The Constant SESSION_MAIN_SESSION_IDENTIFIER. */
     public final static int SESSION_MAIN_SESSION_IDENTIFIER = 9;
+    
+    /** The Constant SESSION_IP_ADDRESS. */
     public final static int SESSION_IP_ADDRESS = 12;
+    
+    /** The Constant SESSION_PERSISTANT_IDENTIFIER. */
     public final static int SESSION_PERSISTANT_IDENTIFIER = 13;
+    
+    /** The Constant KEEP_COOKIE_VARIABLE. */
     public final static int KEEP_COOKIE_VARIABLE = 19;
+    
+    /** The Constant OTHER_ERROR_EXIT_CODE. */
     public final static int OTHER_ERROR_EXIT_CODE = -10;
+    
+    /** The Constant WRONG_ARGUMENT_EXIT_CODE. */
     public final static int WRONG_ARGUMENT_EXIT_CODE = -1;
+    
+    /** The Constant READXML_ERROR_EXIT_CODE. */
     public final static int READXML_ERROR_EXIT_CODE = -2;
+    
+    /** The Constant MULTIJOB_JOB_OVERRIDE_ERROR_EXIT_CODE. */
     public final static int MULTIJOB_JOB_OVERRIDE_ERROR_EXIT_CODE = -3;
+    
+    /** The Constant BADLY_FORMED_ARGUMENT_EXIT_CODE. */
     public final static int BADLY_FORMED_ARGUMENT_EXIT_CODE = -4;
+    
+    /** The Constant INVALID_XML_EXIT_CODE. */
     public final static int INVALID_XML_EXIT_CODE = -5;
+    
+    /** The Constant METADATA_ERROR_EXIT_CODE. */
     public final static int METADATA_ERROR_EXIT_CODE = -6;
+    
+    /** The Constant ERROR_INHERITING_XML_CODE. */
     public final static int ERROR_INHERITING_XML_CODE = -7;
+    
+    /** The Constant ERROR_REPLACING_PARAMETER_IN_XML_CODE. */
     public final static int ERROR_REPLACING_PARAMETER_IN_XML_CODE = -8;
+    
+    /** The Constant ERROR_READING_JOB_XML_CODE. */
     public final static int ERROR_READING_JOB_XML_CODE = -9;
+    
+    /** The Constant ERROR_STARTING_STEP_XML_CODE. */
     public final static int ERROR_STARTING_STEP_XML_CODE = -11;
+    
+    /** The Constant SERVER_NAME_ERROR_EXIT_CODE. */
     public final static int SERVER_NAME_ERROR_EXIT_CODE = -12;
 
-    /** from pageview * */
+    /** from pageview *. */
     public final static int IP_ADDRESS = 1;
+    
+    /** The Constant IP_ADDRESS_STR. */
     public final static String IP_ADDRESS_STR = "IP_ADDRESS";
+    
+    /** The Constant IN_COOKIE. */
     public final static int IN_COOKIE = 2;
+    
+    /** The Constant IN_COOKIE_STR. */
     public final static String IN_COOKIE_STR = "IN_COOKIE";
+    
+    /** The Constant OUT_COOKIE. */
     public final static int OUT_COOKIE = 3;
+    
+    /** The Constant OUT_COOKIE_STR. */
     public final static String OUT_COOKIE_STR = "OUT_COOKIE";
+    
+    /** The Constant GET_REQUEST. */
     public final static int GET_REQUEST = 4;
+    
+    /** The Constant GET_REQUEST_STR. */
     public final static String GET_REQUEST_STR = "URL_REQUEST";
+    
+    /** The Constant BROWSER. */
     public final static int BROWSER = 5;
+    
+    /** The Constant BROWSER_STR. */
     public final static String BROWSER_STR = "USER_AGENT";
+    
+    /** The Constant HTML_ERROR_CODE. */
     public final static int HTML_ERROR_CODE = 6;
+    
+    /** The Constant HTML_ERROR_CODE_STR. */
     public final static String HTML_ERROR_CODE_STR = "HTML_ERROR_CODE";
+    
+    /** The Constant HIT_DATE_TIME. */
     public final static int HIT_DATE_TIME = 8;
+    
+    /** The Constant HIT_DATE_TIME_STR. */
     public final static String HIT_DATE_TIME_STR = "HIT_DATE_TIME";
+    
+    /** The Constant BYTES_SENT. */
     public final static int BYTES_SENT = 14;
+    
+    /** The Constant BYTES_SENT_STR. */
     public final static String BYTES_SENT_STR = "BYTES_SENT";
+    
+    /** The Constant SERVE_TIME. */
     public final static int SERVE_TIME = 15;
+    
+    /** The Constant SERVE_TIME_STR. */
     public final static String SERVE_TIME_STR = "SERVE_TIME";
+    
+    /** The Constant CANONICAL_PORT. */
     public final static int CANONICAL_PORT = 16;
+    
+    /** The Constant CANONICAL_PORT_STR. */
     public final static String CANONICAL_PORT_STR = "CANONICAL_PORT";
+    
+    /** The Constant REQUEST_PROTOCOL_STR. */
     public final static String REQUEST_PROTOCOL_STR = "REQUEST_PROTOCOL";
+    
+    /** The Constant REQUEST_PROTOCOL. */
     public final static int REQUEST_PROTOCOL = 18;
+    
+    /** The Constant REFERRER_URL_STR. */
     public final static String REFERRER_URL_STR = "REFERRER_URL";
+    
+    /** The Constant REFERRER_URL. */
     public final static int REFERRER_URL = 17;
+    
+    /** The Constant OTHER. */
     public final static int OTHER = 7;
+    
+    /** The Constant SERVER_NAME_STR. */
     public final static String SERVER_NAME_STR = "SERVER_NAME";
+    
+    /** The Constant SERVER_NAME. */
     public final static int SERVER_NAME = 20;
+    
+    /** The Constant REMOTE_USER_STR. */
     public final static String REMOTE_USER_STR = "REMOTE_USER";
+    
+    /** The Constant REMOTE_USER. */
     public final static int REMOTE_USER = 21;
+    
+    /** The Constant REQUEST_METHOD_STR. */
     public final static String REQUEST_METHOD_STR = "REQUEST_METHOD";
+    
+    /** The Constant REQUEST_METHOD. */
     public final static int REQUEST_METHOD = 22;
+    
+    /** The Constant QUERY_STRING_STR. */
     public final static String QUERY_STRING_STR = "QUERY_STRING";
+    
+    /** The Constant QUERY_STRING. */
     public final static int QUERY_STRING = 23;
+    
+    /** The Constant REQUEST_STRING_STR. */
     public final static String REQUEST_STRING_STR = "REQUEST_STRING";
+    
+    /** The Constant REQUEST_STRING. */
     public final static int REQUEST_STRING = 24;
+    
+    /** The Constant CUSTOM_FIELD_1_STR. */
     public final static String CUSTOM_FIELD_1_STR = "CUSTOMFIELD1";
+    
+    /** The Constant CUSTOM_FIELD_1. */
     public final static int CUSTOM_FIELD_1 = 25;
+    
+    /** The Constant CUSTOM_FIELD_2_STR. */
     public final static String CUSTOM_FIELD_2_STR = "CUSTOMFIELD2";
+    
+    /** The Constant CUSTOM_FIELD_2. */
     public final static int CUSTOM_FIELD_2 = 26;
+    
+    /** The Constant CUSTOM_FIELD_3_STR. */
     public final static String CUSTOM_FIELD_3_STR = "CUSTOMFIELD3";
+    
+    /** The Constant CUSTOM_FIELD_3. */
     public final static int CUSTOM_FIELD_3 = 27;
+    
+    /** The Constant OTHER_STR. */
     public final static String OTHER_STR = "";
+    
+    /** The Constant OBJECT_TYPES. */
     private final static String[] OBJECT_TYPES = { null, EngineConstants.IP_ADDRESS_STR, EngineConstants.IN_COOKIE_STR,
             EngineConstants.OUT_COOKIE_STR, EngineConstants.GET_REQUEST_STR, EngineConstants.BROWSER_STR,
             EngineConstants.HTML_ERROR_CODE_STR, EngineConstants.OTHER_STR, EngineConstants.HIT_DATE_TIME_STR, null,
@@ -98,6 +236,13 @@ public class EngineConstants {
             EngineConstants.QUERY_STRING_STR, EngineConstants.REQUEST_STRING_STR, EngineConstants.CUSTOM_FIELD_1_STR,
             EngineConstants.CUSTOM_FIELD_2_STR, EngineConstants.CUSTOM_FIELD_3_STR };
 
+    /**
+     * Resolve object name to ID.
+     * 
+     * @param psObjectName the ps object name
+     * 
+     * @return the int
+     */
     public final static int resolveObjectNameToID(String psObjectName) {
         if (psObjectName == null) {
             return -1;
@@ -113,6 +258,13 @@ public class EngineConstants {
         return -1;
     }
 
+    /**
+     * Resolve object ID to name.
+     * 
+     * @param psObjectType the ps object type
+     * 
+     * @return the string
+     */
     public final static String resolveObjectIDToName(int psObjectType) {
         if ((psObjectType >= 0) && (psObjectType < EngineConstants.OBJECT_TYPES.length)) {
             return EngineConstants.OBJECT_TYPES[psObjectType];
@@ -121,8 +273,17 @@ public class EngineConstants {
         return null;
     }
 
+    /** The Constant CONSTANTS. */
     private final static Object[][] CONSTANTS = { { "ASC", "1" }, { "DESC", "0" } };
 
+    /**
+     * Resolve value from constant.
+     * 
+     * @param psConstantName the ps constant name
+     * @param piDefault the pi default
+     * 
+     * @return the int
+     */
     public final static int resolveValueFromConstant(String psConstantName, int piDefault) {
         if (psConstantName == null) {
             return piDefault;
@@ -143,14 +304,34 @@ public class EngineConstants {
         return piDefault;
     }
 
+    /** The Constant APACHE. */
     public final static int APACHE = 1;
+    
+    /** The APACH e_ STR. */
     public static String APACHE_STR = "APACHE";
+    
+    /** The IPLANE t_ STR. */
     public static String IPLANET_STR = "IPLANET";
+    
+    /** The II s_ STR. */
     public static String IIS_STR = "IIS";
+    
+    /** The NETSCAP e_ STR. */
     public static String NETSCAPE_STR = "NETSCAPE";
+    
+    /** The Constant NETSCAPE. */
     public final static int NETSCAPE = 2;
+    
+    /** The Constant MAX_WEBSERVERS. */
     public final static int MAX_WEBSERVERS = 3;
 
+    /**
+     * Resolve web server name to ID.
+     * 
+     * @param psWebServerName the ps web server name
+     * 
+     * @return the int
+     */
     public final static int resolveWebServerNameToID(String psWebServerName) {
         if (psWebServerName == null) {
             return -1;
@@ -168,40 +349,91 @@ public class EngineConstants {
         }
     }
 
-    /** database field lengths * */
+    /** database field lengths *. */
     public final static int MAX_BROWSER_LENGTH = 255;
+    
+    /** The Constant MAX_REQUEST_LENGTH. */
     public final static int MAX_REQUEST_LENGTH = 2000;
+    
+    /** The Constant MAX_REFERRER_LENGTH. */
     public final static int MAX_REFERRER_LENGTH = 1000;
+    
+    /** The Constant MAX_MAIN_SESSION_IDENTIFIER_LENGTH. */
     public final static int MAX_MAIN_SESSION_IDENTIFIER_LENGTH = 100;
+    
+    /** The Constant MAX_FIRST_CLICK_SESSION_IDENTIFIER_LENGTH. */
     public final static int MAX_FIRST_CLICK_SESSION_IDENTIFIER_LENGTH = 100;
+    
+    /** The Constant MAX_START_PERSISTANT_IDENTIFIER_LENGTH. */
     public final static int MAX_START_PERSISTANT_IDENTIFIER_LENGTH = 100;
+    
+    /** The Constant MAX_PERSISTANT_IDENTIFIER_LENGTH. */
     public final static int MAX_PERSISTANT_IDENTIFIER_LENGTH = 100;
+    
+    /** The Constant MAX_KEEP_VARIABLE_LENGTH. */
     public final static int MAX_KEEP_VARIABLE_LENGTH = 255;
 
-    /** string constants * */
+    /** string constants *. */
     public final static String INVALID_MAIN_SESSION_IDENTIFIER_STRING = "-invalid-";
 
-    /** other default database values * */
+    /** other default database values *. */
     public final static int MAX_STATEMENTS_PER_CONNECTION = 400;
+    
+    /** The MA x_ ERRO r_ MESSAG e_ LENGTH. */
     public static int MAX_ERROR_MESSAGE_LENGTH = 800;
+    
+    /** The VARIABL e_ PARAMETE r_ START. */
     public static String VARIABLE_PARAMETER_START = "!@#";
+    
+    /** The VARIABL e_ PARAMETE r_ END. */
     public static String VARIABLE_PARAMETER_END = "#@!";
+    
+    /** The Constant PARAMETER_JOB_EXECUTION_ID. */
     public static final String[] PARAMETER_JOB_EXECUTION_ID = { "DM_LOAD_ID", "JOB_EXEC_ID" };
+    
+    /** The Constant PARAMETER_LOAD_ID. */
     public static final String[] PARAMETER_LOAD_ID = { "LOAD_ID" };
+    
+    /** The Constant PARAMETER_DATE. */
     public static final String[] PARAMETER_DATE = { "DATE", "TIMESTAMP", "TIME" };
+    
+    /** The Constant PARAMETER_DATE_FORMAT. */
     public static final String[] PARAMETER_DATE_FORMAT = { "dd-MM-yyyy", "dd-MM-yyyy HH:mm:ss", "HH:mm:ss" };
+    
+    /** The Constant JOB_PERSISTENCE. */
     public static final int JOB_PERSISTENCE = 0;
+    
+    /** The Constant LOAD_PERSISTENCE. */
     public static final int LOAD_PERSISTENCE = 1;
+    
+    /** The Constant STATIC_PERSISTENCE. */
     public static final int STATIC_PERSISTENCE = 2;
+    
+    /** The DEFAULTCACHESIZE. */
     private static String DEFAULTCACHESIZE = "64kb";
+    
+    /** The LOOKUPCLASS. */
     private static String LOOKUPCLASS = null;
+    
+    /** The PARAMETE r_ LIST. */
     public static String PARAMETER_LIST = "PARAMETER_LIST";
+    
+    /** The PARAMETER. */
     public static String PARAMETER = "PARAMETER";
+    
+    /** The BA d_ RECOR d_ PATH. */
     public static String BAD_RECORD_PATH = "log";
+    
+    /** The CACH e_ PATH. */
     public static String CACHE_PATH = ".";
+    
+    /** The VERSION. */
     private static String VERSION;
+    
+    /** The CACHEMEMRATIO. */
     private static double CACHEMEMRATIO = 0.5;
 
+    /** The m system XML. */
     private static Document mSystemXML = EngineConstants._getSystemXML();
 
     /**
@@ -211,8 +443,14 @@ public class EngineConstants {
         super();
     }
 
+    /** The globals. */
     private static Element globals = null;
 
+    /**
+     * _get system XML.
+     * 
+     * @return the document
+     */
     private static synchronized Document _getSystemXML() {
 
         Document doc = null;
@@ -437,6 +675,11 @@ public class EngineConstants {
 
     }
 
+    /**
+     * Gets the system XML.
+     * 
+     * @return the system XML
+     */
     public static synchronized Document getSystemXML() {
         if (EngineConstants.mSystemXML == null) {
             EngineConstants.mSystemXML = EngineConstants._getSystemXML();
@@ -445,6 +688,15 @@ public class EngineConstants {
         return EngineConstants.mSystemXML;
     }
 
+    /**
+     * Replace parameter.
+     * 
+     * @param strAction the str action
+     * @param pParameterToLookFor the parameter to look for
+     * @param pNewValue the new value
+     * 
+     * @return the string
+     */
     public static String replaceParameter(String strAction, String pParameterToLookFor, String pNewValue) {
         int loadIDPos = 0;
 
@@ -463,6 +715,23 @@ public class EngineConstants {
         return strAction;
     }
 
+    /**
+     * Gets the instance of persistant map.
+     * 
+     * @param className the class name
+     * @param pName the name
+     * @param pSize the size
+     * @param pPersistanceID the persistance ID
+     * @param pCacheDir the cache dir
+     * @param pKeyTypes the key types
+     * @param pValueTypes the value types
+     * @param pValueFields the value fields
+     * @param pPurgeCache the purge cache
+     * 
+     * @return the instance of persistant map
+     * 
+     * @throws Throwable the throwable
+     */
     final public static PersistentMap getInstanceOfPersistantMap(String className, String pName, int pSize,
             Integer pPersistanceID, String pCacheDir, Class[] pKeyTypes, Class[] pValueTypes, String[] pValueFields,
             boolean pPurgeCache) throws Throwable {
@@ -491,6 +760,15 @@ public class EngineConstants {
 
     }
 
+    /**
+     * Replace parameter v2.
+     * 
+     * @param strAction the str action
+     * @param pParameterToLookFor the parameter to look for
+     * @param pNewValue the new value
+     * 
+     * @return the string
+     */
     public static String replaceParameterV2(String strAction, String pParameterToLookFor, String pNewValue) {
         int loadIDPos = 0;
 
@@ -508,6 +786,17 @@ public class EngineConstants {
         return strAction;
     }
 
+    /**
+     * Replace parameter.
+     * 
+     * @param strAction the str action
+     * @param pParameterToLookFor the parameter to look for
+     * @param pNewValueFormat the new value format
+     * @param pNewValue the new value
+     * @param defaultValue the default value
+     * 
+     * @return the string
+     */
     public static String replaceParameter(String strAction, String pParameterToLookFor, String[] pNewValueFormat,
             String[] pNewValue, String defaultValue) {
         int loadIDPos = 0;
@@ -550,6 +839,14 @@ public class EngineConstants {
         return strAction;
     }
 
+    /**
+     * Gets the parameter parameters.
+     * 
+     * @param strAction the str action
+     * @param pParameterToLookFor the parameter to look for
+     * 
+     * @return the parameter parameters
+     */
     public static String[] getParameterParameters(String strAction, String pParameterToLookFor) {
         int loadIDPos = 0;
 
@@ -592,9 +889,13 @@ public class EngineConstants {
     }
 
     /**
-     * @description Return list of parameters in text
-     * @param strText
+     * Gets the parameters from text.
+     * 
+     * @param strText the str text
+     * 
      * @return list of parameters
+     * 
+     * @description Return list of parameters in text
      */
     public static String[] getParametersFromText(String strText) {
         int paramPos = 0;
@@ -640,6 +941,11 @@ public class EngineConstants {
         return tmpRes;
     }
 
+    /**
+     * Gets the version.
+     * 
+     * @return the version
+     */
     public static String getVersion() {
         if (EngineConstants.VERSION == null)
             return "N/A";
@@ -647,14 +953,29 @@ public class EngineConstants {
         return EngineConstants.VERSION;
     }
 
+    /**
+     * Gets the cache memory ratio.
+     * 
+     * @return the cache memory ratio
+     */
     public static double getCacheMemoryRatio() {
         return EngineConstants.CACHEMEMRATIO;
     }
 
+    /**
+     * Gets the default lookup class.
+     * 
+     * @return the default lookup class
+     */
     public static String getDefaultLookupClass() {
         return EngineConstants.LOOKUPCLASS;
     }
 
+    /**
+     * Gets the default cache size.
+     * 
+     * @return the default cache size
+     */
     public static String getDefaultCacheSize() {
         return EngineConstants.DEFAULTCACHESIZE;
     }

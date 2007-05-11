@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.ketl.writer;
 
 import java.sql.Connection;
@@ -22,6 +40,7 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.WriterBatchManager;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
  * <p>
  * Title: JDBCWriter
@@ -34,13 +53,16 @@ import com.kni.etl.util.XMLHelper;
  * </p>
  * <p>
  * Company: Kinetic Networks
- * </p>
+ * </p>.
  * 
  * @author Brian Sullivan
  * @version 1.0
  */
 public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConnection, WriterBatchManager, PrePostSQL {
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
         try {
@@ -54,36 +76,81 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
 
     }
 
+    /**
+     * Instantiates a new JDBC deleter.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public JDBCDeleter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
+    /** The Constant COMMITSIZE_ATTRIB. */
     public static final String COMMITSIZE_ATTRIB = "COMMITSIZE";
+    
+    /** The Constant TABLE_ATTRIB. */
     public static final String TABLE_ATTRIB = "TABLE";
+    
+    /** The ms required tags. */
     String[] msRequiredTags = { DBConnection.USER_ATTRIB, DBConnection.PASSWORD_ATTRIB, DBConnection.URL_ATTRIB,
             DBConnection.DRIVER_ATTRIB };
+    
+    /** The mc DB connection. */
     private Connection mcDBConnection;
+    
+    /** The mi row count. */
     int miRowCount;
+    
+    /** The mi delete estimate. */
     int miDeleteEstimate;
+    
+    /** The mi max in size. */
     int miMaxInSize;
+    
+    /** The mi batch count. */
     int miBatchCount;
+    
+    /** The mi commit count. */
     int miCommitCount;
+    
+    /** The mi commit size. */
     int miCommitSize;
 
+    /** The m stmt. */
     private PreparedStatement mStmt = null;
+    
+    /** The mstr table name. */
     String mstrTableName = null;
 
     // Get the current connection object...
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.DBConnection#getConnection()
+     */
     public Connection getConnection() {
         return this.mcDBConnection;
     }
 
+    /** The mi in count. */
     int miInCount = 0;
+    
+    /** The m data types. */
     int[] mDataTypes;
+    
+    /** The rows effected. */
     boolean rowsEffected = false;
+    
+    /** The max char length. */
     private int maxCharLength;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.WriterBatchManager#finishBatch(int)
+     */
     public int finishBatch(int rows) throws KETLWriteException {
         int iDeletes = 0;
 
@@ -125,6 +192,9 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
         return iDeletes;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#complete()
+     */
     @Override
     public int complete() throws KETLThreadException {
 
@@ -157,9 +227,13 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
         return 0;
     }
 
+    /** The jdbc helper. */
     private JDBCItemHelper jdbcHelper;
 
     // Return 0 if success, otherwise error code...
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
+     */
     @Override
     public int initialize(Node xmlDestNode) throws KETLThreadException {
         // String strDataStoreName = null;
@@ -249,6 +323,11 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
 
     // Set the connection object for this reader. Note that there can only be
     // one connection per reader, so this closes and releases any previous one.
+    /**
+     * Sets the connection.
+     * 
+     * @param conn the new connection
+     */
     public void setConnection(Connection conn) {
         // Close any existing connection...
         if (this.mcDBConnection != null) {
@@ -266,6 +345,9 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
         this.mcDBConnection = conn;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+     */
     public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
             throws KETLWriteException {
         try {
@@ -291,6 +373,9 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.WriterBatchManager#initializeBatch(java.lang.Object[][], int)
+     */
     public Object[][] initializeBatch(Object[][] data, int len) throws KETLWriteException {
         try {
             this.executePreBatchStatements();
@@ -300,18 +385,30 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
         return data;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePostStatements()
+     */
     public void executePostStatements() throws SQLException {
         StatementManager.executeStatements(this, this, "POSTSQL", StatementManager.END);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePreStatements()
+     */
     public void executePreStatements() throws SQLException {
         StatementManager.executeStatements(this, this, "PRESQL", StatementManager.START);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePostBatchStatements()
+     */
     public void executePostBatchStatements() throws SQLException {
         StatementManager.executeStatements(this, this, "POSTBATCHSQL");
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePreBatchStatements()
+     */
     public void executePreBatchStatements() throws SQLException {
         StatementManager.executeStatements(this, this, "PREBATCHSQL");
     }

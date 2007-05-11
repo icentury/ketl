@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import java.io.StringReader;
@@ -17,6 +35,7 @@ import org.xml.sax.InputSource;
 
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
  * Insert the type's description here. Creation date: (5/7/2002 2:27:49 PM)
  * 
@@ -24,17 +43,27 @@ import com.kni.etl.util.XMLHelper;
  */
 public class OSJob extends ETLJob {
 
+    /** The mstr working directory. */
     protected java.lang.String mstrWorkingDirectory = null;
+    
+    /** The mp process. */
     protected java.lang.Process mpProcess = null;
+    
+    /** The mi exit value. */
     protected int miExitValue = 0;
 
     /**
      * OSJob constructor comment.
+     * 
+     * @throws Exception the exception
      */
     public OSJob() throws Exception {
         super();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ETLJob#setChildNodes(org.w3c.dom.Node)
+     */
     @Override
     protected Node setChildNodes(Node pParentNode) {
         Element e = pParentNode.getOwnerDocument().createElement("OSJOB");
@@ -48,6 +77,8 @@ public class OSJob extends ETLJob {
      * Insert the method's description here. Creation date: (5/7/2002 2:32:19 PM)
      * 
      * @param strCommandLine java.lang.String
+     * 
+     * @throws Exception the exception
      */
     public OSJob(String strCommandLine) throws Exception {
         this(strCommandLine, null);
@@ -58,8 +89,9 @@ public class OSJob extends ETLJob {
      * (5/7/2002 2:34:14 PM)
      * 
      * @param strCommandLine java.lang.String
-     * @param strEnvironmentVariables java.lang.String
      * @param strWorkingDirectory java.lang.String
+     * 
+     * @throws Exception the exception
      */
     private OSJob(String strCommandLine, String strWorkingDirectory) throws Exception {
         super();
@@ -71,6 +103,8 @@ public class OSJob extends ETLJob {
      * Insert the method's description here. Creation date: (5/7/2002 2:35:08 PM)
      * 
      * @return java.lang.String
+     * 
+     * @throws Exception the exception
      */
     public java.lang.String getCommandLine() throws Exception {
         String cmd = (String) this.getAction(true);
@@ -151,7 +185,9 @@ public class OSJob extends ETLJob {
     /**
      * Insert the method's description here. Creation date: (5/7/2002 2:35:08 PM)
      * 
-     * @param newCommandLine java.lang.String
+     * @param strCommandLine the str command line
+     * 
+     * @throws Exception the exception
      */
     public void setCommandLine(String strCommandLine) throws Exception {
         this.setAction(strCommandLine);

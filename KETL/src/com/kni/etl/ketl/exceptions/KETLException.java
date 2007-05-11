@@ -1,22 +1,49 @@
+/*
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
+ */
 package com.kni.etl.ketl.exceptions;
 
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class KETLException.
+ */
 public class KETLException extends Exception {
-    /**
-    *
-    */
+    
+    /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 4048797879017486642L;
 
     /**
-         *
-         */
+     * Instantiates a new KETL exception.
+     */
     public KETLException()
     {
         super();
     }
 
     /**
-     * @param message
+     * The Constructor.
+     * 
+     * @param message the message
      */
     public KETLException(String message)
     {
@@ -24,8 +51,10 @@ public class KETLException extends Exception {
     }
 
     /**
-     * @param message
-     * @param cause
+     * The Constructor.
+     * 
+     * @param message the message
+     * @param cause the cause
      */
     public KETLException(String message, Throwable cause)
     {
@@ -34,7 +63,9 @@ public class KETLException extends Exception {
     }
 
     /**
-     * @param cause
+     * The Constructor.
+     * 
+     * @param cause the cause
      */
     public KETLException(Throwable cause)
     {

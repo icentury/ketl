@@ -1,8 +1,24 @@
 /*
- * Created on Jul 13, 2005
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
  *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.transformation;
 
@@ -48,22 +64,43 @@ import com.kni.etl.ketl.smp.TransformBatchManager;
 import com.kni.etl.stringtools.NumberFormatter;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 // Create a parallel transformation. All thread management is done for you
 // the parallism is within the transformation
 
+/**
+ * The Class DimensionTransformation.
+ */
 public class DimensionTransformation extends ETLTransformation implements DBConnection, TransformBatchManager,
         PrePostSQL, LookupCreatorImpl {
 
+    /**
+     * The Class DimensionETLInPort.
+     */
     class DimensionETLInPort extends ETLInPort {
 
+        /** The m column. */
         DatabaseColumnDefinition mColumn = null;
+        
+        /** The effective date. */
         boolean sk = false, insert = false, update = false, compare = false, isColumn = false, effectiveDate = false;
+        
+        /** The sk col index. */
         int skColIndex = -1;
 
+        /**
+         * Instantiates a new dimension ETL in port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public DimensionETLInPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLInPort#initialize(org.w3c.dom.Node)
+         */
         @Override
         public int initialize(Node xmlNode) throws ClassNotFoundException, KETLThreadException {
             int res = super.initialize(xmlNode);
@@ -138,18 +175,36 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
     }
 
+    /**
+     * The Class DimensionETLOutPort.
+     */
     class DimensionETLOutPort extends ETLOutPort {
 
+        /** The out col index. */
         int outColIndex = -1;
 
+        /** The pk. */
         boolean pk = false;
+        
+        /** The expiration_dt. */
         boolean expiration_dt = false;
+        
+        /** The dirty flag. */
         boolean dirtyFlag = false;
 
+        /**
+         * Instantiates a new dimension ETL out port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public DimensionETLOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLOutPort#generateCode(int)
+         */
         @Override
         public String generateCode(int portReferenceIndex) throws KETLThreadException {
             if (this.pk) {
@@ -162,6 +217,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
                 return super.generateCode(portReferenceIndex);
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#getAssociatedInPort()
+         */
         @Override
         public ETLPort getAssociatedInPort() throws KETLThreadException {
             if (this.pk)
@@ -170,6 +228,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             return super.getAssociatedInPort();
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#getCode()
+         */
         @Override
         public String getCode() throws KETLThreadException {
             if (this.pk)
@@ -177,6 +238,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
             return super.getCode();
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
+         */
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             this.pk = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), DimensionTransformation.PK_ATTRIB,
@@ -229,123 +293,254 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
     }
 
+    /** The Constant ALTERNATE_INSERT_VALUE. */
     public static final String ALTERNATE_INSERT_VALUE = "ALTERNATE_INSERT_VALUE";
+    
+    /** The Constant ALTERNATE_UPDATE_VALUE. */
     public static final String ALTERNATE_UPDATE_VALUE = "ALTERNATE_UPDATE_VALUE";
+    
+    /** The Constant BATCH_ATTRIB. */
     public static final String BATCH_ATTRIB = "BATCHDATA";
+    
+    /** The Constant COMMITSIZE_ATTRIB. */
     private static final String COMMITSIZE_ATTRIB = "COMMITSIZE";
+    
+    /** The Constant COMPARE_ATTRIB. */
     public static final String COMPARE_ATTRIB = "COMPARE";
+    
+    /** The Constant HANDLER_ATTRIB. */
     public static final String HANDLER_ATTRIB = "HANDLER";
+    
+    /** The Constant INSERT_ATTRIB. */
     public static final String INSERT_ATTRIB = "INSERT";
+    
+    /** The Constant KEY_TABLE_ATTRIB. */
     private static final String KEY_TABLE_ATTRIB = "KEYTABLE";
+    
+    /** The Constant SCD_ATTRIB. */
     private static final String SCD_ATTRIB = "SCD";
+    
+    /** The Constant KEY_TABLE_ONLY. */
     private static final int KEY_TABLE_ONLY = 1;
+    
+    /** The Constant LOAD_KEY_TABLE_DIMENSION. */
     private static final int LOAD_KEY_TABLE_DIMENSION = 0;
+    
+    /** The Constant LOWER_CASE. */
     private static final int LOWER_CASE = 0;
+    
+    /** The Constant MAXTRANSACTIONSIZE_ATTRIB. */
     public static final String MAXTRANSACTIONSIZE_ATTRIB = "MAXTRANSACTIONSIZE";
+    
+    /** The Constant MIXED_CASE. */
     private static final int MIXED_CASE = 2;
+    
+    /** The Constant PK_ATTRIB. */
     public static final String PK_ATTRIB = "PK";
+    
+    /** The Constant EFFECTIVE_DATE_ATTRIB. */
     public static final String EFFECTIVE_DATE_ATTRIB = "EFFECTIVEDATE";
+    
+    /** The Constant DIRTY_FLAG_ATTRIB. */
     public static final String DIRTY_FLAG_ATTRIB = "DIRTYFLAG";
+    
+    /** The Constant EXPIRATION_DATE_ATTRIB. */
     public static final String EXPIRATION_DATE_ATTRIB = "EXPIRATIONDATE";
+    
+    /** The Constant SCHEMA_ATTRIB. */
     private static final String SCHEMA_ATTRIB = "SCHEMA";
+    
+    /** The Constant SK_ATTRIB. */
     public static final String SK_ATTRIB = "SK";
+    
+    /** The Constant TABLE_ATTRIB. */
     private static final String TABLE_ATTRIB = "TABLE";
+    
+    /** The Constant TABLE_ONLY. */
     private static final int TABLE_ONLY = 2;
+    
+    /** The Constant UPDATE_ATTRIB. */
     public static final String UPDATE_ATTRIB = "UPDATE";
+    
+    /** The Constant UPPER_CASE. */
     private static final int UPPER_CASE = 1;
 
+    /** The cache persistence. */
     private int cachePersistence;
+    
+    /** The fire pre batch. */
     private boolean firePreBatch;
+    
+    /** The id quote. */
     private String idQuote;
 
+    /** The id quote enabled. */
     private boolean idQuoteEnabled;
+    
+    /** The jdbc helper. */
     private JDBCItemHelper jdbcHelper;
 
+    /** The lookup pending load. */
     private boolean lookupPendingLoad = true;
 
+    /** The max char length. */
     private int maxCharLength;
 
+    /** The m batch counter. */
     private int mBatchCounter;
 
+    /** The m batch data. */
     private boolean mBatchData = true;
 
+    /** The m batch log. */
     ArrayList mBatchLog = new ArrayList();
 
+    /** The mb reinit on error. */
     private boolean mbReinitOnError;
 
+    /** The m cache persistence ID. */
     private Integer mCachePersistenceID;
 
+    /** The m cache size. */
     private int mCacheSize;
 
+    /** The mc DB connection. */
     private Connection mcDBConnection;
 
+    /** The m DB case. */
     private int mDBCase = -1;
+    
+    /** The m DB type. */
     private String mDBType;
 
+    /** The m failed batch elements. */
     private Set mFailedBatchElements = new HashSet();
 
+    /** The mi commit size. */
     private int miCommitSize;
 
+    /** The mi field population order. */
     private ETLPort[] miFieldPopulationOrder;
 
+    /** The mi insert count. */
     private int miInsertCount;
 
+    /** The mi mode. */
     private int miMode;
+    
+    /** The m incremental commit. */
     private boolean mIncrementalCommit;
+    
+    /** The mi retry batch. */
     private int miRetryBatch;
 
+    /** The m key source. */
     private SharedCounter mKeySource;
 
+    /** The m lookup. */
     private PersistentMap mLookup;
 
+    /** The ms all columns. */
     private String msAllColumns;
+    
+    /** The ms in batch SQL statement. */
     private String msInBatchSQLStatement;
 
+    /** The ms insert values. */
     private String msInsertValues;
+    
+    /** The m PK col count. */
     public int mSKColCount = 0, mPKColCount = 0;
+    
+    /** The ms key table all columns. */
     private String msKeyTableAllColumns;
+    
+    /** The ms key table insert values. */
     private String msKeyTableInsertValues;
 
+    /** The mstr key table name. */
     private String mstrKeyTableName;
 
+    /** The mstr primary key columns. */
     private String mstrPrimaryKeyColumns;
 
+    /** The mstr schema name. */
     private String mstrSchemaName;
 
+    /** The mstr source key columns. */
     private String mstrSourceKeyColumns;
 
+    /** The mstr table name. */
     private String mstrTableName;
+    
+    /** The m used connections. */
     private List mUsedConnections = new ArrayList();
 
+    /** The expiration date port. */
     DimensionETLOutPort pkPort = null, dirtyFlagPort = null, expirationDatePort = null;
+    
+    /** The effective date port. */
     DimensionETLInPort effectiveDatePort = null;
 
+    /** The record num batch start. */
     int recordNumBatchStart;
 
+    /** The sk data. */
     Object[] skData;
 
+    /** The sk indx. */
     private int[] skIndx;
 
+    /** The stmt. */
     private StatementWrapper stmt;
 
+    /** The str driver class. */
     private String strDriverClass = null;
 
+    /** The str password. */
     private String strPassword = null;
 
+    /** The str pre SQL. */
     private String strPreSQL = null;
+    
+    /** The str URL. */
     private String strURL = null;
+    
+    /** The str user name. */
     private String strUserName = null;
+    
+    /** The supports release savepoint. */
     private boolean supportsReleaseSavepoint;
 
+    /** The supports set savepoint. */
     private boolean supportsSetSavepoint;
+    
+    /** The m allow insert. */
     private boolean mAllowInsert;
 
+    /**
+     * Instantiates a new dimension transformation.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public DimensionTransformation(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
     }
 
+    /**
+     * Builds the in batch SQL.
+     * 
+     * @return the string
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected String buildInBatchSQL() throws KETLThreadException {
 
         /*
@@ -386,11 +581,17 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return template;
     }
 
+    /**
+     * Clear batch log batch.
+     */
     private void clearBatchLogBatch() {
         this.mBatchLog.clear();
         this.mFailedBatchElements.clear();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
 
@@ -425,8 +626,12 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
     }
 
+    /** The lookup locked. */
     private boolean lookupLocked = false;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#complete()
+     */
     @Override
     public int complete() throws KETLThreadException {
         int res = super.complete();
@@ -454,6 +659,15 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return res;
     }
 
+    /**
+     * Creates the new surrogate key.
+     * 
+     * @param pInputRecords the input records
+     * 
+     * @return the integer
+     * 
+     * @throws KETLTransformException the KETL transform exception
+     */
     final private Integer createNewSurrogateKey(Object[] pInputRecords) throws KETLTransformException {
 
         Integer data = this.mKeySource.increment(1);
@@ -499,22 +713,37 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePostBatchStatements()
+     */
     public void executePostBatchStatements() throws SQLException {
         StatementManager.executeStatements(this, this, "POSTBATCHSQL");
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePostStatements()
+     */
     public void executePostStatements() throws SQLException {
         StatementManager.executeStatements(this, this, "POSTSQL", StatementManager.END);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePreBatchStatements()
+     */
     public void executePreBatchStatements() throws SQLException {
         StatementManager.executeStatements(this, this, "PREBATCHSQL");
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePreStatements()
+     */
     public void executePreStatements() throws SQLException {
         StatementManager.executeStatements(this, this, "PRESQL", StatementManager.START);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.TransformBatchManager#finishBatch(java.lang.Object[][], int)
+     */
     public Object[][] finishBatch(Object[][] data, int len) throws KETLTransformException {
         int result = 0;
         try {
@@ -603,22 +832,45 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return data;
     }
 
+    /**
+     * Gets the all columns.
+     * 
+     * @return the all columns
+     */
     String getAllColumns() {
         return this.msAllColumns;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.DBConnection#getConnection()
+     */
     public Connection getConnection() throws SQLException, ClassNotFoundException {
         return this.mcDBConnection;
     }
 
+    /**
+     * Gets the insert values.
+     * 
+     * @return the insert values
+     */
     String getInsertValues() {
         return this.msInsertValues;
     }
 
+    /**
+     * Gets the key table all columns.
+     * 
+     * @return the key table all columns
+     */
     String getKeyTableAllColumns() {
         return this.msKeyTableAllColumns;
     }
 
+    /**
+     * Gets the key table insert values.
+     * 
+     * @return the key table insert values
+     */
     String getKeyTableInsertValues() {
         return this.msKeyTableInsertValues;
     }
@@ -677,16 +929,31 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewInPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLInPort getNewInPort(ETLStep srcStep) {
         return new DimensionETLInPort(this, srcStep);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLOutPort getNewOutPort(ETLStep srcStep) {
         return new DimensionETLOutPort(this, srcStep);
     }
 
+    /**
+     * Gets the PK.
+     * 
+     * @param pInputRecords the input records
+     * 
+     * @return the PK
+     * 
+     * @throws KETLTransformException the KETL transform exception
+     */
     final public Integer getPK(Object[] pInputRecords) throws KETLTransformException {
         // lookup value in index
         Integer res;
@@ -702,10 +969,20 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return res;
     }
 
+    /**
+     * Gets the primary key columns.
+     * 
+     * @return the primary key columns
+     */
     private String getPrimaryKeyColumns() {
         return this.idQuote + this.pkPort.mstrName + this.idQuote;
     }
 
+    /**
+     * Gets the source key columns.
+     * 
+     * @return the source key columns
+     */
     private String getSourceKeyColumns() {
         String res = null;
         for (ETLInPort element : this.mInPorts) {
@@ -717,6 +994,13 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return res;
     }
 
+    /**
+     * Gets the surrogate key.
+     * 
+     * @param pInputRecords the input records
+     * 
+     * @return the surrogate key
+     */
     final private Integer getSurrogateKey(Object[] pInputRecords) {
 
         for (int i = 0; i < this.mSKColCount; i++)
@@ -730,9 +1014,15 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return (Integer) res;
     }
 
+    /** The m SCD. */
     private int mSCD;
+    
+    /** The purge cache. */
     private boolean purgeCache;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLTransform#initialize(org.w3c.dom.Node)
+     */
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
         int res = super.initialize(xmlConfig);
@@ -1026,6 +1316,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return 0;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.TransformBatchManager#initializeBatch(java.lang.Object[][], int)
+     */
     public Object[][] initializeBatch(Object[][] data, int len) throws KETLTransformException {
         try {
             if (this.lookupPendingLoad) {
@@ -1044,6 +1337,15 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return data;
     }
 
+    /**
+     * Instantiate helper.
+     * 
+     * @param hdl the hdl
+     * 
+     * @return the JDBC item helper
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected JDBCItemHelper instantiateHelper(String hdl) throws KETLThreadException {
         if (hdl == null)
             return new JDBCItemHelper();
@@ -1057,10 +1359,20 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         }
     }
 
+    /**
+     * Log batch.
+     * 
+     * @param inputRecords the input records
+     */
     private void logBatch(Object[] inputRecords) {
         this.mBatchLog.add(inputRecords);
     }
 
+    /**
+     * Prepare for key table.
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     private void prepareForKeyTable() throws KETLThreadException {
         String template = null;
 
@@ -1119,11 +1431,28 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         }
     }
 
+    /**
+     * Prepare statement wrapper.
+     * 
+     * @param Connection the connection
+     * @param sql the sql
+     * @param jdbcHelper the jdbc helper
+     * 
+     * @return the statement wrapper
+     * 
+     * @throws SQLException the SQL exception
+     */
     StatementWrapper prepareStatementWrapper(Connection Connection, String sql, JDBCItemHelper jdbcHelper)
             throws SQLException {
         return JDBCStatementWrapper.prepareStatement(Connection, sql, jdbcHelper);
     }
 
+    /**
+     * Put key array data array.
+     * 
+     * @param o the o
+     * @param data the data
+     */
     private void putKeyArrayDataArray(Object[] o, Integer data) {
         Object[] elements = new Object[this.mSKColCount];
         for (int i = 0; i < this.mSKColCount; i++) {
@@ -1135,6 +1464,13 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         this.mLookup.put(elements, new Object[] { data });
     }
 
+    /**
+     * Retry batch.
+     * 
+     * @return the int
+     * 
+     * @throws KETLTransformException the KETL transform exception
+     */
     private int retryBatch() throws KETLTransformException {
         ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
                 "Retrying records in batch, to identify invalid records");
@@ -1213,6 +1549,11 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
     }
 
+    /**
+     * Seed lookup.
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected void seedLookup() throws KETLThreadException {
 
         this.setWaiting("lookup to seed");
@@ -1332,10 +1673,22 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
     }
 
+    /**
+     * Sets the all columns.
+     * 
+     * @param msAllColumns the new all columns
+     */
     void setAllColumns(String msAllColumns) {
         this.msAllColumns = msAllColumns;
     }
 
+    /**
+     * Sets the DB case.
+     * 
+     * @param pStr the str
+     * 
+     * @return the string
+     */
     private String setDBCase(String pStr) {
 
         if (pStr == null)
@@ -1357,18 +1710,36 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return pStr;
     }
 
+    /**
+     * Sets the insert values.
+     * 
+     * @param msInsertValues the new insert values
+     */
     void setInsertValues(String msInsertValues) {
         this.msInsertValues = msInsertValues;
     }
 
+    /**
+     * Sets the key table all columns.
+     * 
+     * @param msAllColumns the new key table all columns
+     */
     void setKeyTableAllColumns(String msAllColumns) {
         this.msKeyTableAllColumns = msAllColumns;
     }
 
+    /**
+     * Sets the key table insert values.
+     * 
+     * @param msInsertValues the new key table insert values
+     */
     void setKeyTableInsertValues(String msInsertValues) {
         this.msKeyTableInsertValues = msInsertValues;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.lookup.LookupCreatorImpl#swichToReadOnlyMode()
+     */
     public PersistentMap swichToReadOnlyMode() {
         this.mLookup.switchToReadOnlyMode();
         return this.mLookup;

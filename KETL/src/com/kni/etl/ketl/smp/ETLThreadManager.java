@@ -1,7 +1,24 @@
 /*
- * Copyright (c) 2006 Kinetic Networks, Inc. All Rights Reserved.
- * Created on Jul 6, 2006
- * 
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.smp;
 
@@ -21,44 +38,77 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.KETLJobExecutor;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
-import com.kni.etl.ketl.writer.DatabaseELTWriter;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class ETLThreadManager.
+ * 
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- *         Generation&gt;Code and Comments
+ * Generation&gt;Code and Comments
  */
 public class ETLThreadManager {
 
+    /** The threads. */
     ArrayList<WorkerThread> threads = new ArrayList<WorkerThread>();
 
+    /**
+     * The Class WorkerThread.
+     */
     class WorkerThread {
 
+        /** The thread. */
         Thread thread;
+        
+        /** The step. */
         ETLWorker step;
 
     }
 
+    /** The duplicate check. */
     private HashSet duplicateCheck = new HashSet();
 
+    /** The mkj executor. */
     KETLJobExecutor mkjExecutor;
+    
+    /** The job thread group. */
     ThreadGroup jobThreadGroup;
 
+    /**
+     * Instantiates a new ETL thread manager.
+     * 
+     * @param executor the executor
+     */
     public ETLThreadManager(KETLJobExecutor executor) {
-        mkjExecutor = executor;
-        jobThreadGroup = new ThreadGroup(executor.getCurrentETLJob().getJobID());
+        this.mkjExecutor = executor;
+        this.jobThreadGroup = new ThreadGroup(executor.getCurrentETLJob().getJobID());
 
     }
 
+    /**
+     * Adds the step.
+     * 
+     * @param es the es
+     */
     public void addStep(ETLWorker es) {
 
-        if (duplicateCheck.contains(es))
+        if (this.duplicateCheck.contains(es))
             return;
 
         this.addStep(es, es.getClass().getName());
-        duplicateCheck.add(es);
+        this.duplicateCheck.add(es);
     }
 
+    /**
+     * Gets the step.
+     * 
+     * @param sourceStep the source step
+     * @param name the name
+     * 
+     * @return the step
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public synchronized ETLWorker getStep(ETLWorker sourceStep, String name) throws KETLThreadException {
         for (Object o : this.threads) {
             WorkerThread wt = (WorkerThread) o;
@@ -81,30 +131,55 @@ public class ETLThreadManager {
         throw new KETLThreadException("Could not find step " + name, sourceStep);
     }
 
+    /**
+     * Request queue.
+     * 
+     * @param queueSize the queue size
+     * 
+     * @return the managed blocking queue
+     */
     public ManagedBlockingQueue requestQueue(int queueSize) {
         return new ManagedBlockingQueueImpl(queueSize);
     }
 
+    /**
+     * Adds the step.
+     * 
+     * @param es the es
+     * @param name the name
+     */
     private void addStep(ETLWorker es, String name) {
 
         // Create the thread supplying it with the runnable object
         WorkerThread wt = new WorkerThread();
-        wt.thread = new Thread(jobThreadGroup, es);
+        wt.thread = new Thread(this.jobThreadGroup, es);
         wt.step = es;
-        threads.add(wt);
+        this.threads.add(wt);
         wt.thread.setName(es.getName() + ", Type:" + name + " [" + (es.partitionID + 1) + " of " + es.partitions + "]");
 
     }
 
+    /** The previous time. */
     private long startTime, previousTime;
+    
+    /** The previous writer records. */
     private int previousReaderRecords = 0, previousWriterRecords = 0;
+    
+    /** The Constant flowTypes. */
     public static final String[] flowTypes = { "FANIN", "FANOUT", "PIPELINE" };
+    
+    /** The Constant flowTypeMappings. */
     static final int[] flowTypeMappings = { ETLThreadGroup.FANIN, ETLThreadGroup.FANOUT, ETLThreadGroup.PIPELINE };
 
+    /**
+     * Start.
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public void start() throws KETLThreadException {
         // get start time
-        startTime = System.currentTimeMillis();
-        previousTime = startTime;
+        this.startTime = System.currentTimeMillis();
+        this.previousTime = this.startTime;
 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "- Initializing threads");
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "- Registering queues");
@@ -115,7 +190,7 @@ public class ETLThreadManager {
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "- Initializing core managers");
         for (Object o : this.threads) {
             try {
-                ((WorkerThread) o).step.initialize(mkjExecutor);
+                ((WorkerThread) o).step.initialize(this.mkjExecutor);
             } catch (Throwable e) {
                 if(e instanceof KETLThreadException)
                     throw (KETLThreadException) e;
@@ -138,16 +213,39 @@ public class ETLThreadManager {
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Threads initialized");
     }
 
+    /**
+     * Monitor.
+     * 
+     * @param sleepTime the sleep time
+     * 
+     * @throws Throwable the throwable
+     */
     public void monitor(int sleepTime) throws Throwable {
         this.monitor(sleepTime, sleepTime);
     }
 
+    /** The detailed. */
     boolean detailed = true;
 
+    /**
+     * Monitor.
+     * 
+     * @param sleepTime the sleep time
+     * @param maxTime the max time
+     * 
+     * @throws Throwable the throwable
+     */
     public void monitor(int sleepTime, int maxTime) throws Throwable {
         this.monitor(sleepTime, maxTime, null);
     }
 
+    /**
+     * Final status.
+     * 
+     * @param jsJobStatus the js job status
+     * 
+     * @return the string
+     */
     public String finalStatus(ETLJobStatus jsJobStatus) {
         int recordWriterCount = 0, recordReaderCount = 0, recordReadErrorCount=0, recordWriteErrorCount=0;
         long currentTime = System.currentTimeMillis();
@@ -165,10 +263,10 @@ public class ETLThreadManager {
             jsJobStatus.setStats(o.step.getName(),o.step.partitions,o.step.partitionID,recordReaderCount,recordWriterCount,recordReadErrorCount,recordWriteErrorCount,o.step.getCPUTiming());
         }
 
-        long allTimeDiff = currentTime - startTime;
-        long prevTimeDiff = currentTime - previousTime;
+        long allTimeDiff = currentTime - this.startTime;
+        long prevTimeDiff = currentTime - this.previousTime;
         StringBuilder sb = new StringBuilder("Final Throughput Statistics(Records Per Second)\n");
-        int recordDiff = recordReaderCount - previousReaderRecords;
+        int recordDiff = recordReaderCount - this.previousReaderRecords;
         sb.append("\tOverall Read: " + recordReaderCount / ((allTimeDiff / 1000) + 1) + "\n");
 
         jsJobStatus.setStats(recordReaderCount,recordWriterCount,recordReadErrorCount,recordWriteErrorCount,allTimeDiff);
@@ -176,7 +274,7 @@ public class ETLThreadManager {
         sb.append("\tAverage Read: " + recordDiff / ((prevTimeDiff / 1000) + 1) + "\n");
         sb.append("\tTotal Records Read: " + recordReaderCount + "\n");
 
-        recordDiff = recordWriterCount - previousWriterRecords;
+        recordDiff = recordWriterCount - this.previousWriterRecords;
         sb.append("\tOverall Write: " + recordWriterCount / ((allTimeDiff / 1000) + 1) + "\n");
         sb.append("\tAverage Write: " + recordDiff / ((prevTimeDiff / 1000) + 1) + "\n");
         sb.append("\tTotal Records Written: " + recordWriterCount + "\n");
@@ -193,16 +291,32 @@ public class ETLThreadManager {
         return sb.toString();
     }
 
+    /**
+     * Gets the threading type.
+     * 
+     * @param config the config
+     * 
+     * @return the threading type
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public static int getThreadingType(Element config) throws KETLThreadException {
-        int res = Arrays.binarySearch(flowTypes, XMLHelper.getAttributeAsString(config.getAttributes(), "FLOWTYPE",
-                flowTypes[2]));
+        int res = Arrays.binarySearch(ETLThreadManager.flowTypes, XMLHelper.getAttributeAsString(config.getAttributes(), "FLOWTYPE",
+                ETLThreadManager.flowTypes[2]));
         if (res < 0)
-            throw new KETLThreadException("Invalid flow type, valid values are - " + Arrays.toString(flowTypes), Thread
+            throw new KETLThreadException("Invalid flow type, valid values are - " + Arrays.toString(ETLThreadManager.flowTypes), Thread
                     .currentThread());
 
-        return flowTypeMappings[res];
+        return ETLThreadManager.flowTypeMappings[res];
     }
 
+    /**
+     * Gets the stack trace.
+     * 
+     * @param aThrowable the a throwable
+     * 
+     * @return the stack trace
+     */
     public static String getStackTrace(Throwable aThrowable) {
         Writer result = new StringWriter();
         PrintWriter printWriter = new PrintWriter(result);
@@ -210,13 +324,18 @@ public class ETLThreadManager {
         return result.toString();
     }
 
+    /**
+     * Close.
+     * 
+     * @param eJob the e job
+     */
     public void close(ETLJob eJob) {
         StringBuilder sb = new StringBuilder();
         boolean errorsOccured = false;
         Throwable cause = this.mkjExecutor.getCurrentETLJob().getStatus().getException();
 
         if (cause != null) {
-            sb.append("\n\nCause: " + cause.toString() + "\n" + getStackTrace(cause));
+            sb.append("\n\nCause: " + cause.toString() + "\n" + ETLThreadManager.getStackTrace(cause));
             sb.append("\n\nTrace\n------\n");
         }
         for (Object o : this.threads) {
@@ -275,10 +394,24 @@ public class ETLThreadManager {
 
     }
 
+    /**
+     * Gets the job executor.
+     * 
+     * @return the job executor
+     */
     public KETLJobExecutor getJobExecutor() {
         return this.mkjExecutor;
     }
 
+    /**
+     * Monitor.
+     * 
+     * @param sleepTime the sleep time
+     * @param maxTime the max time
+     * @param jsJobStatus the js job status
+     * 
+     * @throws Throwable the throwable
+     */
     public void monitor(int sleepTime, int maxTime, ETLStatus jsJobStatus) throws Throwable {
         boolean state = true;
         Throwable failureException = null;
@@ -331,7 +464,7 @@ public class ETLThreadManager {
                                 "Critical job failure all steps being interrupted");
                     }
                 }
-                if (currentTime - previousTime > 10000) {
+                if (currentTime - this.previousTime > 10000) {
                     showStatus = true;
                     if (((WorkerThread) o).step instanceof ETLReader) {
                         recordReaderCount += ((WorkerThread) o).step.getRecordsProcessed();
@@ -343,18 +476,18 @@ public class ETLThreadManager {
             }
 
             if (showStatus) {
-                long allTimeDiff = currentTime - startTime;
-                long prevTimeDiff = currentTime - previousTime;
+                long allTimeDiff = currentTime - this.startTime;
+                long prevTimeDiff = currentTime - this.previousTime;
 
                 if (jsJobStatus == null) {
                     StringBuilder sb = new StringBuilder("Current Throughput Statistics(Records Per Second)\n");
-                    int recordDiff = recordReaderCount - previousReaderRecords;
+                    int recordDiff = recordReaderCount - this.previousReaderRecords;
                     sb.append("\tOverall Read: " + recordReaderCount / (allTimeDiff / 1000) + "\n");
 
                     sb.append("\tAverage Read: " + recordDiff / (prevTimeDiff / 1000) + "\n");
                     sb.append("\tTotal Records Read: " + recordReaderCount + "\n");
 
-                    recordDiff = recordWriterCount - previousWriterRecords;
+                    recordDiff = recordWriterCount - this.previousWriterRecords;
                     sb.append("\tOverall Write: " + recordWriterCount / (allTimeDiff / 1000) + "\n");
                     sb.append("\tAverage Write: " + recordDiff / (prevTimeDiff / 1000) + "\n");
                     sb.append("\tTotal Records Written: " + recordWriterCount + "\n");
@@ -392,9 +525,9 @@ public class ETLThreadManager {
                     jsJobStatus.setExtendedMessage("Records read: " + recordReaderCount + ", Records written: "
                             + recordWriterCount + waiting);
                 }
-                previousTime = currentTime;
-                previousReaderRecords = recordReaderCount;
-                previousWriterRecords = recordWriterCount;
+                this.previousTime = currentTime;
+                this.previousReaderRecords = recordReaderCount;
+                this.previousWriterRecords = recordWriterCount;
                 showStatus = false;
 
             }
@@ -415,6 +548,13 @@ public class ETLThreadManager {
 
     }
 
+    /**
+     * Count of step threads alive.
+     * 
+     * @param writer the writer
+     * 
+     * @return the int
+     */
     public int countOfStepThreadsAlive(ETLStep writer) {
         int cnt = 0;
         for (Object o : this.threads) {

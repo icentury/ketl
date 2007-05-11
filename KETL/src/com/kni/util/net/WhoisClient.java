@@ -103,7 +103,7 @@ public final class WhoisClient extends FingerClient
      ***/
     public WhoisClient()
     {
-        setDefaultPort(DEFAULT_PORT);
+        this.setDefaultPort(WhoisClient.DEFAULT_PORT);
     }
 
     /***
@@ -118,7 +118,7 @@ public final class WhoisClient extends FingerClient
      ***/
     public String query(String handle) throws IOException
     {
-        return query(false, handle);
+        return this.query(false, handle);
     }
 
 
@@ -137,7 +137,7 @@ public final class WhoisClient extends FingerClient
      ***/
     public InputStream getInputStream(String handle) throws IOException
     {
-        return getInputStream(false, handle);
+        return this.getInputStream(false, handle);
     }
 
 }

@@ -1,8 +1,24 @@
 /*
- * Created on Jul 13, 2005
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
  *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.transformation;
 
@@ -19,29 +35,56 @@ import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 // Create a parallel transformation. All thread management is done for you
 // the parallism is within the transformation
 
+/**
+ * The Class RegExFilterTransformation.
+ */
 public class RegExFilterTransformation extends ETLTransformation {
 
+    /** The Constant REGEXPR_ATTRIB. */
     private static final String REGEXPR_ATTRIB = "REGEXPR";
 
+    /**
+     * Instantiates a new reg ex filter transformation.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public RegExFilterTransformation(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLOutPort getNewOutPort(ETLStep srcStep) {
         return new RegExFilterOutPort(this, srcStep);
     }
 
+    /**
+     * The Class RegExFilterOutPort.
+     */
     class RegExFilterOutPort extends ETLOutPort {
 
+        /** The matcher. */
         Matcher matcher;
+        
+        /** The null matches. */
         boolean nullMatches = false;
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
+         */
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             String regexID = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
@@ -73,6 +116,9 @@ public class RegExFilterTransformation extends ETLTransformation {
 
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLOutPort#generateCode(int)
+         */
         @Override
         public String generateCode(int portReferenceIndex) throws KETLThreadException {
 
@@ -86,12 +132,26 @@ public class RegExFilterTransformation extends ETLTransformation {
                     + this.mesStep.getUsedPortIndex(this) + ")) return SKIP_RECORD";
         }
 
+        /**
+         * Instantiates a new reg ex filter out port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public RegExFilterOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
     }
 
+    /**
+     * Skip record.
+     * 
+     * @param datum the datum
+     * @param portIdx the port idx
+     * 
+     * @return true, if successful
+     */
     public boolean skipRecord(Object datum, int portIdx) {
 
         Matcher regex = ((RegExFilterOutPort) this.mOutPorts[portIdx]).matcher;
@@ -109,6 +169,9 @@ public class RegExFilterTransformation extends ETLTransformation {
         return false;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLTransform#getRecordExecuteMethodHeader()
+     */
     @Override
     protected String getRecordExecuteMethodHeader() throws KETLThreadException {
         StringBuilder sb = new StringBuilder(super.getRecordExecuteMethodHeader());
@@ -138,6 +201,9 @@ public class RegExFilterTransformation extends ETLTransformation {
         return sb.toString();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
         // TODO Auto-generated method stub

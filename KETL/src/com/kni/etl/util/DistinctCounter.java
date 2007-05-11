@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 /*
  * Created on Aug 26, 2005
  *
@@ -14,14 +32,30 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DistinctCounter.
+ */
 final public class DistinctCounter {
 
+    /** The counters. */
     int counters = 2;
+    
+    /** The m counters. */
     Map[] mCounters = new Map[this.counters + 1];
+    
+    /** The Constant HASHMAP_MAXSIZE. */
     static final int HASHMAP_MAXSIZE = 1000;
+    
+    /** The Constant TREEMAP_MAXSIZE. */
     static final int TREEMAP_MAXSIZE = 10000;
+    
+    /** The current list max size. */
     int currentListMaxSize = DistinctCounter.HASHMAP_MAXSIZE;
 
+    /**
+     * Reset.
+     */
     final public void reset() {
         for (Map element : this.mCounters) {
             if (!(element == null)) {
@@ -30,6 +64,16 @@ final public class DistinctCounter {
         }
     }
 
+    /**
+     * Add.
+     * 
+     * @param pRecord the record
+     * @param pPortID the port ID
+     * 
+     * @return the int
+     * 
+     * @throws Exception the exception
+     */
     final public int add(Object pRecord, int pPortID) throws Exception {
         if (pPortID > this.counters) {
             Map[] tmp = new Map[pPortID + 1];
@@ -63,6 +107,15 @@ final public class DistinctCounter {
         return size;
     }
 
+    /**
+     * Count.
+     * 
+     * @param pPortID the port ID
+     * 
+     * @return the int
+     * 
+     * @throws Exception the exception
+     */
     final public int count(int pPortID) throws Exception {
         if (pPortID > this.counters) {
             Map[] tmp = new Map[pPortID + 1];

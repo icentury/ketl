@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 /*
  * Created on Jul 20, 2005
  *
@@ -21,31 +39,75 @@ import java.util.Set;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.util.Sort;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ExternalSort.
+ */
 final public class ExternalSort implements Set {
 
     // int subSpoolCount = 0;
+    /** The pos. */
     int pos;
+    
+    /** The db. */
     public BufferedObjectStore db;
+    
+    /** The data. */
     public Object[] data;
+    
+    /** The current pos. */
     int currentPos;
+    
+    /** The records. */
     int records = 0;
+    
+    /** The total records. */
     int totalRecords = 0;
+    
+    /** The max sort size. */
     int maxSortSize = 1024;
+    
+    /** The spools. */
     ArrayList spools = new ArrayList();
+    
+    /** The ma stores. */
     Store[] maStores;
+    
+    /** The merged spools. */
     ArrayList mergedSpools = new ArrayList();
+    
+    /** The root. */
     SortedList root;
+    
+    /** The m merge size. */
     int mMergeSize = 128;
+    
+    /** The read buffer size. */
     int readBufferSize;
+    
+    /** The max individual read buffer size. */
     int maxIndividualReadBufferSize;
+    
+    /** The write buffer size. */
     int writeBufferSize;
+    
+    /** The m distinct. */
     boolean mDistinct = false;
 
+    /**
+     * The Class BufferedObjectStore.
+     */
     final public class BufferedObjectStore {
 
+        /** The stores. */
         ArrayList stores = new ArrayList();
+        
+        /** The store cnt. */
         int storeCnt = 0;
 
+        /* (non-Javadoc)
+         * @see java.lang.Object#finalize()
+         */
         @Override
         protected void finalize() throws Throwable {
             if ((this.stores != null) & (this.stores.size() > 0)) {
@@ -55,6 +117,15 @@ final public class ExternalSort implements Set {
             super.finalize();
         }
 
+        /**
+         * Creates the set.
+         * 
+         * @param bufferSize the buffer size
+         * 
+         * @return the store
+         * 
+         * @throws IOException Signals that an I/O exception has occurred.
+         */
         final public Store createSet(int bufferSize) throws IOException {
             Store store = new Store(bufferSize);
 
@@ -63,6 +134,11 @@ final public class ExternalSort implements Set {
             return store;
         }
 
+        /**
+         * Close.
+         * 
+         * @throws Exception the exception
+         */
         final public void close() throws Exception {
             for (int i = 0; i < this.stores.size(); i++) {
                 ((Store) this.stores.get(i)).close();
@@ -72,6 +148,16 @@ final public class ExternalSort implements Set {
         }
     }
 
+    /**
+     * Instantiates a new external sort.
+     * 
+     * @param cmp the cmp
+     * @param maxSortSize the max sort size
+     * @param mergeSize the merge size
+     * @param readBufferSize the read buffer size
+     * @param maxIndividualReadBufferSize the max individual read buffer size
+     * @param writeBufferSize the write buffer size
+     */
     public ExternalSort(Comparator cmp, int maxSortSize, int mergeSize, int readBufferSize,
             int maxIndividualReadBufferSize, int writeBufferSize) {
         super();
@@ -88,8 +174,12 @@ final public class ExternalSort implements Set {
         this.currentPos = 0;
     }
 
+    /** The m last exception. */
     Exception mLastException;
 
+    /* (non-Javadoc)
+     * @see java.util.Set#add(java.lang.Object)
+     */
     final public boolean add(Object o) {
         this.data[this.currentPos++] = o;
 
@@ -109,10 +199,21 @@ final public class ExternalSort implements Set {
         return true;
     }
 
+    /**
+     * Gets the last exception.
+     * 
+     * @return the last exception
+     */
     final public Exception getLastException() {
         return this.mLastException;
     }
 
+    /**
+     * Commit.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
     final public void commit() throws IOException, ClassNotFoundException {
         if (this.records > 0) {
             this.totalRecords = this.totalRecords + this.records;
@@ -157,6 +258,9 @@ final public class ExternalSort implements Set {
         }
     }
 
+    /**
+     * Dedup.
+     */
     final void dedup() {
         Object current = this.data[0];
         ArrayList ar = new ArrayList();
@@ -176,6 +280,12 @@ final public class ExternalSort implements Set {
         }
     }
 
+    /**
+     * Prep spools for merge sorted list.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
     final private void prepSpoolsForMergeSortedList() throws IOException, ClassNotFoundException {
         int nSpools = (this.mMergeSize < this.spools.size()) ? this.mMergeSize : this.spools.size();
 
@@ -213,15 +323,29 @@ final public class ExternalSort implements Set {
         }
     }
 
+    /**
+     * Adds the to sorted list.
+     * 
+     * @param arg0 the arg0
+     * @param arg1 the arg1
+     */
     private void addToSortedList(Object arg0, Object arg1) {
         this.spoolLookup.put(arg0, arg1);
         this.root.add(arg0);
     }
 
+    /** The spool lookup. */
     private HashMap spoolLookup = new HashMap();
 
+    /** The m comparator. */
     Comparator mComparator = null;
 
+    /**
+     * Spool.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
     final void spool() throws IOException, ClassNotFoundException {
         // sort data
         Sort.quickSort2(this.data, this.mComparator, 0, this.currentPos - 1);
@@ -255,6 +379,12 @@ final public class ExternalSort implements Set {
         this.currentPos = 0;
     }
 
+    /**
+     * Merge.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
     final void merge() throws IOException, ClassNotFoundException {
         // if 1 spool left then don't merge it with itself.
         if (this.spools.size() == 1) {
@@ -286,8 +416,17 @@ final public class ExternalSort implements Set {
         this.currentPos = 0;
     }
 
+    /** The m previous. */
     Object mPrevious = null;
 
+    /**
+     * Gets the next from spools sorted list.
+     * 
+     * @return the next from spools sorted list
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
     final Object getNextFromSpoolsSortedList() throws IOException, ClassNotFoundException {
         Object first = this.root.removeFirst();
 
@@ -309,12 +448,26 @@ final public class ExternalSort implements Set {
         return first;
     }
 
+    /**
+     * Close.
+     * 
+     * @throws Exception the exception
+     */
     final public void close() throws Exception {
         this.db.close();
     }
 
+    /** The commit pending. */
     boolean commitPending = true;
 
+    /**
+     * Gets the next.
+     * 
+     * @return the next
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
     final public Object getNext() throws IOException, ClassNotFoundException {
         if (this.commitPending) {
             this.commitPending = false;
@@ -358,51 +511,87 @@ final public class ExternalSort implements Set {
         }
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#size()
+     */
     final public int size() {
         return this.records;
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#isEmpty()
+     */
     final public boolean isEmpty() {
         return (this.records == 0) ? true : false;
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#contains(java.lang.Object)
+     */
     public boolean contains(Object o) {
         // TODO Auto-generated method stub
         return false;
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#iterator()
+     */
     public Iterator iterator() {
         throw new RuntimeException();
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#toArray()
+     */
     public Object[] toArray() {
         throw new RuntimeException();
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#toArray(T[])
+     */
     public Object[] toArray(Object[] a) {
         throw new RuntimeException();
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#remove(java.lang.Object)
+     */
     public boolean remove(Object o) {
         throw new RuntimeException();
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#containsAll(java.util.Collection)
+     */
     public boolean containsAll(Collection c) {
         throw new RuntimeException();
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#addAll(java.util.Collection)
+     */
     public boolean addAll(Collection c) {
         throw new RuntimeException();
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#retainAll(java.util.Collection)
+     */
     public boolean retainAll(Collection c) {
         throw new RuntimeException();
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#removeAll(java.util.Collection)
+     */
     public boolean removeAll(Collection c) {
         throw new RuntimeException();
     }
 
+    /* (non-Javadoc)
+     * @see java.util.Set#clear()
+     */
     public void clear() {
         throw new RuntimeException();
     }

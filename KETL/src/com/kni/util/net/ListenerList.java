@@ -73,27 +73,27 @@ public class ListenerList implements Serializable
 
     public ListenerList()
     {
-        __listeners = new Vector();
+        this.__listeners = new Vector();
     }
 
     public synchronized void addListener(EventListener listener)
     {
-        __listeners.addElement(listener);
+        this.__listeners.addElement(listener);
     }
 
     public synchronized void removeListener(EventListener listener)
     {
-        __listeners.removeElement(listener);
+        this.__listeners.removeElement(listener);
     }
 
     public synchronized Enumeration getListeners()
     {
-        return ((Vector)__listeners.clone()).elements();
+        return ((Vector)this.__listeners.clone()).elements();
     }
 
     public int getListenerCount()
     {
-        return __listeners.size();
+        return this.__listeners.size();
     }
 
 }

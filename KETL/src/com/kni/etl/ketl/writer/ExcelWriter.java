@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.ketl.writer;
 
 import java.io.BufferedWriter;
@@ -22,6 +40,7 @@ import com.kni.etl.ketl.smp.DefaultWriterCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
  * <p>
  * Title: ETLWriter
@@ -41,10 +60,18 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
+    /** The m tab port index. */
     private int mTabPortIndex = -1;
+    
+    /** The xml out. */
     private BufferedWriter xmlOut;
+    
+    /** The out. */
     private PrintWriter out;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
+     */
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
         // TODO Auto-generated method stub
@@ -91,6 +118,16 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
     }
 
+    /**
+     * Instantiates a new excel writer.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public ExcelWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
@@ -101,8 +138,14 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
     }
 
+    /** The m current tab. */
     private Object mCurrentTab = null;
 
+    /**
+     * Adds the headers.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     private void addHeaders() throws IOException {
         this.writeData("<ss:Row ss:StyleID=\"1\">");
 
@@ -114,6 +157,9 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+     */
     public int putNextRecord(Object[] o, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 
         try {
@@ -147,6 +193,9 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
         return 1;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
         try {
@@ -163,17 +212,40 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
         }
     }
 
+    /**
+     * Write data.
+     * 
+     * @param pData the data
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     void writeData(String pData) throws IOException {
         this.xmlOut.write(pData);
     }
 
+    /**
+     * Creates the sheet.
+     * 
+     * @param pName the name
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     void createSheet(String pName) throws IOException {
         this.writeData("<ss:Worksheet ss:Name=\"" + this.checkAndEscapeXMLData(pName) + "\"><ss:Table>");
         this.addHeaders();
     }
 
+    /** The custom date format. */
     SimpleDateFormat customDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
+    /**
+     * Prints the cell.
+     * 
+     * @param pValue the value
+     * @param pClass the class
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     void printCell(Object pValue, Class pClass) throws IOException {
 
         if (pValue == null)
@@ -198,6 +270,13 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
         this.writeData("</ss:Data></ss:Cell>");
     }
 
+    /**
+     * Pad null.
+     * 
+     * @param arg0 the arg0
+     * 
+     * @return the string
+     */
     public static String padNull(String arg0) {
         if (arg0 == null || arg0.length() == 1)
             return "&nbsp;";
@@ -205,12 +284,25 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
         return arg0;
     }
 
+    /**
+     * Close sheet.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     void closeSheet() throws IOException {
         this.writeData("</ss:Table></ss:Worksheet>");
     }
 
+    /** The m data length warning. */
     private boolean mDataLengthWarning = true;
 
+    /**
+     * Check and escape XML data.
+     * 
+     * @param pXML the XML
+     * 
+     * @return the string
+     */
     private String checkAndEscapeXMLData(String pXML) {
 
         if (pXML.length() > 255) {
@@ -231,6 +323,9 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
         return str;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#complete()
+     */
     @Override
     public int complete() throws KETLThreadException {
 

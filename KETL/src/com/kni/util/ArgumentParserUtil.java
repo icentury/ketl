@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 /*
  * Created on Nov 5, 2003
  *
@@ -15,12 +33,22 @@ import java.util.StringTokenizer;
 
 import com.kni.etl.dbutils.ResourcePool;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class ArgumentParserUtil.
+ * 
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- *         Generation&gt;Code and Comments
+ * Generation&gt;Code and Comments
  */
 public class ArgumentParserUtil {
 
+    /**
+     * Split quote aware.
+     * 
+     * @param strToSplit the str to split
+     * 
+     * @return the string[]
+     */
     public static String[] splitQuoteAware(String strToSplit) {
         ArrayList res = new ArrayList();
         boolean inQuotes = false, escape = false;
@@ -88,8 +116,10 @@ public class ArgumentParserUtil {
     /**
      * Use to be cmdRun Insert the method's description here. Creation date: (4/21/2002 8:40:01 AM)
      * 
-     * @return java.lang.String[]
      * @param pArg java.lang.String
+     * @param pVarName the var name
+     * 
+     * @return java.lang.String[]
      */
     public static String extractArguments(String pArg, String pVarName) {
         String result = null;
@@ -111,8 +141,10 @@ public class ArgumentParserUtil {
     /**
      * Insert the method's description here. Creation date: (4/21/2002 8:40:01 AM)
      * 
-     * @return java.lang.String[]
      * @param pArg java.lang.String
+     * @param pVarName the var name
+     * 
+     * @return java.lang.String[]
      */
     public static String[] extractMultipleArguments(String pArg, String pVarName) {
         String[] result = null;

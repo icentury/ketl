@@ -96,10 +96,10 @@ public class ProtocolCommandEvent extends EventObject
     public ProtocolCommandEvent(Object source, String command, String message)
     {
         super(source);
-        __replyCode = 0;
-        __message = message;
-        __isCommand = true;
-        __command = command;
+        this.__replyCode = 0;
+        this.__message = message;
+        this.__isCommand = true;
+        this.__command = command;
     }
 
 
@@ -120,10 +120,10 @@ public class ProtocolCommandEvent extends EventObject
     public ProtocolCommandEvent(Object source, int replyCode, String message)
     {
         super(source);
-        __replyCode = replyCode;
-        __message = message;
-        __isCommand = false;
-        __command = null;
+        this.__replyCode = replyCode;
+        this.__message = message;
+        this.__isCommand = false;
+        this.__command = null;
     }
 
     /***
@@ -136,7 +136,7 @@ public class ProtocolCommandEvent extends EventObject
      ***/
     public String getCommand()
     {
-        return __command;
+        return this.__command;
     }
 
 
@@ -149,7 +149,7 @@ public class ProtocolCommandEvent extends EventObject
      ***/
     public int getReplyCode()
     {
-        return __replyCode;
+        return this.__replyCode;
     }
 
     /***
@@ -161,7 +161,7 @@ public class ProtocolCommandEvent extends EventObject
      ***/
     public boolean isCommand()
     {
-        return __isCommand;
+        return this.__isCommand;
     }
 
     /***
@@ -173,7 +173,7 @@ public class ProtocolCommandEvent extends EventObject
      ***/
     public boolean isReply()
     {
-        return !isCommand();
+        return !this.isCommand();
     }
 
     /***
@@ -183,6 +183,6 @@ public class ProtocolCommandEvent extends EventObject
      ***/
     public String getMessage()
     {
-        return __message;
+        return this.__message;
     }
 }

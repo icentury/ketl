@@ -1,19 +1,44 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.stringtools;
 
 
+// TODO: Auto-generated Javadoc
 /**
  * Insert the type's description here. Creation date: (4/10/2002 11:59:44 AM)
- *
+ * 
  * @author: Administrator
  */
 public class StringManipulator
 {
+    
+    /** The Passed string. */
     private String PassedString;
+    
+    /** The Upper case passed string. */
     private String UpperCasePassedString;
+    
+    /** The String array. */
     private char[] StringArray;
 
     /**
@@ -27,37 +52,32 @@ public class StringManipulator
     /**
      * Insert the method's description here. Creation date: (4/10/2002 12:01:53
      * PM)
-     *
+     * 
+     * @param pStringToSearch java.lang.String
+     * @param pVariableName java.lang.String
+     * @param pVariableToValueSeperator java.lang.String
+     * @param pMultipleVariableDelimiter java.lang.String
+     * 
      * @return java.lang.String
-     * @param pStringToSearch
-     *            java.lang.String
-     * @param pVariableName
-     *            java.lang.String
-     * @param pVariableToValueSeperator
-     *            java.lang.String
-     * @param pMultipleVariableDelimiter
-     *            java.lang.String
      */
     public String getVariableByName(String pStringToSearch, String pVariableName, char[] pVariableToValueSeperator,
         char[] pMultipleVariableDelimiter)
     {
-        return (getVariableByName(pStringToSearch, pVariableName, pVariableToValueSeperator,
+        return (this.getVariableByName(pStringToSearch, pVariableName, pVariableToValueSeperator,
             pMultipleVariableDelimiter, true));
     }
 
     /**
      * Insert the method's description here. Creation date: (4/10/2002 12:01:53
      * PM)
-     *
+     * 
+     * @param pStringToSearch java.lang.String
+     * @param pVariableName java.lang.String
+     * @param pVariableToValueSeperator java.lang.String
+     * @param pMultipleVariableDelimiter java.lang.String
+     * @param pCaseSensitive the case sensitive
+     * 
      * @return java.lang.String
-     * @param pStringToSearch
-     *            java.lang.String
-     * @param pVariableName
-     *            java.lang.String
-     * @param pVariableToValueSeperator
-     *            java.lang.String
-     * @param pMultipleVariableDelimiter
-     *            java.lang.String
      */
     public String getVariableByName(String pStringToSearch, String pVariableName, char[] pVariableToValueSeperator,
         char[] pMultipleVariableDelimiter, boolean pCaseSensitive)
@@ -86,10 +106,8 @@ public class StringManipulator
         {
             int lastPos = -1;
 
-            // look for direct characters e.g '='
-            for (int index = 0; index < pVariableToValueSeperator.length; index++)
-            {
-                varPos = pStringToSearch.indexOf(pVariableToValueSeperator[index], varNamePos + pVariableName.length());
+            for (char element : pVariableToValueSeperator) {
+                varPos = pStringToSearch.indexOf(element, varNamePos + pVariableName.length());
 
                 if (varPos != -1)
                 {
@@ -107,9 +125,8 @@ public class StringManipulator
             {
                 lastPos = -1;
 
-                for (int index = 0; index < pMultipleVariableDelimiter.length; index++)
-                {
-                    varEndPos = pStringToSearch.indexOf(pMultipleVariableDelimiter[index], varPos + 1);
+                for (char element : pMultipleVariableDelimiter) {
+                    varEndPos = pStringToSearch.indexOf(element, varPos + 1);
 
                     if (varEndPos != -1)
                     {
@@ -140,26 +157,70 @@ public class StringManipulator
         return null;
     }
 
+    /**
+     * Index of ignore case.
+     * 
+     * @param pSearchStr the search str
+     * @param pItemToFind the item to find
+     * 
+     * @return the int
+     */
     final private int indexOfIgnoreCase(String pSearchStr, BoyerMooreAlgorithm pItemToFind)
     {
         return pItemToFind.searchIgnoreCase(pSearchStr.toCharArray(), 0, pSearchStr.length());
     }
 
+    /**
+     * Index of ignore case.
+     * 
+     * @param pSearchChar the search char
+     * @param pLen the len
+     * @param pItemToFind the item to find
+     * 
+     * @return the int
+     */
     final private int indexOfIgnoreCase(char[] pSearchChar, int pLen, BoyerMooreAlgorithm pItemToFind)
     {
         return pItemToFind.searchIgnoreCase(pSearchChar, 0, pLen);
     }
 
+    /**
+     * Index of ignore case.
+     * 
+     * @param pSearchChar the search char
+     * @param pStartPos the start pos
+     * @param pLen the len
+     * @param pItemToFind the item to find
+     * 
+     * @return the int
+     */
     final private int indexOfIgnoreCase(char[] pSearchChar, int pStartPos, int pLen, BoyerMooreAlgorithm pItemToFind)
     {
         return pItemToFind.searchIgnoreCase(pSearchChar, pStartPos, pLen);
     }
 
+    /**
+     * Index of.
+     * 
+     * @param pSearchChar the search char
+     * @param pLen the len
+     * @param pItemToFind the item to find
+     * 
+     * @return the int
+     */
     final private int indexOf(char[] pSearchChar, int pLen, BoyerMooreAlgorithm pItemToFind)
     {
         return pItemToFind.search(pSearchChar, 0, pLen);
     }
 
+    /**
+     * Index of.
+     * 
+     * @param pSearchStr the search str
+     * @param pItemToFind the item to find
+     * 
+     * @return the int
+     */
     final private int indexOf(String pSearchStr, BoyerMooreAlgorithm pItemToFind)
     {
         return pItemToFind.search(pSearchStr.toCharArray(), 0, pSearchStr.length());
@@ -168,16 +229,14 @@ public class StringManipulator
     /**
      * Insert the method's description here. Creation date: (4/10/2002 12:01:53
      * PM)
-     *
+     * 
+     * @param pStringToSearch java.lang.String
+     * @param pVariableName java.lang.String
+     * @param pVariableToValueSeperator java.lang.String
+     * @param pMultipleVariableDelimiter java.lang.String
+     * @param pCaseSensitive the case sensitive
+     * 
      * @return java.lang.String
-     * @param pStringToSearch
-     *            java.lang.String
-     * @param pVariableName
-     *            java.lang.String
-     * @param pVariableToValueSeperator
-     *            java.lang.String
-     * @param pMultipleVariableDelimiter
-     *            java.lang.String
      */
     public String getVariableByName(String pStringToSearch, BoyerMooreAlgorithm pVariableName,
         String[] pVariableToValueSeperator, String[] pMultipleVariableDelimiter, boolean pCaseSensitive)
@@ -190,11 +249,11 @@ public class StringManipulator
 
         if (pCaseSensitive == false)
         {
-            varNamePos = indexOfIgnoreCase(pStringToSearch, pVariableName);
+            varNamePos = this.indexOfIgnoreCase(pStringToSearch, pVariableName);
         }
         else
         {
-            varNamePos = indexOf(pStringToSearch, pVariableName);
+            varNamePos = this.indexOf(pStringToSearch, pVariableName);
         }
 
         // if variable found then get value
@@ -202,12 +261,10 @@ public class StringManipulator
         {
             int lastPos = -1;
 
-            // look for direct characters e.g '='
-            for (int index = 0; index < pVariableToValueSeperator.length; index++)
-            {
-                int varLength = pVariableToValueSeperator[index].length();
+            for (String element : pVariableToValueSeperator) {
+                int varLength = element.length();
                 boolean res = pStringToSearch.regionMatches(varNamePos + pVariableName.getPatternLength(),
-                        pVariableToValueSeperator[index], 0, varLength);
+                        element, 0, varLength);
 
                 if (res)
                 {
@@ -221,9 +278,8 @@ public class StringManipulator
             {
                 lastPos = -1;
 
-                for (int index = 0; index < pMultipleVariableDelimiter.length; index++)
-                {
-                    varEndPos = pStringToSearch.indexOf(pMultipleVariableDelimiter[index], varPos);
+                for (String element : pMultipleVariableDelimiter) {
+                    varEndPos = pStringToSearch.indexOf(element, varPos);
 
                     if (varEndPos != -1)
                     {
@@ -254,6 +310,18 @@ public class StringManipulator
         return null;
     }
 
+    /**
+     * Gets the variable by name.
+     * 
+     * @param pStringToSearch the string to search
+     * @param pStringLen the string len
+     * @param pVariableName the variable name
+     * @param pVariableToValueSeperator the variable to value seperator
+     * @param pMultipleVariableDelimiter the multiple variable delimiter
+     * @param pCaseSensitive the case sensitive
+     * 
+     * @return the variable by name
+     */
     public String getVariableByName(char[] pStringToSearch, int pStringLen, BoyerMooreAlgorithm pVariableName,
         BoyerMooreAlgorithm[] pVariableToValueSeperator, BoyerMooreAlgorithm[] pMultipleVariableDelimiter,
         boolean pCaseSensitive)
@@ -266,11 +334,11 @@ public class StringManipulator
 
         if (pCaseSensitive == false)
         {
-            varNamePos = indexOfIgnoreCase(pStringToSearch, pStringLen, pVariableName);
+            varNamePos = this.indexOfIgnoreCase(pStringToSearch, pStringLen, pVariableName);
         }
         else
         {
-            varNamePos = indexOf(pStringToSearch, pStringLen, pVariableName);
+            varNamePos = this.indexOf(pStringToSearch, pStringLen, pVariableName);
         }
 
         // if variable found then get value
@@ -282,9 +350,8 @@ public class StringManipulator
             {
                 boolean match = false;
 
-                for (int index = 0; index < pMultipleVariableDelimiter.length; index++)
-                {
-                    char ch = pMultipleVariableDelimiter[index].getPattern()[pMultipleVariableDelimiter[index].getPatternLength() -
+                for (BoyerMooreAlgorithm element : pMultipleVariableDelimiter) {
+                    char ch = element.getPattern()[element.getPatternLength() -
                         1];
 
                     if (pStringToSearch[varNamePos - 1] == ch)
@@ -301,10 +368,8 @@ public class StringManipulator
                 }
             }
 
-            // look for direct characters e.g '='
-            for (int index = 0; index < pVariableToValueSeperator.length; index++)
-            {
-                int varLength = pVariableToValueSeperator[index].getPatternLength();
+            for (BoyerMooreAlgorithm element : pVariableToValueSeperator) {
+                int varLength = element.getPatternLength();
                 boolean res;
 
                 if ((varLength + pVariableName.getPatternLength() + varNamePos) > pStringLen)
@@ -313,8 +378,8 @@ public class StringManipulator
                 }
                 else
                 {
-                    res = regionMatches(pStringToSearch, varNamePos + pVariableName.getPatternLength(),
-                            pVariableToValueSeperator[index].getPattern(), 0, varLength);
+                    res = this.regionMatches(pStringToSearch, varNamePos + pVariableName.getPatternLength(),
+                            element.getPattern(), 0, varLength);
                 }
 
                 if (res)
@@ -329,10 +394,9 @@ public class StringManipulator
             {
                 lastPos = -1;
 
-                for (int index = 0; index < pMultipleVariableDelimiter.length; index++)
-                {
-                    varEndPos = indexOfIgnoreCase(pStringToSearch, varPos, pStringLen - varPos,
-                            pMultipleVariableDelimiter[index]);
+                for (BoyerMooreAlgorithm element : pMultipleVariableDelimiter) {
+                    varEndPos = this.indexOfIgnoreCase(pStringToSearch, varPos, pStringLen - varPos,
+                            element);
 
                     if (varEndPos != -1)
                     {
@@ -363,6 +427,17 @@ public class StringManipulator
         return null;
     }
 
+    /**
+     * Region matches.
+     * 
+     * @param pStringA the string a
+     * @param pStartPosInA the start pos in a
+     * @param pStringB the string b
+     * @param pStartPosInB the start pos in b
+     * @param pLength the length
+     * 
+     * @return true, if successful
+     */
     public boolean regionMatches(char[] pStringA, int pStartPosInA, char[] pStringB, int pStartPosInB, int pLength)
     {
         for (int i = 0; i < pLength; i++)
@@ -379,37 +454,32 @@ public class StringManipulator
     /**
      * Insert the method's description here. Creation date: (4/10/2002 12:01:53
      * PM)
-     *
+     * 
+     * @param pStringToSearch java.lang.String
+     * @param pVariableName java.lang.String
+     * @param pVariableToValueSeperator java.lang.String
+     * @param pMultipleVariableDelimiter java.lang.String
+     * 
      * @return java.lang.String
-     * @param pStringToSearch
-     *            java.lang.String
-     * @param pVariableName
-     *            java.lang.String
-     * @param pVariableToValueSeperator
-     *            java.lang.String
-     * @param pMultipleVariableDelimiter
-     *            java.lang.String
      */
     public String getVariableByName(String pStringToSearch, String pVariableName, String pVariableToValueSeperator,
         char[] pMultipleVariableDelimiter)
     {
-        return (getVariableByName(pStringToSearch, pVariableName, pVariableToValueSeperator,
+        return (this.getVariableByName(pStringToSearch, pVariableName, pVariableToValueSeperator,
             pMultipleVariableDelimiter, true));
     }
 
     /**
      * Insert the method's description here. Creation date: (4/10/2002 12:01:53
      * PM)
-     *
+     * 
+     * @param pStringToSearch java.lang.String
+     * @param pVariableName java.lang.String
+     * @param pVariableToValueSeperator java.lang.String
+     * @param pMultipleVariableDelimiter java.lang.String
+     * @param pCaseSensitive the case sensitive
+     * 
      * @return java.lang.String
-     * @param pStringToSearch
-     *            java.lang.String
-     * @param pVariableName
-     *            java.lang.String
-     * @param pVariableToValueSeperator
-     *            java.lang.String
-     * @param pMultipleVariableDelimiter
-     *            java.lang.String
      */
     public String getVariableByName(String pStringToSearch, String pVariableName, String pVariableToValueSeperator,
         char[] pMultipleVariableDelimiter, boolean pCaseSensitive)
@@ -443,9 +513,8 @@ public class StringManipulator
             {
                 int lastPos = -1;
 
-                for (int index = 0; index < pMultipleVariableDelimiter.length; index++)
-                {
-                    varEndPos = pStringToSearch.indexOf(pMultipleVariableDelimiter[index], varPos + 1);
+                for (char element : pMultipleVariableDelimiter) {
+                    varEndPos = pStringToSearch.indexOf(element, varPos + 1);
 
                     if ((lastPos == -1) || (lastPos > varEndPos))
                     {
@@ -476,16 +545,13 @@ public class StringManipulator
     /**
      * Insert the method's description here. Creation date: (4/10/2002 12:01:53
      * PM)
-     *
+     * 
+     * @param pStringToSearch java.lang.String
+     * @param pVariableName java.lang.String
+     * @param pVariableToValueSeperator java.lang.String
+     * @param pMultipleVariableDelimiter java.lang.String
+     * 
      * @return java.lang.String
-     * @param pStringToSearch
-     *            java.lang.String
-     * @param pVariableName
-     *            java.lang.String
-     * @param pVariableToValueSeperator
-     *            java.lang.String
-     * @param pMultipleVariableDelimiter
-     *            java.lang.String
      */
     public String getVariableByName(String pStringToSearch, String pVariableName, String pVariableToValueSeperator,
         String pMultipleVariableDelimiter)

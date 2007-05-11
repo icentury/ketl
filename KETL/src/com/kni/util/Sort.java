@@ -1,11 +1,30 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.util;
 
 import java.util.Comparator;
 
+// TODO: Auto-generated Javadoc
 /**
  * A class that contains several sorting routines, implemented as static methods. Arrays are rearranged with smallest
  * item first, using compareTo.
@@ -37,6 +56,8 @@ public final class Sort {
      * Shellsort, using Shell's (poor) increments.
      * 
      * @param a an array of Comparable items.
+     * @param left the left
+     * @param right the right
      */
     public static void shellsort(Comparable[] a, int left, int right) {
         int j;
@@ -76,6 +97,7 @@ public final class Sort {
      * Internal method for heapsort.
      * 
      * @param i the index of an item in the heap.
+     * 
      * @return the index of the left child.
      */
     private static int leftChild(int i) {
@@ -86,6 +108,9 @@ public final class Sort {
      * Internal method for heapsort that is used in deleteMax and buildHeap.
      * 
      * @param a an array of Comparable items.
+     * @param i the i
+     * @param n the n
+     * 
      * @index i the position from which to percolate down.
      * @int n the logical size of the binary heap.
      */
@@ -122,6 +147,13 @@ public final class Sort {
         Sort.mergeSort(a, tmpArray, 0, a.length - 1);
     }
 
+    /**
+     * Merge sort.
+     * 
+     * @param a the a
+     * @param left the left
+     * @param right the right
+     */
     public static void mergeSort(Comparable[] a, int left, int right) {
         Comparable[] tmpArray = new Comparable[right + 1];
 
@@ -193,6 +225,7 @@ public final class Sort {
         Sort.quicksort(a, 0, a.length - 1);
     }
 
+    /** The Constant CUTOFF. */
     private static final int CUTOFF = 3;
 
     /**
@@ -210,6 +243,12 @@ public final class Sort {
 
     /**
      * Return median of left, center, and right. Order these and hide the pivot.
+     * 
+     * @param a the a
+     * @param left the left
+     * @param right the right
+     * 
+     * @return the comparable
      */
     private static Comparable median3(Comparable[] a, int left, int right) {
         int center = (left + right) / 2;
@@ -360,6 +399,13 @@ public final class Sort {
         }
     }
 
+    /**
+     * Quick sort2.
+     * 
+     * @param c the c
+     * @param left the left
+     * @param right the right
+     */
     public static void quickSort2(Comparable[] c, int left, int right) {
         int i;
         int j;
@@ -451,6 +497,14 @@ public final class Sort {
         }
     }
 
+    /**
+     * Quick sort2.
+     * 
+     * @param c the c
+     * @param cmp the cmp
+     * @param left the left
+     * @param right the right
+     */
     public static void quickSort2(Object[] c, Comparator cmp, int left, int right) {
         int i;
         int j;

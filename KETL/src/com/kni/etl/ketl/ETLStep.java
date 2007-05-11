@@ -1,7 +1,24 @@
 /*
- * Copyright (c) 2006 Kinetic Networks, Inc. All Rights Reserved.
- * Created on Jul 5, 2006
- * 
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl;
 
@@ -34,69 +51,107 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.ETLWorker;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class ETLStep.
+ * 
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- *         Generation&gt;Code and Comments
+ * Generation&gt;Code and Comments
  */
 public abstract class ETLStep extends ETLWorker {
 
+    /** The m job. */
     private ETLJob mJob;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#interruptExecution()
+     */
     @Override
     final protected void interruptExecution() throws InterruptedException {
         if (this.mJob.isKilled()) {
             throw new InterruptedException("Job has been killed");
         }
         else if (this.mJob.isPaused()) {
-            setWaiting("Pause to be released");
+            this.setWaiting("Pause to be released");
             while (this.mJob.isPaused()) {
                 Thread.sleep(1000);
             }
-            setWaiting(null);
+            this.setWaiting(null);
             this.interruptExecution();
         }
     }
 
+    /** The Constant TAGS_NOT_SUPPORTING_PARAMETERS. */
     final static String[] TAGS_NOT_SUPPORTING_PARAMETERS = { "FILTER", "OUT" };
 
+    /** The Constant BATCHSIZE_ATTRIB. */
     public static final String BATCHSIZE_ATTRIB = "BATCHSIZE";
 
+    /** The Constant CASE_TAG. */
     public static final String CASE_TAG = "CASE";
 
+    /** The Constant DEFAULT_TAG. */
     public static final String DEFAULT_TAG = "DEFAULT";
 
+    /** The Constant DRIVING_STEP_ATTRIB. */
     public static final String DRIVING_STEP_ATTRIB = "DRIVING_STEP";
 
+    /** The Constant ERRORLIMIT_ATTRIB. */
     public static final String ERRORLIMIT_ATTRIB = "ERRORLIMIT";
+    
+    /** The Constant FATAL_ERROR_HANDLER. */
     public static final String FATAL_ERROR_HANDLER = "FATAL_ERROR";
 
+    /** The Constant IN_TAG. */
     public static final String IN_TAG = "IN";
 
+    /** The Constant LOG_BAD_RECORDS. */
     public static final String LOG_BAD_RECORDS = "LOGBADRECORDS";
 
+    /** The Constant LOG_ERROR_HANDLER. */
     public static final String LOG_ERROR_HANDLER = "LOG_ERROR";
 
+    /** The Constant LOG_MESSAGE_HANDLER. */
     public static final String LOG_MESSAGE_HANDLER = "LOG_MESSAGE";
 
+    /** The Constant NAME_ATTRIB. */
     public static final String NAME_ATTRIB = "NAME";
 
+    /** The Constant OUT_TAG. */
     public static final String OUT_TAG = "OUT";
 
+    /** The Constant SHOWEXCEPTIONS. */
     public static final String SHOWEXCEPTIONS = "SHOWEXCEPTIONS";
 
+    /** The Constant SQL_ATTRIB. */
     public static final String SQL_ATTRIB = "SQL";
 
+    /** The Constant TRIGGER_TAG. */
     public static final String TRIGGER_TAG = "TRIGGER";
 
+    /** The Constant XMLSOURCE_ATTRIB. */
     public static final String XMLSOURCE_ATTRIB = "XMLSOURCE";
 
+    /** The Constant XMLSOURCENAME_ATTRIB. */
     public static final String XMLSOURCENAME_ATTRIB = "XMLSOURCENAME";
+    
+    /** The ma parameters. */
     protected List maParameters;
+    
+    /** The mkj executor. */
     protected KETLJobExecutor mkjExecutor = null;
+    
+    /** The m step template. */
     private HashMap mStepTemplate = new HashMap();
 
     /**
+     * The Constructor.
+     * 
      * @param pXMLConfig TODO
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
      * @throws KETLThreadException TODO
      */
     public ETLStep(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
@@ -117,47 +172,63 @@ public abstract class ETLStep extends ETLWorker {
          * complete parameters.
          */
         if (strParameterListName != null)
-            if (getParamaterLists(strParameterListName) != 0) {
+            if (this.getParamaterLists(strParameterListName) != 0) {
                 throw new KETLThreadException("No complete parameter sets found, check that the following exist:\n"
-                        + getRequiredTagsMessage(), this);
+                        + this.getRequiredTagsMessage(), this);
             }
 
     }
 
+    /** The mo dump buffer. */
     private OutputStream moDump, moDumpBuffer;
+    
+    /** The m dump writer. */
     private Writer mDumpWriter;
+    
+    /** The m dump file. */
     private String mDumpFile;
+    
+    /** The m logger failed. */
     private boolean mLoggerFailed = false;
 
 
+    /**
+     * Log bad record.
+     * 
+     * @param pRowNum the row num
+     * @param pRec the rec
+     * @param e2 the e2
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     protected void logBadRecord(int pRowNum, Object[] pRec, Exception e2) throws IOException {
         if (this.mLoggerFailed)
             return;
         try {
-            if (moDump == null) {
+            if (this.moDump == null) {
                 String rootPath = this.getJobExecutor().ejCurrentJob.getLoggingPath();
 
-                mDumpFile = rootPath + File.separator + this.getJobExecutor().getCurrentETLJob().getJobID() + "."
+                this.mDumpFile = rootPath + File.separator + this.getJobExecutor().getCurrentETLJob().getJobID() + "."
                         + this.getJobExecutor().getCurrentETLJob().getJobExecutionID();
-                moDump = new FileOutputStream(mDumpFile);
-                moDumpBuffer = new BufferedOutputStream(moDump);
-                mDumpWriter = new PrintWriter(moDumpBuffer);
+                this.moDump = new FileOutputStream(this.mDumpFile);
+                this.moDumpBuffer = new BufferedOutputStream(this.moDump);
+                this.mDumpWriter = new PrintWriter(this.moDumpBuffer);
 
                 if (this.mInPorts != null) {
-                    mDumpWriter.write("Input record format(Constants excluded)\n");
+                    this.mDumpWriter.write("Input record format(Constants excluded)\n");
                     Object inCols[] = new Object[1024];
-                    for (int i = 0; i < this.mInPorts.length; i++) {
-                        if (this.mInPorts[i].isConstant() == false)
-                            inCols[this.mInPorts[i].getSourcePortIndex()] = this.mInPorts[i].mstrName;
+                    for (ETLInPort element : this.mInPorts) {
+                        if (element.isConstant() == false)
+                            inCols[element.getSourcePortIndex()] = element.mstrName;
                     }
-                    for (int i = 0; i < inCols.length; i++) {
-                        if (inCols[i] != null)
-                            mDumpWriter.write(inCols[i] + "|");
+                    for (Object element : inCols) {
+                        if (element != null)
+                            this.mDumpWriter.write(element + "|");
                     }
-                    mDumpWriter.write("\n");
+                    this.mDumpWriter.write("\n");
                 }
                 if (this.mOutPorts != null) {
-                    mDumpWriter.write("Output record format(Constants excluded)\n");
+                    this.mDumpWriter.write("Output record format(Constants excluded)\n");
                     Object outCols[] = new Object[1024];
 
                     for (int i = 0; i < this.mOutPorts.length; i++) {
@@ -170,20 +241,20 @@ public abstract class ETLStep extends ETLWorker {
                             }
                         }
                     }
-                    for (int i = 0; i < outCols.length; i++) {
-                        if (outCols[i] != null)
-                            mDumpWriter.write(outCols[i] + "|");
+                    for (Object element : outCols) {
+                        if (element != null)
+                            this.mDumpWriter.write(element + "|");
                     }
-                    mDumpWriter.write("\n");
+                    this.mDumpWriter.write("\n");
                 }
 
             }
-            mDumpWriter.write("Row: " + pRowNum + "|");
-            for (int i = 0; i < pRec.length; i++) {
-                mDumpWriter.write(pRec[i] == null ? "[NULL]|" : pRec[i].toString().replace("|", "\\|") + "|");
+            this.mDumpWriter.write("Row: " + pRowNum + "|");
+            for (Object element : pRec) {
+                this.mDumpWriter.write(element == null ? "[NULL]|" : element.toString().replace("|", "\\|") + "|");
             }
 
-            mDumpWriter.write("|" + e2.toString() == null ? "[NULL]" : e2.toString().replace("|", "\\|").replace("\n",
+            this.mDumpWriter.write("|" + e2.toString() == null ? "[NULL]" : e2.toString().replace("|", "\\|").replace("\n",
                     " ")
                     + "\n");
 
@@ -195,6 +266,9 @@ public abstract class ETLStep extends ETLWorker {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#closeStep(boolean)
+     */
     @Override
     public void closeStep(boolean success) {
         super.closeStep(success);
@@ -213,17 +287,38 @@ public abstract class ETLStep extends ETLWorker {
     }
 
     /**
-     * @return
+     * Gets the job executor.
+     * 
+     * @return the job executor
      */
     public KETLJobExecutor getJobExecutor() {
         return this.getThreadManager().getJobExecutor();
     }
 
+    /**
+     * Gets the method map from system XML.
+     * 
+     * @param pMethod the method
+     * @param pClass the class
+     * @param pRequiredDatatype the required datatype
+     * @param errorMessage the error message
+     * 
+     * @return the method map from system XML
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected String getMethodMapFromSystemXML(String pMethod, Class pClass, Class pRequiredDatatype,
             String errorMessage) throws KETLThreadException {
         throw new KETLThreadException(errorMessage, this);
     }
 
+    /**
+     * Gets the paramater lists.
+     * 
+     * @param strParameterListName the str parameter list name
+     * 
+     * @return the paramater lists
+     */
     protected int getParamaterLists(String strParameterListName) {
         ArrayList tmp = this.getJobExecutor().getCurrentETLJob().getParameterLists(strParameterListName);
         ArrayList res = new ArrayList();
@@ -242,6 +337,14 @@ public abstract class ETLStep extends ETLWorker {
 
     }
 
+    /**
+     * Gets the parameter value.
+     * 
+     * @param iParamList the i param list
+     * @param strParamName the str param name
+     * 
+     * @return the parameter value
+     */
     public String getParameterValue(int iParamList, String strParamName) {
         if (this.maParameters != null) {
             ParameterList paramList = (ParameterList) this.maParameters.get(iParamList);
@@ -261,11 +364,23 @@ public abstract class ETLStep extends ETLWorker {
         return null;
     }
 
+    /**
+     * Gets the QA class.
+     * 
+     * @param strQAType the str QA type
+     * 
+     * @return the QA class
+     */
     public String getQAClass(String strQAType) {
         // TODO Auto-generated method stub
         return null;
     }
 
+    /**
+     * Gets the required tags.
+     * 
+     * @return the required tags
+     */
     protected String[] getRequiredTags() {
 
         Node n = XMLHelper.findElementByName(EngineConstants.getSystemXML(), "STEP", "CLASS", this.getClass()
@@ -282,8 +397,8 @@ public abstract class ETLStep extends ETLWorker {
             Node[] params = XMLHelper.getElementsByName(nl.item(i), "PARAMETER", "REQUIRED", "TRUE");
 
             if (params != null)
-                for (int x = 0; x < params.length; x++)
-                    res.add(((Element) params[x]).getAttribute("NAME"));
+                for (Node element : params)
+                    res.add(((Element) element).getAttribute("NAME"));
         }
 
         Class cl = this.getClass().getSuperclass();
@@ -298,6 +413,14 @@ public abstract class ETLStep extends ETLWorker {
         return result;
     }
 
+    /**
+     * Gets the required tags.
+     * 
+     * @param parentList the parent list
+     * @param requestedClass the requested class
+     * 
+     * @return the required tags
+     */
     private void getRequiredTags(HashSet parentList, Class requestedClass) {
 
         Node n = XMLHelper.findElementByName(EngineConstants.getSystemXML(), "STEP", "CLASS", requestedClass
@@ -312,9 +435,9 @@ public abstract class ETLStep extends ETLWorker {
             Node[] params = XMLHelper.getElementsByName(nl.item(i), "PARAMETER", "REQUIRED", "TRUE");
 
             if (params != null)
-                for (int x = 0; x < params.length; x++) {
+                for (Node element : params) {
                     if (parentList.contains(params) == false)
-                        parentList.add(((Element) params[x]).getAttribute("NAME"));
+                        parentList.add(((Element) element).getAttribute("NAME"));
                 }
         }
 
@@ -325,26 +448,54 @@ public abstract class ETLStep extends ETLWorker {
 
     }
 
+    /**
+     * Gets the required tags message.
+     * 
+     * @return the required tags message
+     */
     protected String getRequiredTagsMessage() {
-        if (getRequiredTags() == null) {
+        if (this.getRequiredTags() == null) {
             return "Step is missing getRequiredTags(), coding error, please report bug";
         }
 
         String msg = "";
 
-        for (int i = 0; i < getRequiredTags().length; i++) {
-            String str = getRequiredTags()[i];
+        for (int i = 0; i < this.getRequiredTags().length; i++) {
+            String str = this.getRequiredTags()[i];
             msg = msg + "\t" + str + "\n";
         }
 
         return msg;
     }
 
+    /**
+     * Gets the step template.
+     * 
+     * @param pGroup the group
+     * @param pName the name
+     * @param pDefaultAllowed the default allowed
+     * 
+     * @return the step template
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected final String getStepTemplate(String pGroup, String pName, boolean pDefaultAllowed)
             throws KETLThreadException {
         return this.getStepTemplate(this.getClass(), pGroup, pName, pDefaultAllowed);
     }
 
+    /**
+     * Gets the step template.
+     * 
+     * @param parentClass the parent class
+     * @param pGroup the group
+     * @param pName the name
+     * @param pDefaultAllowed the default allowed
+     * 
+     * @return the step template
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected final String getStepTemplate(Class parentClass, String pGroup, String pName, boolean pDefaultAllowed)
             throws KETLThreadException {
         Element template = this.getStepTemplates(parentClass);
@@ -404,6 +555,15 @@ public abstract class ETLStep extends ETLWorker {
         }
     }
 
+    /**
+     * Gets the step templates.
+     * 
+     * @param pClass the class
+     * 
+     * @return the step templates
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected final Element getStepTemplates(Class pClass) throws KETLThreadException {
         Document doc = EngineConstants.getSystemXML();
 
@@ -424,15 +584,22 @@ public abstract class ETLStep extends ETLWorker {
         return node;
     }
 
+    /**
+     * Checks for complete parameter set.
+     * 
+     * @param aParametersAndValues the a parameters and values
+     * 
+     * @return true, if successful
+     */
     private boolean hasCompleteParameterSet(com.kni.etl.ParameterList aParametersAndValues) {
-        if (getRequiredTags() == null) {
+        if (this.getRequiredTags() == null) {
             return true;
         }
 
-        for (int i = 0; i < getRequiredTags().length; i++) {
+        for (int i = 0; i < this.getRequiredTags().length; i++) {
             boolean found = false;
 
-            if (aParametersAndValues.getParameter(getRequiredTags()[i]) != null) {
+            if (aParametersAndValues.getParameter(this.getRequiredTags()[i]) != null) {
                 found = true;
             }
 
@@ -444,15 +611,27 @@ public abstract class ETLStep extends ETLWorker {
         return true;
     }
 
+    /** The DEFAUL t_ BATCHSIZE. */
     protected static int DEFAULT_BATCHSIZE = 1000;
+    
+    /** The m show exceptions. */
     protected boolean mbLogBadRecords = false, mShowExceptions = false;
+    
+    /** The DEFAUL t_ ERRORLIMIT. */
     protected static int DEFAULT_ERRORLIMIT = 0;
+    
+    /** The mi error limit. */
     private int miErrorLimit = 0;
 
+    /** The mqac QA collection. */
     private QACollection mqacQACollection;
 
+    /** The mv triggers. */
     private List mvTriggers = new ArrayList();
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#complete()
+     */
     @Override
     public int complete() throws KETLThreadException {
         this.mbLastThreadToComplete = this._isLastThreadToComplete();
@@ -463,11 +642,22 @@ public abstract class ETLStep extends ETLWorker {
         return super.complete();
     }
 
+    /**
+     * Record check.
+     * 
+     * @param di the di
+     * @param e the e
+     * 
+     * @throws KETLQAException the KETLQA exception
+     */
     final protected void recordCheck(Object[] di, Exception e) throws KETLQAException {
         this.mqacQACollection.recordCheck(di, e);
         this.mqacQACollection.itemChecks(di, e);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#initialize(org.w3c.dom.Node)
+     */
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
 
@@ -478,8 +668,8 @@ public abstract class ETLStep extends ETLWorker {
             for (int i = 0; i < nl.getLength(); i++) {
                 Node node = nl.item(i);
 
-                if (node.getNodeName().compareTo(TRIGGER_TAG) == 0) {
-                    if (addTrigger(node) == null) {
+                if (node.getNodeName().compareTo(ETLStep.TRIGGER_TAG) == 0) {
+                    if (this.addTrigger(node) == null) {
                         return -4;
                     }
                 }
@@ -494,20 +684,20 @@ public abstract class ETLStep extends ETLWorker {
 
         this.mbFirstThreadToStart = this._isFirstThreadToStart();
         // initialize any qa for this step
-        this.mqacQACollection = getQACollection(xmlConfig);
+        this.mqacQACollection = this.getQACollection(xmlConfig);
 
         this.getStepTemplates(this.getClass());
 
-        batchSize = XMLHelper.getAttributeAsInt(xmlConfig.getParentNode().getParentNode().getAttributes(),
-                BATCHSIZE_ATTRIB, DEFAULT_BATCHSIZE);
+        this.batchSize = XMLHelper.getAttributeAsInt(xmlConfig.getParentNode().getParentNode().getAttributes(),
+                ETLStep.BATCHSIZE_ATTRIB, ETLStep.DEFAULT_BATCHSIZE);
 
-        mbLogBadRecords = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), LOG_BAD_RECORDS,
+        this.mbLogBadRecords = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), ETLStep.LOG_BAD_RECORDS,
                 this.mbLogBadRecords);
 
-        mShowExceptions = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), SHOWEXCEPTIONS, mShowExceptions);
+        this.mShowExceptions = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), ETLStep.SHOWEXCEPTIONS, this.mShowExceptions);
 
         // Pull the error limit...
-        miErrorLimit = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), ERRORLIMIT_ATTRIB, DEFAULT_ERRORLIMIT);
+        this.miErrorLimit = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), ETLStep.ERRORLIMIT_ATTRIB, ETLStep.DEFAULT_ERRORLIMIT);
 
         /*
          * String strParameterListName = null; // Find the name of the parameter list to be used... if
@@ -527,6 +717,15 @@ public abstract class ETLStep extends ETLWorker {
         return 0;
     }
 
+    /**
+     * Adds the trigger.
+     * 
+     * @param xmlNode the xml node
+     * 
+     * @return the ETL trigger
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected ETLTrigger addTrigger(Node xmlNode) throws KETLThreadException {
         ETLTrigger tTrigger = new ETLTrigger(this);
 
@@ -538,15 +737,31 @@ public abstract class ETLStep extends ETLWorker {
             return null;
         }
 
-        mvTriggers.add(tTrigger);
+        this.mvTriggers.add(tTrigger);
 
         return tTrigger;
     }
 
+    /**
+     * Gets the QA collection.
+     * 
+     * @param xmlConfig the xml config
+     * 
+     * @return the QA collection
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     private QACollection getQACollection(Node xmlConfig) throws KETLThreadException {
         return this.getJobExecutor().getQACollection(this.getName(), this, xmlConfig);
     }
 
+    /**
+     * Gets the QA collection.
+     * 
+     * @return the QA collection
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected QACollection getQACollection() throws KETLThreadException {
 
         if (this.mqacQACollection == null)
@@ -554,6 +769,12 @@ public abstract class ETLStep extends ETLWorker {
         return this.mqacQACollection;
     }
 
+    /**
+     * Record to log.
+     * 
+     * @param entry the entry
+     * @param info the info
+     */
     public void recordToLog(Object entry, boolean info) {
 
         if (this.getJobExecutor() == null || this.getJobExecutor().ejCurrentJob == null)
@@ -574,38 +795,73 @@ public abstract class ETLStep extends ETLWorker {
         }
     }
 
+    /**
+     * Gets the log.
+     * 
+     * @return the log
+     */
     public ArrayList getLog() {
         return (ArrayList) this.getJobExecutor().ejCurrentJob.getLog(this.getName());
     }
 
     /**
-     * @param executor
+     * Sets the job executor.
+     * 
+     * @param executor the executor
      */
     public void setJobExecutor(KETLJobExecutor executor) {
-        mkjExecutor = executor;
+        this.mkjExecutor = executor;
         this.mJob = this.mkjExecutor.ejCurrentJob;
     }
 
+    /**
+     * Show exception.
+     * 
+     * @return true, if successful
+     */
     public boolean showException() {
-        return mShowExceptions;
+        return this.mShowExceptions;
     }
 
+    /** The m error counter. */
     SharedCounter mErrorCounter = null;
 
+    /**
+     * Gets the error count.
+     * 
+     * @return the error count
+     */
     public int getErrorCount() {
         return this.mErrorCounter.value();
     }
 
+    /**
+     * Gets the last exception.
+     * 
+     * @return the last exception
+     */
     public Exception getLastException() {
         return this.mLastError;
     }
 
+    /** The m last error. */
     private Exception mLastError = null;
 
+    /** The mb first thread to start. */
     private boolean mbFirstThreadToStart = false;
 
+    /** The mb last thread to complete. */
     private boolean mbLastThreadToComplete = false;
 
+    /**
+     * Increment error count.
+     * 
+     * @param e the e
+     * @param i the i
+     * @param recordCounter the record counter
+     * 
+     * @throws Exception the exception
+     */
     protected void incrementErrorCount(Exception e, int i, int recordCounter) throws Exception {
 
         this.mLastError = e;
@@ -618,6 +874,14 @@ public abstract class ETLStep extends ETLWorker {
 
     }
 
+    /**
+     * Increment error count.
+     * 
+     * @param event the event
+     * @param i the i
+     * 
+     * @throws KETLQAException the KETLQA exception
+     */
     protected void incrementErrorCount(ETLEvent event, int i) throws KETLQAException {
 
         if (this.mErrorCounter.increment(i) > this.miErrorLimit) {
@@ -627,6 +891,9 @@ public abstract class ETLStep extends ETLWorker {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#success()
+     */
     @Override
     public boolean success() {
 
@@ -643,36 +910,62 @@ public abstract class ETLStep extends ETLWorker {
         return true;
     }
 
+    /** The mb case check performed already. */
     private boolean mbCaseCheckPerformedAlready = false;
 
+    /**
+     * Matches event handler.
+     * 
+     * @param strHandler the str handler
+     * @param strRequiredHandler the str required handler
+     * 
+     * @return true, if successful
+     */
     protected boolean matchesEventHandler(String strHandler, String strRequiredHandler) {
         if (strHandler.equals(strRequiredHandler)) {
             return true;
         }
 
-        if ((mbCaseCheckPerformedAlready == false) && strHandler.equalsIgnoreCase(strRequiredHandler)) {
+        if ((this.mbCaseCheckPerformedAlready == false) && strHandler.equalsIgnoreCase(strRequiredHandler)) {
             ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Event handler is \"" + strHandler
                     + "\" and event generated is \"" + strRequiredHandler + "\" possible case error in XML");
-            mbCaseCheckPerformedAlready = true;
+            this.mbCaseCheckPerformedAlready = true;
         }
 
         return false;
     }
 
+    /**
+     * Handle event.
+     * 
+     * @param strHandler the str handler
+     * @param event the event
+     * 
+     * @return the int
+     * 
+     * @throws KETLQAException the KETLQA exception
+     */
     public int handleEvent(String strHandler, ETLEvent event) throws KETLQAException {
-        if (matchesEventHandler(strHandler, LOG_MESSAGE_HANDLER)) {
-            return handleLogMessage(event);
+        if (this.matchesEventHandler(strHandler, ETLStep.LOG_MESSAGE_HANDLER)) {
+            return this.handleLogMessage(event);
         }
-        else if (matchesEventHandler(strHandler, FATAL_ERROR_HANDLER)) {
-            return handleFatalError(event);
+        else if (this.matchesEventHandler(strHandler, ETLStep.FATAL_ERROR_HANDLER)) {
+            return this.handleFatalError(event);
         }
-        else if (matchesEventHandler(strHandler, LOG_ERROR_HANDLER)) {
-            return handleErrorMessage(event);
+        else if (this.matchesEventHandler(strHandler, ETLStep.LOG_ERROR_HANDLER)) {
+            return this.handleErrorMessage(event);
         }
 
         return 0;
     }
 
+    /**
+     * Handle log message.
+     * 
+     * @param event the event
+     * 
+     * @return the int
+     */
     public int handleLogMessage(ETLEvent event) {
         // to DB
         ResourcePool.LogMessage(event.getETLStep(), event.getReturnCode(), ResourcePool.INFO_MESSAGE,
@@ -685,18 +978,41 @@ public abstract class ETLStep extends ETLWorker {
         return 1;
     }
 
+    /**
+     * Handle error message.
+     * 
+     * @param event the event
+     * 
+     * @return the int
+     * 
+     * @throws KETLQAException the KETLQA exception
+     */
     public int handleErrorMessage(ETLEvent event) throws KETLQAException {
         this.incrementErrorCount(event, 1);
 
         return 1;
     }
 
+    /**
+     * Handle fatal error.
+     * 
+     * @param event the event
+     * 
+     * @return the int
+     * 
+     * @throws KETLQAException the KETLQA exception
+     */
     public int handleFatalError(ETLEvent event) throws KETLQAException {
         ResourcePool.LogMessage(event.getETLStep(), event.getReturnCode(), ResourcePool.FATAL_MESSAGE,
                 event.mstrMessage, event.getExtendedMessage(), true);
         throw new KETLQAException("Step halted, QA failed, see below for details: " + event.mstrMessage, event, this);
     }
 
+    /**
+     * _is first thread to start.
+     * 
+     * @return true, if successful
+     */
     private boolean _isFirstThreadToStart() {
         ETLJob kj = this.mkjExecutor.getCurrentETLJob();
         SharedCounter cnt = kj.getCounter("STARTUP" + this.getName());
@@ -707,6 +1023,11 @@ public abstract class ETLStep extends ETLWorker {
         return false;
     }
 
+    /**
+     * _is last thread to complete.
+     * 
+     * @return true, if successful
+     */
     private boolean _isLastThreadToComplete() {
 
         ETLJob kj = this.mkjExecutor.getCurrentETLJob();
@@ -718,14 +1039,29 @@ public abstract class ETLStep extends ETLWorker {
         return false;
     }
 
+    /**
+     * Checks if is first thread to enter initialize phase.
+     * 
+     * @return true, if is first thread to enter initialize phase
+     */
     public boolean isFirstThreadToEnterInitializePhase() {
-        return mbFirstThreadToStart;
+        return this.mbFirstThreadToStart;
     }
 
+    /**
+     * Checks if is last thread to enter complete phase.
+     * 
+     * @return true, if is last thread to enter complete phase
+     */
     public boolean isLastThreadToEnterCompletePhase() {
-        return mbLastThreadToComplete;
+        return this.mbLastThreadToComplete;
     }
 
+    /**
+     * Log exception.
+     * 
+     * @param exception the exception
+     */
     public void logException(KETLThreadException exception) {
         this.mLastError = exception;
 
@@ -737,10 +1073,24 @@ public abstract class ETLStep extends ETLWorker {
         this.mErrorCounter.increment(1);
     }
 
+    /**
+     * Gets the triggers.
+     * 
+     * @return the triggers
+     */
     public List getTriggers() {
         return this.mvTriggers;
     }
 
+    /**
+     * Gets the target step.
+     * 
+     * @param mstrTargetStep the mstr target step
+     * 
+     * @return the target step
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public ETLStep getTargetStep(String mstrTargetStep) throws KETLThreadException {
         return (ETLStep) this.getThreadManager().getStep(this, mstrTargetStep);
 

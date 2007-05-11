@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import java.util.ArrayList;
@@ -14,11 +32,23 @@ import org.w3c.dom.Node;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ParameterList.
+ */
 public class ParameterList {
 
+    /** The hm parameter list. */
     protected HashMap hmParameterList = null;
+    
+    /** The m path. */
     private String mPath = "";
 
+    /**
+     * Instantiates a new parameter list.
+     * 
+     * @param strPath the str path
+     */
     public ParameterList(String strPath) {
         super();
         this.mPath = strPath;
@@ -49,8 +79,9 @@ public class ParameterList {
     /**
      * Insert the method's description here. Creation date: (5/8/2002 4:31:46 PM)
      * 
+     * @param oName the o name
+     * 
      * @return java.lang.Object
-     * @param oKey java.lang.Object
      */
     public Object getParameter(Object oName) {
         if (this.hmParameterList == null) {
@@ -74,16 +105,38 @@ public class ParameterList {
         this.hmParameterList.put(oName, oValue);
     }
 
+    /**
+     * Recurse parameter list.
+     * 
+     * @param xmlSourceNode the xml source node
+     * @param strParameterListName the str parameter list name
+     * 
+     * @return the array list
+     */
     static public ArrayList recurseParameterList(Node xmlSourceNode, String strParameterListName) {
         return ParameterList.recurseParameterList(xmlSourceNode, strParameterListName, new HashMap(), new HashSet(),
                 new ArrayList(), null);
     }
 
+    /**
+     * Recurse parameter list.
+     * 
+     * @param strParameterListName the str parameter list name
+     * 
+     * @return the array list
+     */
     static public ArrayList recurseParameterList(String strParameterListName) {
         return ParameterList.recurseParameterList(strParameterListName, new HashMap(), new HashSet(), new ArrayList(),
                 null);
     }
 
+    /**
+     * Copy parameter values list.
+     * 
+     * @param newParameterValuesList the new parameter values list
+     * 
+     * @return the hash map
+     */
     static private HashMap copyParameterValuesList(HashMap newParameterValuesList) {
         // duplicate hashmap but don't use same underlying parameter objects
         HashMap newMap = new HashMap();
@@ -98,6 +151,18 @@ public class ParameterList {
         return newMap;
     }
 
+    /**
+     * Recurse parameter list.
+     * 
+     * @param xmlSourceNode the xml source node
+     * @param strParameterListName the str parameter list name
+     * @param aParameterValuesList the a parameter values list
+     * @param aParentParameterLists the a parent parameter lists
+     * @param aParameterStore the a parameter store
+     * @param strPath the str path
+     * 
+     * @return the array list
+     */
     static private ArrayList recurseParameterList(Node xmlSourceNode, String strParameterListName,
             HashMap aParameterValuesList, HashSet aParentParameterLists, ArrayList aParameterStore, String strPath) {
 
@@ -165,10 +230,24 @@ public class ParameterList {
         return aParameterStore;
     }
 
+    /**
+     * Path.
+     * 
+     * @return the string
+     */
     public String path() {
         return this.mPath;
     }
 
+    /**
+     * Store parameter set.
+     * 
+     * @param aParametersAndValues the a parameters and values
+     * @param aParameterStore the a parameter store
+     * @param strPath the str path
+     * 
+     * @return the int
+     */
     static final protected int storeParameterSet(HashMap aParametersAndValues, ArrayList aParameterStore, String strPath) {
         ParameterList parametersToStore = new ParameterList(strPath);
 
@@ -189,6 +268,17 @@ public class ParameterList {
         return 1;
     }
 
+    /**
+     * Recurse parameter list.
+     * 
+     * @param strParameterListName the str parameter list name
+     * @param aParameterValuesList the a parameter values list
+     * @param aParentParameterLists the a parent parameter lists
+     * @param aParameterStore the a parameter store
+     * @param strPath the str path
+     * 
+     * @return the array list
+     */
     static private ArrayList recurseParameterList(String strParameterListName, HashMap aParameterValuesList,
             HashSet aParentParameterLists, ArrayList aParameterStore, String strPath) {
 

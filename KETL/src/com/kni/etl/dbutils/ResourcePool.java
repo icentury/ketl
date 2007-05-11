@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.dbutils;
 
 import java.io.File;
@@ -30,25 +48,49 @@ import com.kni.etl.ketl.RegisteredLookup;
 import com.kni.etl.ketl.smp.ETLCore;
 import com.kni.etl.ketl.writer.ForcedException;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class ResourcePool.
+ * 
  * @author Owner Resource pool, this currently is only a passthrough but will eventually allow for resource pooling
  */
 public class ResourcePool {
 
+    /** The CONNECTIONS. */
     private static int CONNECTIONS = 0;
+    
+    /** The LOOKU p_ CACHES. */
     private static int LOOKUP_CACHES = 1;
+    
+    /** The MA x_ RESOURC e_ TYPES. */
     private static int MAX_RESOURCE_TYPES = 2;
+    
+    /** The m resources. */
     private static Object[] mResources = new Object[ResourcePool.MAX_RESOURCE_TYPES];
+    
+    /** The Constant INUSE_ELEMENT. */
     private final static int INUSE_ELEMENT = 0;
+    
+    /** The Constant CONNECTION_ELEMENT. */
     private final static int CONNECTION_ELEMENT = 1;
+    
+    /** The Constant ALLOW_REUSE. */
     private final static int ALLOW_REUSE = 2;
+    
+    /** The Constant MAX_CONNECTION_USE. */
     private final static int MAX_CONNECTION_USE = 1;
+    
+    /** The Constant MAX_CONNECTION_ARRAY_ELEMENTS. */
     private final static int MAX_CONNECTION_ARRAY_ELEMENTS = 3;
+    
+    /** The metadata. */
     private static Metadata metadata = null;
+    
+    /** The logger. */
     private static Logger logger = null;
 
     /**
-     *
+     * Instantiates a new resource pool.
      */
     public ResourcePool() {
         super();
@@ -57,34 +99,75 @@ public class ResourcePool {
     /*
      * Handle to catch messages rather than using system.out eventually these will log to the metadata
      */
+    /**
+     * Log message.
+     * 
+     * @param strMessage the str message
+     */
     public static synchronized void LogMessage(String strMessage) {
         ResourcePool.LogMessage(Thread.currentThread().getName(), strMessage);
     }
 
+    /** The Constant DEFAULT_ERROR_CODE. */
     private final static int DEFAULT_ERROR_CODE = -1;
+    
+    /** The Constant UNKNOWN_MESSAGE_LEVEL. */
     private final static int UNKNOWN_MESSAGE_LEVEL = -1;
+    
+    /** The Constant FATAL_MESSAGE. */
     public final static int FATAL_MESSAGE = 1;
+    
+    /** The Constant DEBUG_MESSAGE. */
     public final static int DEBUG_MESSAGE = 4;
+    
+    /** The Constant INFO_MESSAGE. */
     public final static int INFO_MESSAGE = 0;
+    
+    /** The Constant ERROR_MESSAGE. */
     public final static int ERROR_MESSAGE = 2;
+    
+    /** The Constant WARNING_MESSAGE. */
     public final static int WARNING_MESSAGE = 3;
     
     /*
      * Handle to catch messages rather than using system.out eventually these will log to the metadata
      */
+    /**
+     * Log message.
+     * 
+     * @param oSource the o source
+     * @param strMessage the str message
+     */
     public static synchronized void LogMessage(Object oSource, String strMessage) {
-        ResourcePool.LogMessage(oSource, DEFAULT_ERROR_CODE, UNKNOWN_MESSAGE_LEVEL, strMessage, null, false);
+        ResourcePool.LogMessage(oSource, ResourcePool.DEFAULT_ERROR_CODE, ResourcePool.UNKNOWN_MESSAGE_LEVEL, strMessage, null, false);
     }
 
     /*
      * Handle to catch messages rather than using system.out eventually these will log to the metadata
      */
+    /**
+     * Log message.
+     * 
+     * @param oSource the o source
+     * @param iLevel the i level
+     * @param strMessage the str message
+     */
     public static synchronized void LogMessage(Object oSource, int iLevel, String strMessage) {
-        ResourcePool.LogMessage(oSource, DEFAULT_ERROR_CODE, iLevel, strMessage, null, false);
+        ResourcePool.LogMessage(oSource, ResourcePool.DEFAULT_ERROR_CODE, iLevel, strMessage, null, false);
     }
 
     /*
      * Handle to catch messages rather than using system.out eventually these will log to the metadata and
+     */
+    /**
+     * Log message.
+     * 
+     * @param oSource the o source
+     * @param iErrorCode the i error code
+     * @param iLevel the i level
+     * @param strMessage the str message
+     * @param strExtendedDetails the str extended details
+     * @param bToDB the b to DB
      */
     public static synchronized void LogMessage(Object oSource, int iErrorCode, int iLevel, String strMessage,
             String strExtendedDetails, boolean bToDB) {
@@ -133,10 +216,10 @@ public class ResourcePool {
             else
                 sourceDesc.append(oSource.toString());
 
-            String lvl = getAlertLevelName(iLevel);
+            String lvl = ResourcePool.getAlertLevelName(iLevel);
 
-            if ((logger == null) || (System.getProperty("log4j.configuration") == null)) {
-                logger = null;
+            if ((ResourcePool.logger == null) || (System.getProperty("log4j.configuration") == null)) {
+                ResourcePool.logger = null;
 
                 System.out.println("[" + lvl + "]" + new java.util.Date().toString() + " - [" + sourceDesc.toString()
                         + "] " + strMessage);
@@ -148,27 +231,27 @@ public class ResourcePool {
 
                 switch (iLevel) {
                 case DEBUG_MESSAGE:
-                    logger.debug("[" + sourceDesc.toString() + "] " + strMessage);
+                    ResourcePool.logger.debug("[" + sourceDesc.toString() + "] " + strMessage);
 
                     break;
                 case FATAL_MESSAGE:
-                    logger.fatal("[" + sourceDesc.toString() + "] " + strMessage);
+                    ResourcePool.logger.fatal("[" + sourceDesc.toString() + "] " + strMessage);
 
                     break;
 
                 case ERROR_MESSAGE:
-                    logger.error("[" + sourceDesc.toString() + "] " + strMessage);
+                    ResourcePool.logger.error("[" + sourceDesc.toString() + "] " + strMessage);
 
                     break;
 
                 case WARNING_MESSAGE:
-                    logger.warn("[" + sourceDesc.toString() + "] " + strMessage);
+                    ResourcePool.logger.warn("[" + sourceDesc.toString() + "] " + strMessage);
 
                     break;
 
                 case INFO_MESSAGE:
                 case UNKNOWN_MESSAGE_LEVEL:
-                    logger.info("[" + sourceDesc.toString() + "] " + strMessage);
+                    ResourcePool.logger.info("[" + sourceDesc.toString() + "] " + strMessage);
                 }
             }
 
@@ -176,9 +259,9 @@ public class ResourcePool {
             if (eStep != null || eJob != null || oSource != null) {
                 if (eStep != null) {
                     eStep.recordToLog("[" + lvl + "]" + " - [" + sourceDesc.toString() + "] " + strMessage,
-                            iLevel == INFO_MESSAGE || iLevel == UNKNOWN_MESSAGE_LEVEL);
+                            iLevel == ResourcePool.INFO_MESSAGE || iLevel == ResourcePool.UNKNOWN_MESSAGE_LEVEL);
                 }
-                else if (eJob != null && !(iLevel == INFO_MESSAGE || iLevel == UNKNOWN_MESSAGE_LEVEL)) {
+                else if (eJob != null && !(iLevel == ResourcePool.INFO_MESSAGE || iLevel == ResourcePool.UNKNOWN_MESSAGE_LEVEL)) {
                     eJob.logJobMessage("[" + lvl + "]" + new java.util.Date().toString() + " - ["
                             + sourceDesc.toString() + "] " + strMessage);
                 }
@@ -186,6 +269,13 @@ public class ResourcePool {
         }
     }
 
+    /**
+     * Gets the alert level name.
+     * 
+     * @param iLevel the i level
+     * 
+     * @return the alert level name
+     */
     public static String getAlertLevelName(int iLevel) {
         String lvl;
         switch (iLevel) {
@@ -219,6 +309,12 @@ public class ResourcePool {
 
     /*
      * Handle to catch exceptions rather than using printstacktrace eventually these will log to the metadata
+     */
+    /**
+     * Log exception.
+     * 
+     * @param pException the exception
+     * @param pSource the source
      */
     public static synchronized void LogException(Throwable pException, Object pSource) {
         // temp measure
@@ -258,6 +354,21 @@ public class ResourcePool {
         }
     }
 
+    /**
+     * Gets the connection.
+     * 
+     * @param strDriverClass the str driver class
+     * @param strURL the str URL
+     * @param strUserName the str user name
+     * @param strPassword the str password
+     * @param strPrepSQL the str prep SQL
+     * @param bAllowPooling the b allow pooling
+     * 
+     * @return the connection
+     * 
+     * @throws SQLException the SQL exception
+     * @throws ClassNotFoundException the class not found exception
+     */
     public static synchronized Connection getConnection(String strDriverClass, String strURL, String strUserName,
             String strPassword, String strPrepSQL, boolean bAllowPooling) throws SQLException, ClassNotFoundException {
         // Get hashtable of lookup caches
@@ -303,6 +414,13 @@ public class ResourcePool {
         return connection.mConnection;
     }
 
+    /**
+     * Test connection.
+     * 
+     * @param cConnection the c connection
+     * 
+     * @return true, if successful
+     */
     public static synchronized boolean testConnection(Connection cConnection) {
         try {
             // Test the connection first to make sure it's still alive...
@@ -356,10 +474,20 @@ public class ResourcePool {
         return true;
     }
 
+    /**
+     * Gets the connection pool size.
+     * 
+     * @param pConnectionKey the connection key
+     * 
+     * @return the connection pool size
+     */
     public static int getConnectionPoolSize(String pConnectionKey) {
         return 100;
     }
 
+    /**
+     * Release timed out connections.
+     */
     public static synchronized void releaseTimedOutConnections() {
         // Get hashtable of lookup caches
         Hashtable aConnections = (Hashtable) ResourcePool.mResources[ResourcePool.CONNECTIONS];
@@ -386,6 +514,13 @@ public class ResourcePool {
         }
     }
 
+    /**
+     * Release connection.
+     * 
+     * @param pConnection the connection
+     * 
+     * @return true, if successful
+     */
     public static synchronized boolean releaseConnection(Connection pConnection) {
     	
 //    	 Get hashtable of lookup caches
@@ -424,7 +559,7 @@ public class ResourcePool {
             }
             else {
                 if (connection.mConnection.isClosed() == false && connection.mAllowReuse
-                        && (connection.mUsed < MAX_CONNECTION_USE)) {
+                        && (connection.mUsed < ResourcePool.MAX_CONNECTION_USE)) {
                     connection.setInUse(false);
                     connection.mUsed++;
                 }
@@ -443,6 +578,13 @@ public class ResourcePool {
         return true;
     }
 
+    /**
+     * Sets the metadata.
+     * 
+     * @param pMetadata the metadata
+     * 
+     * @return true, if successful
+     */
     public static synchronized boolean setMetadata(Metadata pMetadata) {
         ResourcePool.metadata = pMetadata;
 
@@ -460,7 +602,7 @@ public class ResourcePool {
 
         try {
             Class.forName("org.apache.log4j.Logger");
-            logger = Logger.getLogger("KETL");
+            ResourcePool.logger = Logger.getLogger("KETL");
         } catch (Exception e) {
             ResourcePool.LogMessage("WARNING log4j not found defaulting to alternative logging mechanism");
         }
@@ -468,36 +610,53 @@ public class ResourcePool {
         return true;
     }
 
+    /**
+     * Gets the metadata.
+     * 
+     * @return the metadata
+     */
     public static synchronized Metadata getMetadata() {
         return ResourcePool.metadata;
     }
 
     
+    /** The m lookups. */
     private static HashMap mLookups;
 
+    /**
+     * _get lookup.
+     * 
+     * @return the hash map
+     */
     public  static synchronized HashMap _getLookup() {
-    	if(mLookups == null)
-    		mLookups = loadLookups();
+    	if(ResourcePool.mLookups == null)
+    		ResourcePool.mLookups = ResourcePool.loadLookups();
     	
-    	return mLookups;
+    	return ResourcePool.mLookups;
     }
     
+    /** The m cache index prefix. */
     private static String mCacheIndexPrefix = null;
      
+    /**
+     * Load lookups.
+     * 
+     * @return the hash map
+     */
     private static synchronized HashMap loadLookups() {
 
         
         try {
             // setup a stream to a physical file on the filesystem
             
-            getCacheIndexPrefix();
+            ResourcePool.getCacheIndexPrefix();
             
-            File fl = new File(EngineConstants.CACHE_PATH + File.separator + "KETL."+mCacheIndexPrefix+".Lookup.index");
+            File fl = new File(EngineConstants.CACHE_PATH + File.separator + "KETL."+ResourcePool.mCacheIndexPrefix+".Lookup.index");
 
             if (fl.exists()) {
 
                 FileInputStream outStream = new FileInputStream(EngineConstants.CACHE_PATH + File.separator
-                        + "KETL."+mCacheIndexPrefix+".Lookup.index");
+                        + "KETL."+ResourcePool.mCacheIndexPrefix+".Lookup.index");
 
                 // attach a stream capable of writing objects to the stream that is
                 // connected to the file
@@ -534,37 +693,50 @@ public class ResourcePool {
         return new HashMap();
     }
 
+    /**
+     * Gets the cache index prefix.
+     * 
+     * @return the cache index prefix
+     */
     public static String getCacheIndexPrefix() {
-        if(mCacheIndexPrefix==null){
-            mCacheIndexPrefix = Thread.currentThread().getName().contains("Executor")?"Daemon":"Console";
-            System.err.println("Defaulting cache prefix to " + mCacheIndexPrefix);
+        if(ResourcePool.mCacheIndexPrefix==null){
+            ResourcePool.mCacheIndexPrefix = Thread.currentThread().getName().contains("Executor")?"Daemon":"Console";
+            System.err.println("Defaulting cache prefix to " + ResourcePool.mCacheIndexPrefix);
         }
         
-        return mCacheIndexPrefix;
+        return ResourcePool.mCacheIndexPrefix;
     } 
     
+    /**
+     * Sets the cache index prefix.
+     * 
+     * @param arg0 the new cache index prefix
+     */
     public static void setCacheIndexPrefix(String arg0) {
-            mCacheIndexPrefix = arg0;
+            ResourcePool.mCacheIndexPrefix = arg0;
     }
 
+    /**
+     * Sync lookups to disc.
+     */
     private static synchronized void syncLookupsToDisc() {
 
         try {
-            getCacheIndexPrefix();
+            ResourcePool.getCacheIndexPrefix();
             // setup a stream to a physical file on the filesystem
-            File fl = new File(EngineConstants.CACHE_PATH + File.separator + "KETL."+mCacheIndexPrefix+".Lookup.index");
+            File fl = new File(EngineConstants.CACHE_PATH + File.separator + "KETL."+ResourcePool.mCacheIndexPrefix+".Lookup.index");
 
             if (fl.exists())
                 fl.delete();
 
             FileOutputStream outStream = new FileOutputStream(EngineConstants.CACHE_PATH + File.separator
-                    + "KETL."+mCacheIndexPrefix+".Lookup.index");
+                    + "KETL."+ResourcePool.mCacheIndexPrefix+".Lookup.index");
 
             // attach a stream capable of writing objects to the stream that is
             // connected to the file
             ObjectOutputStream objStream = new ObjectOutputStream(outStream);
 
-            objStream.writeObject(_getLookup());
+            objStream.writeObject(ResourcePool._getLookup());
             objStream.flush();
             outStream.flush();
             objStream.close();
@@ -576,20 +748,37 @@ public class ResourcePool {
 
     }
 
+    /**
+     * Gets the lookup.
+     * 
+     * @param lookupName the lookup name
+     * 
+     * @return the lookup
+     */
     public static RegisteredLookup getLookup(String lookupName) {
-        return (RegisteredLookup) _getLookup().get(lookupName);
+        return (RegisteredLookup) ResourcePool._getLookup().get(lookupName);
     }
 
+    /**
+     * Register lookup.
+     * 
+     * @param res the res
+     */
     public static synchronized void registerLookup(RegisteredLookup res) {
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Registering persistent lookup "
                 + res.getName());
-        _getLookup().put(res.getName(), res);
+        ResourcePool._getLookup().put(res.getName(), res);
 
-        syncLookupsToDisc();
+        ResourcePool.syncLookupsToDisc();
     }
 
+    /**
+     * Release load lookups.
+     * 
+     * @param loadId the load id
+     */
     public static synchronized void releaseLoadLookups(int loadId) {
-        Collection tmp = _getLookup().values();
+        Collection tmp = ResourcePool._getLookup().values();
 
         ArrayList res = new ArrayList();
         for (Object o : tmp) {
@@ -603,13 +792,16 @@ public class ResourcePool {
         }
 
         for (Object o : res)
-        	_getLookup().remove(o);
+        	ResourcePool._getLookup().remove(o);
         
-        syncLookupsToDisc();
+        ResourcePool.syncLookupsToDisc();
     }
 
+    /**
+     * Release all lookups.
+     */
     public static synchronized void releaseAllLookups() {
-        Collection tmp = _getLookup().values();
+        Collection tmp = ResourcePool._getLookup().values();
 
         RegisteredLookup lkLast = null;
         // check cache for random lookups
@@ -620,7 +812,7 @@ public class ResourcePool {
             lk.flush();    		
         }
         
-        syncLookupsToDisc();
+        ResourcePool.syncLookupsToDisc();
         
         for (Object o : tmp) {
             RegisteredLookup lk = (RegisteredLookup) o;
@@ -635,23 +827,37 @@ public class ResourcePool {
         
     }
 
+    /**
+     * Release lookup.
+     * 
+     * @param lookupName the lookup name
+     * 
+     * @return true, if successful
+     */
     public static synchronized boolean releaseLookup(String lookupName) {
-        RegisteredLookup lk = (RegisteredLookup) _getLookup().get(lookupName);
+        RegisteredLookup lk = (RegisteredLookup) ResourcePool._getLookup().get(lookupName);
 
         if (lk == null)
             return false;
 
         lk.delete();
 
-        _getLookup().remove(lookupName);
+        ResourcePool._getLookup().remove(lookupName);
 
-        syncLookupsToDisc();
+        ResourcePool.syncLookupsToDisc();
         
         return true;
     }
 
+    /**
+     * Gets the lookups.
+     * 
+     * @param loadId the load id
+     * 
+     * @return the lookups
+     */
     public static ArrayList getLookups(int loadId) {
-        Collection tmp = _getLookup().values();
+        Collection tmp = ResourcePool._getLookup().values();
         ArrayList res = new ArrayList();
         for (Object o : tmp) {
             RegisteredLookup lk = (RegisteredLookup) o;

@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.sessionizer;
 
 /**
@@ -15,55 +33,135 @@ import java.util.Date;
 import com.kni.etl.EngineConstants;
 import com.kni.etl.ReadWriteLock;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class Session.
+ */
 public class Session implements Cloneable {
 
-    /**
-     *
-     */
+    /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 3977299923580500018L;
 
     // public attributes
+    /** The ID. */
     public long ID;
+    
+    /** The last hit stored. */
     public boolean lastHitStored = false;
+    
+    /** The expired. */
     public boolean expired = false;
+    
+    /** The First activity. */
     public java.util.Date FirstActivity;
+    
+    /** The Last activity. */
     public java.util.Date LastActivity;
+    
+    /** The Browser. */
     public String Browser;
+    
+    /** The IP address. */
     public String IPAddress;
+    
+    /** The Main session identifier. */
     public String MainSessionIdentifier;
+    
+    /** The Start persistant identifier. */
     public String StartPersistantIdentifier;
+    
+    /** The Persistant identifier. */
     public String PersistantIdentifier;
+    
+    /** The First click session identifier. */
     public String FirstClickSessionIdentifier;
+    
+    /** The custom field3. */
     public String customField3;
+    
+    /** The custom field2. */
     public String customField2;
+    
+    /** The custom field1. */
     public String customField1;
+    
+    /** The last hit. */
     public Object[] lastHit = null;
+    
+    /** The Cookie keep variables. */
     public java.lang.String[][] CookieKeepVariables;
+    
+    /** The Hit. */
     public long Hit = 0;
+    
+    /** The Page views. */
     public long PageViews = 0;
+    
+    /** The D m_ LOA d_ ID. */
     public int DM_LOAD_ID = -1;
+    
+    /** The LOA d_ ID. */
     public int LOAD_ID = -1;
+    
+    /** The Previously found on main session identifier. */
     public boolean PreviouslyFoundOnMainSessionIdentifier = false;
+    
+    /** The Repeat visitor. */
     public boolean RepeatVisitor = false;
+    
+    /** The Referrer. */
     public String Referrer = null;
 
     // private attributes
+    /** The Session matched by. */
     private int SessionMatchedBy = 0;
+    
+    /** The Best session matched by. */
     private int BestSessionMatchedBy = 0;
+    
+    /** The IP address and browser indexed. */
     private boolean IPAddressAndBrowserIndexed = false;
+    
+    /** The Main session identifier indexed. */
     private boolean MainSessionIdentifierIndexed = false;
+    
+    /** The First click session identifier indexed. */
     private boolean FirstClickSessionIdentifierIndexed = false;
+    
+    /** The Persistant identifier indexed. */
     private boolean PersistantIdentifierIndexed = false;
+    
+    /** The IP address and browser allow index. */
     private boolean IPAddressAndBrowserAllowIndex = true;
+    
+    /** The Main session identifier allow index. */
     private boolean MainSessionIdentifierAllowIndex = true;
+    
+    /** The First click session identifier allow index. */
     private boolean FirstClickSessionIdentifierAllowIndex = true;
+    
+    /** The Persistant identifier allow index. */
     private boolean PersistantIdentifierAllowIndex = true;
+    
+    /** The IP address and browser last match. */
     private java.util.Date IPAddressAndBrowserLastMatch = null;
+    
+    /** The Main session identifier last match. */
     private java.util.Date MainSessionIdentifierLastMatch = null;
+    
+    /** The First click session identifier last match. */
     private java.util.Date FirstClickSessionIdentifierLastMatch = null;
+    
+    /** The Persistant identifier last match. */
     private java.util.Date PersistantIdentifierLastMatch = null;
+    
+    /** The Index lock. */
     private ReadWriteLock IndexLock;
+    
+    /** The Constant SESSION. */
     public static final int SESSION = 1;
+    
+    /** The m last referrer URL page date. */
     java.util.Date mLastReferrerURLPageDate = null;
 
     /**
@@ -74,6 +172,12 @@ public class Session implements Cloneable {
         this.IndexLock = new ReadWriteLock();
     }
 
+    /**
+     * Sync referrer.
+     * 
+     * @param pReferrerURL the referrer URL
+     * @param pPageDate the page date
+     */
     public void syncReferrer(String pReferrerURL, Date pPageDate) {
         if ((this.mLastReferrerURLPageDate == null) || pPageDate.before(this.mLastReferrerURLPageDate)) {
             this.Referrer = pReferrerURL;
@@ -81,6 +185,14 @@ public class Session implements Cloneable {
         }
     }
 
+    /**
+     * Adds the session identifier.
+     * 
+     * @param pValue the value
+     * @param pDestinationObjectType the destination object type
+     * 
+     * @return true, if successful
+     */
     public boolean addSessionIdentifier(String pValue, int pDestinationObjectType) {
         // 9 = MAIN_SESSION_IDENTIFIER, 10 = FIRST_CLICK_IDENTIFIER, 11 = BROWSER, 12 = IP_ADDRESS
         switch (pDestinationObjectType) {
@@ -123,6 +235,9 @@ public class Session implements Cloneable {
      * 
      * @param pValue java.lang.String
      * @param pVariableName java.lang.String
+     * @param pDestinationObjectType the destination object type
+     * 
+     * @return true, if add session variable
      */
     public boolean addSessionVariable(String pValue, int pDestinationObjectType, String pVariableName) {
         // 9 = MAIN_SESSION_IDENTIFIER, 10 = FIRST_CLICK_IDENTIFIER, 11 = BROWSER, 12 = IP_ADDRESS
@@ -247,8 +362,11 @@ public class Session implements Cloneable {
     /**
      * Insert the method's description here. Creation date: (9/17/2002 6:12:11 PM)
      * 
-     * @return boolean
      * @param pAlgorithmToConsider int
+     * @param pDate the date
+     * @param pLastMatchTimeOut the last match time out
+     * 
+     * @return boolean
      */
     private boolean disallowMatchingByThisAlgorithm(java.util.Date pDate, int pLastMatchTimeOut,
             int pAlgorithmToConsider) {
@@ -340,8 +458,9 @@ public class Session implements Cloneable {
     /**
      * Insert the method's description here. Creation date: (4/16/2002 4:29:08 PM)
      * 
+     * @param pDestinationObjectType the destination object type
+     * 
      * @return int
-     * @param DestinationObjectType int
      */
     public int getMatchingAlgorithmCode(int pDestinationObjectType) {
         // 9 = MAIN_SESSION_IDENTIFIER, 10 = FIRST_CLICK_IDENTIFIER, 11 = BROWSER, 12 = IP_ADDRESS, 13 =
@@ -492,9 +611,10 @@ public class Session implements Cloneable {
     /**
      * Insert the method's description here. Creation date: (4/18/2002 8:18:31 PM)
      * 
-     * @return boolean
      * @param pDate java.util.Date
      * @param pTimeOut int
+     * 
+     * @return boolean
      */
     public boolean isStillValid(java.util.Date pDate, int pTimeOut) {
         if ((pDate.getTime() - this.LastActivity.getTime()) <= (pTimeOut * 1000)) {
@@ -507,9 +627,13 @@ public class Session implements Cloneable {
     /**
      * Insert the method's description here. Creation date: (4/18/2002 8:18:31 PM)
      * 
-     * @return boolean
      * @param pDate java.util.Date
      * @param pTimeOut int
+     * @param pLastMatchTimeOut the last match time out
+     * @param pAlgorithmToUse the algorithm to use
+     * @param pEnableFallback the enable fallback
+     * 
+     * @return boolean
      */
     public boolean isStillValid(java.util.Date pDate, int pTimeOut, int pLastMatchTimeOut, int pAlgorithmToUse,
             boolean pEnableFallback) {
@@ -709,6 +833,7 @@ public class Session implements Cloneable {
      * Insert the method's description here. Creation date: (9/17/2002 5:52:48 PM)
      * 
      * @param pAllowIndex boolean
+     * @param pForAlgorithm the for algorithm
      */
     private void toggleIndex(boolean pAllowIndex, int pForAlgorithm) {
         switch (pForAlgorithm) {

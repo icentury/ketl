@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.ketl.writer;
 
 import java.io.IOException;
@@ -21,15 +39,33 @@ import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class NetezzaELTWriter.
+ */
 public class NetezzaELTWriter extends BulkLoaderELTWriter {
 
+    /** The Constant HOSTNAME_ATTRIB. */
     private static final String HOSTNAME_ATTRIB = "HOSTNAME";
 
+    /**
+     * Instantiates a new netezza ELT writer.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public NetezzaELTWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.writer.JDBCELTWriter#prepareStatementWrapper(java.sql.Connection, java.lang.String, com.kni.etl.dbutils.JDBCItemHelper)
+     */
     @Override
     StatementWrapper prepareStatementWrapper(Connection Connection, String loadStatement, JDBCItemHelper jdbcHelper)
             throws SQLException {
@@ -38,12 +74,24 @@ public class NetezzaELTWriter extends BulkLoaderELTWriter {
                 this.madcdColumns, jdbcHelper, this.pipeData());
     }
 
+    /** The m OS command. */
     private String mOSCommand;
+    
+    /** The m target table. */
     private String mTargetTable;
+    
+    /** The m encoding. */
     private String mEncoding;
+    
+    /** The m hostname. */
     private String mHostname;
+    
+    /** The m DB name. */
     private String mDBName;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.writer.JDBCELTWriter#buildInBatchSQL(java.lang.String)
+     */
     @Override
     protected String buildInBatchSQL(String pTable) throws Exception {
 
@@ -76,6 +124,9 @@ public class NetezzaELTWriter extends BulkLoaderELTWriter {
         return this.mOSCommand;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.writer.DatabaseELTWriter#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
         if (success == false && this.isLastThreadToEnterCompletePhase()

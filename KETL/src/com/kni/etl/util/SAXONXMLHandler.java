@@ -1,3 +1,25 @@
+/*
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
+ */
 package com.kni.etl.util;
 
 import java.util.ArrayList;
@@ -21,10 +43,18 @@ import org.w3c.dom.NodeList;
 
 import com.kni.etl.dbutils.ResourcePool;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SAXONXMLHandler.
+ */
 public class SAXONXMLHandler extends XMLHandler {
 
+    /** The db. */
     DocumentBuilder db;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.util.XMLHandler#getDocumentBuilder(boolean, boolean)
+     */
     @Override
     public DocumentBuilder getDocumentBuilder(boolean validate, boolean nameSpaceAware) throws InstantiationException,
             IllegalAccessException, ClassNotFoundException, ParserConfigurationException {
@@ -40,6 +70,9 @@ public class SAXONXMLHandler extends XMLHandler {
         return this.db;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.util.XMLHandler#evaluateXPath(javax.xml.xpath.XPathExpression, org.w3c.dom.Document, java.util.List)
+     */
     @Override
     public List evaluateXPath(XPathExpression path, Document node, List arg) throws XPathExpressionException {
 
@@ -65,8 +98,12 @@ public class SAXONXMLHandler extends XMLHandler {
         return ar;
     }
 
+    /** The xpf. */
     XPathFactoryImpl xpf;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.util.XMLHandler#getNewXPath()
+     */
     @Override
     public XPath getNewXPath() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
         if (this.xpf == null) {

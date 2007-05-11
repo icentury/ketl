@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import java.util.ArrayList;
@@ -9,6 +27,7 @@ import java.util.LinkedList;
 
 import com.kni.etl.dbutils.ResourcePool;
 
+// TODO: Auto-generated Javadoc
 /**
  * Insert the type's description here. Creation date: (5/1/2002 4:53:44 PM)
  * 
@@ -16,16 +35,31 @@ import com.kni.etl.dbutils.ResourcePool;
  */
 public class ETLJobManager {
 
+    /** The mjms status. */
     protected ETLJobManagerStatus mjmsStatus;
+    
+    /** The mll pending queue. */
     protected LinkedList mllPendingQueue = null;
+    
+    /** The cje executor threads. */
     protected ArrayList cjeExecutorThreads;
+    
+    /** The mstr job executor class. */
     protected java.lang.String mstrJobExecutorClass = null;
+    
+    /** The mi max queue size. */
     protected int miMaxQueueSize;
+    
+    /** The mi max num threads. */
     protected int miMaxNumThreads;
+    
+    /** The mb shutdown. */
     protected boolean mbShutdown = false;
 
     /**
      * ETLJobExecutor constructor comment.
+     * 
+     * @param strJobExecutorClass the str job executor class
      */
     public ETLJobManager(String strJobExecutorClass) {
         // Default contructor should have one thread and never have items waiting in queue...
@@ -34,6 +68,10 @@ public class ETLJobManager {
 
     /**
      * ETLJobExecutor constructor comment.
+     * 
+     * @param strJobExecutorClass the str job executor class
+     * @param iMaxNumThreads the i max num threads
+     * @param iMaxQueueSize the i max queue size
      */
     public ETLJobManager(String strJobExecutorClass, int iMaxNumThreads, int iMaxQueueSize) {
         super();
@@ -56,8 +94,9 @@ public class ETLJobManager {
     /**
      * Insert the method's description here. Creation date: (5/3/2002 4:59:38 PM)
      * 
+     * @param ejJob the ej job
+     * 
      * @return boolean
-     * @param param com.kni.etl.ETLJob
      */
     public boolean cancelJob(ETLJob ejJob) {
         synchronized (this.mllPendingQueue) {
@@ -164,6 +203,8 @@ public class ETLJobManager {
 
     /**
      * Insert the method's description here. Creation date: (5/8/2002 5:43:10 PM)
+     * 
+     * @return the job executor class name
      */
     public String getJobExecutorClassName() {
         return this.mstrJobExecutorClass;
@@ -287,8 +328,9 @@ public class ETLJobManager {
     /**
      * Insert the method's description here. Creation date: (5/3/2002 2:58:47 PM)
      * 
+     * @param ejNewJob the ej new job
+     * 
      * @return boolean
-     * @param ejJob com.kni.etl.ETLJob
      */
     public boolean submitJob(ETLJob ejNewJob) {
         // Don't accept jobs if we're in a bad state...
@@ -321,7 +363,7 @@ public class ETLJobManager {
     }
 
     /**
-     * Creation date: (5/2/2002 1:47:48 PM)
+     * Creation date: (5/2/2002 1:47:48 PM).
      * 
      * @return current status code
      */

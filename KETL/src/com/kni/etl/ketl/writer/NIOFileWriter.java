@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.ketl.writer;
 
 import java.io.FileNotFoundException;
@@ -24,6 +42,7 @@ import com.kni.etl.ketl.smp.DefaultWriterCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
  * <p>
  * Title: JDBCWriter
@@ -36,46 +55,109 @@ import com.kni.etl.util.XMLHelper;
  * </p>
  * <p>
  * Company: Kinetic Networks
- * </p>
+ * </p>.
  * 
  * @author Nicholas Wakefield
  * @version 1.0
  */
 public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
+    /**
+     * Instantiates a new NIO file writer.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public NIOFileWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
+    /** The Constant DEFAULT_BUFFER_SIZE. */
     static final int DEFAULT_BUFFER_SIZE = 163840;
+    
+    /** The DEFAUL t_ VALUE. */
     private static String DEFAULT_VALUE = "DEFAULTVALUE";
+    
+    /** The DELIMITER. */
     private static String DELIMITER = "DELIMITER";
+    
+    /** The DELIMITE r_ A t_ END. */
     private static String DELIMITER_AT_END = "DELIMITER_AT_END";
+    
+    /** The CHARACTERSE t_ ATTRIB. */
     public static String CHARACTERSET_ATTRIB = "CHARACTERSET";
+    
+    /** The FIXEDWIDTH. */
     private static String FIXEDWIDTH = "FIXEDWIDTH";
+    
+    /** The FORMA t_ STRING. */
     private static String FORMAT_STRING = "FORMATSTRING";
+    
+    /** The ESCAP e_ CHARACTE r_ STRING. */
     private static String ESCAPE_CHARACTER_STRING = "ESCAPECHARACTER";
+    
+    /** The IN. */
     private static String IN = "IN";
+    
+    /** The ENABL e_ LINEFEED. */
     private static String ENABLE_LINEFEED = "ENABLE_LINEFEED";
+    
+    /** The LINEFEE d_ CHARACTER. */
     private static String LINEFEED_CHARACTER = "LINEFEED";
+    
+    /** The MAXIMU m_ LENGTH. */
     private static String MAXIMUM_LENGTH = "MAXIMUMLENGTH";
+    
+    /** The NAME. */
     private static String NAME = "NAME";
+    
+    /** The WRIT e_ BUFFER. */
     private static String WRITE_BUFFER = "WRITEBUFFER";
+    
+    /** The FILEPATH. */
     private static String FILEPATH = "FILEPATH";
+    
+    /** The m linefeed. */
     private String mLinefeed;
+    
+    /** The mb delimiter at end. */
     private boolean mbDelimiterAtEnd = false;
+    
+    /** The m dest field definitions. */
     private DestinationFieldDefinition[] mDestFieldDefinitions = null;
+    
+    /** The mi output buffer size. */
     private int miOutputBufferSize = 16384;
+    
+    /** The ms default delimiter. */
     private String msDefaultDelimiter = null;
+    
+    /** The mi dest field array length. */
     private int miDestFieldArrayLength = -1;
+    
+    /** The m char set. */
     private String mCharSet = null;
+    
+    /** The ms required tags. */
     String[] msRequiredTags = { NIOFileWriter.FILEPATH };
 
+    /** The m writer list. */
     ArrayList mWriterList = new ArrayList();
+    
+    /** The m writers. */
     OutputFile[] mWriters;
+    
+    /** The ms escape char. */
     private String msEscapeChar;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#complete()
+     */
     @Override
     public int complete() throws KETLThreadException {
         // If there were no input rows, then we won't even have an upsert object...
@@ -96,12 +178,27 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
         return 0;
     }
 
+    /**
+     * The Class OutputFile.
+     */
     class OutputFile {
 
+        /** The stream. */
         FileOutputStream stream;
+        
+        /** The channel. */
         FileChannel channel;
+        
+        /** The writer. */
         Writer writer;
 
+        /**
+         * Open.
+         * 
+         * @param filePath the file path
+         * 
+         * @throws FileNotFoundException the file not found exception
+         */
         void open(String filePath) throws FileNotFoundException {
             this.stream = new FileOutputStream(filePath);
             this.channel = this.stream.getChannel();
@@ -115,6 +212,11 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
         }
 
+        /**
+         * Close.
+         * 
+         * @throws IOException Signals that an I/O exception has occurred.
+         */
         void close() throws IOException {
             this.writer.close();
             this.channel.close();
@@ -122,6 +224,13 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
         }
     }
 
+    /**
+     * Creates the output file.
+     * 
+     * @param filePath the file path
+     * 
+     * @throws FileNotFoundException the file not found exception
+     */
     void createOutputFile(String filePath) throws FileNotFoundException {
         // add file streams to parallel stream parser
         OutputFile out = new OutputFile();
@@ -130,6 +239,9 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
     }
 
     // Return 0 if success, otherwise error code...
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
+     */
     @Override
     public int initialize(Node xmlDestNode) throws KETLThreadException {
         int cd = super.initialize(xmlDestNode);
@@ -253,8 +365,12 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
         return 0;
     }
 
+    /** The sb. */
     StringBuilder sb = new StringBuilder();
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+     */
     public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
             throws KETLWriteException {
 
@@ -325,6 +441,15 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
         return this.mWriters.length;
     }
 
+    /**
+     * Escape.
+     * 
+     * @param datum the datum
+     * @param del the del
+     * @param hasDelimeter the has delimeter
+     * 
+     * @return the char sequence
+     */
     private CharSequence escape(String datum, String del, boolean hasDelimeter) {
 
         if (hasDelimeter && datum != null && del != null) {
@@ -334,6 +459,9 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
         return datum;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
         if (this.mWriters == null)

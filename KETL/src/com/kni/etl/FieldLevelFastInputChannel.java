@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import java.io.EOFException;
@@ -20,11 +38,22 @@ import java.util.zip.GZIPInputStream;
 
 import com.kni.etl.stringtools.FastSimpleDateFormat;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class FieldLevelFastInputChannel.
+ */
 public final class FieldLevelFastInputChannel {
 
+    /** The m temp buffer. */
     char[] mTempBuffer;
+    
+    /** The mi stream. */
     private ReadableByteChannel miStream;
+    
+    /** The m work buffer. */
     Reader mWorkBuffer;
+    
+    /** The EOF. */
     boolean EOF = false;
 
     /**
@@ -33,7 +62,7 @@ public final class FieldLevelFastInputChannel {
      * @param iStream DOCUMENT ME!
      * @param mode DOCUMENT ME!
      * @param bufsize DOCUMENT ME!
-     * @param ioType DOCUMENT ME!
+     * 
      * @throws Exception DOCUMENT ME!
      */
     public FieldLevelFastInputChannel(ReadableByteChannel iStream, String mode, int bufsize) throws Exception {
@@ -49,9 +78,7 @@ public final class FieldLevelFastInputChannel {
      * @param pCharSet DOCUMENT ME!
      * @param pZipped Is file compressed
      * @param pCodingErrorException TODO
-     * @param pDelimiter DOCUMENT ME!
-     * @param pTreatReturnAsLineEnd DOCUMENT ME!
-     * @param ioType DOCUMENT ME!
+     * 
      * @throws Exception DOCUMENT ME!
      */
     public FieldLevelFastInputChannel(ReadableByteChannel iStream, String mode, int bufsize, String pCharSet,
@@ -87,9 +114,7 @@ public final class FieldLevelFastInputChannel {
      * @param bufsize DOCUMENT ME!
      * @param pCharSet DOCUMENT ME!
      * @param pCodingErrorException TODO
-     * @param pDelimiter DOCUMENT ME!
-     * @param pTreatReturnAsLineEnd DOCUMENT ME!
-     * @param ioType DOCUMENT ME!
+     * 
      * @throws Exception DOCUMENT ME!
      */
     public FieldLevelFastInputChannel(ReadableByteChannel iStream, String mode, int bufsize, String pCharSet,
@@ -98,7 +123,7 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @return DOCUMENT ME!
      */
@@ -107,7 +132,7 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @throws IOException DOCUMENT ME!
      */
@@ -127,14 +152,27 @@ public final class FieldLevelFastInputChannel {
 
     }
 
+    /** The Constant END_OF_FILE. */
     public final static int END_OF_FILE = -1;
+    
+    /** The Constant BUFFER_TO_SMALL. */
     public final static int BUFFER_TO_SMALL = -2;
 
+    /** The chars read. */
     private int charsRead = 0;
+    
+    /** The pos. */
     private int pos = 0;
 
     // us this little method to prevent calling synchronized method all the time
     // marginal performance improvement
+    /**
+     * Read.
+     * 
+     * @return the int
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     final private int read() throws IOException {
         if (this.pos == this.charsRead) {
             this.pos = 0;
@@ -148,6 +186,17 @@ public final class FieldLevelFastInputChannel {
 
     // us this little method to prevent calling synchronized method all the time
     // marginal performance improvement
+    /**
+     * Read.
+     * 
+     * @param pBuf the buf
+     * @param pStart the start
+     * @param pLength the length
+     * 
+     * @return the int
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     final private int read(char[] pBuf, int pStart, int pLength) throws IOException {
         // bulk copy if possible
         int fetchSize = this.charsRead - this.pos > pLength ? pLength : this.charsRead - this.pos;
@@ -174,12 +223,35 @@ public final class FieldLevelFastInputChannel {
         return readChars;
     }
 
+    /** The mb allow for no delimeter at EOF. */
     private boolean mbAllowForNoDelimeterAtEOF;
 
+    /**
+     * Allow for no delimeter at EOF.
+     * 
+     * @param arg0 the arg0
+     */
     public void allowForNoDelimeterAtEOF(boolean arg0) {
         this.mbAllowForNoDelimeterAtEOF = arg0;
     }
 
+    /**
+     * Read delimited field.
+     * 
+     * @param pDelimiter the delimiter
+     * @param quoteStart the quote start
+     * @param quoteEnd the quote end
+     * @param escapeDoubleQuotes the escape double quotes
+     * @param pEscapeChar the escape char
+     * @param pFieldMaxLength the field max length
+     * @param pAvgSize the avg size
+     * @param pOutput the output
+     * @param pAutoTruncate the auto truncate
+     * 
+     * @return the int
+     * 
+     * @throws Exception the exception
+     */
     public final int readDelimitedField(char[] pDelimiter, char[] quoteStart, char[] quoteEnd,
             boolean escapeDoubleQuotes, Character pEscapeChar, int pFieldMaxLength, int pAvgSize, char[] pOutput,
             boolean pAutoTruncate) throws Exception {
@@ -188,10 +260,22 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * return a next line in passed byte array
+     * return a next line in passed byte array.
      * 
      * @param pAutoTruncate TODO
-     * @param pCopy TODO
+     * @param pDelimiter the delimiter
+     * @param quoteStart the quote start
+     * @param quoteEnd the quote end
+     * @param escapeDoubleQuotes the escape double quotes
+     * @param pEscapeChar the escape char
+     * @param pFieldMaxLength the field max length
+     * @param pAvgSize the avg size
+     * @param pOutput the output
+     * @param pKeepDelimiter the keep delimiter
+     * 
+     * @return the int
+     * 
+     * @throws Exception the exception
      */
     public final int readDelimitedField(char[] pDelimiter, char[] quoteStart, char[] quoteEnd,
             boolean escapeDoubleQuotes, Character pEscapeChar, int pFieldMaxLength, int pAvgSize, char[] pOutput,
@@ -354,9 +438,16 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * return a next line in passed byte array
+     * return a next line in passed byte array.
      * 
-     * @param pCopy TODO
+     * @param pFieldLength the field length
+     * @param quoteStart the quote start
+     * @param quoteEnd the quote end
+     * @param pOutput the output
+     * 
+     * @return the int
+     * 
+     * @throws Exception the exception
      */
     public final int readFixedLengthField(int pFieldLength, char[] quoteStart, char[] quoteEnd, char[] pOutput)
             throws Exception {
@@ -419,18 +510,25 @@ public final class FieldLevelFastInputChannel {
         return res;
     }
 
+    /** The Constant MAXFIELDLENGTH. */
     public static final int MAXFIELDLENGTH = 256;
+    
+    /** The m input stream. */
     private InputStream mInputStream;
+    
+    /** The m G zip stream. */
     private GZIPInputStream mGZipStream;
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * @param charSet the char set
+     * 
      * @return DOCUMENT ME!
-     * @throws UnsupportedEncodingException
-     * @throws UnsupportedEncodingException
+     * 
+     * @throws UnsupportedEncodingException the unsupported encoding exception
      */
     public final static byte[] toByte(char[] arg0, int len, String charSet) throws UnsupportedEncodingException {
         if (len == 0) {
@@ -445,10 +543,11 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
      */
     public final static Boolean toBoolean(char[] arg0, int len) {
@@ -460,10 +559,11 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
      */
     public final static byte[] toByteArray(char[] arg0, int len) {
@@ -475,10 +575,11 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
      */
     public final static Character toChar(char[] arg0, int len) {
@@ -490,11 +591,14 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
+     * 
+     * @throws NumberFormatException the number format exception
      */
     public final static Double toDouble(char[] arg0, int len) throws NumberFormatException {
         if (len == 0) {
@@ -509,13 +613,16 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
      * @param formatter DOCUMENT ME!
      * @param position DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
+     * 
+     * @throws Exception the exception
      */
     public final static java.util.Date toDate(char[] arg0, int len, FastSimpleDateFormat formatter,
             ParsePosition position) throws Exception {
@@ -527,11 +634,14 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
+     * 
+     * @throws NumberFormatException the number format exception
      */
     public final static Integer toInteger(char[] arg0, int len) throws NumberFormatException {
         if (len == 0) {
@@ -545,11 +655,14 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
+     * 
+     * @throws NumberFormatException the number format exception
      */
     public final static Short toShort(char[] arg0, int len) throws NumberFormatException {
         if (len == 0) {
@@ -564,11 +677,14 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
+     * 
+     * @throws NumberFormatException the number format exception
      */
     public final static Long toLong(char[] arg0, int len) throws NumberFormatException {
         if (len == 0) {
@@ -583,11 +699,14 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
+     * 
+     * @throws NumberFormatException the number format exception
      */
     public final static Float toFloat(char[] arg0, int len) throws NumberFormatException {
         if (len == 0) {
@@ -601,6 +720,14 @@ public final class FieldLevelFastInputChannel {
         return Float.parseFloat(str);
     }
 
+    /**
+     * To char array.
+     * 
+     * @param arg0 the arg0
+     * @param len the len
+     * 
+     * @return the char[]
+     */
     public final static char[] toCharArray(char[] arg0, int len) {
         if (len == 0) {
             return null;
@@ -612,10 +739,11 @@ public final class FieldLevelFastInputChannel {
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param arg0 DOCUMENT ME!
      * @param len DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
      */
     public final static String toString(char[] arg0, int len) {

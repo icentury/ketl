@@ -1,8 +1,24 @@
 /*
- * Created on Jul 13, 2005
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
  *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.transformation;
 
@@ -26,7 +42,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -43,18 +58,33 @@ import com.kni.etl.stringtools.FastSimpleDateFormat;
 import com.kni.etl.util.XMLHandler;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 // Create a parallel transformation. All thread management is done for you
 // the parallism is within the transformation
 
+/**
+ * The Class XMLToFieldsTransformation.
+ */
 public class XMLToFieldsTransformation extends ETLTransformation {
 
+    /** The Constant XPATH_EVALUATE_ATTRIB. */
     private static final String XPATH_EVALUATE_ATTRIB = "XPATHEVALUATE";
+    
+    /** The Constant DUMPXML_ATTRIB. */
     private static final String DUMPXML_ATTRIB = "DUMPXML";
+    
+    /** The Constant DOCUMENT_BUILDER. */
     private static final String DOCUMENT_BUILDER = "DOCUMENTBUILDER";
 
+    /** The doc builder. */
     private String docBuilder;
+    
+    /** The xml transformer. */
     private Transformer xmlTransformer;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLTransform#initialize(org.w3c.dom.Node)
+     */
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
         int res = super.initialize(xmlConfig);
@@ -99,11 +129,28 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         return 0;
     }
 
+    /** The m builder. */
     private DocumentBuilder mBuilder;
+    
+    /** The xml handler. */
     private XMLHandler xmlHandler = null;
+    
+    /** The validating. */
     private boolean validating;
+    
+    /** The namespace aware. */
     private boolean namespaceAware;
 
+    /**
+     * Instantiates a new XML to fields transformation.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public XMLToFieldsTransformation(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
@@ -133,6 +180,11 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
     }
 
+    /**
+     * Configure document builder factory.
+     * 
+     * @param dmf the dmf
+     */
     private void configureDocumentBuilderFactory(DocumentBuilderFactory dmf) {
         if (dmf.isNamespaceAware()) {
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Parser is namespace aware");
@@ -145,14 +197,26 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         dmf.setNamespaceAware(this.namespaceAware);
     }
 
+    /** The Constant XPATH_ATTRIB. */
     public static final String XPATH_ATTRIB = "XPATH";
+    
+    /** The mb X path evaluate nodes. */
     private boolean mbXPathEvaluateNodes = true;
+    
+    /** The m root X path. */
     private String mRootXPath;
 
+    /** The xml src port. */
     XMLETLInPort xmlSrcPort = null;
 
+    /**
+     * The Class XMLETLInPort.
+     */
     class XMLETLInPort extends ETLInPort {
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLInPort#initialize(org.w3c.dom.Node)
+         */
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             int res = super.initialize(xmlConfig);
@@ -168,26 +232,45 @@ public class XMLToFieldsTransformation extends ETLTransformation {
             return 0;
         }
 
+        /**
+         * Instantiates a new XMLETL in port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public XMLETLInPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLOutPort getNewOutPort(ETLStep srcStep) {
         return new XMLETLOutPort(this, srcStep);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewInPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLInPort getNewInPort(ETLStep srcStep) {
         return new XMLETLInPort(this, srcStep);
     }
 
+    /** The FORMA t_ STRING. */
     public static String FORMAT_STRING = "FORMATSTRING";
 
+    /**
+     * The Class XMLETLOutPort.
+     */
     class XMLETLOutPort extends ETLOutPort {
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#setDataTypeFromPort(com.kni.etl.ketl.ETLPort)
+         */
         @Override
         final public void setDataTypeFromPort(ETLPort in) throws KETLThreadException, ClassNotFoundException {
             if (this.xpath == null || this.getXMLConfig().hasAttribute("DATATYPE") == false)
@@ -195,6 +278,9 @@ public class XMLToFieldsTransformation extends ETLTransformation {
             this.setPortClass();
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#getAssociatedInPort()
+         */
         @Override
         public ETLPort getAssociatedInPort() throws KETLThreadException {
             if (this.xpath != null)
@@ -203,17 +289,39 @@ public class XMLToFieldsTransformation extends ETLTransformation {
             return super.getAssociatedInPort();
         }
 
+        /** The fetch attribute. */
         boolean fetchAttribute = false;
+        
+        /** The m X path exp. */
         XPathExpression mXPathExp;
+        
+        /** The xpath. */
         String fmt, xpath;
+        
+        /** The formatter. */
         Format formatter;
+        
+        /** The attribute. */
         String attribute = null;
+        
+        /** The mb X path evaluate field. */
         boolean mbXPathEvaluateField;
+        
+        /** The m recursive X path. */
         String[] mRecursiveXPath;
+        
+        /** The position. */
         ParsePosition position;
+        
+        /** The m dump XML. */
         boolean mDumpXML = false;
+        
+        /** The null IF. */
         String nullIF = null;
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
+         */
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             this.xpath = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
@@ -279,6 +387,9 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLOutPort#generateCode(int)
+         */
         @Override
         public String generateCode(int portReferenceIndex) throws KETLThreadException {
 
@@ -293,12 +404,21 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
         }
 
+        /**
+         * Instantiates a new XMLETL out port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public XMLETLOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLTransform#getRecordExecuteMethodFooter()
+     */
     @Override
     protected String getRecordExecuteMethodFooter() {
         if (this.xmlSrcPort == null)
@@ -308,6 +428,9 @@ public class XMLToFieldsTransformation extends ETLTransformation {
                 + ")this.getOwner()).noMoreNodes()?SUCCESS:REPEAT_RECORD;}";
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLTransform#getRecordExecuteMethodHeader()
+     */
     @Override
     protected String getRecordExecuteMethodHeader() throws KETLThreadException {
         if (this.xmlSrcPort == null)
@@ -318,6 +441,11 @@ public class XMLToFieldsTransformation extends ETLTransformation {
                 + ") == false) return SKIP_RECORD;";
     }
 
+    /**
+     * No more nodes.
+     * 
+     * @return true, if successful
+     */
     public boolean noMoreNodes() {
 
         if (this.pos == this.length) {
@@ -327,6 +455,15 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         return false;
     }
 
+    /**
+     * Gets the XML dump.
+     * 
+     * @param o the o
+     * 
+     * @return the XML dump
+     * 
+     * @throws Exception the exception
+     */
     private String getXMLDump(Object o) throws Exception {
 
         if (o == null)
@@ -343,6 +480,15 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         throw new Exception("Object could not be converted to xml " + o.getClass().getCanonicalName());
     }
 
+    /**
+     * Gets the XML value.
+     * 
+     * @param i the i
+     * 
+     * @return the XML value
+     * 
+     * @throws KETLTransformException the KETL transform exception
+     */
     public Object getXMLValue(int i) throws KETLTransformException {
         XMLETLOutPort port = (XMLETLOutPort) this.mOutPorts[i];
 
@@ -448,13 +594,33 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         }
     }
 
+    /** The current XML string. */
     private String currentXMLString;
+    
+    /** The doc. */
     private Document doc;
+    
+    /** The current node. */
     private Node currentNode;
+    
+    /** The node list. */
     private List nodeList;
+    
+    /** The m X path. */
     private XPathExpression mXPath;
+    
+    /** The length. */
     private int pos = 0, length;
 
+    /**
+     * Load node list.
+     * 
+     * @param string the string
+     * 
+     * @return true, if successful
+     * 
+     * @throws KETLTransformException the KETL transform exception
+     */
     public boolean loadNodeList(String string) throws KETLTransformException {
         try {
             if (this.currentXMLString == null || this.currentXMLString.equals(string) == false) {
@@ -494,6 +660,14 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         }
     }
 
+    /**
+     * Convert to list.
+     * 
+     * @param list the list
+     * @param oldList the old list
+     * 
+     * @return the list
+     */
     private static List convertToList(NodeList list, List oldList) {
 
         if (oldList == null)
@@ -509,6 +683,9 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         return oldList;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
         // TODO Auto-generated method stub

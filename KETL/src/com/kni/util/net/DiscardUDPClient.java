@@ -82,7 +82,7 @@ public class DiscardUDPClient extends DatagramSocketClient
 
     public DiscardUDPClient()
     {
-        _sendPacket = new DatagramPacket(new byte[0], 0);
+        this._sendPacket = new DatagramPacket(new byte[0], 0);
     }
 
 
@@ -100,11 +100,11 @@ public class DiscardUDPClient extends DatagramSocketClient
     public void send(byte[] data, int length, InetAddress host, int port)
     throws IOException
     {
-        _sendPacket.setData(data);
-        _sendPacket.setLength(length);
-        _sendPacket.setAddress(host);
-        _sendPacket.setPort(port);
-        _socket_.send(_sendPacket);
+        this._sendPacket.setData(data);
+        this._sendPacket.setLength(length);
+        this._sendPacket.setAddress(host);
+        this._sendPacket.setPort(port);
+        this._socket_.send(this._sendPacket);
     }
 
 
@@ -115,7 +115,7 @@ public class DiscardUDPClient extends DatagramSocketClient
     public void send(byte[] data, int length, InetAddress host)
     throws IOException
     {
-        send(data, length, host, DEFAULT_PORT);
+        this.send(data, length, host, DiscardUDPClient.DEFAULT_PORT);
     }
 
 
@@ -125,7 +125,7 @@ public class DiscardUDPClient extends DatagramSocketClient
      ***/
     public void send(byte[] data, InetAddress host) throws IOException
     {
-        send(data, data.length, host, DEFAULT_PORT);
+        this.send(data, data.length, host, DiscardUDPClient.DEFAULT_PORT);
     }
 
 }

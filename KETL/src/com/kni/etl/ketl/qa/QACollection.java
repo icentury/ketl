@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 /*
  * Created on Jul 8, 2003
  *
@@ -24,19 +42,31 @@ import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class QACollection.
+ * 
  * @author nwakefield Creation Date: Jul 8, 2003
  */
 public class QACollection extends QA {
 
+    /** The QA. */
     public static String QA = "QA";
+    
+    /** The a items to check. */
     QAItemLevelEventGenerator aItemsToCheck[] = null;
+    
+    /** The initialize level. */
     QAInitializeLevelEventGenerator[] initializeLevel = null;
+    
+    /** The record level. */
     QARecordLevelEventGenerator[] recordLevel = null;
 
     /**
-     * @param eStep
-     * @param nXMLConfig
+     * The Constructor.
+     * 
+     * @param eStep the e step
+     * @param nXMLConfig the n XML config
      */
     public QACollection(ETLStep eStep, Node nXMLConfig) {
         super();
@@ -56,6 +86,14 @@ public class QACollection extends QA {
 
     }
 
+    /**
+     * Adds the QA for item.
+     * 
+     * @param eiItem the ei item
+     * @param xmlNode the xml node
+     * 
+     * @return true, if successful
+     */
     final public boolean addQAForItem(ETLPort eiItem, Node xmlNode) {
         Node QANode = this
                 .getQAItemNode(XMLHelper.getAttributeAsString(xmlNode.getAttributes(), QACollection.QA, null));
@@ -122,6 +160,11 @@ public class QACollection extends QA {
         return false;
     }
 
+    /**
+     * Adds the QA for step.
+     * 
+     * @param QAName the QA name
+     */
     final protected void addQAForStep(String QAName) {
         Node QANode = this.getQAItemNode(QAName);
 
@@ -205,6 +248,13 @@ public class QACollection extends QA {
         }
     }
 
+    /**
+     * Gets the QA item node.
+     * 
+     * @param QAName the QA name
+     * 
+     * @return the QA item node
+     */
     private Node getQAItemNode(String QAName) {
         if (QAName == null) {
             return null;
@@ -227,6 +277,11 @@ public class QACollection extends QA {
         return aQANodes[0];
     }
 
+    /**
+     * Complete check.
+     * 
+     * @throws KETLQAException the KETLQA exception
+     */
     public void completeCheck() throws KETLQAException {
         Metadata md = ResourcePool.getMetadata();
 
@@ -262,6 +317,11 @@ public class QACollection extends QA {
         }
     }
 
+    /**
+     * Initialize check.
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public void initializeCheck() throws KETLThreadException {
         if (this.initializeLevel == null) {
             return;
@@ -279,6 +339,14 @@ public class QACollection extends QA {
      * 
      * @see com.kni.etl.ketl.qa.QA#postPutNextRecordCheck()
      */
+    /**
+     * Record check.
+     * 
+     * @param rr the rr
+     * @param e the e
+     * 
+     * @throws KETLQAException the KETLQA exception
+     */
     public void recordCheck(Object[] rr, Exception e) throws KETLQAException {
         if (this.recordLevel == null) {
             return;
@@ -291,6 +359,14 @@ public class QACollection extends QA {
         }
     }
 
+    /**
+     * Record history.
+     * 
+     * @param md the md
+     * @param qa the qa
+     * 
+     * @return true, if successful
+     */
     final boolean recordHistory(Metadata md, QAEventGenerator qa) {
         if ((qa.getXMLHistory() != null) && qa.recordHistory()) {
             return md.recordQAHistory(this.step.getJobExecutor().getCurrentETLJob().getJobID(), this.step.toString(),
@@ -301,11 +377,22 @@ public class QACollection extends QA {
         return true;
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
         return ("QA Collection for step " + this.step);
     }
 
+    /**
+     * Item checks.
+     * 
+     * @param di the di
+     * @param e the e
+     * 
+     * @throws KETLQAException the KETLQA exception
+     */
     public void itemChecks(Object[] di, Exception e) throws KETLQAException {
         if (this.aItemsToCheck != null) {
             for (int i = this.aItemsToCheck.length - 1; i >= 0; i--) {

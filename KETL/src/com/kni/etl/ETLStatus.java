@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -14,6 +32,7 @@ import org.w3c.dom.Element;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
  * Insert the type's description here. Creation date: (5/3/2002 12:21:59 PM)
  * 
@@ -21,18 +40,39 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ETLStatus {
 
+    /** The i status code. */
     protected int iStatusCode;
+    
+    /** The astr status messages. */
     private static java.lang.String[] astrStatusMessages = {};
+    
+    /** The i error code. */
     protected int iErrorCode;
+    
+    /** The mi server. */
     protected int iWarningCode, miServer;
+    
+    /** The message changed. */
     public boolean messageChanged = false;
+    
+    /** The str error message. */
     protected java.lang.String strErrorMessage = "";
+    
+    /** The str warning message. */
     protected java.lang.String strWarningMessage = "";
+    
+    /** The str extended message. */
     protected java.lang.String strExtendedMessage = "";
+    
+    /** The stats node. */
     protected Element statsNode = null;
+    
+    /** The m execution date. */
     private java.sql.Timestamp mStartDate, mEndDate, mExecutionDate;
 
     /**
+     * Gets the end date.
+     * 
      * @return Returns the endDate.
      */
     public final java.sql.Timestamp getEndDate() {
@@ -40,6 +80,8 @@ public class ETLStatus {
     }
 
     /**
+     * Sets the end date.
+     * 
      * @param pEndDate The endDate to set.
      */
     public final void setEndDate(java.sql.Timestamp pEndDate) {
@@ -47,6 +89,8 @@ public class ETLStatus {
     }
 
     /**
+     * Gets the start date.
+     * 
      * @return Returns the startDate.
      */
     public final java.sql.Timestamp getStartDate() {
@@ -54,6 +98,8 @@ public class ETLStatus {
     }
 
     /**
+     * Sets the start date.
+     * 
      * @param pStartDate The startDate to set.
      */
     public final void setStartDate(java.sql.Timestamp pStartDate) {
@@ -118,8 +164,9 @@ public class ETLStatus {
     /**
      * Insert the method's description here. Creation date: (5/7/2002 11:05:07 AM)
      * 
-     * @return java.lang.String
      * @param iStatusCode int
+     * 
+     * @return java.lang.String
      */
     public String getStatusMessageForCode(int iStatusCode) {
         String[] astrMessages = this.getStatusMessages();
@@ -161,8 +208,9 @@ public class ETLStatus {
     /**
      * Insert the method's description here. Creation date: (5/3/2002 1:22:09 PM)
      * 
+     * @param iStatusCode the i status code
+     * 
      * @return java.lang.String
-     * @param iStatus int
      */
     public boolean isValidStatusCode(int iStatusCode) {
         if ((iStatusCode >= 0) && (iStatusCode < this.getStatusMessages().length)) {
@@ -196,9 +244,12 @@ public class ETLStatus {
     /**
      * Sets the status of the object.
      * 
+     * @param iNewStatus the i new status
+     * 
+     * @return the int
+     * 
      * @todo: Should we throw an exception for a valid status? Or perhaps return the status that we are really setting?
-     *        Creation date: (5/3/2002 12:31:11 PM)
-     * @param newIStatus int
+     * Creation date: (5/3/2002 12:31:11 PM)
      */
     public synchronized int setStatusCode(int iNewStatus) {
         // Verify it's a valid status
@@ -231,6 +282,11 @@ public class ETLStatus {
         this.strWarningMessage = newWarningMessage;
     }
 
+    /**
+     * Sets the extended message.
+     * 
+     * @param newExtendedMessage the new extended message
+     */
     public synchronized void setExtendedMessage(java.lang.String newExtendedMessage) {
         if (this.strExtendedMessage != null && this.strExtendedMessage.equals(newExtendedMessage))
             return;
@@ -256,6 +312,8 @@ public class ETLStatus {
     }
 
     /**
+     * Gets the execution date.
+     * 
      * @return Returns the executionDate.
      */
     public final java.sql.Timestamp getExecutionDate() {
@@ -263,6 +321,8 @@ public class ETLStatus {
     }
 
     /**
+     * Sets the execution date.
+     * 
      * @param pExecutionDate The executionDate to set.
      */
     public final void setExecutionDate(java.sql.Timestamp pExecutionDate) {
@@ -270,6 +330,8 @@ public class ETLStatus {
     }
 
     /**
+     * Gets the server ID.
+     * 
      * @return Returns the server.
      */
     public final int getServerID() {
@@ -277,18 +339,30 @@ public class ETLStatus {
     }
 
     /**
+     * Sets the server ID.
+     * 
      * @param pServer The server to set.
      */
     public final void setServerID(int pServer) {
         this.miServer = pServer;
     }
 
+    /**
+     * Gets the XML stats.
+     * 
+     * @return the XML stats
+     */
     public final String getXMLStats() {
         if (this.statsNode == null)
             return null;
         return XMLHelper.outputXML(this.statsNode);
     }
 
+    /**
+     * Gets the stats node.
+     * 
+     * @return the stats node
+     */
     protected Element getStatsNode() {
         if (this.statsNode == null) {
             Document documentRoot;
@@ -308,6 +382,12 @@ public class ETLStatus {
         return this.statsNode;
     }
 
+    /**
+     * Sets the stats.
+     * 
+     * @param records the records
+     * @param executionTime the execution time
+     */
     public void setStats(int records, long executionTime) {
         Element e = this.getStatsNode();
 

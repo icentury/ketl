@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import java.io.BufferedOutputStream;
@@ -27,6 +45,7 @@ import org.w3c.dom.Node;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
  * Insert the type's description here. Creation date: (5/3/2002 1:41:54 PM)
  * 
@@ -34,33 +53,88 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ETLJob {
 
+    /** The js status. */
     transient protected ETLJobStatus jsStatus;
+    
+    /** The b cancel job. */
     protected boolean bCancelJob = false;
+    
+    /** The i load ID. */
     protected int iLoadID;
+    
+    /** The s job ID. */
     protected String sJobID;
+    
+    /** The i job execution ID. */
     protected int iJobExecutionID;
+    
+    /** The str action. */
     protected java.lang.String strAction;
+    
+    /** The mo action. */
     transient protected Object moAction;
+    
+    /** The m tag level parameter list cache. */
     HashMap mTagLevelParameterListCache = null;
+    
+    /** The md creation date. */
     protected java.util.Date mdCreationDate = new java.util.Date();
+    
+    /** The Seconds before retry. */
     private int SecondsBeforeRetry = 0;
+    
+    /** The ms global parameter list name. */
     private String msGlobalParameterListName = null;
+    
+    /** The mi global parameter list ID. */
     private int miGlobalParameterListID = -1;
+    
+    /** The Retry attempts. */
     private int RetryAttempts = 0;
+    
+    /** The Max retries. */
     private int MaxRetries = 0;
+    
+    /** The Job type ID. */
     private int JobTypeID = -1;
+    
+    /** The Project ID. */
     private int ProjectID = -1;
+    
+    /** The Job type name. */
     private String JobTypeName;
+    
+    /** The Name. */
     private String Name = "";
+    
+    /** The Description. */
     private String Description = "";
+    
+    /** The job definition. */
     String jobDefinition = null;
+    
+    /** The Disable alerting. */
     boolean DisableAlerting = false;
 
+    /**
+     * Write object.
+     * 
+     * @param s the s
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
         s.writeObject(this.moAction.toString());
     }
 
+    /**
+     * Read object.
+     * 
+     * @param s the s
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     private void readObject(ObjectInputStream s) throws IOException {
         try {
             s.defaultReadObject();
@@ -72,14 +146,29 @@ public class ETLJob {
         }
     }
 
+    /**
+     * Sets the job type name.
+     * 
+     * @param pName the new job type name
+     */
     public void setJobTypeName(String pName) {
         this.JobTypeName = pName;
     }
 
+    /**
+     * Gets the job type name.
+     * 
+     * @return the job type name
+     */
     public String getJobTypeName() {
         return (this.JobTypeName);
     }
 
+    /**
+     * Gets the project name.
+     * 
+     * @return the project name
+     */
     public String getProjectName() {
         try {
             return ResourcePool.getMetadata().getProjectName(this.ProjectID);
@@ -88,11 +177,20 @@ public class ETLJob {
         }
     }
 
+    /**
+     * Gets the parameter lists.
+     * 
+     * @param pParameterListName the parameter list name
+     * 
+     * @return the parameter lists
+     */
     public ArrayList getParameterLists(String pParameterListName) {
         return (ArrayList) this.getParameterListCache().get(pParameterListName);
     }
 
     /**
+     * Gets the parameter list cache.
+     * 
      * @return Returns the parameterListCache.
      */
     public final HashMap getParameterListCache() {
@@ -100,6 +198,8 @@ public class ETLJob {
     }
 
     /**
+     * Sets the parameter list cache.
+     * 
      * @param pParameterListCache The parameterListCache to set.
      */
     public final void setParameterListCache(HashMap pParameterListCache) {
@@ -107,6 +207,8 @@ public class ETLJob {
     }
 
     /**
+     * Gets the description.
+     * 
      * @return Returns the description.
      */
     public String getDescription() {
@@ -114,12 +216,21 @@ public class ETLJob {
     }
 
     /**
+     * Sets the description.
+     * 
      * @param description The description to set.
      */
     public void setDescription(String description) {
         this.Description = description;
     }
 
+    /**
+     * Gets the XML job definition.
+     * 
+     * @param rootNode the root node
+     * 
+     * @return the XML job definition
+     */
     public String getXMLJobDefinition(Element rootNode) {
         try {
             Element e = this.getJobAsXMLElement(rootNode);
@@ -132,6 +243,11 @@ public class ETLJob {
         return null;
     }
 
+    /**
+     * Gets the XML job definition.
+     * 
+     * @return the XML job definition
+     */
     public String getXMLJobDefinition() {
         try {
             Element e = this.getJobAsXMLElement(null);
@@ -145,10 +261,15 @@ public class ETLJob {
     }
 
     /**
-     * @return
-     * @throws ParserConfigurationException
-     * @throws SQLException
-     * @throws Exception
+     * Gets the job as XML element.
+     * 
+     * @param storeRootNode the store root node
+     * 
+     * @return the job as XML element
+     * 
+     * @throws ParserConfigurationException the parser configuration exception
+     * @throws SQLException the SQL exception
+     * @throws Exception the exception
      */
     public Element getJobAsXMLElement(Node storeRootNode) throws ParserConfigurationException, SQLException, Exception {
         Document documentRoot;
@@ -219,6 +340,13 @@ public class ETLJob {
         return e;
     }
 
+    /**
+     * Sets the child nodes.
+     * 
+     * @param pParentNode the parent node
+     * 
+     * @return the node
+     */
     protected Node setChildNodes(Node pParentNode) {
         Element e = pParentNode.getOwnerDocument().createElement("EMPTY");
 
@@ -234,8 +362,16 @@ public class ETLJob {
         return e;
     }
 
+    /** The dependencies. */
     String[][] dependencies = null;
 
+    /**
+     * Gets the depedencies.
+     * 
+     * @return the depedencies
+     * 
+     * @throws Exception the exception
+     */
     public String getDepedencies() throws Exception {
         String strWaitsOn = null;
         String strDependsOn = null;
@@ -276,6 +412,13 @@ public class ETLJob {
         return sb.toString();
     }
 
+    /**
+     * Gets the job definition.
+     * 
+     * @return the job definition
+     * 
+     * @throws Exception the exception
+     */
     public String getJobDefinition() throws Exception {
         if (this.jobDefinition == null) {
             if (this.dependencies == null) {
@@ -334,6 +477,8 @@ public class ETLJob {
     }
 
     /**
+     * Gets the name.
+     * 
      * @return Returns the name.
      */
     public String getName() {
@@ -341,6 +486,8 @@ public class ETLJob {
     }
 
     /**
+     * Sets the name.
+     * 
      * @param name The name to set.
      */
     public void setName(String name) {
@@ -360,14 +507,31 @@ public class ETLJob {
         }
     }
 
+    /**
+     * Gets the job type ID.
+     * 
+     * @return the job type ID
+     */
     public int getJobTypeID() {
         return this.JobTypeID;
     }
 
+    /**
+     * Sets the job type ID.
+     * 
+     * @param pJobTypeID the new job type ID
+     */
     public void setJobTypeID(int pJobTypeID) {
         this.JobTypeID = pJobTypeID;
     }
 
+    /**
+     * Instantiates a new ETL job.
+     * 
+     * @param pjsStatus the pjs status
+     * 
+     * @throws Exception the exception
+     */
     public ETLJob(ETLJobStatus pjsStatus) throws Exception {
         this();
         this.jsStatus = pjsStatus;
@@ -393,6 +557,7 @@ public class ETLJob {
      * Insert the method's description here. Creation date: (5/8/2002 3:32:26 PM)
      * 
      * @param resolveConstants TODO
+     * 
      * @return java.lang.String
      */
     public Object getAction(boolean resolveConstants) {
@@ -409,6 +574,13 @@ public class ETLJob {
         return this.moAction;
     }
 
+    /**
+     * Gets the internal constants.
+     * 
+     * @param strAction the str action
+     * 
+     * @return the internal constants
+     */
     public String getInternalConstants(String strAction) {
         for (String element : EngineConstants.PARAMETER_LOAD_ID) {
             strAction = EngineConstants.replaceParameter(strAction, element, new Integer(this.getLoadID()).toString());
@@ -486,8 +658,9 @@ public class ETLJob {
      * This method returns the top level parameters in a given list by name. NOTE: This will NOT return any lower level
      * parameters. To obtain these, you must retrieve the sub parameter list. Creation date: (5/8/2002 4:31:46 PM)
      * 
+     * @param oName the o name
+     * 
      * @return java.lang.Object
-     * @param oKey java.lang.Object
      */
     public Object getGlobalParameter(Object oName) {
         return this.getParameterValue(this.msGlobalParameterListName, (String) oName, null);
@@ -523,8 +696,14 @@ public class ETLJob {
         return this.jsStatus;
     }
 
+    /** The b cancel successfull. */
     private boolean bCancelSuccessfull = false;
 
+    /**
+     * Cancel successfull.
+     * 
+     * @param arg0 the arg0
+     */
     public void cancelSuccessfull(boolean arg0) {
         this.bCancelSuccessfull = arg0;
     }
@@ -563,6 +742,11 @@ public class ETLJob {
         return false;
     }
 
+    /**
+     * Checks if is successful.
+     * 
+     * @return true, if is successful
+     */
     public synchronized boolean isSuccessful() {
         switch (this.jsStatus.getStatusCode()) {
         case ETLJobStatus.SUCCESSFUL:
@@ -576,7 +760,8 @@ public class ETLJob {
     /**
      * Insert the method's description here. Creation date: (5/8/2002 3:32:26 PM)
      * 
-     * @param newAction java.lang.String
+     * @param oAction the o action
+     * 
      * @throws Exception TODO
      */
     public void setAction(Object oAction) throws Exception {
@@ -588,6 +773,10 @@ public class ETLJob {
      * previous cancellation request will not be removed. It all depends on whether the worker thread will see this flag
      * before completion. Returns: true if successful in changing the flag, false otherwise (if already set as
      * requested, or if in invalid status)
+     * 
+     * @param bCancel the b cancel
+     * 
+     * @return true, if set cancel job
      */
     public boolean setCancelJob(boolean bCancel) {
         // Cannot change the cancel flag if we're already completed...
@@ -691,13 +880,17 @@ public class ETLJob {
     }
 
     /**
-     * @return
+     * Gets the creation date.
+     * 
+     * @return the creation date
      */
     public java.util.Date getCreationDate() {
         return this.mdCreationDate;
     }
 
     /**
+     * Gets the project ID.
+     * 
      * @return Returns the projectID.
      */
     public int getProjectID() {
@@ -705,6 +898,8 @@ public class ETLJob {
     }
 
     /**
+     * Sets the project ID.
+     * 
      * @param projectID The projectID to set.
      */
     public void setProjectID(int projectID) {
@@ -712,6 +907,8 @@ public class ETLJob {
     }
 
     /**
+     * Gets the global parameter list ID.
+     * 
      * @return Returns the parameterListID.
      */
     public int getGlobalParameterListID() {
@@ -719,6 +916,8 @@ public class ETLJob {
     }
 
     /**
+     * Sets the global parameter list ID.
+     * 
      * @param parameterListID The parameterListID to set.
      */
     public void setGlobalParameterListID(int parameterListID) {
@@ -727,6 +926,12 @@ public class ETLJob {
         this.setGlobalParameterListName(null, this.msGlobalParameterListName);
     }
 
+    /**
+     * Sets the global parameter list name.
+     * 
+     * @param node the node
+     * @param parameterList the parameter list
+     */
     public void setGlobalParameterListName(Node node, String parameterList) {
 
         if (parameterList == null)
@@ -756,6 +961,8 @@ public class ETLJob {
     }
 
     /**
+     * Checks if is alerting disabled.
+     * 
      * @return Returns the disableAlerting.
      */
     public boolean isAlertingDisabled() {
@@ -763,12 +970,23 @@ public class ETLJob {
     }
 
     /**
+     * Sets the disable alerting.
+     * 
      * @param disableAlerting The disableAlerting to set.
      */
     public void setDisableAlerting(boolean disableAlerting) {
         this.DisableAlerting = disableAlerting;
     }
 
+    /**
+     * Gets the parameter value.
+     * 
+     * @param parameterListName the parameter list name
+     * @param parameterName the parameter name
+     * @param defaultValue the default value
+     * 
+     * @return the parameter value
+     */
     public String getParameterValue(String parameterListName, String parameterName, String defaultValue) {
         ArrayList res = (ArrayList) this.mTagLevelParameterListCache.get(parameterListName);
 
@@ -802,18 +1020,46 @@ public class ETLJob {
 
     }
 
+    /** The m counters. */
     private HashMap mCounters = new HashMap();
+    
+    /** The m logs. */
     private HashMap mLogs = new HashMap();
+    
+    /** The m logger failed. */
     private boolean mLoggerFailed = false;
+    
+    /** The mo dump. */
     private OutputStream moDump;
+    
+    /** The m dump file. */
     private String mDumpFile;
+    
+    /** The mo dump buffer. */
     private BufferedOutputStream moDumpBuffer;
+    
+    /** The m dump writer. */
     private PrintWriter mDumpWriter;
 
+    /**
+     * Gets the error counter.
+     * 
+     * @param name2 the name2
+     * 
+     * @return the error counter
+     */
     final public synchronized SharedCounter getErrorCounter(String name2) {
         return this.getCounter("{${ERR}" + name2);
     }
 
+    /**
+     * Gets the counter.
+     * 
+     * @param pName the name
+     * @param pClass the class
+     * 
+     * @return the counter
+     */
     final public synchronized SharedCounter getCounter(String pName, Class pClass) {
 
         SharedCounter res = (SharedCounter) this.mCounters.get(pName);
@@ -833,10 +1079,20 @@ public class ETLJob {
 
     }
 
+    /**
+     * Gets the counter.
+     * 
+     * @param name2 the name2
+     * 
+     * @return the counter
+     */
     final public SharedCounter getCounter(String name2) {
         return this.getCounter(name2, Integer.class);
     }
 
+    /**
+     * Write log.
+     */
     public void writeLog() {
         if (this.mLoggerFailed == false && this.moDump != null) {
             try {
@@ -853,6 +1109,11 @@ public class ETLJob {
         }
     }
 
+    /**
+     * Flush log.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     private void flushLog() throws IOException {
         if (this.moDump != null) {
             this.mDumpWriter.flush();
@@ -861,6 +1122,9 @@ public class ETLJob {
         }
     }
 
+    /**
+     * Close log.
+     */
     private void closeLog() {
         if (this.mLoggerFailed == false && this.moDump != null) {
             try {
@@ -886,11 +1150,23 @@ public class ETLJob {
         }
     }
 
+    /**
+     * Gets the dump file.
+     * 
+     * @return the dump file
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public String getDumpFile() throws IOException {
         this.flushLog();
         return this.mDumpFile;
     }
 
+    /**
+     * Log job message.
+     * 
+     * @param obj the obj
+     */
     public void logJobMessage(Object obj) {
         if (this.mLoggerFailed)
             return;
@@ -916,6 +1192,11 @@ public class ETLJob {
 
     }
 
+    /**
+     * Gets the logging path.
+     * 
+     * @return the logging path
+     */
     public String getLoggingPath() {
         String rootPath = EngineConstants.BAD_RECORD_PATH;
 
@@ -931,6 +1212,13 @@ public class ETLJob {
         return rootPath;
     }
 
+    /**
+     * Gets the log.
+     * 
+     * @param name2 the name2
+     * 
+     * @return the log
+     */
     final public synchronized ArrayList getLog(String name2) {
         ArrayList res = (ArrayList) this.mLogs.get(name2);
 
@@ -941,10 +1229,20 @@ public class ETLJob {
         return res;
     }
 
+    /**
+     * Checks if is killed.
+     * 
+     * @return true, if is killed
+     */
     final public boolean isKilled() {
         return false;
     }
 
+    /**
+     * Checks if is paused.
+     * 
+     * @return true, if is paused
+     */
     final public boolean isPaused() {
         return false;
     }

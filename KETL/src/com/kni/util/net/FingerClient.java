@@ -104,7 +104,7 @@ public class FingerClient extends SocketClient
      ***/
     public FingerClient()
     {
-        setDefaultPort(DEFAULT_PORT);
+        this.setDefaultPort(FingerClient.DEFAULT_PORT);
     }
 
 
@@ -121,19 +121,19 @@ public class FingerClient extends SocketClient
     public String query(boolean longOutput, String username) throws IOException
     {
         int read;
-        StringBuffer result = new StringBuffer(__buffer.length);
+        StringBuffer result = new StringBuffer(this.__buffer.length);
         BufferedReader input;
 
         input =
-            new BufferedReader(new InputStreamReader(getInputStream(longOutput,
+            new BufferedReader(new InputStreamReader(this.getInputStream(longOutput,
                                username)));
 
         while (true)
         {
-            read = input.read(__buffer, 0, __buffer.length);
+            read = input.read(this.__buffer, 0, this.__buffer.length);
             if (read <= 0)
                 break;
-            result.append(__buffer, 0, read);
+            result.append(this.__buffer, 0, read);
         }
 
         input.close();
@@ -154,7 +154,7 @@ public class FingerClient extends SocketClient
      ***/
     public String query(boolean longOutput) throws IOException
     {
-        return query(longOutput, "");
+        return this.query(longOutput, "");
     }
 
 
@@ -176,17 +176,17 @@ public class FingerClient extends SocketClient
       
         DataOutputStream output;
 
-        __query.setLength(0);
+        this.__query.setLength(0);
         if (longOutput)
-            __query.append(__LONG_FLAG);
-        __query.append(username);
-        __query.append(SocketClient.NETASCII_EOL);
+            this.__query.append(FingerClient.__LONG_FLAG);
+        this.__query.append(username);
+        this.__query.append(SocketClient.NETASCII_EOL);
 
-        output = new DataOutputStream(_output_);
-        output.writeBytes(__query.toString());
+        output = new DataOutputStream(this._output_);
+        output.writeBytes(this.__query.toString());
         output.flush();
 
-        return _input_;
+        return this._input_;
     }
 
 
@@ -204,7 +204,7 @@ public class FingerClient extends SocketClient
      ***/
     public InputStream getInputStream(boolean longOutput) throws IOException
     {
-        return getInputStream(longOutput, "");
+        return this.getInputStream(longOutput, "");
     }
 
 }

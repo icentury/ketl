@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import java.io.IOException;
@@ -15,6 +33,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+// TODO: Auto-generated Javadoc
 /**
  * Insert the type's description here. Creation date: (4/19/2002 5:47:07 PM)
  * 
@@ -22,41 +41,29 @@ import java.util.Set;
  */
 public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.Serializable {
 
-    /**
-     * The hash table data.
-     */
+    /** The hash table data. */
     private transient Entry[] table;
 
-    /**
-     * The total number of mappings in the hash table.
-     */
+    /** The total number of mappings in the hash table. */
     private transient int count;
 
-    /**
-     * The table is rehashed when its size exceeds this threshold. (The value of this field is (int)(capacity *
-     * loadFactor).)
-     * 
-     * @serial
-     */
+    /** The table is rehashed when its size exceeds this threshold. (The value of this field is (int)(capacity * loadFactor).) */
     private int threshold;
 
-    /**
-     * The load factor for the hashtable.
-     * 
-     * @serial
-     */
+    /** The load factor for the hashtable. */
     private float loadFactor;
 
-    /**
-     * The number of times this HashMap has been structurally modified Structural modifications are those that change
-     * the number of mappings in the HashMap or otherwise modify its internal structure (e.g., rehash). This field is
-     * used to make iterators on Collection-views of the HashMap fail-fast. (See ConcurrentModificationException).
-     */
+    /** The number of times this HashMap has been structurally modified Structural modifications are those that change the number of mappings in the HashMap or otherwise modify its internal structure (e.g., rehash). This field is used to make iterators on Collection-views of the HashMap fail-fast. (See ConcurrentModificationException). */
     private transient int modCount = 0;
 
     // Views
+    /** The key set. */
     private transient Set keySet = null;
+    
+    /** The entry set. */
     private transient Set entrySet = null;
+    
+    /** The values. */
     private transient Collection values = null;
 
     /**
@@ -64,11 +71,26 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      */
     private static class Entry implements Map.Entry {
 
+        /** The hash. */
         int hash;
+        
+        /** The key. */
         Object key;
+        
+        /** The value. */
         Object value;
+        
+        /** The next. */
         Entry next;
 
+        /**
+         * Instantiates a new entry.
+         * 
+         * @param hash the hash
+         * @param key the key
+         * @param value the value
+         * @param next the next
+         */
         Entry(int hash, Object key, Object value, Entry next) {
             this.hash = hash;
             this.key = key;
@@ -76,20 +98,32 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
             this.next = next;
         }
 
+        /* (non-Javadoc)
+         * @see java.lang.Object#clone()
+         */
         @Override
         protected Object clone() {
             return new Entry(this.hash, this.key, this.value, ((this.next == null) ? null : (Entry) this.next.clone()));
         }
 
         // Map.Entry Ops
+        /* (non-Javadoc)
+         * @see java.util.Map$Entry#getKey()
+         */
         public Object getKey() {
             return this.key;
         }
 
+        /* (non-Javadoc)
+         * @see java.util.Map$Entry#getValue()
+         */
         public Object getValue() {
             return this.value;
         }
 
+        /* (non-Javadoc)
+         * @see java.util.Map$Entry#setValue(java.lang.Object)
+         */
         public Object setValue(Object value) {
             Object oldValue = this.value;
             this.value = value;
@@ -97,6 +131,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
             return oldValue;
         }
 
+        /* (non-Javadoc)
+         * @see java.lang.Object#equals(java.lang.Object)
+         */
         @Override
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry)) {
@@ -109,11 +146,17 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
                     && ((this.value == null) ? (e.getValue() == null) : this.value.equals(e.getValue()));
         }
 
+        /* (non-Javadoc)
+         * @see java.lang.Object#hashCode()
+         */
         @Override
         public int hashCode() {
             return this.hash ^ ((this.value == null) ? 0 : this.value.hashCode());
         }
 
+        /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
         @Override
         public String toString() {
             return this.key + "=" + this.value;
@@ -121,28 +164,50 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
     }
 
     // Types of Iterators
+    /** The Constant KEYS. */
     private static final int KEYS = 0;
+    
+    /** The Constant VALUES. */
     private static final int VALUES = 1;
+    
+    /** The Constant ENTRIES. */
     private static final int ENTRIES = 2;
 
+    /**
+     * The Class HashIterator.
+     */
     private class HashIterator implements Iterator {
 
+        /** The table. */
         Entry[] table = KNIHashMap.this.table;
+        
+        /** The index. */
         int index = this.table.length;
+        
+        /** The entry. */
         Entry entry = null;
+        
+        /** The last returned. */
         Entry lastReturned = null;
+        
+        /** The type. */
         int type;
 
-        /**
-         * The modCount value that the iterator believes that the backing List should have. If this expectation is
-         * violated, the iterator has detected concurrent modification.
-         */
+        /** The modCount value that the iterator believes that the backing List should have. If this expectation is violated, the iterator has detected concurrent modification. */
         private int expectedModCount = KNIHashMap.this.modCount;
 
+        /**
+         * Instantiates a new hash iterator.
+         * 
+         * @param type the type
+         */
         HashIterator(int type) {
             this.type = type;
         }
 
+        /* (non-Javadoc)
+         * @see java.util.Iterator#hasNext()
+         */
         public boolean hasNext() {
             while ((this.entry == null) && (this.index > 0))
                 this.entry = this.table[--this.index];
@@ -150,6 +215,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
             return this.entry != null;
         }
 
+        /* (non-Javadoc)
+         * @see java.util.Iterator#next()
+         */
         public Object next() {
             if (KNIHashMap.this.modCount != this.expectedModCount) {
                 throw new ConcurrentModificationException();
@@ -168,6 +236,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
             throw new NoSuchElementException();
         }
 
+        /* (non-Javadoc)
+         * @see java.util.Iterator#remove()
+         */
         public void remove() {
             if (this.lastReturned == null) {
                 throw new IllegalStateException();
@@ -203,6 +274,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
         }
     }
 
+    /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 362498820763181265L;
 
     /**
@@ -216,6 +288,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * Constructs a new, empty map with the specified initial capacity and default load factor, which is <tt>0.75</tt>.
      * 
      * @param initialCapacity the initial capacity of the KNIHashMap.
+     * 
      * @throws IllegalArgumentException if the initial capacity is less than zero.
      */
     public KNIHashMap(int initialCapacity) {
@@ -227,6 +300,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * 
      * @param initialCapacity the initial capacity of the KNIHashMap.
      * @param loadFactor the load factor of the KNIHashMap
+     * 
      * @throws IllegalArgumentException if the initial capacity is less than zero, or if the load factor is nonpositive.
      */
     public KNIHashMap(int initialCapacity, float loadFactor) {
@@ -251,12 +325,19 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * Constructs a new map with the same mappings as the given map. The map is created with a capacity of twice the
      * number of mappings in the given map or 11 (whichever is greater), and a default load factor, which is
      * <tt>0.75</tt>.
+     * 
+     * @param t the t
      */
     public KNIHashMap(Map t) {
         this(Math.max(2 * t.size(), 11), 0.75f);
         this.putAll(t);
     }
 
+    /**
+     * Capacity.
+     * 
+     * @return the int
+     */
     int capacity() {
         return this.table.length;
     }
@@ -305,8 +386,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
     /**
      * Returns <tt>true</tt> if this map contains a mapping for the specified key.
      * 
-     * @return <tt>true</tt> if this map contains a mapping for the specified key.
      * @param key key whose presence in this Map is to be tested.
+     * 
+     * @return <tt>true</tt> if this map contains a mapping for the specified key.
      */
     @Override
     public boolean containsKey(Object key) {
@@ -335,6 +417,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * Returns <tt>true</tt> if this map maps one or more keys to the specified value.
      * 
      * @param value value whose presence in this map is to be tested.
+     * 
      * @return <tt>true</tt> if this map maps one or more keys to the specified value.
      */
     @Override
@@ -368,6 +451,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * operations.
      * 
      * @return a collection view of the mappings contained in this map.
+     * 
      * @see Map.Entry
      */
     @Override
@@ -454,8 +538,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * contains no mapping for the key; it's also possible that the map explicitly maps the key to <tt>null</tt>. The
      * <tt>containsKey</tt> operation may be used to distinguish these two cases.
      * 
-     * @return the value to which this map maps the specified key.
      * @param key key whose associated value is to be returned.
+     * 
+     * @return the value to which this map maps the specified key.
      */
     @Override
     public Object get(Object key) {
@@ -534,6 +619,11 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
         return this.keySet;
     }
 
+    /**
+     * Load factor.
+     * 
+     * @return the float
+     */
     float loadFactor() {
         return this.loadFactor;
     }
@@ -544,9 +634,10 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * 
      * @param key key with which the specified value is to be associated.
      * @param value value to be associated with the specified key.
+     * 
      * @return previous value associated with specified key, or <tt>null</tt> if there was no mapping for key. A
-     *         <tt>null</tt> return can also indicate that the KNIHashMap previously associated <tt>null</tt> with
-     *         the specified key.
+     * <tt>null</tt> return can also indicate that the KNIHashMap previously associated <tt>null</tt> with
+     * the specified key.
      */
     @Override
     public Object put(Object key, Object value) {
@@ -615,6 +706,11 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
 
     /**
      * Reconstitute the <tt>KNIHashMap</tt> instance from a stream (i.e., deserialize it).
+     * 
+     * @param s the s
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
      */
     private void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException {
         // Read in the threshold, loadfactor, and any hidden stuff
@@ -666,9 +762,10 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * Removes the mapping for this key from this map if present.
      * 
      * @param key key whose mapping is to be removed from the map.
+     * 
      * @return previous value associated with specified key, or <tt>null</tt> if there was no mapping for key. A
-     *         <tt>null</tt> return can also indicate that the map previously associated <tt>null</tt> with the
-     *         specified key.
+     * <tt>null</tt> return can also indicate that the map previously associated <tt>null</tt> with the
+     * specified key.
      */
     @Override
     public Object remove(Object key) {
@@ -775,10 +872,14 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
     /**
      * Save the state of the <tt>KNIHashMap</tt> instance to a stream (i.e., serialize it).
      * 
+     * @param s the s
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * 
      * @serialData The <i>capacity</i> of the KNIHashMap (the length of the bucket array) is emitted (int), followed by
-     *             the <i>size</i> of the KNIHashMap (the number of key-value mappings), followed by the key (Object)
-     *             and value (Object) for each key-value mapping represented by the KNIHashMap The key-value mappings
-     *             are emitted in no particular order.
+     * the <i>size</i> of the KNIHashMap (the number of key-value mappings), followed by the key (Object)
+     * and value (Object) for each key-value mapping represented by the KNIHashMap The key-value mappings
+     * are emitted in no particular order.
      */
     private void writeObject(java.io.ObjectOutputStream s) throws IOException {
         // Write out the threshold, loadfactor, and any hidden stuff

@@ -1,3 +1,25 @@
+/*
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
+ */
 package com.kni.etl;
 
 import java.io.StringReader;
@@ -16,6 +38,7 @@ import org.xml.sax.InputSource;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.DBConnection;
 
+// TODO: Auto-generated Javadoc
 /**
  * Insert the type's description here. Creation date: (5/3/2002 6:26:39 PM)
  * 
@@ -24,26 +47,53 @@ import com.kni.etl.ketl.DBConnection;
 public class SQLJob extends ETLJob implements DBConnection {
 
     /**
-     * @throws Exception
+     * The Constructor.
+     * 
+     * @throws Exception the exception
      */
     public SQLJob() throws Exception {
         super();
     }
 
+    /** The Constant AUTOCOMMIT. */
     static final String AUTOCOMMIT = "AUTOCOMMIT"; // defaults to false
+    
+    /** The Constant MAXROWS. */
     static final String MAXROWS = "MAXROWS";
+    
+    /** The m max rows. */
     int mMaxRows = 10000;
+    
+    /** The rs result set. */
     protected java.sql.ResultSet rsResultSet = null;
+    
+    /** The i update count. */
     protected int iUpdateCount = -1;
+    
+    /** The mi database max statements. */
     public int miDatabaseMaxStatements = EngineConstants.MAX_STATEMENTS_PER_CONNECTION;
+    
+    /** The b auto commit. */
     protected boolean bAutoCommit = false;
+    
+    /** The m SQL node. */
     Node mSQLNode;
+    
+    /** The Constant WRITEBACK_PARAMETER. */
     static final String WRITEBACK_PARAMETER = "WRITEBACK_PARAMETER";
 
+    /**
+     * Auto commit.
+     * 
+     * @return true, if successful
+     */
     public boolean autoCommit() {
         return this.bAutoCommit;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ETLJob#setChildNodes(org.w3c.dom.Node)
+     */
     @Override
     protected Node setChildNodes(Node pParentNode) {
         if (this.mSQLNode == null) {
@@ -86,6 +136,8 @@ public class SQLJob extends ETLJob implements DBConnection {
 
     /**
      * Insert the method's description here. Creation date: (5/9/2002 12:06:44 PM)
+     * 
+     * @throws Throwable the throwable
      */
     @Override
     protected void finalize() throws Throwable {
@@ -114,10 +166,20 @@ public class SQLJob extends ETLJob implements DBConnection {
         return this.miDatabaseMaxStatements;
     }
 
+    /**
+     * Gets the max rows.
+     * 
+     * @return the max rows
+     */
     public int getMaxRows() {
         return this.mMaxRows;
     }
 
+    /**
+     * Sets the max rows.
+     * 
+     * @param pMaxRows the new max rows
+     */
     public void setMaxRows(int pMaxRows) {
         this.mMaxRows = pMaxRows;
     }
@@ -171,15 +233,21 @@ public class SQLJob extends ETLJob implements DBConnection {
      * Insert the method's description here. Creation date: (5/4/2002 4:46:12 PM)
      * 
      * @return java.lang.String
+     * 
+     * @throws Exception the exception
      */
     public java.lang.String getSQL() throws Exception {
         return this.resolveParameters((String) this.getAction(true));
     }
 
     /**
-     * @param pText
-     * @return
-     * @throws Exception
+     * Resolve parameters.
+     * 
+     * @param pText the text
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
      */
     public String resolveParameters(String pText) throws Exception {
         String[] strParms = EngineConstants.getParametersFromText(pText);
@@ -210,7 +278,7 @@ public class SQLJob extends ETLJob implements DBConnection {
     /**
      * Insert the method's description here. Creation date: (5/4/2002 5:56:56 PM)
      * 
-     * @param newDriverClass java.lang.String
+     * @param newDatabaseDriverClass the new database driver class
      */
     public void setDatabaseDriverClass(java.lang.String newDatabaseDriverClass) {
         this.setGlobalParameter(DBConnection.DRIVER_ATTRIB, newDatabaseDriverClass);
@@ -219,7 +287,7 @@ public class SQLJob extends ETLJob implements DBConnection {
     /**
      * Insert the method's description here. Creation date: (2002.06.24 2:55:30 PM)
      * 
-     * @param newMaxStatements int
+     * @param newDatabaseMaxStatements the new database max statements
      */
     public void setDatabaseMaxStatements(int newDatabaseMaxStatements) {
         this.miDatabaseMaxStatements = newDatabaseMaxStatements;
@@ -265,6 +333,8 @@ public class SQLJob extends ETLJob implements DBConnection {
      * Insert the method's description here. Creation date: (5/4/2002 4:46:12 PM)
      * 
      * @param newSQL java.lang.String
+     * 
+     * @throws Exception the exception
      */
     public void setSQL(String newSQL) throws Exception {
         this.setAction(newSQL);
@@ -343,6 +413,9 @@ public class SQLJob extends ETLJob implements DBConnection {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.DBConnection#getConnection()
+     */
     public Connection getConnection() throws SQLException, ClassNotFoundException {
         return ResourcePool.getConnection(this.getDatabaseDriverClass(), this.getDatabaseURL(), this.getDatabaseUser(),
                 this.getDatabasePassword(), this.getPreSQL(), true);

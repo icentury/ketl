@@ -1,3 +1,25 @@
+/*
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
+ */
 package com.kni.etl.util;
 
 import java.io.File;
@@ -14,16 +36,42 @@ import com.kni.etl.ETLJob;
 import com.kni.etl.dbutils.ResourcePool;
 import com.sun.tools.javac.Main;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ClassFromCode.
+ */
 public class ClassFromCode {
 
+    /**
+     * The Class NetworkClassLoader.
+     */
     static class NetworkClassLoader extends ClassLoader {
 
+        /**
+         * Gets the class.
+         * 
+         * @param pFileName the file name
+         * @param pClassName the class name
+         * 
+         * @return the class
+         * 
+         * @throws IOException Signals that an I/O exception has occurred.
+         */
         public Class getClass(String pFileName, String pClassName) throws IOException {
             byte[] b = this.loadClassData(pFileName);
 
             return this.defineClass(pClassName, b, 0, b.length);
         }
 
+        /**
+         * Load class data.
+         * 
+         * @param pFileName the file name
+         * 
+         * @return the byte[]
+         * 
+         * @throws IOException Signals that an I/O exception has occurred.
+         */
         private byte[] loadClassData(String pFileName) throws IOException {
             // load the class data from the connection
             File javafile = new File(pFileName);
@@ -47,8 +95,23 @@ public class ClassFromCode {
         }
     }
 
+    /** The rebuild class. */
     static boolean rebuildClass = true;
 
+    /**
+     * Gets the dynamic class.
+     * 
+     * @param ejCurrentJob the ej current job
+     * @param classCode the class code
+     * @param className the class name
+     * @param reuseExisting the reuse existing
+     * @param forceCompilation the force compilation
+     * 
+     * @return the dynamic class
+     * 
+     * @throws ClassCompileException the class compile exception
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public static Class getDynamicClass(ETLJob ejCurrentJob, String classCode, String className, boolean reuseExisting,
             boolean forceCompilation) throws ClassCompileException, IOException {
 
@@ -162,6 +225,17 @@ public class ClassFromCode {
         return null;
     }
 
+    /**
+     * Gets the class.
+     * 
+     * @param className the class name
+     * @param classCode the class code
+     * 
+     * @return the class
+     * 
+     * @throws ClassCompileException the class compile exception
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     static public Class getClass(String className, String classCode) throws ClassCompileException, IOException {
 
         String tempdir = System.getProperty("java.io.tmpdir");

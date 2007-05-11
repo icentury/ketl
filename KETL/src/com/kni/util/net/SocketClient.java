@@ -126,13 +126,13 @@ public abstract class SocketClient
      */
     public SocketClient()
     {
-        _socket_ = null;
-        _input_ = null;
-        _output_ = null;
-        _timeout_ = 0;
-        _defaultPort_ = 0;
-        _isConnected_ = false;
-        _socketFactory_ = __DEFAULT_SOCKET_FACTORY;
+        this._socket_ = null;
+        this._input_ = null;
+        this._output_ = null;
+        this._timeout_ = 0;
+        this._defaultPort_ = 0;
+        this._isConnected_ = false;
+        this._socketFactory_ = SocketClient.__DEFAULT_SOCKET_FACTORY;
     }
 
 
@@ -154,10 +154,10 @@ public abstract class SocketClient
      */
     protected void _connectAction_() throws IOException
     {
-        _socket_.setSoTimeout(_timeout_);
-        _input_ = _socket_.getInputStream();
-        _output_ = _socket_.getOutputStream();
-        _isConnected_ = true;
+        this._socket_.setSoTimeout(this._timeout_);
+        this._input_ = this._socket_.getInputStream();
+        this._output_ = this._socket_.getOutputStream();
+        this._isConnected_ = true;
     }
 
 
@@ -177,8 +177,8 @@ public abstract class SocketClient
     public void connect(InetAddress host, int port)
     throws SocketException, IOException
     {
-        _socket_ = _socketFactory_.createSocket(host, port);
-        _connectAction_();
+        this._socket_ = this._socketFactory_.createSocket(host, port);
+        this._connectAction_();
     }
 
     /**
@@ -198,8 +198,8 @@ public abstract class SocketClient
     public void connect(String hostname, int port)
     throws SocketException, IOException
     {
-        _socket_ = _socketFactory_.createSocket(hostname, port);
-        _connectAction_();
+        this._socket_ = this._socketFactory_.createSocket(hostname, port);
+        this._connectAction_();
     }
 
 
@@ -222,8 +222,8 @@ public abstract class SocketClient
                         InetAddress localAddr, int localPort)
     throws SocketException, IOException
     {
-        _socket_ = _socketFactory_.createSocket(host, port, localAddr, localPort);
-        _connectAction_();
+        this._socket_ = this._socketFactory_.createSocket(host, port, localAddr, localPort);
+        this._connectAction_();
     }
 
 
@@ -247,9 +247,9 @@ public abstract class SocketClient
                         InetAddress localAddr, int localPort)
     throws SocketException, IOException
     {
-        _socket_ =
-            _socketFactory_.createSocket(hostname, port, localAddr, localPort);
-        _connectAction_();
+        this._socket_ =
+            this._socketFactory_.createSocket(hostname, port, localAddr, localPort);
+        this._connectAction_();
     }
 
 
@@ -267,7 +267,7 @@ public abstract class SocketClient
      */
     public void connect(InetAddress host) throws SocketException, IOException
     {
-        connect(host, _defaultPort_);
+        this.connect(host, this._defaultPort_);
     }
 
 
@@ -286,7 +286,7 @@ public abstract class SocketClient
      */
     public void connect(String hostname) throws SocketException, IOException
     {
-        connect(hostname, _defaultPort_);
+        this.connect(hostname, this._defaultPort_);
     }
 
 
@@ -302,13 +302,13 @@ public abstract class SocketClient
      */
     public void disconnect() throws IOException
     {
-        _socket_.close();
-        _input_.close();
-        _output_.close();
-        _socket_ = null;
-        _input_ = null;
-        _output_ = null;
-        _isConnected_ = false;
+        this._socket_.close();
+        this._input_.close();
+        this._output_.close();
+        this._socket_ = null;
+        this._input_ = null;
+        this._output_ = null;
+        this._isConnected_ = false;
     }
 
 
@@ -320,7 +320,7 @@ public abstract class SocketClient
      */
     public boolean isConnected()
     {
-        return _isConnected_;
+        return this._isConnected_;
     }
 
 
@@ -334,7 +334,7 @@ public abstract class SocketClient
      */
     public void setDefaultPort(int port)
     {
-        _defaultPort_ = port;
+        this._defaultPort_ = port;
     }
 
     /**
@@ -345,7 +345,7 @@ public abstract class SocketClient
      */
     public int getDefaultPort()
     {
-        return _defaultPort_;
+        return this._defaultPort_;
     }
 
 
@@ -362,7 +362,7 @@ public abstract class SocketClient
      */
     public void setDefaultTimeout(int timeout)
     {
-        _timeout_ = timeout;
+        this._timeout_ = timeout;
     }
 
 
@@ -375,7 +375,7 @@ public abstract class SocketClient
      */
     public int getDefaultTimeout()
     {
-        return _timeout_;
+        return this._timeout_;
     }
 
 
@@ -390,7 +390,7 @@ public abstract class SocketClient
      */
     public void setSoTimeout(int timeout) throws SocketException
     {
-        _socket_.setSoTimeout(timeout);
+        this._socket_.setSoTimeout(timeout);
     }
 
 
@@ -402,7 +402,7 @@ public abstract class SocketClient
      */
     public int getSoTimeout() throws SocketException
     {
-        return _socket_.getSoTimeout();
+        return this._socket_.getSoTimeout();
     }
 
     /**
@@ -414,7 +414,7 @@ public abstract class SocketClient
      */
     public void setTcpNoDelay(boolean on) throws SocketException
     {
-        _socket_.setTcpNoDelay(on);
+        this._socket_.setTcpNoDelay(on);
     }
 
 
@@ -428,7 +428,7 @@ public abstract class SocketClient
      */
     public boolean getTcpNoDelay() throws SocketException
     {
-        return _socket_.getTcpNoDelay();
+        return this._socket_.getTcpNoDelay();
     }
 
 
@@ -441,7 +441,7 @@ public abstract class SocketClient
      */
     public void setSoLinger(boolean on, int val) throws SocketException
     {
-        _socket_.setSoLinger(on, val);
+        this._socket_.setSoLinger(on, val);
     }
 
 
@@ -454,7 +454,7 @@ public abstract class SocketClient
      */
     public int getSoLinger() throws SocketException
     {
-        return _socket_.getSoLinger();
+        return this._socket_.getSoLinger();
     }
 
 
@@ -467,7 +467,7 @@ public abstract class SocketClient
      */
     public int getLocalPort()
     {
-        return _socket_.getLocalPort();
+        return this._socket_.getLocalPort();
     }
 
 
@@ -478,7 +478,7 @@ public abstract class SocketClient
      */
     public InetAddress getLocalAddress()
     {
-        return _socket_.getLocalAddress();
+        return this._socket_.getLocalAddress();
     }
 
     /**
@@ -490,7 +490,7 @@ public abstract class SocketClient
      */
     public int getRemotePort()
     {
-        return _socket_.getPort();
+        return this._socket_.getPort();
     }
 
 
@@ -499,7 +499,7 @@ public abstract class SocketClient
      */
     public InetAddress getRemoteAddress()
     {
-        return _socket_.getInetAddress();
+        return this._socket_.getInetAddress();
     }
 
 
@@ -517,7 +517,7 @@ public abstract class SocketClient
         InetAddress host1, host2;
 
         host1 = socket.getInetAddress();
-        host2 = getRemoteAddress();
+        host2 = this.getRemoteAddress();
 
         return host1.equals(host2);
     }
@@ -534,9 +534,9 @@ public abstract class SocketClient
     public void setSocketFactory(SocketFactory factory)
     {
         if (factory == null)
-            _socketFactory_ = __DEFAULT_SOCKET_FACTORY;
+            this._socketFactory_ = SocketClient.__DEFAULT_SOCKET_FACTORY;
         else
-            _socketFactory_ = factory;
+            this._socketFactory_ = factory;
     }
 }
 

@@ -1,3 +1,25 @@
+/*
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
+ */
 package com.kni.etl.ketl.dbutils.oracle;
 
 import java.io.File;
@@ -22,21 +44,61 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.dbutils.StatementWrapper;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SQLLoaderStatementWrapper.
+ */
 final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper {
 
+    /** The con. */
     Connection con;
+    
+    /** The helper. */
     JDBCItemHelper helper;
+    
+    /** The m load statement. */
     String mLoadStatement;
+    
+    /** The m columns. */
     int mColumns;
+    
+    /** The m column details. */
     DatabaseColumnDefinition[] mColumnDetails;
+    
+    /** The m control file. */
     private String mControlFile;
+    
+    /** The m DB case. */
     private int mDBCase;
+    
+    /** The sql time formatter. */
     private SimpleDateFormat sqlTimeFormatter;
+    
+    /** The sql timestamp formatter. */
     private SimpleDateFormat sqlTimestampFormatter;
+    
+    /** The sql date formatter. */
     private SimpleDateFormat sqlDateFormatter;
+    
+    /** The m datum true SQL timestamp. */
     private boolean[] mDatumTrueSQLTimestamp;
+    
+    /** The Constant DEL_LENGTH. */
     private static final int DEL_LENGTH = "|".getBytes().length;
 
+    /**
+     * Instantiates a new SQL loader statement wrapper.
+     * 
+     * @param connection the connection
+     * @param pTableName the table name
+     * @param loadStatement the load statement
+     * @param madcdColumns the madcd columns
+     * @param helper the helper
+     * @param pipe the pipe
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws SQLException the SQL exception
+     */
     public SQLLoaderStatementWrapper(Connection connection, String pTableName, String loadStatement,
             DatabaseColumnDefinition[] madcdColumns, JDBCItemHelper helper, boolean pipe) throws IOException,
             SQLException {
@@ -181,6 +243,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, this.mLoadStatement);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#close()
+     */
     @Override
     final public void close() throws SQLException {
         super.close();
@@ -189,6 +254,20 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         fl.delete();
     }
 
+    /**
+     * Prepare statement.
+     * 
+     * @param mcDBConnection the mc DB connection
+     * @param pTableName the table name
+     * @param loadStatement the load statement
+     * @param madcdColumns the madcd columns
+     * @param helper the helper
+     * @param pipe the pipe
+     * 
+     * @return the statement wrapper
+     * 
+     * @throws SQLException the SQL exception
+     */
     public static StatementWrapper prepareStatement(Connection mcDBConnection, String pTableName, String loadStatement,
             DatabaseColumnDefinition[] madcdColumns, JDBCItemHelper helper, boolean pipe) throws SQLException {
         try {
@@ -198,34 +277,72 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         }
     }
 
+    /** The Constant mDelimiter. */
     private final static String mDelimiter = "|";
+    
+    /** The Constant mNull. */
     private final static byte[] mNull = "".getBytes();
+    
+    /** The date formatter. */
     private DateFormat dateFormatter;
+    
+    /** The date time format. */
     private String dateTimeFormat = "yyyyMMddHHmmss";
+    
+    /** The sql time format. */
     private String sqlTimeFormat = "HHmmss";
+    
+    /** The sql timestamp format. */
     private String sqlTimestampFormat = "yyyyMMddHHmmss";
 
+    /** The ORACL e_ DAT e_ FORMAT. */
     public String ORACLE_DATE_FORMAT = "YYYYMMDDHH24MISS";
+    
+    /** The ORACL e_ TIM e_ FORMAT. */
     public String ORACLE_TIME_FORMAT = "HH24MISS";
+    
+    /** The ORACL e_ TIMESTAM p_ FORMAT. */
     public String ORACLE_TIMESTAMP_FORMAT = "YYYYMMDDHH24MISSFF9";
+    
+    /** The double formatter. */
     private NumberFormat doubleFormatter;
+    
+    /** The m datums. */
     private byte[][] mDatums;
+    
+    /** The m datum pad length. */
     private int[] mDatumPadLength;
+    
+    /** The m datum needs delimiter. */
     private boolean[] mDatumNeedsDelimiter;
     // private FileOutputStream mTarget = null;
 
+    /** The Constant EX_SUCC. */
     private static final int EX_SUCC = 0;
+    
+    /** The Constant EX_WARN. */
     private static final int EX_WARN = 2;
+    
+    /** The record len size. */
     private int recordLen = 0, recordLenSize = 7;
 
+    /** The Constant TRUE. */
     private final static byte[] TRUE = "1".getBytes();
+    
+    /** The Constant FALSE. */
     private final static byte[] FALSE = "0".getBytes();
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setBoolean(int, boolean)
+     */
     @Override
     public void setBoolean(int pos, boolean arg0) {
         this.setObject(pos, arg0 ? SQLLoaderStatementWrapper.TRUE : SQLLoaderStatementWrapper.FALSE);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setByteArrayValue(int, byte[])
+     */
     @Override
     public void setByteArrayValue(int pos, byte[] arg0) {
         String sLen = Integer.toString(arg0.length);
@@ -239,31 +356,49 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, z);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setFloat(int, java.lang.Float)
+     */
     @Override
     public void setFloat(int pos, Float arg0) {
         this.setObject(pos, SQLLoaderStatementWrapper.packF4(arg0));
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setInt(int, java.lang.Integer)
+     */
     @Override
     public void setInt(int pos, Integer arg0) {
         this.setObject(pos, SQLLoaderStatementWrapper.pack4(arg0));
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setLong(int, java.lang.Long)
+     */
     @Override
     public void setLong(int pos, Long arg0) {
         this.setObject(pos, SQLLoaderStatementWrapper.pack8(arg0));
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setShort(int, java.lang.Short)
+     */
     @Override
     public void setShort(int pos, Short arg0) {
         this.setObject(pos, SQLLoaderStatementWrapper.pack2(arg0));
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setDouble(int, java.lang.Double)
+     */
     @Override
     public void setDouble(int pos, Double arg0) {
         this.setObject(pos, SQLLoaderStatementWrapper.packF8(arg0));
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setNull(int, int)
+     */
     @Override
     public void setNull(int pos, int dataType) {
         switch (dataType) {
@@ -280,6 +415,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setObject(int, byte[])
+     */
     @Override
     public void setObject(int pos, byte[] arg0) {
 
@@ -288,6 +426,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setString(int, java.lang.String)
+     */
     @Override
     public void setString(int pos, String arg0) {
 
@@ -296,17 +437,26 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setTimestamp(int, java.util.Date)
+     */
     @Override
     public void setTimestamp(int pos, Date arg0) {
         this.setObject(pos, this.dateFormatter.format(arg0).getBytes());
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setSQLDate(int, java.sql.Date)
+     */
     @Override
     public void setSQLDate(int pos, java.sql.Date arg0) {
 
         this.setObject(pos, this.sqlDateFormatter.format(arg0).getBytes());
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setSQLTimestamp(int, java.sql.Timestamp)
+     */
     @Override
     public void setSQLTimestamp(int pos, java.sql.Timestamp arg0) {
 
@@ -336,18 +486,39 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, data.getBytes());
     }
 
+    /**
+     * Pack2.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
     public static byte[] pack2(Short val) {
         if (val == null)
             return new byte[] { 0, 0, 0 };
         return new byte[] { (byte) (val >> 8), (byte) val.shortValue(), 1 };
     }
 
+    /**
+     * Pack4.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
     public static byte[] pack4(Integer val) {
         if (val == null)
             return new byte[] { 0, 0, 0, 0, 0, 0 };
         return new byte[] { (byte) (val >> 24), (byte) (val >> 16), (byte) (val >> 8), (byte) val.intValue(), 1 };
     }
 
+    /**
+     * Pack8.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
     public static byte[] pack8(Long val) {
         if (val == null)
             return new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -355,16 +526,42 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
                 (byte) (val >> 24), (byte) (val >> 16), (byte) (val >> 8), (byte) val.longValue(), 1 };
     }
 
+    /**
+     * Pack f4.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
     public static byte[] packF4(Float val) {
         return SQLLoaderStatementWrapper.pack4(val == null ? null : Float.floatToIntBits(val));
     }
 
+    /**
+     * Pack f8.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
     public static byte[] packF8(Double val) {
         return SQLLoaderStatementWrapper.pack8(val == null ? null : Double.doubleToLongBits(val));
     }
 
+    /** The tmp pad buffer. */
     StringBuffer tmpPadBuffer = new StringBuffer();
 
+    /**
+     * Pad.
+     * 
+     * @param word the word
+     * @param len the len
+     * @param padChar the pad char
+     * 
+     * @return the string
+     * 
+     * @throws Error the error
+     */
     private String pad(String word, int len, char padChar) throws Error {
         int wordLen = word.length();
 
@@ -385,11 +582,17 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         return this.tmpPadBuffer.toString();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setSQLTime(int, java.sql.Time)
+     */
     @Override
     public void setSQLTime(int pos, java.sql.Time arg0) {
         this.setObject(pos, this.sqlTimeFormatter.format(arg0).getBytes());
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#handleLoaderStatus(int, java.lang.Thread)
+     */
     @Override
     protected SQLException handleLoaderStatus(int finalStatus, Thread thread) throws InterruptedException {
         switch (finalStatus) {
@@ -416,6 +619,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#writeRecord()
+     */
     @Override
     protected void writeRecord() throws IOException, Error {
         this.mWriter.write(this.pad(Integer.toString(this.recordLen), this.recordLenSize, '0').getBytes());
@@ -430,6 +636,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#getLoadStatement()
+     */
     @Override
     protected String getLoadStatement() {
         return this.mLoadStatement;

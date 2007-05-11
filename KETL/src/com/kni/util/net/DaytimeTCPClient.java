@@ -88,7 +88,7 @@ public final class DaytimeTCPClient extends SocketClient
      ***/
     public DaytimeTCPClient ()
     {
-        setDefaultPort(DEFAULT_PORT);
+        this.setDefaultPort(DaytimeTCPClient.DEFAULT_PORT);
     }
 
     /***
@@ -107,17 +107,17 @@ public final class DaytimeTCPClient extends SocketClient
     public String getTime() throws IOException
     {
         int read;
-        StringBuffer result = new StringBuffer(__buffer.length);
+        StringBuffer result = new StringBuffer(this.__buffer.length);
         BufferedReader reader;
 
-        reader = new BufferedReader(new InputStreamReader(_input_));
+        reader = new BufferedReader(new InputStreamReader(this._input_));
 
         while (true)
         {
-            read = reader.read(__buffer, 0, __buffer.length);
+            read = reader.read(this.__buffer, 0, this.__buffer.length);
             if (read <= 0)
                 break;
-            result.append(__buffer, 0, read);
+            result.append(this.__buffer, 0, read);
         }
 
         return result.toString();

@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 /*
  * Created on Mar 17, 2003
  *
@@ -26,42 +44,72 @@ import com.kni.etl.stringtools.FastSimpleDateFormat;
 import com.kni.etl.util.DateAdd;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class SequenceGenerator.
+ * 
  * @author nwakefield Creation Date: Mar 17, 2003
  */
 public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 
+    /**
+     * Instantiates a new sequence generator.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public SequenceGenerator(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
+    /** The Constant DATATYPE. */
     public static final String DATATYPE = "DATATYPE";
+    
+    /** The Constant VALUES. */
     public static final String VALUES = "VALUES";
+    
+    /** The m value counter. */
     int mValueCounter = 0;
+    
+    /** The m values requested. */
     int mValuesRequested;
 
+    /**
+     * The Class SequenceOutPort.
+     */
     class SequenceOutPort extends ETLOutPort {
 
+        /** The counter. */
         Counter counter = null;
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#containsCode()
+         */
         @Override
         public boolean containsCode() throws KETLThreadException {
             return true;
         }
         
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
+         */
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             int res = super.initialize(xmlConfig);
             if (res != 0)
                 return res;
 
-            counter = new Counter();
+            this.counter = new Counter();
 
             int type = DataItemHelper.getDataTypeIDbyName(XMLHelper.getAttributeAsString(this.getXMLConfig()
-                    .getAttributes(), DATATYPE, "STRING"));
+                    .getAttributes(), SequenceGenerator.DATATYPE, "STRING"));
 
-            counter.type = type;
+            this.counter.type = type;
 
             String startValue = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "STARTVALUE", null);
             String incrementValue = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "INCREMENT",
@@ -70,16 +118,16 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
             case DataItemHelper.STRING:
                 throw new KETLThreadException("String not supported for sequence generator", this);
             case DataItemHelper.INTEGER:
-                counter.mItem = startValue == null ? 0 : Integer.parseInt(startValue);
-                counter.mIncrement = incrementValue == null ? 1 : Integer.parseInt(incrementValue);
+                this.counter.mItem = startValue == null ? 0 : Integer.parseInt(startValue);
+                this.counter.mIncrement = incrementValue == null ? 1 : Integer.parseInt(incrementValue);
                 break;
             case DataItemHelper.LONG:
-                counter.mItem = startValue == null ? new Long(0) : Long.parseLong(startValue);
-                counter.mIncrement = incrementValue == null ? new Long(1) : Long.parseLong(incrementValue);
+                this.counter.mItem = startValue == null ? new Long(0) : Long.parseLong(startValue);
+                this.counter.mIncrement = incrementValue == null ? new Long(1) : Long.parseLong(incrementValue);
                 break;
             case DataItemHelper.FLOAT:
-                counter.mItem = startValue == null ? new Float(0) : Float.parseFloat(startValue);
-                counter.mIncrement = incrementValue == null ? new Float(1) : Float.parseFloat(incrementValue);
+                this.counter.mItem = startValue == null ? new Float(0) : Float.parseFloat(startValue);
+                this.counter.mIncrement = incrementValue == null ? new Float(1) : Float.parseFloat(incrementValue);
                 break;
             case DataItemHelper.DATE:
                 String fmtStr = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "FORMATSTRING",
@@ -88,20 +136,20 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
                 DateFormat fm = (fmtStr == null ? DateFormat.getTimeInstance(DateFormat.LONG)
                         : new FastSimpleDateFormat(fmtStr));
                 try {
-                    counter.mItem = startValue == null ? new Date() : fm.parse(startValue);
-                    counter.mIncrement = new DateAdd(incrementValue == null ? "1dy" : incrementValue);
+                    this.counter.mItem = startValue == null ? new Date() : fm.parse(startValue);
+                    this.counter.mIncrement = new DateAdd(incrementValue == null ? "1dy" : incrementValue);
                 } catch (Exception e) {
                     throw new KETLThreadException(e, this);
                 }
                 break;
             case DataItemHelper.DOUBLE:
-                counter.mItem = startValue == null ? new Double(0) : Double.parseDouble(startValue);
-                counter.mIncrement = incrementValue == null ? new Double(1) : Double.parseDouble(incrementValue);
+                this.counter.mItem = startValue == null ? new Double(0) : Double.parseDouble(startValue);
+                this.counter.mIncrement = incrementValue == null ? new Double(1) : Double.parseDouble(incrementValue);
 
                 break;
             case DataItemHelper.CHAR:
-                counter.mItem = startValue == null ? new Character('a') : startValue.charAt(0);
-                counter.mIncrement = incrementValue == null ? new Character((char) 1) : startValue.charAt(0);
+                this.counter.mItem = startValue == null ? new Character('a') : startValue.charAt(0);
+                this.counter.mIncrement = incrementValue == null ? new Character((char) 1) : startValue.charAt(0);
 
                 break;
             default:
@@ -111,41 +159,63 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 
             return 0;
         }
+        
+        /**
+         * Instantiates a new sequence out port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public SequenceOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
     }
 
+    /**
+     * The Class Counter.
+     */
     class Counter {
 
+        /** The type. */
         int type;
+        
+        /** The m item. */
         Object mItem;
+        
+        /** The m increment. */
         Object mIncrement;
 
+        /**
+         * Increment.
+         * 
+         * @return the object
+         * 
+         * @throws KETLReadException the KETL read exception
+         */
         Object increment() throws KETLReadException {
-            Object res = mItem;
-            switch (type) {
+            Object res = this.mItem;
+            switch (this.type) {
             case DataItemHelper.INTEGER:
-                mItem = ((Integer) mItem).intValue() + ((Integer) mIncrement).intValue();
+                this.mItem = ((Integer) this.mItem).intValue() + ((Integer) this.mIncrement).intValue();
                 break;
             case DataItemHelper.LONG:
-                mItem = ((Long) mItem).longValue() + ((Long) mIncrement).longValue();
+                this.mItem = ((Long) this.mItem).longValue() + ((Long) this.mIncrement).longValue();
                 break;
             case DataItemHelper.FLOAT:
-                mItem = ((Float) mItem).floatValue() + ((Float) mIncrement).floatValue();
+                this.mItem = ((Float) this.mItem).floatValue() + ((Float) this.mIncrement).floatValue();
 
                 break;
             case DataItemHelper.DATE:
-                mItem = new Date(((Date) mItem).getTime());
-                mItem = ((DateAdd) mIncrement).increment((Date) mItem);
+                this.mItem = new Date(((Date) this.mItem).getTime());
+                this.mItem = ((DateAdd) this.mIncrement).increment((Date) this.mItem);
                 break;
             case DataItemHelper.DOUBLE:
-                mItem = ((Double) mItem).doubleValue() + ((Double) mIncrement).doubleValue();
+                this.mItem = ((Double) this.mItem).doubleValue() + ((Double) this.mIncrement).doubleValue();
 
                 break;
             case DataItemHelper.CHAR:
-                mItem = ((Character) mItem).charValue() + ((Character) mIncrement).charValue();
+                this.mItem = ((Character) this.mItem).charValue() + ((Character) this.mIncrement).charValue();
 
                 break;
             default:
@@ -165,7 +235,7 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
     public int initialize(Node pXmlConfig) throws KETLThreadException {
         int res = super.initialize(pXmlConfig);
 
-        this.mValuesRequested = XMLHelper.getAttributeAsInt(pXmlConfig.getAttributes(), VALUES, -1);
+        this.mValuesRequested = XMLHelper.getAttributeAsInt(pXmlConfig.getAttributes(), SequenceGenerator.VALUES, -1);
 
         if (this.mValuesRequested < 0) {
             throw new KETLThreadException("Values requested is missing or a negative number", this);
@@ -173,10 +243,13 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
         return res;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.DefaultReaderCore#getNextRecord(java.lang.Object[], java.lang.Class[], int)
+     */
     public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes, int pRecordWidth)
             throws KETLReadException {
 
-        if (mValueCounter++ < this.mValuesRequested) {
+        if (this.mValueCounter++ < this.mValuesRequested) {
             for (int i = 0; i < this.mOutPorts.length; i++) {
                 if (this.mOutPorts[i].isUsed()) {
 
@@ -188,15 +261,21 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
             }
         }
         else
-            return COMPLETE;
+            return DefaultReaderCore.COMPLETE;
         return 1;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLOutPort getNewOutPort(ETLStep srcStep) {
         return new SequenceOutPort(this, srcStep);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {        
     }

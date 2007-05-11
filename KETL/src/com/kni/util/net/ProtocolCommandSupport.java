@@ -86,8 +86,8 @@ public class ProtocolCommandSupport implements Serializable
      ***/
     public ProtocolCommandSupport(Object source)
     {
-        __listeners = new ListenerList();
-        __source = source;
+        this.__listeners = new ListenerList();
+        this.__source = source;
     }
 
 
@@ -108,9 +108,9 @@ public class ProtocolCommandSupport implements Serializable
         ProtocolCommandEvent event;
         ProtocolCommandListener listener;
 
-        enumSent = __listeners.getListeners();
+        enumSent = this.__listeners.getListeners();
 
-        event = new ProtocolCommandEvent(__source, command, message);
+        event = new ProtocolCommandEvent(this.__source, command, message);
 
         while (enumSent.hasMoreElements())
         {
@@ -138,9 +138,9 @@ public class ProtocolCommandSupport implements Serializable
         ProtocolCommandEvent event;
         ProtocolCommandListener listener;
 
-        enumReply = __listeners.getListeners();
+        enumReply = this.__listeners.getListeners();
 
-        event = new ProtocolCommandEvent(__source, replyCode, message);
+        event = new ProtocolCommandEvent(this.__source, replyCode, message);
 
         while (enumReply.hasMoreElements())
         {
@@ -156,7 +156,7 @@ public class ProtocolCommandSupport implements Serializable
      ***/
     public void addProtocolCommandListener(ProtocolCommandListener listener)
     {
-        __listeners.addListener(listener);
+        this.__listeners.addListener(listener);
     }
 
     /***
@@ -166,7 +166,7 @@ public class ProtocolCommandSupport implements Serializable
      ***/
     public void removeProtocolCommandListener(ProtocolCommandListener listener)
     {
-        __listeners.removeListener(listener);
+        this.__listeners.removeListener(listener);
     }
 
 
@@ -177,7 +177,7 @@ public class ProtocolCommandSupport implements Serializable
      ***/
     public int getListenerCount()
     {
-        return __listeners.getListenerCount();
+        return this.__listeners.getListenerCount();
     }
 
 }

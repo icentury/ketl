@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl;
 
 import java.io.FileReader;
@@ -22,6 +40,7 @@ import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.util.XMLHelper;
 import com.kni.util.ArgumentParserUtil;
 
+// TODO: Auto-generated Javadoc
 /**
  * Insert the type's description here. Creation date: (5/3/2002 5:39:29 PM)
  * 
@@ -29,14 +48,31 @@ import com.kni.util.ArgumentParserUtil;
  */
 public abstract class ETLJobExecutor extends Thread {
 
+    /** The b shutdown. */
     protected boolean bShutdown = false;
+    
+    /** The ll pending queue. */
     protected LinkedList llPendingQueue = null;
+    
+    /** The i sleep period. */
     protected int iSleepPeriod = 100;
+    
+    /** The jes status. */
     protected ETLJobExecutorStatus jesStatus = new ETLJobExecutorStatus();
+    
+    /** The dmf factory. */
     protected DocumentBuilderFactory dmfFactory;
+    
+    /** The aes override parameters. */
     protected ArrayList aesOverrideParameters = null;
+    
+    /** The aes ignore Q as. */
     protected String[] aesIgnoreQAs = null;
+    
+    /** The ms XML override. */
     protected String msXMLOverride = "";
+    
+    /** The mb command line. */
     protected boolean mbCommandLine = true;
 
     /**
@@ -109,8 +145,9 @@ public abstract class ETLJobExecutor extends Thread {
     /**
      * Insert the method's description here. Creation date: (5/3/2002 6:49:24 PM)
      * 
+     * @param jCurrentJob the j current job
+     * 
      * @return boolean
-     * @param param com.kni.etl.ETLJob
      */
     protected abstract boolean executeJob(ETLJob jCurrentJob);
 
@@ -132,6 +169,15 @@ public abstract class ETLJobExecutor extends Thread {
         return this.jesStatus;
     }
 
+    /**
+     * Exit.
+     * 
+     * @param code the code
+     * @param e the e
+     * @param pExitCleanly the exit cleanly
+     * 
+     * @return the int
+     */
     private static int exit(int code, Throwable e, boolean pExitCleanly) {
         if (pExitCleanly)
             return code;
@@ -145,6 +191,13 @@ public abstract class ETLJobExecutor extends Thread {
         }
     }
 
+    /**
+     * Execute.
+     * 
+     * @param args the args
+     * @param pETLJobExecutor the ETL job executor
+     * @param pExitCleanly the exit cleanly
+     */
     public static void execute(String[] args, ETLJobExecutor pETLJobExecutor, boolean pExitCleanly) {
         int res = ETLJobExecutor._execute(args, pETLJobExecutor, pExitCleanly, 0);
         ResourcePool.releaseLoadLookups(0);
@@ -153,6 +206,16 @@ public abstract class ETLJobExecutor extends Thread {
             System.exit(res);
     }
 
+    /**
+     * _execute.
+     * 
+     * @param args the args
+     * @param pETLJobExecutor the ETL job executor
+     * @param pExitCleanly the exit cleanly
+     * @param iLoadID the i load ID
+     * 
+     * @return the int
+     */
     public static int _execute(String[] args, ETLJobExecutor pETLJobExecutor, boolean pExitCleanly, int iLoadID) {
         long lStartTime;
         long lEndTime;
@@ -417,6 +480,16 @@ public abstract class ETLJobExecutor extends Thread {
         return 0;
     }
 
+    /**
+     * Connect to server.
+     * 
+     * @param xmlConfig the xml config
+     * @param pServerName the server name
+     * 
+     * @return the metadata
+     * 
+     * @throws Exception the exception
+     */
     static private Metadata connectToServer(Document xmlConfig, String pServerName) throws Exception {
         Node nCurrentServer;
         String password;
@@ -457,6 +530,8 @@ public abstract class ETLJobExecutor extends Thread {
 
     /**
      * Insert the method's description here. Creation date: (5/7/2002 11:52:15 AM)
+     * 
+     * @return true, if initialize
      */
     protected abstract boolean initialize();
 
@@ -555,7 +630,7 @@ public abstract class ETLJobExecutor extends Thread {
     /**
      * Insert the method's description here. Creation date: (5/4/2002 8:01:20 PM)
      * 
-     * @param param java.util.LinkedList
+     * @param llQueue the ll queue
      */
     public void setPendingQueue(LinkedList llQueue) {
         this.llPendingQueue = llQueue;
@@ -582,15 +657,25 @@ public abstract class ETLJobExecutor extends Thread {
     /**
      * Insert the method's description here. Creation date: (5/8/2002 2:49:24 PM)
      * 
+     * @param jJob the j job
+     * 
      * @return boolean
-     * @param param com.kni.etl.ETLJob
      */
     public abstract boolean supportsJobType(ETLJob jJob);
 
+    /**
+     * Gets the new job.
+     * 
+     * @return the new job
+     * 
+     * @throws Exception the exception
+     */
     protected abstract ETLJob getNewJob() throws Exception;
 
     /**
      * Insert the method's description here. Creation date: (5/7/2002 11:52:41 AM)
+     * 
+     * @return true, if terminate
      */
     protected boolean terminate() {
         return true;

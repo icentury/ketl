@@ -113,10 +113,10 @@ public abstract class DatagramSocketClient
      ***/
     public DatagramSocketClient()
     {
-        _socket_ = null;
-        _timeout_ = 0;
-        _isOpen_ = false;
-        _socketFactory_ = __DEFAULT_SOCKET_FACTORY;
+        this._socket_ = null;
+        this._timeout_ = 0;
+        this._isOpen_ = false;
+        this._socketFactory_ = DatagramSocketClient.__DEFAULT_SOCKET_FACTORY;
     }
 
 
@@ -133,9 +133,9 @@ public abstract class DatagramSocketClient
      ***/
     public void open() throws SocketException
     {
-        _socket_ = _socketFactory_.createDatagramSocket();
-        _socket_.setSoTimeout(_timeout_);
-        _isOpen_ = true;
+        this._socket_ = this._socketFactory_.createDatagramSocket();
+        this._socket_.setSoTimeout(this._timeout_);
+        this._isOpen_ = true;
     }
 
 
@@ -153,9 +153,9 @@ public abstract class DatagramSocketClient
      ***/
     public void open(int port) throws SocketException
     {
-        _socket_ = _socketFactory_.createDatagramSocket(port);
-        _socket_.setSoTimeout(_timeout_);
-        _isOpen_ = true;
+        this._socket_ = this._socketFactory_.createDatagramSocket(port);
+        this._socket_.setSoTimeout(this._timeout_);
+        this._isOpen_ = true;
     }
 
 
@@ -175,9 +175,9 @@ public abstract class DatagramSocketClient
      ***/
     public void open(int port, InetAddress laddr) throws SocketException
     {
-        _socket_ = _socketFactory_.createDatagramSocket(port, laddr);
-        _socket_.setSoTimeout(_timeout_);
-        _isOpen_ = true;
+        this._socket_ = this._socketFactory_.createDatagramSocket(port, laddr);
+        this._socket_.setSoTimeout(this._timeout_);
+        this._isOpen_ = true;
     }
 
 
@@ -192,9 +192,9 @@ public abstract class DatagramSocketClient
      ***/
     public void close()
     {
-        _socket_.close();
-        _socket_ = null;
-        _isOpen_ = false;
+        this._socket_.close();
+        this._socket_ = null;
+        this._isOpen_ = false;
     }
 
 
@@ -205,7 +205,7 @@ public abstract class DatagramSocketClient
      ***/
     public boolean isOpen()
     {
-        return _isOpen_;
+        return this._isOpen_;
     }
 
 
@@ -222,7 +222,7 @@ public abstract class DatagramSocketClient
      ***/
     public void setDefaultTimeout(int timeout)
     {
-        _timeout_ = timeout;
+        this._timeout_ = timeout;
     }
 
 
@@ -235,7 +235,7 @@ public abstract class DatagramSocketClient
      ***/
     public int getDefaultTimeout()
     {
-        return _timeout_;
+        return this._timeout_;
     }
 
 
@@ -249,7 +249,7 @@ public abstract class DatagramSocketClient
      ***/
     public void setSoTimeout(int timeout) throws SocketException
     {
-        _socket_.setSoTimeout(timeout);
+        this._socket_.setSoTimeout(timeout);
     }
 
 
@@ -262,7 +262,7 @@ public abstract class DatagramSocketClient
      ***/
     public int getSoTimeout() throws SocketException
     {
-        return _socket_.getSoTimeout();
+        return this._socket_.getSoTimeout();
     }
 
 
@@ -276,7 +276,7 @@ public abstract class DatagramSocketClient
      ***/
     public int getLocalPort()
     {
-        return _socket_.getLocalPort();
+        return this._socket_.getLocalPort();
     }
 
 
@@ -289,7 +289,7 @@ public abstract class DatagramSocketClient
      ***/
     public InetAddress getLocalAddress()
     {
-        return _socket_.getLocalAddress();
+        return this._socket_.getLocalAddress();
     }
 
 
@@ -305,8 +305,8 @@ public abstract class DatagramSocketClient
     public void setDatagramSocketFactory(DatagramSocketFactory factory)
     {
         if (factory == null)
-            _socketFactory_ = __DEFAULT_SOCKET_FACTORY;
+            this._socketFactory_ = DatagramSocketClient.__DEFAULT_SOCKET_FACTORY;
         else
-            _socketFactory_ = factory;
+            this._socketFactory_ = factory;
     }
 }

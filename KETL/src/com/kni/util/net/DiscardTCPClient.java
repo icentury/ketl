@@ -83,7 +83,7 @@ public class DiscardTCPClient extends SocketClient
      ***/
     public DiscardTCPClient ()
     {
-        setDefaultPort(DEFAULT_PORT);
+        this.setDefaultPort(DiscardTCPClient.DEFAULT_PORT);
     }
 
     /***
@@ -97,6 +97,6 @@ public class DiscardTCPClient extends SocketClient
      ***/
     public OutputStream getOutputStream()
     {
-        return _output_;
+        return this._output_;
     }
 }

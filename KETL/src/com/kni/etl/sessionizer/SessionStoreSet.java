@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.sessionizer;
 
 import java.io.Serializable;
@@ -10,25 +28,50 @@ import java.util.List;
 import com.kni.etl.KNIHashMap;
 import com.kni.etl.ReadWriteLock;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SessionStoreSet.
+ */
 public class SessionStoreSet implements Serializable {
 
-    /**
-     *
-     */
+    /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 3544390301348214320L;
+    
+    /** The Hash map to monitor. */
     private KNIHashMap HashMapToMonitor;
+    
+    /** The Hash map read write lock. */
     private ReadWriteLock HashMapReadWriteLock;
+    
+    /** The Current date. */
     private java.util.Date CurrentDate;
+    
+    /** The Associated algorithm code. */
     private int AssociatedAlgorithmCode = 0;
+    
+    /** The Enable fall back. */
     private boolean EnableFallBack = false;
+    
+    /** The Removed sessions queue. */
     private List RemovedSessionsQueue;
+    
+    /** The Last match time out. */
     public int LastMatchTimeOut;
+    
+    /** The Session time out. */
     public int SessionTimeOut;
 
     /**
      * SessionStoreBackgroundThread constructor comment.
      * 
-     * @param pDestinationThread TODO
+     * @param pHashMapToMonitor the hash map to monitor
+     * @param pHashMapReadWriteLock the hash map read write lock
+     * @param pDate the date
+     * @param pSessionTimeOut the session time out
+     * @param pLastMatchTimeOut the last match time out
+     * @param pAssociatedAlgorithmCode the associated algorithm code
+     * @param pRemovedSessionsQueue the removed sessions queue
+     * @param pKeepFallBack the keep fall back
      */
     public SessionStoreSet(KNIHashMap pHashMapToMonitor, ReadWriteLock pHashMapReadWriteLock, java.util.Date pDate,
             int pSessionTimeOut, int pLastMatchTimeOut, int pAssociatedAlgorithmCode, List pRemovedSessionsQueue,
@@ -50,9 +93,10 @@ public class SessionStoreSet implements Serializable {
      * Insert the method's description here. Creation date: (5/13/2002 11:34:59 PM)
      * 
      * @param pDontExpireSessions if true then non closed sessions will have null last activity
+     * 
      * @return int
-     * @throws InterruptedException
-     */
+     * 
+     * @throws InterruptedException      */
     public int closeOutAllSessions(boolean pDontExpireSessions) {
         int removed = 0;
 
@@ -109,6 +153,18 @@ public class SessionStoreSet implements Serializable {
         return (removed);
     }
 
+    /**
+     * Validate session.
+     * 
+     * @param key the key
+     * @param activityDate the activity date
+     * @param sessionToCheck the session to check
+     * @param invalidate the invalidate
+     * 
+     * @return true, if successful
+     * 
+     * @throws InterruptedException the interrupted exception
+     */
     public boolean validateSession(String key, java.util.Date activityDate, Session sessionToCheck, boolean invalidate)
             throws InterruptedException {
         boolean result = true;
@@ -144,6 +200,13 @@ public class SessionStoreSet implements Serializable {
         return result;
     }
 
+    /**
+     * Find invalid sessions.
+     * 
+     * @return the int
+     * 
+     * @throws Exception the exception
+     */
     public int findInvalidSessions() throws Exception { // lock hashmap for reading
 
         int removed = 0;
@@ -202,6 +265,12 @@ public class SessionStoreSet implements Serializable {
         return (removed);
     }
 
+    /**
+     * Sets the hash map to monitor.
+     * 
+     * @param pNewHashMapToMonitor the new hash map to monitor
+     * @param pHashMapReadWriteLock the hash map read write lock
+     */
     public void setHashMapToMonitor(KNIHashMap pNewHashMapToMonitor, ReadWriteLock pHashMapReadWriteLock) {
         this.HashMapToMonitor = pNewHashMapToMonitor;
         this.HashMapReadWriteLock = pHashMapReadWriteLock;

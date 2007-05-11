@@ -98,7 +98,7 @@ public final class CharGenTCPClient extends SocketClient
      ***/
     public CharGenTCPClient ()
     {
-        setDefaultPort(DEFAULT_PORT);
+        this.setDefaultPort(CharGenTCPClient.DEFAULT_PORT);
     }
 
     /***
@@ -112,7 +112,7 @@ public final class CharGenTCPClient extends SocketClient
      ***/
     public InputStream getInputStream()
     {
-        return _input_;
+        return this._input_;
     }
 }
 

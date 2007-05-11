@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 /*
  * Created on Jun 5, 2003
  *
@@ -37,16 +55,35 @@ import com.kni.etl.Metadata;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.stringtools.StringMatcher;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class XMLHelper.
+ * 
  * @author bsullivan To change this generated comment go to Window>Preferences>Java>Code Generation>Code and Comments
  */
 public class XMLHelper {
 
+    /** The Constant NAME_TAG. */
     public static final String NAME_TAG = "NAME";
+    
+    /** The Constant PARAMETER_LIST_TAG. */
     public static final String PARAMETER_LIST_TAG = "PARAMETER_LIST";
+    
+    /** The Constant PARAMETER_OVERRIDE_ATTRIB. */
     public static final String PARAMETER_OVERRIDE_ATTRIB = "OVERRIDE";
+    
+    /** The Constant PARAMETER_TAG. */
     public static final String PARAMETER_TAG = "PARAMETER";
 
+    /**
+     * Read XML from file.
+     * 
+     * @param pFileName the file name
+     * 
+     * @return the document
+     * 
+     * @throws Exception the exception
+     */
     public static synchronized Document readXMLFromFile(String pFileName) throws Exception {
         Document xmlDocument = null;
 
@@ -89,6 +126,12 @@ public class XMLHelper {
         return xmlDocument;
     }
 
+    /**
+     * List parameter lists.
+     * 
+     * @param node the node
+     * @param list the list
+     */
     public static void listParameterLists(Node node, HashMap list) {
         if (node != null) {
             NamedNodeMap nm = node.getAttributes();
@@ -109,6 +152,13 @@ public class XMLHelper {
         }
     }
 
+    /**
+     * Dumpattributes.
+     * 
+     * @param attribs the attribs
+     * 
+     * @return the string
+     */
     private static String dumpattributes(NamedNodeMap attribs) {
         if (attribs == null) {
             return "";
@@ -124,6 +174,13 @@ public class XMLHelper {
         return sb.toString();
     }
 
+    /**
+     * Escape XML.
+     * 
+     * @param pXML the XML
+     * 
+     * @return the string
+     */
     private static String escapeXML(String pXML) {
         String str = pXML.replaceAll("&", "&amp;");
         str = str.replaceAll("\"", "&quot;");
@@ -134,6 +191,13 @@ public class XMLHelper {
         return str;
     }
 
+    /**
+     * Output XM l2.
+     * 
+     * @param node the node
+     * 
+     * @return the string
+     */
     private static String outputXML2(Node node) {
         String result = null;
         Document document = node.getOwnerDocument();
@@ -157,10 +221,25 @@ public class XMLHelper {
 
     }
 
+    /**
+     * Output XML.
+     * 
+     * @param node the node
+     * 
+     * @return the string
+     */
     public static String outputXML(Node node) {
         return XMLHelper.outputXML(node, false);
     }
 
+    /**
+     * Output XML.
+     * 
+     * @param node the node
+     * @param bTopLevel the b top level
+     * 
+     * @return the string
+     */
     public static String outputXML(Node node, boolean bTopLevel) {
         if (node == null) {
             return "";
@@ -216,6 +295,15 @@ public class XMLHelper {
 
     }
 
+    /**
+     * Gets the attribute as int.
+     * 
+     * @param nmAttrs the nm attrs
+     * @param attributeName the attribute name
+     * @param defaultValue the default value
+     * 
+     * @return the attribute as int
+     */
     public static int getAttributeAsInt(NamedNodeMap nmAttrs, String attributeName, int defaultValue) {
         try {
             return (Integer.parseInt(nmAttrs.getNamedItem(attributeName).getNodeValue()));
@@ -232,6 +320,15 @@ public class XMLHelper {
         }
     }
 
+    /**
+     * Gets the attribute as boolean.
+     * 
+     * @param nmAttrs the nm attrs
+     * @param attributeName the attribute name
+     * @param defaultValue the default value
+     * 
+     * @return the attribute as boolean
+     */
     public static boolean getAttributeAsBoolean(NamedNodeMap nmAttrs, String attributeName, boolean defaultValue) {
         try {
             String res = nmAttrs.getNamedItem(attributeName).getNodeValue();
@@ -258,6 +355,15 @@ public class XMLHelper {
         }
     }
 
+    /**
+     * Gets the attribute as string.
+     * 
+     * @param nmAttrs the nm attrs
+     * @param attributeName the attribute name
+     * @param defaultValue the default value
+     * 
+     * @return the attribute as string
+     */
     public static String getAttributeAsString(NamedNodeMap nmAttrs, String attributeName, String defaultValue) {
         try {
             if (nmAttrs == null || nmAttrs.getNamedItem(attributeName) == null)
@@ -287,6 +393,13 @@ public class XMLHelper {
     // \\ Backslash (\)
     // \' Single quote (')
     // \" Double quote (")
+    /**
+     * Decode hex.
+     * 
+     * @param pString the string
+     * 
+     * @return the string
+     */
     public static String decodeHex(String pString) {
         String str = pString;
 
@@ -323,6 +436,14 @@ public class XMLHelper {
         return str;
     }
 
+    /**
+     * Gets the node value as string.
+     * 
+     * @param node the node
+     * @param strDefaultValue the str default value
+     * 
+     * @return the node value as string
+     */
     public static String getNodeValueAsString(Node node, String strDefaultValue) {
         if (node == null) {
             return strDefaultValue;
@@ -331,6 +452,17 @@ public class XMLHelper {
         return node.getNodeValue();
     }
 
+    /**
+     * Gets the child node value as string.
+     * 
+     * @param xmlNode the xml node
+     * @param strTagName the str tag name
+     * @param strElementAttribute the str element attribute
+     * @param strElementValue the str element value
+     * @param strDefaultValue the str default value
+     * 
+     * @return the child node value as string
+     */
     public static String getChildNodeValueAsString(Node xmlNode, String strTagName, String strElementAttribute,
             String strElementValue, String strDefaultValue) {
         Node childNode = XMLHelper.getElementByName(xmlNode, strTagName, strElementAttribute, strElementValue);
@@ -343,6 +475,16 @@ public class XMLHelper {
     }
 
     // Just a wrapper to return the first node we find (common case)
+    /**
+     * Gets the element by name.
+     * 
+     * @param xmlNode the xml node
+     * @param strTagName the str tag name
+     * @param strElementAttribute the str element attribute
+     * @param strElementValue the str element value
+     * 
+     * @return the element by name
+     */
     public static Node getElementByName(Node xmlNode, String strTagName, String strElementAttribute,
             String strElementValue) {
         Node[] nodes = XMLHelper.getElementsByName(xmlNode, strTagName, strElementAttribute, strElementValue);
@@ -356,6 +498,16 @@ public class XMLHelper {
 
     // Returns the first child Node found in the given node's DOM of a particular tag type having a particular attribute
     // with the given value, or null if not found.
+    /**
+     * Gets the elements by name.
+     * 
+     * @param xmlNode the xml node
+     * @param strTagName the str tag name
+     * @param strElementAttribute the str element attribute
+     * @param strElementValue the str element value
+     * 
+     * @return the elements by name
+     */
     public static Node[] getElementsByName(Node xmlNode, String strTagName, String strElementAttribute,
             String strElementValue) {
         if (xmlNode == null) {
@@ -370,6 +522,16 @@ public class XMLHelper {
     // Returns the first Node found in the given node's DOM of a particular tag type having a particular attribute with
     // the given value, or null if not found.
     // Note that this searches the entire DOM of the node, not just it's subtree.
+    /**
+     * Find element by name.
+     * 
+     * @param xmlNode the xml node
+     * @param strTagName the str tag name
+     * @param strElementAttribute the str element attribute
+     * @param strElementValue the str element value
+     * 
+     * @return the node
+     */
     public static Node findElementByName(Node xmlNode, String strTagName, String strElementAttribute,
             String strElementValue) {
         if (xmlNode == null) {
@@ -397,6 +559,16 @@ public class XMLHelper {
     // Returns the first Node found in the given node's DOM of a particular tag type having a particular attribute with
     // the given value, or null if not found.
     // Note that this searches the entire DOM of the node, not just it's subtree.
+    /**
+     * Find elements by name.
+     * 
+     * @param xmlNode the xml node
+     * @param strTagName the str tag name
+     * @param strElementAttribute the str element attribute
+     * @param strElementValue the str element value
+     * 
+     * @return the node[]
+     */
     public static Node[] findElementsByName(Node xmlNode, String strTagName, String strElementAttribute,
             String strElementValue) {
         if (xmlNode == null) {
@@ -423,6 +595,16 @@ public class XMLHelper {
 
     // Returns the Nodes found in the given node list of a particular tag type having a particular attribute with the
     // given value, or null if not found.
+    /**
+     * Gets the elements by name.
+     * 
+     * @param nl the nl
+     * @param strTagName the str tag name
+     * @param strElementAttribute the str element attribute
+     * @param strElementValue the str element value
+     * 
+     * @return the elements by name
+     */
     static Node[] getElementsByName(NodeList nl, String strTagName, String strElementAttribute, String strElementValue) {
         NamedNodeMap nmAttrs;
         Node node = null;
@@ -484,13 +666,31 @@ public class XMLHelper {
         return anResult;
     }
 
+    /**
+     * Gets the text content.
+     * 
+     * @param node the node
+     * 
+     * @return the text content
+     */
     public static final String getTextContent(Node node) {
         return node == null || node.getFirstChild() == null ? null : node.getTextContent();
 
     }
 
+    /** The Constant NONODES. */
     private static final Node[] NONODES = new Node[0];
 
+    /**
+     * Gets the parameter value as string.
+     * 
+     * @param xmlNode the xml node
+     * @param strParameterListName the str parameter list name
+     * @param strParameterName the str parameter name
+     * @param strDefaultValue the str default value
+     * 
+     * @return the parameter value as string
+     */
     public static String getParameterValueAsString(Node xmlNode, String strParameterListName, String strParameterName,
             String strDefaultValue) {
         return XMLHelper.getParameterValueAsString(xmlNode, strParameterListName, strParameterName, strDefaultValue,
@@ -499,6 +699,17 @@ public class XMLHelper {
 
     // If you set xmlNode = null, then it will only look in the metadata
     // Returns: strDefaultValue if we can't find the value for ANY REASON.
+    /**
+     * Gets the parameter value as string.
+     * 
+     * @param xmlNode the xml node
+     * @param strParameterListName the str parameter list name
+     * @param strParameterName the str parameter name
+     * @param strDefaultValue the str default value
+     * @param recurse the recurse
+     * 
+     * @return the parameter value as string
+     */
     public static String getParameterValueAsString(Node xmlNode, String strParameterListName, String strParameterName,
             String strDefaultValue, boolean recurse) {
         Node node;
@@ -649,6 +860,14 @@ public class XMLHelper {
         return strDefaultValue;
     }
 
+    /**
+     * Gets the distinct parameter names.
+     * 
+     * @param xmlNode the xml node
+     * @param strParameterListName the str parameter list name
+     * 
+     * @return the distinct parameter names
+     */
     public static String[] getDistinctParameterNames(Node xmlNode, String strParameterListName) {
         Node node;
 
@@ -712,6 +931,15 @@ public class XMLHelper {
     }
 
     // If you set xmlNode = null, then it will only look in the metadata
+    /**
+     * Gets the sub parameter list names.
+     * 
+     * @param xmlNode the xml node
+     * @param strParameterListName the str parameter list name
+     * @param strParameterName the str parameter name
+     * 
+     * @return the sub parameter list names
+     */
     public static String[] getSubParameterListNames(Node xmlNode, String strParameterListName, String strParameterName) {
         Node node;
 
@@ -814,6 +1042,12 @@ public class XMLHelper {
         return aResult;
     }
 
+    /**
+     * Prints the tree.
+     * 
+     * @param n the n
+     * @param depth the depth
+     */
     public void printTree(Node n, int depth) {
         NodeList nl = n.getChildNodes();
 

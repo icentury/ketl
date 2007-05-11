@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2006 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.ketl.reader;
 
 import java.io.EOFException;
@@ -35,21 +53,36 @@ import com.kni.etl.util.XMLHelper;
 import com.kni.util.Arrays;
 import com.kni.util.FileTools;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class NIOFileReader.
+ */
 public class NIOFileReader extends ETLReader implements QAForFileReader {
 
+    /**
+     * The Class FileETLOutPort.
+     */
     public class FileETLOutPort extends ETLOutPort {
 
+        /** The sf. */
         SourceFieldDefinition sf;
 
+        /**
+         * Gets the source field definition.
+         * 
+         * @return the source field definition
+         */
         public SourceFieldDefinition getSourceFieldDefinition() {
             if (this.sf == null)
                 this.sf = this.getSourceFieldDefinitions(this);
             return this.sf;
         }
 
+        /** The type map. */
         Class[] typeMap = { String.class, Double.class, Integer.class, Float.class, Long.class, Short.class,
                 Date.class, Boolean.class, Byte.class, Byte[].class, Character.class, Character[].class };
 
+        /** The type methods. */
         String[] typeMethods = { "FieldLevelFastInputChannel.toString(${chars}, ${length})",
                 "FieldLevelFastInputChannel.toDouble(${chars}, ${length})",
                 "FieldLevelFastInputChannel.toInteger(${chars}, ${length})",
@@ -63,10 +96,23 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
                 "FieldLevelFastInputChannel.toChar(${chars}, ${length})",
                 "FieldLevelFastInputChannel.toCharArray(${chars}, ${length})" };
 
+        /**
+         * Instantiates a new file ETL out port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public FileETLOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
+        /**
+         * Gets the source field definitions.
+         * 
+         * @param port the port
+         * 
+         * @return the source field definitions
+         */
         private final SourceFieldDefinition getSourceFieldDefinitions(FileETLOutPort port) {
             NamedNodeMap nmAttrs;
             String mstrDefaultFieldDelimeter = null;
@@ -136,6 +182,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
             return srcFieldDefinition;
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLOutPort#generateCode(int)
+         */
         @Override
         public String generateCode(int portReferenceIndex) throws KETLThreadException {
 
@@ -218,6 +267,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
             return code.toString();
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#containsCode()
+         */
         @Override
         public boolean containsCode() throws KETLThreadException {
             return true;
@@ -225,51 +277,133 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 
     }
 
+    /** The ALLO w_ DUPLICATE s_ ATTRIBUTE. */
     public static String ALLOW_DUPLICATES_ATTRIBUTE = "ALLOWDUPLICATES";
 
+    /** The Constant AUTOTRUNCATE. */
     public static final String AUTOTRUNCATE = "AUTOTRUNCATE";
 
+    /** The CHARACTERSE t_ ATTRIB. */
     public static String CHARACTERSET_ATTRIB = "CHARACTERSET";
+    
+    /** The CODINGERRORACTIO n_ ATTRIB. */
     public static String CODINGERRORACTION_ATTRIB = "CODINGERRORACTION";
+    
+    /** The Constant DATATYPE. */
     public static final String DATATYPE = "DATATYPE";
+    
+    /** The DEFAUL t_ FIEL d_ DELIMITER. */
     public static String DEFAULT_FIELD_DELIMITER = ",";
+    
+    /** The DEFAUL t_ ALLO w_ INVALI d_ LAS t_ RECORD. */
     public static boolean DEFAULT_ALLOW_INVALID_LAST_RECORD = false;
+    
+    /** The DEFAUL t_ RECOR d_ DELIMITER. */
     public static String DEFAULT_RECORD_DELIMITER = "\n";
 
+    /** The DEFAUL t_ VALUE. */
     public static String DEFAULT_VALUE = "DEFAULTVALUE";
+    
+    /** The DELETESOURC e_ ATTRIB. */
     public static String DELETESOURCE_ATTRIB = "DELETESOURCE";
+    
+    /** The DELIMITER. */
     public static String DELIMITER = "DELIMITER";
+    
+    /** The Constant ESCAPE_CHAR. */
     public static final String ESCAPE_CHAR = "ESCAPECHARACTER";
+    
+    /** The Constant ESCAPE_DOUBLEQUOTES. */
     public static final String ESCAPE_DOUBLEQUOTES = "ESCAPEDOUBLEQUOTES";
+    
+    /** The Constant FIXED_LENGTH. */
     public static final String FIXED_LENGTH = "FIXEDLENGTH";
 
+    /** The FORMA t_ STRING. */
     public static String FORMAT_STRING = "FORMATSTRING";
+    
+    /** The IGNOR e_ ACTION. */
     public static String IGNORE_ACTION = "IGNORE";
+    
+    /** The ALLO w_ INVALI d_ LAS t_ RECORD. */
     public static String ALLOW_INVALID_LAST_RECORD = "ALLOWINVALIDLASTRECORD";
+    
+    /** The MA x_ RECOR d_ DELIMITE r_ LENGTH. */
     public static int MAX_RECORD_DELIMITER_LENGTH = 1;
+    
+    /** The MAXIMU m_ LENGTH. */
     public static String MAXIMUM_LENGTH = "MAXIMUMLENGTH";
+    
+    /** The MOVESOURC e_ ATTRIB. */
     public static String MOVESOURCE_ATTRIB = "MOVESOURCE";
+    
+    /** The NAME. */
     public static String NAME = "NAME";
+    
+    /** The Constant NULLIF. */
     public static final String NULLIF = "NULLIF";
+    
+    /** The Constant OK_RECORD. */
     protected static final int OK_RECORD = 0;
+    
+    /** The Constant PARTIAL_RECORD. */
     private static final int PARTIAL_RECORD = -1;
 
+    /** The Constant PARTITION_KEY. */
     public static final String PARTITION_KEY = "PARTITIONKEY";
+    
+    /** The PATH. */
     public static String PATH = "PATH";
+    
+    /** The QUOTEEND. */
     public static String QUOTEEND = "QUOTEEND";
+    
+    /** The QUOTESTART. */
     public static String QUOTESTART = "QUOTESTART";
+    
+    /** The REA d_ ORDER. */
     public static String READ_ORDER = "READORDER";
+    
+    /** The REA d_ ORDE r_ SEQUENCE. */
     public static String READ_ORDER_SEQUENCE = "READORDERSEQUENCE";
+    
+    /** The RECOR d_ DELIMITER. */
     public static String RECORD_DELIMITER = "RECORD_DELIMITER";
+    
+    /** The REPLAC e_ ACTION. */
     public static String REPLACE_ACTION = "REPLACE";
+    
+    /** The REPOR t_ ACTION. */
     public static String REPORT_ACTION = "REPORT";
+    
+    /** The SAMPL e_ EVER y_ ATTRIBUTE. */
     public static String SAMPLE_EVERY_ATTRIBUTE = "SAMPLEEVERY";
+    
+    /** The SEARCHPATH. */
     public static String SEARCHPATH = "SEARCHPATH";
+    
+    /** The SKI p_ LINES. */
     public static String SKIP_LINES = "SKIPLINES";
+    
+    /** The SOR t_ BUFFE r_ PE r_ FILE. */
     public static String SORT_BUFFER_PER_FILE = "SORTBUFFERPERFILE";
+    
+    /** The TRIM. */
     public static String TRIM = "TRIM";
+    
+    /** The ZIPPED. */
     public static String ZIPPED = "ZIPPED";
 
+    /**
+     * Char array equals.
+     * 
+     * @param a the a
+     * @param len the len
+     * @param a2 the a2
+     * @param len2 the len2
+     * 
+     * @return true, if successful
+     */
     final public static boolean charArrayEquals(char[] a, int len, char[] a2, int len2) {
         if (a == a2)
             return true;
@@ -286,6 +420,13 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return true;
     }
 
+    /**
+     * Dedup file list.
+     * 
+     * @param pSource the source
+     * 
+     * @return the array list
+     */
     static public ArrayList dedupFileList(ArrayList pSource) {
         HashSet nl = new HashSet();
         for (Object o : pSource) {
@@ -299,30 +440,80 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return new ArrayList(nl);
     }
 
+    /** The buf. */
     private char[] buf;
 
+    /** The bytes read. */
     protected long bytesRead = 0;
+    
+    /** The ma files. */
     protected ArrayList maFiles = new ArrayList();
+    
+    /** The m allow duplicates. */
     protected boolean mAllowDuplicates = false;
+    
+    /** The mb allow invalid last record. */
     private boolean mbAllowInvalidLastRecord;
+    
+    /** The mc default record delimter. */
     private char mcDefaultRecordDelimter;
+    
+    /** The m coding error action. */
     private String mCharacterSet, mCodingErrorAction;
+    
+    /** The m current file channel. */
     private ManagedFastInputChannel mCurrentFileChannel = null;
+    
+    /** The m delete source. */
     private boolean mDeleteSource = false;
+    
+    /** The m IO buffer size. */
     private int mIOBufferSize;
+    
+    /** The mi skip lines. */
     private int miSkipLines;
+    
+    /** The m max line length. */
     private int mMaxLineLength;
+    
+    /** The m move source. */
     private String mMoveSource = null;
+    
+    /** The mstr default field delimeter. */
     private String mstrDefaultFieldDelimeter;
+    
+    /** The mstr default record delimter. */
     private String mstrDefaultRecordDelimter;
+    
+    /** The mv ready files. */
     protected Vector<ManagedFastInputChannel> mvReadyFiles = new Vector<ManagedFastInputChannel>();
+    
+    /** The open channels. */
     protected int openChannels = 0;
 
+    /**
+     * Instantiates a new NIO file reader.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public NIOFileReader(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
+    /**
+     * Close.
+     * 
+     * @param file the file
+     * @param pCause the cause
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     protected final void close(ManagedFastInputChannel file, int pCause) throws IOException {
         switch (pCause) {
         case PARTIAL_RECORD:
@@ -334,6 +525,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         this.openChannels--;
     }
 
+    /**
+     * Delete files.
+     */
     private void deleteFiles() {
         for (Object o : this.maFiles) {
             File fn = new File((String) o);
@@ -349,22 +543,38 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLReader#generateCoreImports()
+     */
     protected String generateCoreImports() {
         return super.generateCoreImports() + "import com.kni.etl.util.ManagedFastInputChannel;\n"
                 + "import com.kni.etl.FieldLevelFastInputChannel;\n" + "import com.kni.etl.SourceFieldDefinition;\n";
     }
 
+    /**
+     * Gets the open channels.
+     * 
+     * @return the open channels
+     */
     public int getOpenChannels() {
         return this.openChannels;
     }
 
+    /** The oc nm. */
     private String ocNm;
 
+    /** The m buffer length. */
     private int mBufferLength;
 
+    /** The m zipped. */
     private boolean mZipped;
+    
+    /** The CURREN t_ FIL e_ CHANNEL. */
     private static String CURRENT_FILE_CHANNEL = "((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getCurrentFileChannel().mReader";
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#generatePortMappingCode()
+     */
     protected String generatePortMappingCode() throws KETLThreadException {
         StringBuilder sb = new StringBuilder();
         // declare fields
@@ -398,6 +608,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return sb.toString();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLReader#getRecordExecuteMethodFooter()
+     */
     @Override
     protected String getRecordExecuteMethodFooter() {
         return " partialRecord = false;}catch(java.io.EOFException e) {if(partialRecord){ throw new KETLReadException(\"Partial record at end of file\");}try {Object res = this.getOwner().handleException(e); if(res == null){return COMPLETE;}if(res != null && res instanceof FieldLevelFastInputChannel) { this.mReader = (FieldLevelFastInputChannel) res;return SKIP_RECORD;} } catch(Exception e1){throw new KETLReadException(e1);}"
@@ -413,25 +626,39 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return this.mCharacterSet;
     }
 
+    /**
+     * Gets the current file channel.
+     * 
+     * @return the current file channel
+     */
     public ManagedFastInputChannel getCurrentFileChannel() {
         return this.mCurrentFileChannel;
     }
 
-    /**
-     * @return
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.qa.QAForFileReader#getDefaultFieldDelimeter()
      */
     public String getDefaultFieldDelimeter() {
         return this.mstrDefaultFieldDelimeter;
     }
 
-    /**
-     * @return
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.qa.QAForFileReader#getDefaultRecordDelimter()
      */
     public char getDefaultRecordDelimter() {
         return this.mcDefaultRecordDelimter;
     }
 
     // Returns the number of actually opened paths...
+    /**
+     * Gets the file channels.
+     * 
+     * @param astrPaths the astr paths
+     * 
+     * @return the file channels
+     * 
+     * @throws Exception the exception
+     */
     int getFileChannels(FileToRead[] astrPaths) throws Exception {
         int iNumPaths = 0;
 
@@ -472,11 +699,23 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return iNumPaths;
     }
 
+    /**
+     * The Class FileToRead.
+     */
     class FileToRead {
 
+        /** The file path. */
         String filePath;
+        
+        /** The param list ID. */
         int paramListID;
 
+        /**
+         * Instantiates a new file to read.
+         * 
+         * @param name the name
+         * @param paramListID the param list ID
+         */
         public FileToRead(String name, int paramListID) {
             super();
             this.filePath = name;
@@ -485,6 +724,13 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 
     }
 
+    /**
+     * Gets the files.
+     * 
+     * @return the files
+     * 
+     * @throws Exception the exception
+     */
     private boolean getFiles() throws Exception {
 
         ArrayList files = new ArrayList();
@@ -524,8 +770,12 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return true;
     }
 
+    /** The complete file list. */
     private ArrayList completeFileList = null;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.qa.QAForFileReader#getOpenFiles()
+     */
     public ArrayList getOpenFiles() {
 
         if (this.completeFileList == null) {
@@ -584,6 +834,15 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     }
 
     // Returns the number of actually opened paths...
+    /**
+     * Gets the reader.
+     * 
+     * @param file the file
+     * 
+     * @return the reader
+     * 
+     * @throws Exception the exception
+     */
     private ManagedFastInputChannel getReader(ManagedFastInputChannel file) throws Exception {
 
         try {
@@ -649,15 +908,15 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return file;
     }
 
-    /**
-     * @return
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.qa.QAForFileReader#getSkipLines()
      */
     public int getSkipLines() {
         return this.miSkipLines;
     }
 
-    /**
-     * @return
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.qa.QAForFileReader#getSourceFieldDefinition()
      */
     public SourceFieldDefinition[] getSourceFieldDefinition() {
         SourceFieldDefinition[] sf = new SourceFieldDefinition[this.mOutPorts.length];
@@ -668,6 +927,17 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return sf;
     }
 
+    /**
+     * Handle event.
+     * 
+     * @param eventCode the event code
+     * @param portIndex the port index
+     * 
+     * @return the object
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected Object handleEvent(int eventCode, int portIndex) throws IOException, KETLThreadException {
         switch (eventCode) {
         case FieldLevelFastInputChannel.END_OF_FILE:
@@ -693,12 +963,18 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#handleEventCode(int)
+     */
     @Override
     public Object handleEventCode(int eventCode) {
         // TODO Auto-generated method stub
         return super.handleEventCode(eventCode);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#handleException(java.lang.Exception)
+     */
     @Override
     public Object handleException(Exception e) throws Exception {
         if (e instanceof EOFException) {
@@ -719,6 +995,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return super.handleException(e);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#handlePortEventCode(int, int)
+     */
     @Override
     public Object handlePortEventCode(int eventCode, int portIndex) throws IOException, KETLThreadException {
         switch (eventCode) {
@@ -746,6 +1025,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#handlePortException(java.lang.Exception, int)
+     */
     @Override
     public Object handlePortException(Exception e, int portIndex) throws KETLThreadException {
         ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unexpected error reading file " + e.toString());
@@ -777,19 +1059,21 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
      * this.miErrorLimit) throw new KETLException("Error limit of " + this.miErrorLimit + " reached, last error: " +
      * arg2.toString()); }
      */
-    /**
-     * @return
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.qa.QAForFileReader#ignoreLastRecord()
      */
     public boolean ignoreLastRecord() {
         return this.mbAllowInvalidLastRecord;
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param xmlSourceNode DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
-     * @throws KETLThreadException
+     * 
+     * @throws KETLThreadException the KETL thread exception
      */
     @Override
     protected int initialize(Node xmlSourceNode) throws KETLThreadException {
@@ -879,6 +1163,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         return 0;
     }
 
+    /**
+     * Move files.
+     */
     private void moveFiles() {
         for (Object o : this.maFiles) {
             File fn = new File((String) o);
@@ -895,15 +1182,26 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLOutPort getNewOutPort(com.kni.etl.ketl.ETLStep srcStep) {
         return new FileETLOutPort((ETLStep) this, (ETLStep) this);
     }
 
+    /**
+     * Gets the buffer.
+     * 
+     * @return the buffer
+     */
     public char[] getBuffer() {
         return this.buf;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
 

@@ -1,8 +1,24 @@
 /*
- * Created on Mar 24, 2006
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
  *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.util;
 
@@ -18,18 +34,46 @@ import java.nio.channels.FileChannel;
 
 import com.kni.etl.dbutils.ResourcePool;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class Store.
+ */
 final public class Store {
 
+    /** The m records held. */
     private long mRecordsHeld = 0;
+    
+    /** The m file channel. */
     private FileChannel mFileChannel = null;
+    
+    /** The m input stream. */
     private FileInputStream mInputStream;
+    
+    /** The m output stream. */
     private FileOutputStream mOutputStream;
+    
+    /** The m temp file name. */
     private String mTempFileName;
+    
+    /** The m byte output stream. */
     private OutputStream mByteOutputStream;
+    
+    /** The m object output stream. */
     private ObjectOutputStream mObjectOutputStream;
+    
+    /** The m byte input stream. */
     private InputStream mByteInputStream;
+    
+    /** The m object input stream. */
     private ObjectInputStream mObjectInputStream;
 
+    /**
+     * Instantiates a new store.
+     * 
+     * @param pWriteBufferSize the write buffer size
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public Store(int pWriteBufferSize) throws IOException {
 
         // get temp file
@@ -41,6 +85,13 @@ final public class Store {
         this.mObjectOutputStream = new ObjectOutputStream(this.mByteOutputStream);
     }
 
+    /**
+     * Add.
+     * 
+     * @param pObject the object
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     final public void add(Object pObject) throws IOException {
 
         this.mObjectOutputStream.writeObject(pObject);
@@ -48,6 +99,14 @@ final public class Store {
 
     }
 
+    /**
+     * Add.
+     * 
+     * @param pObject the object
+     * @param len the len
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     final public void add(Object[] pObject, int len) throws IOException {
 
         for (int i = 0; i < len; i++) {
@@ -57,6 +116,9 @@ final public class Store {
 
     }
 
+    /**
+     * Close.
+     */
     final public void close() {
 
         this.writeClose();
@@ -72,6 +134,9 @@ final public class Store {
         }
     }
 
+    /**
+     * Write close.
+     */
     final private void writeClose() {
         try {
             this.mObjectOutputStream.close();
@@ -91,6 +156,9 @@ final public class Store {
         }
     }
 
+    /**
+     * Read close.
+     */
     final private void readClose() {
         try {
             this.mObjectInputStream.close();
@@ -110,12 +178,20 @@ final public class Store {
         }
     }
 
+    /**
+     * Commit.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     final public void commit() throws IOException {
         this.mObjectOutputStream.flush();
         this.mByteOutputStream.flush();
         this.writeClose();
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Object#finalize()
+     */
     @Override
     final protected void finalize() throws Throwable {
         this.commit();
@@ -123,16 +199,37 @@ final public class Store {
         super.finalize();
     }
 
+    /**
+     * Checks for next.
+     * 
+     * @return true, if successful
+     */
     final public boolean hasNext() {
         return (this.mRecordsHeld == 0) ? false : true;
     }
 
+    /**
+     * Next.
+     * 
+     * @return the object
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
     final public Object next() throws IOException, ClassNotFoundException {
         this.mRecordsHeld--;
 
         return this.mObjectInputStream.readObject();
     }
 
+    /**
+     * Start.
+     * 
+     * @param readBufferSize the read buffer size
+     * @param objectBufferSize the object buffer size
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     final public void start(int readBufferSize, int objectBufferSize) throws IOException {
         /*
          * this.mCurrentObjectBufferSize = (recordsHeld < objectBufferSize) ? (int) recordsHeld : objectBufferSize;

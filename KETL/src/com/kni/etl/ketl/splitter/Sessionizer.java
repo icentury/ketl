@@ -1,8 +1,24 @@
 /*
- * Created on Jul 13, 2005
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
  *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.splitter;
 
@@ -13,7 +29,6 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -40,67 +55,183 @@ import com.kni.etl.sessionizer.AnalyzePageview.Holder;
 import com.kni.etl.util.XMLHelper;
 import com.kni.util.Arrays;
 
+// TODO: Auto-generated Javadoc
 // Create a parallel transformation. All thread management is done for you
 // the parallism is within the transformation
 
+/**
+ * The Class Sessionizer.
+ */
 public class Sessionizer extends ETLSplit {
 
+    /** The Constant CASESENSITIVE. */
     private static final String CASESENSITIVE = "CASESENSITIVE";
+    
+    /** The Constant VARIABLENAME. */
     private static final String VARIABLENAME = "VARIABLENAME";
+    
+    /** The Constant OBJECTTYPE. */
     private static final String OBJECTTYPE = "OBJECTTYPE";
+    
+    /** The Constant IDENTIFIER. */
     private static final String IDENTIFIER = "IDENTIFIER";
+    
+    /** The Constant KEEP_VARIABLE. */
     private static final String KEEP_VARIABLE = "KEEP_VARIABLE";
+    
+    /** The Constant FIRST_CLICK. */
     private static final String FIRST_CLICK = "FIRST_CLICK";
+    
+    /** The Constant PERSISTANT. */
     private static final String PERSISTANT = "PERSISTANT";
+    
+    /** The Constant IP_BROWSER. */
     private static final String IP_BROWSER = "IP_BROWSER";
+    
+    /** The Constant MAIN. */
     private static final String MAIN = "MAIN";
+    
+    /** The Constant EXPIREWHENBETTERMATCH. */
     private static final String EXPIREWHENBETTERMATCH = "EXPIREWHENBETTERMATCH";
+    
+    /** The Constant ENABLEFALLBACK. */
     private static final String ENABLEFALLBACK = "ENABLEFALLBACK";
+    
+    /** The Constant TYPE. */
     private static final String TYPE = "TYPE";
+    
+    /** The Constant IDENTIFIER_SET. */
     private static final String IDENTIFIER_SET = "IDENTIFIER_SET";
+    
+    /** The Constant ID. */
     private static final String ID = "ID";
+    
+    /** The Constant VALID. */
     private static final String VALID = "VALID";
+    
+    /** The Constant TEMPLATE. */
     private static final String TEMPLATE = "TEMPLATE";
+    
+    /** The Constant METHOD. */
     private static final String METHOD = "METHOD";
+    
+    /** The Constant DIRECTORY. */
     private static final String DIRECTORY = "DIRECTORY";
+    
+    /** The Constant STATUSCODES. */
     private static final String STATUSCODES = "STATUSCODES";
+    
+    /** The Constant HOSTNAME. */
     private static final String HOSTNAME = "HOSTNAME";
+    
+    /** The Constant PROTOCOL. */
     private static final String PROTOCOL = "PROTOCOL";
+    
+    /** The Constant PAGE_DEFINITION. */
     private static final String PAGE_DEFINITION = "PAGE_DEFINITION";
+    
+    /** The Constant PRIORITY. */
     private static final String PRIORITY = "PRIORITY";
+    
+    /** The Constant REQUIRED. */
     private static final String REQUIRED = "REQUIRED";
+    
+    /** The Constant SEPERATOR. */
     private static final String SEPERATOR = "SEPERATOR";
+    
+    /** The Constant REMOVE_PARAMETER. */
     private static final String REMOVE_PARAMETER = "REMOVE_PARAMETER";
+    
+    /** The Constant REMOVE_VALUE. */
     private static final String REMOVE_VALUE = "REMOVE_VALUE";
+    
+    /** The Constant VALUE. */
     private static final String VALUE = "VALUE";
+    
+    /** The Constant NAME. */
     private static final String NAME = "NAME";
+    
+    /** The Constant PAGE_PARAMETER. */
     private static final String PAGE_PARAMETER = "PAGE_PARAMETER";
+    
+    /** The Constant PAGE_PARAMETER_SET. */
     private static final String PAGE_PARAMETER_SET = "PAGE_PARAMETER_SET";
+    
+    /** The Constant PAGE_PARAMETER_SETS. */
     private static final String PAGE_PARAMETER_SETS = "PAGE_PARAMETER_SETS";
+    
+    /** The Constant IDENTIFIERS. */
     private static final String IDENTIFIERS = "IDENTIFIERS";
+    
+    /** The Constant PAGE_DEFINITIONS. */
     private static final String PAGE_DEFINITIONS = "PAGE_DEFINITIONS";
+    
+    /** The Constant WEBSERVERTYPE. */
     private static final String WEBSERVERTYPE = "WEBSERVERTYPE";
+    
+    /** The Constant STOREOPENSESSIONS. */
     private static final String STOREOPENSESSIONS = "STOREOPENSESSIONS";
+    
+    /** The Constant PAGESONLY. */
     private static final String PAGESONLY = "PAGESONLY";
+    
+    /** The Constant RESTART. */
     private static final String RESTART = "RESTART";
+    
+    /** The Constant TIMEOUT. */
     private static final String TIMEOUT = "TIMEOUT";
+    
+    /** The Constant PEAKSESSIONSANHOUR. */
     private static final String PEAKSESSIONSANHOUR = "PEAKSESSIONSANHOUR";
+    
+    /** The mi peak sessions an hour. */
     private int miPeakSessionsAnHour;
+    
+    /** The mi web server type. */
     private int miWebServerType;
+    
+    /** The mi time out. */
     private int miTimeOut;
+    
+    /** The m restart sessions. */
     private boolean mRestartSessions;
+    
+    /** The m store open sessions at end. */
     private boolean mStoreOpenSessionsAtEnd;
+    
+    /** The mn page definitions. */
     private Node mnPageDefinitions;
+    
+    /** The mn destinations. */
     private Node mnDestinations;
+    
+    /** The mn identifiers. */
     private Node mnIdentifiers;
+    
+    /** The mn page parameter sets. */
     private Node mnPageParameterSets;
+    
+    /** The mb pages only. */
     private boolean mbPagesOnly;
 
+    /**
+     * Instantiates a new sessionizer.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public Sessionizer(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
+     */
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
         int res = super.initialize(xmlConfig);
@@ -177,6 +308,13 @@ public class Sessionizer extends ETLSplit {
         return 0;
     }
 
+    /**
+     * Creates the page parameters.
+     * 
+     * @param parameterSetName the parameter set name
+     * 
+     * @return the page parser page parameter[]
+     */
     private PageParserPageParameter[] createPageParameters(String parameterSetName) {
         ArrayList apDefs = new ArrayList();
 
@@ -225,6 +363,11 @@ public class Sessionizer extends ETLSplit {
         return pageParameters;
     }
 
+    /**
+     * Creates the page parser parameters.
+     * 
+     * @return the page parser page definition[]
+     */
     private PageParserPageDefinition[] createPageParserParameters() {
         ArrayList apDefs = new ArrayList();
 
@@ -267,6 +410,11 @@ public class Sessionizer extends ETLSplit {
         return pageDefinitions;
     }
 
+    /**
+     * Creates the session definition.
+     * 
+     * @return the session definition
+     */
     private SessionDefinition createSessionDefinition() {
         // set field definition
         SessionDefinition srcSessionDefinition = new SessionDefinition();
@@ -378,6 +526,13 @@ public class Sessionizer extends ETLSplit {
         return srcSessionDefinition;
     }
 
+    /**
+     * Restart job.
+     * 
+     * @return the analyze pageview
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected AnalyzePageview restartJob() throws KETLThreadException {
         AnalyzePageview res = null;
         FileInputStream in;
@@ -400,16 +555,28 @@ public class Sessionizer extends ETLSplit {
         return res;
     }
 
+    /**
+     * Gets the restart filenaname.
+     * 
+     * @return the restart filenaname
+     */
     protected String getRestartFilenaname() {
 
         return EngineConstants.CACHE_PATH + File.separator + "KETL.Sessionizer." + this.getName() + "."
                 + this.getJobExecutor().getCurrentETLJob().getJobID() + ".restart";
     }
 
+    /**
+     * The Class SessionizerETLInPort.
+     */
     class SessionizerETLInPort extends ETLInPort {
 
+        /** The mi object type. */
         int miObjectType;
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLInPort#initialize(org.w3c.dom.Node)
+         */
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
             int res = super.initialize(xmlConfig);
@@ -422,35 +589,69 @@ public class Sessionizer extends ETLSplit {
             return 0;
         }
 
+        /**
+         * Instantiates a new sessionizer ETL in port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public SessionizerETLInPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLOutPort getNewOutPort(ETLStep srcStep) {
         return new SessionizerETLOutPort(this, srcStep);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewInPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLInPort getNewInPort(ETLStep srcStep) {
         return new SessionizerETLInPort(this, srcStep);
     }
 
+    /** The FORMA t_ STRING. */
     public static String FORMAT_STRING = "FORMATSTRING";
+    
+    /** The SESSION. */
     private static int SESSION = 0;
+    
+    /** The HIT. */
     private static int HIT = 1;
+    
+    /** The mb hits needed. */
     private boolean mbHitsNeeded = false;
+    
+    /** The s buf. */
     private StringBuffer sBuf;
 
+    /**
+     * The Class SessionizerETLOutPort.
+     */
     class SessionizerETLOutPort extends ETLOutPort {
 
+        /** The Constant DATATYPE. */
         private static final String DATATYPE = "DATATYPE";
+        
+        /** The Constant SOURCE. */
         private static final String SOURCE = "SOURCE";
+        
+        /** The mi type. */
         int miType = -1;
+        
+        /** The mi source. */
         int miSource = -1;
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#getAssociatedInPort()
+         */
         @Override
         public ETLPort getAssociatedInPort() throws KETLThreadException {
 
@@ -460,6 +661,9 @@ public class Sessionizer extends ETLSplit {
             return super.getAssociatedInPort();
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
+         */
         @Override
         public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
 
@@ -494,6 +698,9 @@ public class Sessionizer extends ETLSplit {
             return 0;
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLOutPort#generateCode(int)
+         */
         @Override
         public String generateCode(int portReferenceIndex) throws KETLThreadException {
 
@@ -510,6 +717,9 @@ public class Sessionizer extends ETLSplit {
 
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#setDataTypeFromPort(com.kni.etl.ketl.ETLPort)
+         */
         @Override
         final public void setDataTypeFromPort(ETLPort in) throws KETLThreadException, ClassNotFoundException {
             if (this.miSource != -1) {
@@ -526,10 +736,19 @@ public class Sessionizer extends ETLSplit {
                 super.setDataTypeFromPort(in);
         }
 
+        /**
+         * Instantiates a new sessionizer ETL out port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public SessionizerETLOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLPort#containsCode()
+         */
         @Override
         public boolean containsCode() throws KETLThreadException {
             if (this.mObjectType != null)
@@ -537,6 +756,9 @@ public class Sessionizer extends ETLSplit {
             return super.containsCode();
         }
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLOutPort#getPortName()
+         */
         @Override
         public String getPortName() throws DOMException, KETLThreadException {
             if (this.mstrName == null && this.mObjectType != null) {
@@ -550,76 +772,150 @@ public class Sessionizer extends ETLSplit {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLSplit#getRecordExecuteMethodHeader()
+     */
     @Override
     protected String getRecordExecuteMethodHeader() throws KETLThreadException {
         return super.getRecordExecuteMethodHeader() + "if(pOutPath==0) ((" + this.getClass().getCanonicalName()
                 + ")this.getOwner()).loadValue(pInputRecords);";
     }
 
+    /** The skip record. */
     private boolean skipRecord = false;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLSplit#getRecordExecuteMethodFooter()
+     */
     @Override
     protected String getRecordExecuteMethodFooter() {
         return " return ((" + this.getClass().getCanonicalName() + ")this.getOwner()).recordType();}";
     }
 
+    /** The Constant TEMP_SESSION_ID. */
     public static final int TEMP_SESSION_ID = 0;
 
     // hit specific
+    /** The Constant ACTIVITY_DT. */
     public static final int ACTIVITY_DT = 1;
+    
+    /** The Constant GET_REQUEST. */
     public static final int GET_REQUEST = 2;
+    
+    /** The Constant STATUS. */
     public static final int STATUS = 3;
+    
+    /** The Constant REFERRER_URL. */
     public static final int REFERRER_URL = 4;
+    
+    /** The Constant CLEANSED. */
     public static final int CLEANSED = 5;
+    
+    /** The Constant CLEANSED_ID. */
     public static final int CLEANSED_ID = 6;
+    
+    /** The Constant SERVER_NAME. */
     public static final int SERVER_NAME = 7;
+    
+    /** The Constant PAGE_SEQUENCE. */
     public static final int PAGE_SEQUENCE = 8;
+    
+    /** The Constant ASSOCIATED_HITS. */
     public static final int ASSOCIATED_HITS = 9;
 
     // session specific
+    /** The Constant FIRST_CLICK_SESSION_IDENTIFIER. */
     public static final int FIRST_CLICK_SESSION_IDENTIFIER = 1;
+    
+    /** The Constant PERSISTANT_IDENTIFIER. */
     public static final int PERSISTANT_IDENTIFIER = 2;
+    
+    /** The Constant MAIN_SESSION_IDENTIFIER. */
     public static final int MAIN_SESSION_IDENTIFIER = 3;
+    
+    /** The Constant IP_ADDRESS. */
     public static final int IP_ADDRESS = 4;
+    
+    /** The Constant REFERRER. */
     public static final int REFERRER = 5;
+    
+    /** The Constant FIRST_SESSION_ACTIVITY. */
     public static final int FIRST_SESSION_ACTIVITY = 6;
+    
+    /** The Constant LAST_SESSION_ACTIVITY. */
     public static final int LAST_SESSION_ACTIVITY = 7;
+    
+    /** The Constant BROWSER. */
     public static final int BROWSER = 8;
+    
+    /** The Constant REPEAT_VISITOR. */
     public static final int REPEAT_VISITOR = 9;
+    
+    /** The Constant HITS. */
     public static final int HITS = 10;
+    
+    /** The Constant PAGEVIEWS. */
     public static final int PAGEVIEWS = 11;
+    
+    /** The Constant KEEP_VARIABLES. */
     public static final int KEEP_VARIABLES = 12;
+    
+    /** The Constant START_PERSISTANT_IDENTIFIER. */
     public static final int START_PERSISTANT_IDENTIFIER = 13;
     /*
      * (non-Javadoc)
      * 
      * @see com.kni.etl.sessionizer.DatabaseWriterRoot#resolveColumnMaps()
      */
+    /** The Constant ValidHitColumnNames. */
     public static final String[] ValidHitColumnNames = { "TEMP_SESSION_ID", "ACTIVITY_DATE_TIME", "GET_REQUEST",
             "HTML_ERROR_CODE", "REFERRER_URL", "CLEANSED", "CLEANSED_ID", "SERVER_NAME", "PAGE_SEQUENCE",
             "ASSOCIATED_HITS" };
 
+    /** The Constant ValidHitColumnTypes. */
     public static final Class[] ValidHitColumnTypes = { Long.class, java.util.Date.class, String.class, Short.class,
             String.class, Short.class, Integer.class, Integer.class, String.class, Short.class };
 
+    /** The Constant ValidSessionColumnNames. */
     public static final String[] ValidSessionColumnNames = { "TEMP_SESSION_ID", "FIRST_CLICK_SESSION_IDENTIFIER",
             "PERSISTANT_IDENTIFIER", "MAIN_SESSION_IDENTIFIER", "IP_ADDRESS", "REFERRER", "FIRST_SESSION_ACTIVITY",
             "LAST_SESSION_ACTIVITY", "BROWSER", "REPEAT_VISITOR", "HITS", "PAGEVIEWS", "KEEP_VARIABLES",
             "START_PERSISTANT_IDENTIFIER" };
 
+    /** The Constant ValidSessionColumnTypes. */
     public static final Class[] ValidSessionColumnTypes = { Long.class, String.class, String.class, String.class,
             String.class, String.class, java.util.Date.class, java.util.Date.class, String.class, Boolean.class,
             Short.class, Short.class, String.class, String.class, String.class };
+    
+    /** The m analyze pageview. */
     private AnalyzePageview mAnalyzePageview;
+    
+    /** The m complete session list. */
     private List<Session> mCompleteSessionList;
 
+    /** The session. */
     Session session = null;
+    
+    /** The pageview. */
     Object[] pageview = null;
+    
+    /** The page holder. */
     Holder currentPageHolder, pageHolder = AnalyzePageview.newHolder();
+    
+    /** The m item map. */
     private int[] mItemMap;
+    
+    /** The default return type. */
     private int defaultReturnType = DefaultSplitCore.SUCCESS;
+    
+    /** The return record. */
     private boolean returnRecord = false;
 
+    /**
+     * Record type.
+     * 
+     * @return the int
+     */
     public int recordType() {
 
         if (this.returnRecord) {
@@ -629,11 +925,21 @@ public class Sessionizer extends ETLSplit {
 
         if (this.skipRecord) {
             this.skipRecord = false;
-            return ETLSplitCore.SKIP_RECORD;
+            return DefaultSplitCore.SKIP_RECORD;
         }
         return this.defaultReturnType;
     }
 
+    /**
+     * Gets the value.
+     * 
+     * @param channel the channel
+     * @param source the source
+     * 
+     * @return the value
+     * 
+     * @throws KETLTransformException the KETL transform exception
+     */
     public Object getValue(int channel, int source) throws KETLTransformException {
 
         if (channel == Sessionizer.HIT) {
@@ -721,8 +1027,16 @@ public class Sessionizer extends ETLSplit {
 
     }
 
+    /** The skip page scan. */
     private boolean skipPageScan = false;
 
+    /**
+     * Load value.
+     * 
+     * @param data the data
+     * 
+     * @throws KETLTransformException the KETL transform exception
+     */
     public void loadValue(Object[] data) throws KETLTransformException {
 
         if (this.skipPageScan) {
@@ -741,16 +1055,22 @@ public class Sessionizer extends ETLSplit {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLSplit#remainingRecords()
+     */
     @Override
     protected boolean remainingRecords() {
 
         this.skipPageScan = true;
-        this.defaultReturnType = ETLSplitCore.SKIP_RECORD;
+        this.defaultReturnType = DefaultSplitCore.SKIP_RECORD;
 
         if (this.mRestartSessions) {
             this.mAnalyzePageview.close(false);

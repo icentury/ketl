@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.sessionizer;
 
 import java.io.Serializable;
@@ -10,40 +28,69 @@ import java.util.List;
 import com.kni.etl.KNIHashMap;
 import com.kni.etl.ReadWriteLock;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SessionStore.
+ */
 public class SessionStore implements Serializable {
 
-    /**
-     *
-     */
+    /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 3257008756763342901L;
+    
+    /** The tmp session ID. */
     transient private IDCounter tmpSessionID = null;
 
     // IP and Browser session identifiers
+    /** The Sessions by IP address and browser hash map. */
     private KNIHashMap SessionsByIPAddressAndBrowserHashMap;
+    
+    /** The Sessions by IP address and browser read write lock. */
     private ReadWriteLock SessionsByIPAddressAndBrowserReadWriteLock;
+    
+    /** The Sessions by IP address and browser background thread. */
     private SessionStoreSet SessionsByIPAddressAndBrowserBackgroundThread;
 
     // Main session identifiers
+    /** The Sessions by main session identifier hash map. */
     private KNIHashMap SessionsByMainSessionIdentifierHashMap;
+    
+    /** The Sessions by main session identifier read write lock. */
     private ReadWriteLock SessionsByMainSessionIdentifierReadWriteLock;
+    
+    /** The Sessions by main session identifier background thread. */
     private SessionStoreSet SessionsByMainSessionIdentifierBackgroundThread;
 
     // first click session identifiers
+    /** The Sessions by first click session identifier hash map. */
     private KNIHashMap SessionsByFirstClickSessionIdentifierHashMap;
+    
+    /** The Sessions by first click session identifier read write lock. */
     private ReadWriteLock SessionsByFirstClickSessionIdentifierReadWriteLock;
+    
+    /** The Sessions by first click session identifier background thread. */
     private SessionStoreSet SessionsByFirstClickSessionIdentifierBackgroundThread;
 
     // persistant session identifiers
+    /** The Sessions by persistant identifier hash map. */
     private KNIHashMap SessionsByPersistantIdentifierHashMap;
+    
+    /** The Sessions by persistant identifier read write lock. */
     private ReadWriteLock SessionsByPersistantIdentifierReadWriteLock;
+    
+    /** The Sessions by persistant identifier background thread. */
     private SessionStoreSet SessionsByPersistantIdentifierBackgroundThread;
+    
+    /** The Current date. */
     java.util.Date CurrentDate;
+    
+    /** The Removed sessions queue. */
     private List RemovedSessionsQueue;
 
     /**
      * SessionStore constructor comment.
      * 
-     * @param pWaitQueueSize TODO
+     * @param pStartSessionID the start session ID
+     * @param list the list
      */
     public SessionStore(IDCounter pStartSessionID, List list) {
         super();
@@ -54,6 +101,11 @@ public class SessionStore implements Serializable {
 
     }
 
+    /**
+     * Sets the ID counter.
+     * 
+     * @param pStartSessionID the new ID counter
+     */
     public void setIDCounter(IDCounter pStartSessionID) {
         this.tmpSessionID = pStartSessionID;
     }
@@ -61,9 +113,9 @@ public class SessionStore implements Serializable {
     /**
      * Insert the method's description here. Creation date: (4/8/2002 3:25:45 PM)
      * 
+     * @param pSession the session
+     * 
      * @return int
-     * @param pIdentifiers java.lang.String
-     * @param psessionActivityDate java.util.Date
      */
     public Session addSession(Session pSession) {
         Session duplicateSession = (Session) pSession.clone();
@@ -104,6 +156,9 @@ public class SessionStore implements Serializable {
     /**
      * Insert the method's description here. Creation date: (4/16/2002 2:01:46 PM)
      * 
+     * @param pPeakSessionsAnHour the peak sessions an hour
+     * @param pSessionTimeOutSeconds the session time out seconds
+     * 
      * @return java.util.HashMap
      */
     private KNIHashMap createHashMap(int pPeakSessionsAnHour, int pSessionTimeOutSeconds) {
@@ -117,7 +172,9 @@ public class SessionStore implements Serializable {
     /**
      * Insert the method's description here. Creation date: (4/19/2002 3:54:34 PM)
      * 
-     * @throws InterruptedException
+     * @return the int
+     * 
+     * @throws InterruptedException      * @throws Exception the exception
      */
     public int findStaleSessions() throws Exception {
         int removed = 0;
@@ -154,9 +211,11 @@ public class SessionStore implements Serializable {
     /**
      * Insert the method's description here. Creation date: (4/8/2002 3:25:45 PM)
      * 
+     * @param pHashMap the hash map
+     * @param pReadWriteLock the read write lock
+     * @param pKey the key
+     * 
      * @return int
-     * @param pIdentifiers java.lang.String
-     * @param psessionActivityDate java.util.Date
      */
     public Session getSession(KNIHashMap pHashMap, ReadWriteLock pReadWriteLock, String pKey) {
         // lock for writing
@@ -178,10 +237,13 @@ public class SessionStore implements Serializable {
     /**
      * Insert the method's description here. Creation date: (4/10/2002 4:03:36 PM)
      * 
-     * @return boolean
      * @param pSessionToFind datasources.Session Session Matching Values BIT MASK 1 = MainSessionIdentifier 2 =
-     *            FirstClickIdentifier 4 = Browser 8 = IP Only
-     * @throws InterruptedException
+     * FirstClickIdentifier 4 = Browser 8 = IP Only
+     * @param pSessionMatchingAlgorithmToUse the session matching algorithm to use
+     * 
+     * @return boolean
+     * 
+     * @throws InterruptedException the interrupted exception
      */
     public Session getSessionBySelectedAlgorithm(Session pSessionToFind, int pSessionMatchingAlgorithmToUse)
             throws InterruptedException {
@@ -262,9 +324,12 @@ public class SessionStore implements Serializable {
     /**
      * Insert the method's description here. Creation date: (4/8/2002 3:25:45 PM)
      * 
+     * @param pSession the session
+     * @param pHashMap the hash map
+     * @param pReadWriteLock the read write lock
+     * @param pKey the key
+     * 
      * @return int
-     * @param pIdentifiers java.lang.String
-     * @param psessionActivityDate java.util.Date
      */
     public boolean putSession(Session pSession, KNIHashMap pHashMap, ReadWriteLock pReadWriteLock, String pKey) {
         if ((pSession == null) || (pKey == null)) {
@@ -287,9 +352,11 @@ public class SessionStore implements Serializable {
     /**
      * Insert the method's description here. Creation date: (4/8/2002 3:25:45 PM)
      * 
+     * @param pHashMap the hash map
+     * @param pReadWriteLock the read write lock
+     * @param pKey the key
+     * 
      * @return int
-     * @param pIdentifiers java.lang.String
-     * @param psessionActivityDate java.util.Date
      */
     public void removeSession(KNIHashMap pHashMap, ReadWriteLock pReadWriteLock, String pKey) {
         // lock for writing
@@ -306,7 +373,7 @@ public class SessionStore implements Serializable {
     /**
      * Insert the method's description here. Creation date: (4/18/2002 8:26:05 PM)
      * 
-     * @param newCurrentDate java.util.Date
+     * @param newCurrentTime the new current time
      */
     public void setCurrentDate(long newCurrentTime) {
         if (this.CurrentDate == null) {
@@ -577,8 +644,8 @@ public class SessionStore implements Serializable {
      * Insert the method's description here. Creation date: (5/13/2002 11:33:19 PM)
      * 
      * @param pLastActivityNull if true then non closed sessions will have null last activity
-     * @throws InterruptedException
-     */
+     * 
+     * @throws InterruptedException      */
     public void closeOutAllSessions(boolean pLastActivityNull)
 
     {
@@ -599,8 +666,14 @@ public class SessionStore implements Serializable {
         return this.tmpSessionID;
     }
 
+    /** The session definition. */
     transient SessionDefinition sessionDefinition = null;
 
+    /**
+     * Creates the hash maps.
+     * 
+     * @param pSessionDefinition the session definition
+     */
     public void createHashMaps(SessionDefinition pSessionDefinition) {
         this.sessionDefinition = pSessionDefinition;
 

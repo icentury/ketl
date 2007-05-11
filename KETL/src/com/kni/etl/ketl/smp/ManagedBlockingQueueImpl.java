@@ -1,7 +1,24 @@
 /*
- * Copyright (c) 2006 Kinetic Networks, Inc. All Rights Reserved.
- * Created on Jul 18, 2006
- * 
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.smp;
 
@@ -10,14 +27,25 @@ import java.util.List;
 
 import com.kni.etl.util.SortedList;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ManagedBlockingQueueImpl.
+ */
 final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
 
+    /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 1L;
+    
+    /** The reading threads. */
     private int writingThreads = 0, readingThreads = 0;
+    
+    /** The name. */
     private String name;
 
     /**
-     * @param pCapacity
+     * The Constructor.
+     * 
+     * @param pCapacity the capacity
      */
     public ManagedBlockingQueueImpl(int pCapacity) {
         super(pCapacity);
@@ -28,10 +56,15 @@ final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
      * 
      * @see com.kni.etl.ketl.smp.MQueue#setName(java.lang.String)
      */
+    @Override
     public void setName(String arg0) {
         this.name = arg0;
     }
 
+    /* (non-Javadoc)
+     * @see java.util.concurrent.LinkedBlockingQueue#toString()
+     */
+    @Override
     public String toString() {
         return this.name == null ? "NA" : this.name + this.size();
     }
@@ -41,6 +74,7 @@ final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
      * 
      * @see com.kni.etl.ketl.smp.MQueue#registerReader(com.kni.etl.ketl.smp.ETLWorker)
      */
+    @Override
     public synchronized void registerReader(ETLWorker worker) {
         this.readingThreads++;
 
@@ -51,12 +85,19 @@ final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
      * 
      * @see com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
      */
+    @Override
     public synchronized void registerWriter(ETLWorker worker) {
         this.writingThreads++;
     }
 
+    /** The buffered sort. */
     private List<Object[]> bufferedSort;
 
+    /**
+     * Sets the sort comparator.
+     * 
+     * @param arg0 the new sort comparator
+     */
     public void setSortComparator(Comparator arg0){
         this.bufferedSort=new SortedList<Object[]>(arg0);
     }
@@ -75,8 +116,8 @@ final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
 
         if (pO == com.kni.etl.ketl.smp.ETLWorker.ENDOBJ) {
             synchronized (this) {
-                writingThreads--;
-                if (writingThreads == 0) {
+                this.writingThreads--;
+                if (this.writingThreads == 0) {
 
                     if (this.bufferedSort != null) {
                         Object[][] batch;
@@ -102,7 +143,7 @@ final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
             for(int i=0;i<size;i++)
                 this.bufferedSort.add(batch[i]);
             
-            batch = (Object[][]) this.bufferedSort.toArray(batch);
+            batch = this.bufferedSort.toArray(batch);
 
             if (batch == null)
                 return;

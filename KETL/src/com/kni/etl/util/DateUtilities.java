@@ -1,18 +1,24 @@
 /*
- * Copyright  2002-2005 The Apache Software Foundation
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.util;
 
@@ -23,6 +29,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
+// TODO: Auto-generated Javadoc
 /**
  * Helper methods to deal with date/time formatting with a specific defined format (<a
  * href="http://www.w3.org/TR/NOTE-datetime">ISO8601</a>) or a plurialization correct elapsed time in minutes and
@@ -32,73 +39,46 @@ import java.util.TimeZone;
  */
 public final class DateUtilities {
 
-    /**
-     * The UTC time zone (often referred to as GMT).
-     */
+    /** The UTC time zone (often referred to as GMT). */
     public static final TimeZone UTC_TIME_ZONE = TimeZone.getTimeZone("GMT");
-    /**
-     * Number of milliseconds in a standard second.
-     * 
-     * @since 2.1
-     */
+    
+    /** Number of milliseconds in a standard second. */
     public static final long MILLIS_PER_SECOND = 1000;
-    /**
-     * Number of milliseconds in a standard minute.
-     * 
-     * @since 2.1
-     */
+    
+    /** Number of milliseconds in a standard minute. */
     public static final long MILLIS_PER_MINUTE = 60 * DateUtilities.MILLIS_PER_SECOND;
-    /**
-     * Number of milliseconds in a standard hour.
-     * 
-     * @since 2.1
-     */
+    
+    /** Number of milliseconds in a standard hour. */
     public static final long MILLIS_PER_HOUR = 60 * DateUtilities.MILLIS_PER_MINUTE;
-    /**
-     * Number of milliseconds in a standard day.
-     * 
-     * @since 2.1
-     */
+    
+    /** Number of milliseconds in a standard day. */
     public static final long MILLIS_PER_DAY = 24 * DateUtilities.MILLIS_PER_HOUR;
 
-    /**
-     * This is half a month, so this represents whether a date is in the top or bottom half of the month.
-     */
+    /** This is half a month, so this represents whether a date is in the top or bottom half of the month. */
     public final static int SEMI_MONTH = 1001;
 
+    /** The Constant fields. */
     private static final int[][] fields = { { Calendar.MILLISECOND }, { Calendar.SECOND }, { Calendar.MINUTE },
             { Calendar.HOUR_OF_DAY, Calendar.HOUR }, { Calendar.DATE, Calendar.DAY_OF_MONTH, Calendar.AM_PM
             /* Calendar.DAY_OF_YEAR, Calendar.DAY_OF_WEEK, Calendar.DAY_OF_WEEK_IN_MONTH */
             }, { Calendar.MONTH, DateUtilities.SEMI_MONTH }, { Calendar.YEAR }, { Calendar.ERA } };
 
-    /**
-     * A week range, starting on Sunday.
-     */
+    /** A week range, starting on Sunday. */
     public final static int RANGE_WEEK_SUNDAY = 1;
 
-    /**
-     * A week range, starting on Monday.
-     */
+    /** A week range, starting on Monday. */
     public final static int RANGE_WEEK_MONDAY = 2;
 
-    /**
-     * A week range, starting on the day focused.
-     */
+    /** A week range, starting on the day focused. */
     public final static int RANGE_WEEK_RELATIVE = 3;
 
-    /**
-     * A week range, centered around the day focused.
-     */
+    /** A week range, centered around the day focused. */
     public final static int RANGE_WEEK_CENTER = 4;
 
-    /**
-     * A month range, the week starting on Sunday.
-     */
+    /** A month range, the week starting on Sunday. */
     public final static int RANGE_MONTH_SUNDAY = 5;
 
-    /**
-     * A month range, the week starting on Monday.
-     */
+    /** A month range, the week starting on Monday. */
     public final static int RANGE_MONTH_MONDAY = 6;
 
     // -----------------------------------------------------------------------
@@ -113,8 +93,11 @@ public final class DateUtilities {
      * 
      * @param date1 the first date, not altered, not null
      * @param date2 the second date, not altered, not null
+     * 
      * @return true if they represent the same day
+     * 
      * @throws IllegalArgumentException if either date is <code>null</code>
+     * 
      * @since 2.1
      */
     public static boolean isSameDay(Date date1, Date date2) {
@@ -136,8 +119,11 @@ public final class DateUtilities {
      * 
      * @param date1 the first date, not altered, not null
      * @param date2 the second date, not altered, not null
+     * 
      * @return true if they represent the same millisecond instant
+     * 
      * @throws IllegalArgumentException if either date is <code>null</code>
+     * 
      * @since 2.1
      */
     public static boolean isSameInstant(Date date1, Date date2) {
@@ -159,7 +145,9 @@ public final class DateUtilities {
      * 
      * @param str the date to parse, not null
      * @param parsePatterns the date format patterns to use, see SimpleDateFormat, not null
+     * 
      * @return the parsed date
+     * 
      * @throws IllegalArgumentException if the date string or pattern array is null
      * @throws ParseException if none of the date patterns were suitable
      */
@@ -192,7 +180,9 @@ public final class DateUtilities {
      * 
      * @param date the date, not null
      * @param amount the amount to add, may be negative
+     * 
      * @return the new date object with the amount added
+     * 
      * @throws IllegalArgumentException if the date is null
      */
     public static Date addYears(Date date, int amount) {
@@ -205,7 +195,9 @@ public final class DateUtilities {
      * 
      * @param date the date, not null
      * @param amount the amount to add, may be negative
+     * 
      * @return the new date object with the amount added
+     * 
      * @throws IllegalArgumentException if the date is null
      */
     public static Date addMonths(Date date, int amount) {
@@ -218,7 +210,9 @@ public final class DateUtilities {
      * 
      * @param date the date, not null
      * @param amount the amount to add, may be negative
+     * 
      * @return the new date object with the amount added
+     * 
      * @throws IllegalArgumentException if the date is null
      */
     public static Date addWeeks(Date date, int amount) {
@@ -231,7 +225,9 @@ public final class DateUtilities {
      * 
      * @param date the date, not null
      * @param amount the amount to add, may be negative
+     * 
      * @return the new date object with the amount added
+     * 
      * @throws IllegalArgumentException if the date is null
      */
     public static Date addDays(Date date, int amount) {
@@ -244,7 +240,9 @@ public final class DateUtilities {
      * 
      * @param date the date, not null
      * @param amount the amount to add, may be negative
+     * 
      * @return the new date object with the amount added
+     * 
      * @throws IllegalArgumentException if the date is null
      */
     public static Date addHours(Date date, int amount) {
@@ -257,7 +255,9 @@ public final class DateUtilities {
      * 
      * @param date the date, not null
      * @param amount the amount to add, may be negative
+     * 
      * @return the new date object with the amount added
+     * 
      * @throws IllegalArgumentException if the date is null
      */
     public static Date addMinutes(Date date, int amount) {
@@ -270,7 +270,9 @@ public final class DateUtilities {
      * 
      * @param date the date, not null
      * @param amount the amount to add, may be negative
+     * 
      * @return the new date object with the amount added
+     * 
      * @throws IllegalArgumentException if the date is null
      */
     public static Date addSeconds(Date date, int amount) {
@@ -283,7 +285,9 @@ public final class DateUtilities {
      * 
      * @param date the date, not null
      * @param amount the amount to add, may be negative
+     * 
      * @return the new date object with the amount added
+     * 
      * @throws IllegalArgumentException if the date is null
      */
     public static Date addMilliseconds(Date date, int amount) {
@@ -297,7 +301,9 @@ public final class DateUtilities {
      * @param date the date, not null
      * @param calendarField the calendar field to add to
      * @param amount the amount to add, may be negative
+     * 
      * @return the new date object with the amount added
+     * 
      * @throws IllegalArgumentException if the date is null
      */
     public static Date add(Date date, int calendarField, int amount) {
@@ -333,7 +339,9 @@ public final class DateUtilities {
      * 
      * @param date the date to work with
      * @param field the field from <code>Calendar</code> or <code>SEMI_MONTH</code>
+     * 
      * @return the rounded date
+     * 
      * @throws IllegalArgumentException if the date is <code>null</code>
      * @throws ArithmeticException if the year is over 280 million
      */
@@ -359,7 +367,9 @@ public final class DateUtilities {
      * 
      * @param date the date to work with
      * @param field the field from <code>Calendar</code> or <code>SEMI_MONTH</code>
+     * 
      * @return the rounded date
+     * 
      * @throws IllegalArgumentException if the date is <code>null</code>
      * @throws ArithmeticException if the year is over 280 million
      */
@@ -373,6 +383,13 @@ public final class DateUtilities {
         return gval.getTime();
     }
 
+    /**
+     * Truncate.
+     * 
+     * @param date the date
+     * 
+     * @return the date
+     */
     public static Date truncate(Date date) {
         return DateUtilities.truncate(date, Calendar.DATE);
     }
@@ -386,6 +403,7 @@ public final class DateUtilities {
      * @param val the calendar
      * @param field the field constant
      * @param round true to round, false to truncate
+     * 
      * @throws ArithmeticException if the year is over 280 million
      */
     private static void modify(Calendar val, int field, boolean round) {
@@ -440,8 +458,8 @@ public final class DateUtilities {
 
         boolean roundUp = false;
         for (int[] element : DateUtilities.fields) {
-            for (int j = 0; j < element.length; j++) {
-                if (element[j] == field) {
+            for (int element0 : element) {
+                if (element0 == field) {
                     // This is our field... we stop looping
                     if (round && roundUp) {
                         if (field == DateUtilities.SEMI_MONTH) {
@@ -459,7 +477,7 @@ public final class DateUtilities {
                         else {
                             // We need at add one to this field since the
                             // last number causes us to round up
-                            val.add(element[0], 1);
+                            val.add(element0, 1);
                         }
                     }
                     return;
@@ -520,32 +538,19 @@ public final class DateUtilities {
     // Deprecated int constants
     // TODO: Remove in 3.0
 
-    /**
-     * Number of milliseconds in a standard second.
-     * 
-     * @deprecated Use MILLIS_PER_SECOND. This will be removed in Commons Lang 3.0.
-     */
+    /** Number of milliseconds in a standard second. */
     @Deprecated
     public static final int MILLIS_IN_SECOND = 1000;
-    /**
-     * Number of milliseconds in a standard minute.
-     * 
-     * @deprecated Use MILLIS_PER_MINUTE. This will be removed in Commons Lang 3.0.
-     */
+    
+    /** Number of milliseconds in a standard minute. */
     @Deprecated
     public static final int MILLIS_IN_MINUTE = 60 * 1000;
-    /**
-     * Number of milliseconds in a standard hour.
-     * 
-     * @deprecated Use MILLIS_PER_HOUR. This will be removed in Commons Lang 3.0.
-     */
+    
+    /** Number of milliseconds in a standard hour. */
     @Deprecated
     public static final int MILLIS_IN_HOUR = 60 * 60 * 1000;
-    /**
-     * Number of milliseconds in a standard day.
-     * 
-     * @deprecated Use MILLIS_PER_DAY. This will be removed in Commons Lang 3.0.
-     */
+    
+    /** Number of milliseconds in a standard day. */
     @Deprecated
     public static final int MILLIS_IN_DAY = 24 * 60 * 60 * 1000;
 }

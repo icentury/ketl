@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 /*
  * Created on Mar 18, 2003
  *
@@ -13,29 +31,49 @@ package com.kni.util;
 import java.util.Collection;
 import java.util.Iterator;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class ResizingArray.
+ * 
  * @author nwakefield Creation Date: Mar 18, 2003
  */
 public class ResizingArray implements Collection {
 
+    /** The DEFAUL t_ SIZE. */
     private static int DEFAULT_SIZE = 5;
+    
+    /** The a free elements. */
     private int[] aFreeElements;
+    
+    /** The a objects. */
     private Object[] aObjects;
 
-    /**
-     *
-     */
+    /** The i max released element. */
     private int iMaxReleasedElement = -1;
+    
+    /** The i max size. */
     private int iMaxSize = ResizingArray.DEFAULT_SIZE;
+    
+    /** The i used elements. */
     private int iUsedElements = 0;
+    
+    /** The i next end elements. */
     private int iNextEndElements = 0;
 
+    /**
+     * Instantiates a new resizing array.
+     */
     public ResizingArray() {
         super();
         this.aObjects = new Object[ResizingArray.DEFAULT_SIZE];
         this.aFreeElements = new int[ResizingArray.DEFAULT_SIZE];
     }
 
+    /**
+     * Instantiates a new resizing array.
+     * 
+     * @param defaultSize the default size
+     */
     public ResizingArray(int defaultSize) {
         super();
 
@@ -44,6 +82,11 @@ public class ResizingArray implements Collection {
         this.iMaxSize = defaultSize;
     }
 
+    /**
+     * The main method.
+     * 
+     * @param args the arguments
+     */
     public static void main(String[] args) {
         ResizingArray aResize = new ResizingArray();
         Integer test = new Integer(0);
@@ -127,6 +170,14 @@ public class ResizingArray implements Collection {
         aResize.add(new Integer(5));
     }
 
+    /**
+     * Add.
+     * 
+     * @param index the index
+     * @param arg0 the arg0
+     * 
+     * @return true, if successful
+     */
     public boolean add(int index, Object arg0) {
         if (index >= this.iMaxSize) {
             // grow array
@@ -234,6 +285,13 @@ public class ResizingArray implements Collection {
         return false;
     }
 
+    /**
+     * Get.
+     * 
+     * @param index the index
+     * 
+     * @return the object
+     */
     public Object get(int index) {
         if (index >= this.iMaxSize) {
             return null;
@@ -242,6 +300,13 @@ public class ResizingArray implements Collection {
         return this.aObjects[index];
     }
 
+    /**
+     * Index of.
+     * 
+     * @param arg0 the arg0
+     * 
+     * @return the int
+     */
     public int indexOf(Object arg0) {
         for (int i = 0; i < this.iMaxSize; i++) {
             if ((this.aObjects[i] != null) && this.aObjects[i].equals(arg0)) {
@@ -265,6 +330,13 @@ public class ResizingArray implements Collection {
         return false;
     }
 
+    /**
+     * Remove.
+     * 
+     * @param index the index
+     * 
+     * @return true, if successful
+     */
     public boolean remove(int index) {
         if (index < this.iMaxSize) {
             if (this.aObjects[index] != null) {

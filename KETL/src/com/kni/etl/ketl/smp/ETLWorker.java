@@ -1,7 +1,24 @@
 /*
- * Copyright (c) 2006 Kinetic Networks, Inc. All Rights Reserved.
- * Created on Jul 5, 2006
- * 
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.smp;
 
@@ -32,40 +49,78 @@ import com.kni.etl.ketl.exceptions.KETLWriteException;
 import com.kni.etl.util.ClassFromCode;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class ETLWorker.
+ * 
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- *         Generation&gt;Code and Comments
+ * Generation&gt;Code and Comments
  */
 abstract public class ETLWorker implements Runnable {
 
+    /**
+     * The Class CodeField.
+     */
     class CodeField {
 
+        /** The constant. */
         boolean constant = false;
+        
+        /** The datatype. */
         String datatype;
+        
+        /** The name. */
         String name;
+        
+        /** The private value. */
         boolean privateValue = false;
+        
+        /** The value. */
         String value;
 
+        /* (non-Javadoc)
+         * @see java.lang.Object#toString()
+         */
         public String toString() {
-            return name;
+            return this.name;
         }
     }
 
+    /**
+     * Debug.
+     * 
+     * @return true, if successful
+     */
     final public boolean debug() {
         return this.mDebug;
     }
 
+    /** The Constant CHANNEL. */
     public static final int CHANNEL = 1;
 
+    /** The Constant DEFAULT. */
     public static final int DEFAULT = 0;
+    
+    /** The Constant ENDOBJ. */
     public final static Object ENDOBJ = new Object();
+    
+    /** The Constant LEFT. */
     public static final int LEFT = 0;
+    
+    /** The Constant PORT. */
     public static final int PORT = 2;
 
+    /** The Constant RIGHT. */
     public static final int RIGHT = 1;
 
+    /** The Constant STEP. */
     static final int STEP = 0;
 
+    /**
+     * Configure buffer sort.
+     * 
+     * @param srcQueue the src queue
+     */
     protected void configureBufferSort(ManagedBlockingQueue srcQueue) {
 
         if (srcQueue instanceof Partitioner)
@@ -89,6 +144,15 @@ abstract public class ETLWorker implements Runnable {
 
     }
 
+    /**
+     * Extract port details.
+     * 
+     * @param content the content
+     * 
+     * @return the string[]
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final protected static String[] extractPortDetails(String content) throws KETLThreadException {
 
         if (content == null)
@@ -105,28 +169,37 @@ abstract public class ETLWorker implements Runnable {
             throw new KETLThreadException("IN port definition invalid: \"" + content + "\"", Thread.currentThread());
 
         String[] res = new String[3];
-        res[STEP] = sources[0];
+        res[ETLWorker.STEP] = sources[0];
         if (sources.length == 3) {
-            res[CHANNEL] = sources[1];
-            res[PORT] = sources[2];
+            res[ETLWorker.CHANNEL] = sources[1];
+            res[ETLWorker.PORT] = sources[2];
 
         }
         else
-            res[PORT] = sources[1];
+            res[ETLWorker.PORT] = sources[1];
 
         return res;
     }
 
+    /**
+     * Gets the channel.
+     * 
+     * @param xmlConfig the xml config
+     * @param type the type
+     * 
+     * @return the channel
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final public static String getChannel(Element xmlConfig, int type) throws KETLThreadException {
 
         Node[] ports;
-        if (type == DEFAULT)
+        if (type == ETLWorker.DEFAULT)
             ports = XMLHelper.getElementsByName(xmlConfig, "IN", "*", "*");
         else
-            ports = XMLHelper.getElementsByName(xmlConfig, "IN", type == LEFT ? "LEFT" : "RIGHT", "TRUE");
+            ports = XMLHelper.getElementsByName(xmlConfig, "IN", type == ETLWorker.LEFT ? "LEFT" : "RIGHT", "TRUE");
 
-        for (int i = 0; i < ports.length; i++) {
-            Node port = ports[i];
+        for (Node port : ports) {
             String content = XMLHelper.getTextContent(port);
 
             if (content == null)
@@ -153,6 +226,13 @@ abstract public class ETLWorker implements Runnable {
                 + "\" has no in ports or ports do not have a valid source", Thread.currentThread());
     }
 
+    /**
+     * Gets the channels.
+     * 
+     * @param config the config
+     * 
+     * @return the channels
+     */
     final public static String[] getChannels(Element config) {
         NodeList nl = config.getElementsByTagName("OUT");
         HashSet ports = new HashSet();
@@ -166,6 +246,15 @@ abstract public class ETLWorker implements Runnable {
         return res;
     }
 
+    /**
+     * Gets the source.
+     * 
+     * @param xmlConfig the xml config
+     * 
+     * @return the source
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final public static String[] getSource(Element xmlConfig) throws KETLThreadException {
 
         String left = null, right = null;
@@ -184,15 +273,15 @@ abstract public class ETLWorker implements Runnable {
             else
                 leftSource = true;
 
-            String[] sources = extractPortDetails(content);
+            String[] sources = ETLWorker.extractPortDetails(content);
 
             if (sources == null)
                 continue;
 
             if (left == null && leftSource)
-                left = sources[STEP];
+                left = sources[ETLWorker.STEP];
             else if (right == null && rightSource)
-                right = sources[STEP];
+                right = sources[ETLWorker.STEP];
         }
 
         if (right == null)
@@ -201,6 +290,13 @@ abstract public class ETLWorker implements Runnable {
         return new String[] { left, right };
     }
 
+    /**
+     * Sets the out defaults.
+     * 
+     * @param pConfig the new out defaults
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final public static void setOutDefaults(Element pConfig) throws KETLThreadException {
         NodeList nl = pConfig.getElementsByTagName("OUT");
 
@@ -222,68 +318,111 @@ abstract public class ETLWorker implements Runnable {
         }
     }
 
+    /** The tune interval. */
     int tuneInterval = 200000;
 
+    /** The core class name. */
     private String coreClassName = null;
 
+    /** The default batch size. */
     private final int defaultBatchSize = 1000;
 
+    /** The default queue size. */
     private final int defaultQueueSize = 5;
 
+    /** The hm inports. */
     protected HashMap hmInports = new HashMap();
 
+    /** The hm outports. */
     protected HashMap hmOutports = new HashMap();
 
+    /** The m batch management. */
     protected final boolean mBatchManagement = this.implementsBatchManagement();
 
+    /** The m channel class mapping. */
     HashMap mChannelClassMapping = new HashMap();
 
+    /** The m channel ports used. */
     protected HashMap mChannelPortsUsed = new HashMap();
 
+    /** The m code fields. */
     ArrayList mCodeFields = new ArrayList();
 
+    /** The m code fields lookup. */
     HashMap mCodeFieldsLookup = new HashMap();
 
+    /** The mhm inport index. */
     private HashMap mhmInportIndex = new HashMap();
 
+    /** The m hm outport index. */
     protected HashMap mHmOutportIndex = new HashMap();
 
+    /** The m in ports. */
     protected ETLInPort[] mInPorts;
+    
+    /** The m out ports. */
     protected ETLOutPort[] mOutPorts;
+    
+    /** The m source outs. */
     HashMap mSourceOuts = new HashMap();
 
+    /** The mstr name. */
     String mstrName;
 
+    /** The m thread manager. */
     private ETLThreadManager mThreadManager;
 
+    /**
+     * Gets the thread manager.
+     * 
+     * @return the thread manager
+     */
     protected ETLThreadManager getThreadManager() {
         return this.mThreadManager;
     }
 
+    /** The pos. */
     private int pos = 0;
 
+    /** The partitions. */
     protected int queueSize, batchSize, partitionID, partitions;
+    
+    /** The record count. */
     private int recordCount = 0;
+    
+    /** The self tune. */
     private boolean selfTune = true;
 
+    /** The xml config. */
     private Node xmlConfig;
 
+    /** The tune interval increment. */
     int tuneIntervalIncrement = 200000;
 
+    /** The timing. */
     protected boolean timing;
 
+    /** The m debug. */
     protected boolean mDebug;
+    
+    /** The m monitor. */
     protected boolean mMonitor;
 
     /**
+     * The Constructor.
+     * 
      * @param pPartitionID TODO
-     * @throws KETLThreadException
+     * @param pXMLConfig the XML config
+     * @param pPartitions the partitions
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
      */
     public ETLWorker(Node pXMLConfig, int pPartitionID, int pPartitions, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super();
-        this.queueSize = XMLHelper.getAttributeAsInt(pXMLConfig.getAttributes(), "QUEUESIZE", defaultQueueSize);
-        this.batchSize = XMLHelper.getAttributeAsInt(pXMLConfig.getAttributes(), "BATCHSIZE", defaultBatchSize);
+        this.queueSize = XMLHelper.getAttributeAsInt(pXMLConfig.getAttributes(), "QUEUESIZE", this.defaultQueueSize);
+        this.batchSize = XMLHelper.getAttributeAsInt(pXMLConfig.getAttributes(), "BATCHSIZE", this.defaultBatchSize);
         this.timing = XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "TIMING", false);
 
         this.mThreadManager = pThreadManager;
@@ -305,32 +444,65 @@ abstract public class ETLWorker implements Runnable {
         }
     }
 
+    /**
+     * Compile.
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final public void compile() throws KETLThreadException {
         Class coreClass = null;
         if (!(this instanceof DefaultCore))
-            coreClass = generateCore();
+            coreClass = this.generateCore();
         this.instantiateCore(coreClass);
     }
 
+    /**
+     * Complete.
+     * 
+     * @return the int
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public int complete() throws KETLThreadException {
         return 0;
     }
 
+    /** The total time nano. */
     protected long totalTimeNano = 0;
+    
+    /** The start time nano. */
     protected long startTimeNano = 0;
 
+    /**
+     * Execute worker.
+     * 
+     * @throws InterruptedException the interrupted exception
+     * @throws ClassNotFoundException the class not found exception
+     * @throws KETLThreadException the KETL thread exception
+     * @throws KETLReadException the KETL read exception
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws KETLTransformException the KETL transform exception
+     * @throws KETLWriteException the KETL write exception
+     */
     abstract protected void executeWorker() throws InterruptedException, ClassNotFoundException, KETLThreadException,
             KETLReadException, IOException, KETLTransformException, KETLWriteException;
 
+    /**
+     * Generate core.
+     * 
+     * @return the class
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     private Class generateCore() throws KETLThreadException {
 
         StringBuilder sb = new StringBuilder("package job."
                 + ((ETLStep) this).getJobExecutor().getCurrentETLJob().getJobID() + ";\n");
 
-        sb.append(generateCoreImports());
-        sb.append(generateCoreHeader());
+        sb.append(this.generateCoreImports());
+        sb.append(this.generateCoreHeader());
 
-        sb.append(generatePortMappingCode());
+        sb.append(this.generatePortMappingCode());
 
         // declare fields and constants
         for (Object o : this.mCodeFields) {
@@ -366,21 +538,38 @@ abstract public class ETLWorker implements Runnable {
         }
     }
 
+    /**
+     * Generate core header.
+     * 
+     * @return the char sequence
+     */
     abstract protected CharSequence generateCoreHeader();
 
+    /**
+     * Generate core imports.
+     * 
+     * @return the string
+     */
     protected String generateCoreImports() {
         return "import com.kni.etl.ketl.exceptions.*;\n" + "import com.kni.etl.ketl.smp.*;\n";
     }
 
+    /**
+     * Generate port mapping code.
+     * 
+     * @return the string
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected String generatePortMappingCode() throws KETLThreadException {
         StringBuilder sb = new StringBuilder();
         // generate constants used for references
         if (this.mInPorts != null) {
-            for (int i = 0; i < this.mInPorts.length; i++) {
-                if (this.mInPorts[i].isConstant())
-                    this.getCodeField(this.mInPorts[i].getPortClass().getCanonicalName(), "new "
-                            + this.mInPorts[i].getPortClass().getCanonicalName() + "(\""
-                            + this.mInPorts[i].getConstantValue().toString() + "\")", true, true, this.mInPorts[i]
+            for (ETLInPort element : this.mInPorts) {
+                if (element.isConstant())
+                    this.getCodeField(element.getPortClass().getCanonicalName(), "new "
+                            + element.getPortClass().getCanonicalName() + "(\""
+                            + element.getConstantValue().toString() + "\")", true, true, element
                             .generateReference());
             }
         }
@@ -404,81 +593,173 @@ abstract public class ETLWorker implements Runnable {
         return sb.toString();
     }
 
+    /**
+     * Gets the default exception class.
+     * 
+     * @return the default exception class
+     */
     abstract String getDefaultExceptionClass();
 
+    /**
+     * Gets the batch manager.
+     * 
+     * @return the batch manager
+     */
     protected BatchManager getBatchManager() {
-        if (implementsBatchManagement()) {
+        if (this.implementsBatchManagement()) {
             return (BatchManager) this;
         }
         return null;
     }
 
+    /**
+     * Gets the code field.
+     * 
+     * @param datatype the datatype
+     * @param value the value
+     * @param constant the constant
+     * @param privateValue the private value
+     * @param name the name
+     * 
+     * @return the code field
+     */
     protected String getCodeField(String datatype, String value, boolean constant, boolean privateValue, String name) {
 
         String nm = (name == null ? datatype + constant : name);
 
-        if (mCodeFieldsLookup.containsKey(nm))
-            return ((CodeField) mCodeFieldsLookup.get(nm)).name;
+        if (this.mCodeFieldsLookup.containsKey(nm))
+            return ((CodeField) this.mCodeFieldsLookup.get(nm)).name;
 
         CodeField cons = new CodeField();
         cons.constant = constant;
         cons.datatype = datatype;
-        cons.name = (name == null ? "CONST_" + mCodeFieldsLookup.size() : name);
+        cons.name = (name == null ? "CONST_" + this.mCodeFieldsLookup.size() : name);
         cons.value = value;
         cons.privateValue = privateValue;
-        mCodeFieldsLookup.put(nm, cons);
-        mCodeFields.add(cons);
+        this.mCodeFieldsLookup.put(nm, cons);
+        this.mCodeFields.add(cons);
 
         return cons.name;
     }
 
+    /**
+     * Gets the code generation output object.
+     * 
+     * @param pChannel the channel
+     * 
+     * @return the code generation output object
+     */
     final public String getCodeGenerationOutputObject(String pChannel) {
         return "pOutputRecords";
     }
 
+    /**
+     * Gets the core class name.
+     * 
+     * @return the core class name
+     */
     final protected String getCoreClassName() {
-        if (coreClassName == null)
-            coreClassName = this.mstrName;// + this.getJobExecutionID();
+        if (this.coreClassName == null)
+            this.coreClassName = this.mstrName;// + this.getJobExecutionID();
 
-        return coreClassName;
+        return this.coreClassName;
     }
 
+    /**
+     * Gets the in port.
+     * 
+     * @param index the index
+     * 
+     * @return the in port
+     */
     final public ETLInPort getInPort(int index) {
-        for (int i = 0; i < this.mInPorts.length; i++)
-            if (this.mInPorts[i].getSourcePortIndex() == index)
-                return this.mInPorts[i];
+        for (ETLInPort element : this.mInPorts)
+            if (element.getSourcePortIndex() == index)
+                return element;
 
         return null;
     }
 
+    /**
+     * Gets the in port.
+     * 
+     * @param arg0 the arg0
+     * 
+     * @return the in port
+     */
     final public ETLInPort getInPort(String arg0) {
         return (ETLInPort) this.hmInports.get(arg0);
     }
 
+    /**
+     * Gets the job execution ID.
+     * 
+     * @return the job execution ID
+     */
     final protected long getJobExecutionID() {
         return 1;// System.nanoTime();
     }
 
+    /**
+     * Gets the name.
+     * 
+     * @return the name
+     */
     final public String getName() {
         return this.mstrName;
     }
 
+    /**
+     * Gets the new in port.
+     * 
+     * @param srcStep the src step
+     * 
+     * @return the new in port
+     */
     protected ETLInPort getNewInPort(ETLStep srcStep) {
         return new ETLInPort((ETLStep) this, srcStep);
     }
 
+    /**
+     * Gets the new out port.
+     * 
+     * @param srcStep the src step
+     * 
+     * @return the new out port
+     */
     protected ETLOutPort getNewOutPort(ETLStep srcStep) {
         return new ETLOutPort((ETLStep) this, (ETLStep) this);
     }
 
+    /**
+     * Gets the out channel.
+     * 
+     * @return the out channel
+     */
     final protected String getOutChannel() {
         return (String) this.mChannelClassMapping.keySet().toArray()[0];
     }
 
+    /**
+     * Gets the out port.
+     * 
+     * @param index the index
+     * 
+     * @return the out port
+     */
     final public ETLOutPort getOutPort(int index) {
         return this.mOutPorts[index];
     }
 
+    /**
+     * Gets the out port.
+     * 
+     * @param arg0 the arg0
+     * 
+     * @return the out port
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final public ETLOutPort getOutPort(String arg0) throws KETLThreadException {
 
         ETLOutPort port = (ETLOutPort) this.hmOutports.get(arg0);
@@ -487,12 +768,12 @@ abstract public class ETLWorker implements Runnable {
             // check for it
             Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "OUT", "*", "*");
             if (nl != null) {
-                for (int i = 0; i < nl.length; i++) {
-                    String nm = XMLHelper.getAttributeAsString(nl[i].getAttributes(), "NAME", null);
+                for (Node element : nl) {
+                    String nm = XMLHelper.getAttributeAsString(element.getAttributes(), "NAME", null);
                     if (nm == null || nm.equals(arg0)) {
                         ETLOutPort newPort = this.getNewOutPort((ETLStep) this);
                         try {
-                            newPort.initialize(nl[i]);
+                            newPort.initialize(element);
                         } catch (Exception e) {
                             throw new KETLThreadException(e, this);
                         }
@@ -510,24 +791,34 @@ abstract public class ETLWorker implements Runnable {
         return port;
     }
 
+    /**
+     * Gets the output record datatypes.
+     * 
+     * @param pChannel the channel
+     * 
+     * @return the output record datatypes
+     * 
+     * @throws ClassNotFoundException the class not found exception
+     * @throws KETLThreadException the KETL thread exception
+     */
     final protected Class[] getOutputRecordDatatypes(String pChannel) throws ClassNotFoundException,
             KETLThreadException {
 
         Class[] result = (Class[]) this.mChannelClassMapping.get(pChannel);
         if (result == null) {
             // slim the outputs down so only the used ones get used, make life easier on the garbage collector
-            String[] channels = getChannels((Element) this.getXMLConfig());
+            String[] channels = ETLWorker.getChannels((Element) this.getXMLConfig());
 
-            for (int x = 0; x < channels.length; x++) {
-                if (channels[x].equals(pChannel)) {
+            for (String element : channels) {
+                if (element.equals(pChannel)) {
 
-                    Node[] nList = XMLHelper.getElementsByName(this.getXMLConfig(), "OUT", "CHANNEL", channels[x]);
+                    Node[] nList = XMLHelper.getElementsByName(this.getXMLConfig(), "OUT", "CHANNEL", element);
 
                     ArrayList al = new ArrayList();
                     int portIndex = 0;
-                    for (int i = 0; i < nList.length; i++) {
-                        if (this.portUsed(pChannel, ((Element) nList[i]).getAttribute("NAME"))) {
-                            ETLOutPort port = ((ETLOutPort) this.getOutPort(((Element) nList[i]).getAttribute("NAME")));
+                    for (Node element0 : nList) {
+                        if (this.portUsed(pChannel, ((Element) element0).getAttribute("NAME"))) {
+                            ETLOutPort port = ((ETLOutPort) this.getOutPort(((Element) element0).getAttribute("NAME")));
                             al.add(port.getPortClass());
                             port.setIndex(portIndex);
                             this.mHmOutportIndex.put(port, portIndex++);
@@ -536,7 +827,7 @@ abstract public class ETLWorker implements Runnable {
 
                     Class[] cls = new Class[al.size()];
                     al.toArray(cls);
-                    this.mChannelClassMapping.put(channels[x], cls);
+                    this.mChannelClassMapping.put(element, cls);
                     this.setOutputRecordDataTypes(cls, pChannel);
                     return cls;
                 }
@@ -550,20 +841,48 @@ abstract public class ETLWorker implements Runnable {
     }
 
     /**
-     * @return
+     * Gets the queue size.
+     * 
+     * @return the queue size
      */
     final public int getQueueSize() {
         return this.queueSize;
     }
 
+    /**
+     * Gets the record execute method footer.
+     * 
+     * @return the record execute method footer
+     */
     abstract protected String getRecordExecuteMethodFooter();
 
+    /**
+     * Gets the record execute method header.
+     * 
+     * @return the record execute method header
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     abstract protected String getRecordExecuteMethodHeader() throws KETLThreadException;
 
+    /**
+     * Gets the records processed.
+     * 
+     * @return the records processed
+     */
     final protected int getRecordsProcessed() {
         return this.recordCount;
     }
 
+    /**
+     * Gets the used port index.
+     * 
+     * @param port the port
+     * 
+     * @return the used port index
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public int getUsedPortIndex(ETLPort port) throws KETLThreadException {
         if (port instanceof ETLOutPort)
             return ((Integer) this.mHmOutportIndex.get(port)).intValue();
@@ -576,41 +895,105 @@ abstract public class ETLWorker implements Runnable {
         // throw new KETLThreadException("Port index not found");
     }
 
+    /**
+     * Gets the used ports from worker.
+     * 
+     * @param pWorker the worker
+     * @param port the port
+     * 
+     * @return the used ports from worker
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final protected void getUsedPortsFromWorker(ETLWorker pWorker, String port) throws KETLThreadException {
 
         ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Registering port usage for step "
                 + pWorker.toString() + " by step " + this.toString());
         // get each in port and then call to source step(s) to request port definition
         Node[] nl = com.kni.etl.util.XMLHelper.getElementsByName(this.getXMLConfig(), "IN", "*", "*");
-        registerUsedPorts(pWorker, nl, "pInputRecords");
+        this.registerUsedPorts(pWorker, nl, "pInputRecords");
     }
 
+    /**
+     * Gets the XML config.
+     * 
+     * @return the XML config
+     */
     final public Element getXMLConfig() {
-        return (Element) xmlConfig;
+        return (Element) this.xmlConfig;
     }
 
+    /**
+     * Handle event code.
+     * 
+     * @param eventCode the event code
+     * 
+     * @return the object
+     */
     public Object handleEventCode(int eventCode) {
         return null;
     }
 
+    /**
+     * Handle exception.
+     * 
+     * @param e the e
+     * 
+     * @return the object
+     * 
+     * @throws Exception the exception
+     */
     public Object handleException(Exception e) throws Exception {
         throw e;
     }
 
+    /**
+     * Handle port event code.
+     * 
+     * @param eventCode the event code
+     * @param portIndex the port index
+     * 
+     * @return the object
+     * 
+     * @throws Exception the exception
+     */
     public Object handlePortEventCode(int eventCode, int portIndex) throws Exception {
         return null;
     }
 
+    /**
+     * Handle port exception.
+     * 
+     * @param e the e
+     * @param portIndex the port index
+     * 
+     * @return the object
+     * 
+     * @throws Exception the exception
+     */
     public Object handlePortException(Exception e, int portIndex) throws Exception {
         throw e;
     }
 
+    /**
+     * Hash.
+     * 
+     * @param obj the obj
+     * @param paths the paths
+     * 
+     * @return the int
+     */
     protected int hash(Object[] obj, int paths) {
-        if (pos == paths)
-            pos = 0;
-        return pos++;
+        if (this.pos == paths)
+            this.pos = 0;
+        return this.pos++;
     }
 
+    /**
+     * Implements batch management.
+     * 
+     * @return true, if successful
+     */
     final private boolean implementsBatchManagement() {
         if (this instanceof BatchManager) {
             return true;
@@ -618,25 +1001,46 @@ abstract public class ETLWorker implements Runnable {
         return false;
     }
 
+    /**
+     * Initialize.
+     * 
+     * @param mkjExecutor the mkj executor
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final public void initialize(KETLJobExecutor mkjExecutor) throws KETLThreadException {
         ((ETLStep) this).setJobExecutor(mkjExecutor);
         if (this.initialize(this.getXMLConfig()) != 0)
             throw new KETLThreadException("Core failed to initialize, see previous errors", this);
     }
 
+    /**
+     * Initialize.
+     * 
+     * @param xmlConfig the xml config
+     * 
+     * @return the int
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     abstract protected int initialize(Node xmlConfig) throws KETLThreadException;
 
+    /**
+     * Initialize all out ports.
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final public void initializeAllOutPorts() throws KETLThreadException {
 
         // check for it
         Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "OUT", "*", "*");
         if (nl != null) {
-            for (int i = 0; i < nl.length; i++) {
-                String nm = XMLHelper.getAttributeAsString(nl[i].getAttributes(), "NAME", null);
+            for (Node element : nl) {
+                String nm = XMLHelper.getAttributeAsString(element.getAttributes(), "NAME", null);
                 if (nm == null || this.hmOutports.containsKey(nm) == false) {
                     ETLOutPort newPort = this.getNewOutPort((ETLStep) this);
                     try {
-                        newPort.initialize(nl[i]);
+                        newPort.initialize(element);
                     } catch (Exception e) {
                         throw new KETLThreadException(e, this);
                     }
@@ -650,11 +1054,16 @@ abstract public class ETLWorker implements Runnable {
         }
     }
 
+    /**
+     * Initialize outports.
+     * 
+     * @param outPortNodes the out port nodes
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected void initializeOutports(ETLPort[] outPortNodes) throws KETLThreadException {
 
-        for (int i = 0; i < outPortNodes.length; i++) {
-            ETLPort port = outPortNodes[i];
-
+        for (ETLPort port : outPortNodes) {
             if (port.isConstant()) {
                 port.instantiateConstant();
             }
@@ -680,8 +1089,18 @@ abstract public class ETLWorker implements Runnable {
         }
     }
 
+    /**
+     * Initialize queues.
+     */
     abstract public void initializeQueues();
 
+    /**
+     * Instantiate core.
+     * 
+     * @param arg0 the arg0
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final protected void instantiateCore(Class arg0) throws KETLThreadException {
         try {
 
@@ -702,49 +1121,72 @@ abstract public class ETLWorker implements Runnable {
         }
     }
 
+    /**
+     * Port used.
+     * 
+     * @param pChannel the channel
+     * @param pPort the port
+     * 
+     * @return true, if successful
+     */
     final protected boolean portUsed(String pChannel, String pPort) {
         HashSet al = (HashSet) this.mChannelPortsUsed.get(pChannel);
         return al.contains(pPort);
     }
 
+    /**
+     * Post source connected initialize.
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final void postSourceConnectedInitialize() throws KETLThreadException {
 
         ArrayList al = new ArrayList();
         Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "OUT", "*", "*");
         if (nl != null) {
-            for (int i = 0; i < nl.length; i++) {
-                ETLPort p = this.getOutPort(XMLHelper.getAttributeAsString(nl[i].getAttributes(), "NAME", null));
+            for (Node element : nl) {
+                ETLPort p = this.getOutPort(XMLHelper.getAttributeAsString(element.getAttributes(), "NAME", null));
 
                 if (p != null)
                     al.add(p);
 
             }
 
-            mOutPorts = new ETLOutPort[al.size()];
+            this.mOutPorts = new ETLOutPort[al.size()];
 
-            al.toArray(mOutPorts);
+            al.toArray(this.mOutPorts);
         }
 
         al.clear();
         nl = XMLHelper.getElementsByName(this.getXMLConfig(), "IN", "*", "*");
         if (nl != null) {
 
-            for (int i = 0; i < nl.length; i++) {
-                ETLPort p = this.getInPort(XMLHelper.getAttributeAsString(nl[i].getAttributes(), "NAME", null));
+            for (Node element : nl) {
+                ETLPort p = this.getInPort(XMLHelper.getAttributeAsString(element.getAttributes(), "NAME", null));
 
                 if (p != null)
                     al.add(p);
             }
 
-            mInPorts = new ETLInPort[al.size()];
+            this.mInPorts = new ETLInPort[al.size()];
 
-            al.toArray(mInPorts);
+            al.toArray(this.mInPorts);
         }
-        this.initializeOutports(mOutPorts);
+        this.initializeOutports(this.mOutPorts);
     }
 
+    /** The m fan in worker used. */
     private HashMap mFanInWorkerUsed = new HashMap();
 
+    /**
+     * Register used ports.
+     * 
+     * @param pWorker the worker
+     * @param nl the nl
+     * @param objectNameInCode the object name in code
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final protected void registerUsedPorts(ETLWorker pWorker, Node[] nl, String objectNameInCode)
             throws KETLThreadException {
         Node wildCardPort = null;
@@ -755,14 +1197,14 @@ abstract public class ETLWorker implements Runnable {
             Node[] outNodes = XMLHelper.getElementsByName(this.getXMLConfig(), "OUT", "*", "*");
             HashSet outExists = new HashSet();
             if (outNodes != null) {
-                for (int i = 0; i < outNodes.length; i++) {
-                    String content = XMLHelper.getTextContent(outNodes[i]);
+                for (Node element : outNodes) {
+                    String content = XMLHelper.getTextContent(element);
                     if (content != null && content.trim().equals("*")) {
-                        wildCardOut = outNodes[i];
+                        wildCardOut = element;
                         this.getXMLConfig().removeChild(wildCardOut);
                     }
                     else {
-                        String portName = XMLHelper.getAttributeAsString(outNodes[i].getAttributes(), "NAME", null);
+                        String portName = XMLHelper.getAttributeAsString(element.getAttributes(), "NAME", null);
 
                         if (portName == null && content != null) {
                             content = content.trim();
@@ -784,9 +1226,7 @@ abstract public class ETLWorker implements Runnable {
                 }
             }
             HashSet srcPortsUsed = new HashSet();
-            for (int i = 0; i < nl.length; i++) {
-                Node node = nl[i];
-
+            for (Node node : nl) {
                 ETLOutPort srcPort = null;
                 ETLInPort newPort = this.getNewInPort((ETLStep) pWorker);
 
@@ -795,7 +1235,7 @@ abstract public class ETLWorker implements Runnable {
 
                 // is current port a constant, if so just instantiate it and don't do this bit
                 if (ETLPort.containsConstant(XMLHelper.getTextContent(node)) == false) {
-                    String[] sources = extractPortDetails(XMLHelper.getTextContent(node));
+                    String[] sources = ETLWorker.extractPortDetails(XMLHelper.getTextContent(node));
 
                     if (sources == null)
                         continue;
@@ -803,7 +1243,7 @@ abstract public class ETLWorker implements Runnable {
                     ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "getUsedPortsFromWorker -> Port: "
                             + ((Element) node).getAttribute("NAME") + " ");
 
-                    if (sources[PORT].equals("*")) {
+                    if (sources[ETLWorker.PORT].equals("*")) {
                         // wildcard port defer creation until the end
                         if (wildCardPort != null)
                             throw new KETLThreadException("Duplicate wild card IN port exists, check step "
@@ -812,7 +1252,7 @@ abstract public class ETLWorker implements Runnable {
                         newPort = null;
                     }
                     else {
-                        srcPort = pWorker.setOutUsed(sources[CHANNEL], sources[PORT]);
+                        srcPort = pWorker.setOutUsed(sources[ETLWorker.CHANNEL], sources[ETLWorker.PORT]);
                         srcPortsUsed.add(srcPort);
                         newPort.setSourcePort(srcPort);
                         ArrayList res = (ArrayList) this.mhmInportIndex.get(objectNameInCode);
@@ -855,11 +1295,11 @@ abstract public class ETLWorker implements Runnable {
 
                 pWorker.initializeAllOutPorts();
 
-                String[] sources = extractPortDetails(XMLHelper.getTextContent(wildCardPort));
+                String[] sources = ETLWorker.extractPortDetails(XMLHelper.getTextContent(wildCardPort));
 
                 Node parent = wildCardPort.getParentNode();
 
-                String channel = (sources.length == 3 ? sources[CHANNEL] : null);
+                String channel = (sources.length == 3 ? sources[ETLWorker.CHANNEL] : null);
                 parent.removeChild(wildCardPort);
                 NamedNodeMap nm = wildCardPort.getAttributes();
 
@@ -899,13 +1339,13 @@ abstract public class ETLWorker implements Runnable {
                 if (otherPorts.size() > 0) {
                     nl = new Node[otherPorts.size()];
                     otherPorts.toArray(nl);
-                    registerUsedPorts(pWorker, nl, objectNameInCode);
+                    this.registerUsedPorts(pWorker, nl, objectNameInCode);
                 }
             }
 
             if (wildCardOut != null) {
                 NamedNodeMap nm = wildCardOut.getAttributes();
-                for (Object o : hmInports.values()) {
+                for (Object o : this.hmInports.values()) {
                     ETLInPort export = (ETLInPort) o;
 
                     if (outExists.contains(export.mstrName))
@@ -942,6 +1382,13 @@ abstract public class ETLWorker implements Runnable {
         // resolve wildcard out.
     }
 
+    /**
+     * Checks if is memory low.
+     * 
+     * @param pLowMemoryThreshold the low memory threshold
+     * 
+     * @return true, if is memory low
+     */
     final protected boolean isMemoryLow(long pLowMemoryThreshold) {
         Runtime r = Runtime.getRuntime();
         long free = (r.maxMemory() - (r.totalMemory() - r.freeMemory()));
@@ -951,8 +1398,12 @@ abstract public class ETLWorker implements Runnable {
         return false;
     }
 
+    /** The controlled exit. */
     private boolean controlledExit = false;
 
+    /* (non-Javadoc)
+     * @see java.lang.Runnable#run()
+     */
     final public void run() {
         try {
             try {
@@ -961,16 +1412,16 @@ abstract public class ETLWorker implements Runnable {
                 }
                 this.executeWorker();
                 this.complete();
-                controlledExit = true;
+                this.controlledExit = true;
             } catch (java.lang.Error e) {
                 throw new KETLThreadException(e, this);
             }
         } catch (InterruptedException e) {
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Worker interrupted");
-            controlledExit = true;
+            this.controlledExit = true;
             this.interruptAllSteps();
         } catch (Throwable e) {
-            controlledExit = true;
+            this.controlledExit = true;
             if (e.getCause() != null && e.getCause() instanceof InterruptedException) {
                 ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Worker interrupted");
                 this.interruptAllSteps();
@@ -982,7 +1433,7 @@ abstract public class ETLWorker implements Runnable {
             }
             this.interruptAllSteps();
         } finally {
-            if (controlledExit == false) {
+            if (this.controlledExit == false) {
                 ResourcePool
                         .LogMessage(this, ResourcePool.ERROR_MESSAGE,
                                 "Step has shutdown in a non controlled, cause is unknown and all other steps will be interrupted");
@@ -991,33 +1442,83 @@ abstract public class ETLWorker implements Runnable {
         }
     }
 
+    /** The m fail all. */
     private boolean mFailAll = false;
 
+    /**
+     * Interrupt execution.
+     * 
+     * @throws InterruptedException the interrupted exception
+     */
     abstract protected void interruptExecution() throws InterruptedException;
 
+    /**
+     * Interrupt all steps.
+     */
     final private void interruptAllSteps() {
         this.mThreadManager.jobThreadGroup.interrupt();
-        mFailAll = true;
+        this.mFailAll = true;
     }
 
+    /**
+     * Clean shutdown.
+     * 
+     * @return true, if successful
+     */
     final public boolean cleanShutdown() {
         return this.controlledExit;
     }
 
+    /**
+     * Fail all.
+     * 
+     * @return true, if successful
+     */
     final public boolean failAll() {
         return this.mFailAll;
     }
 
+    /**
+     * Self tune.
+     * 
+     * @param arg0 the arg0
+     */
     final public void selfTune(boolean arg0) {
-        selfTune = arg0;
+        this.selfTune = arg0;
     }
 
+    /**
+     * Sets the batch manager.
+     * 
+     * @param batchManager the new batch manager
+     */
     abstract protected void setBatchManager(BatchManager batchManager);
 
+    /**
+     * Sets the core.
+     * 
+     * @param newCore the new core
+     */
     abstract void setCore(DefaultCore newCore);
 
+    /**
+     * Sets the output record data types.
+     * 
+     * @param pClassArray the class array
+     * @param pChannel the channel
+     */
     abstract void setOutputRecordDataTypes(Class[] pClassArray, String pChannel);
 
+    /**
+     * Sets the out used.
+     * 
+     * @param pChannel the channel
+     * @param pPort the port
+     * 
+     * @return the ETL out port
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     final public ETLOutPort setOutUsed(String pChannel, String pPort) throws KETLThreadException {
 
         // get port
@@ -1025,7 +1526,7 @@ abstract public class ETLWorker implements Runnable {
             throw new KETLThreadException("Invalid port name " + this.mstrName + "." + pPort, this);
 
         if (pChannel == null) {
-            pChannel = ETLWorker.getChannels((Element) this.getXMLConfig())[DEFAULT];
+            pChannel = ETLWorker.getChannels((Element) this.getXMLConfig())[ETLWorker.DEFAULT];
         }
 
         ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "setOutUsed -> Source Step: " + this.toString()
@@ -1055,47 +1556,92 @@ abstract public class ETLWorker implements Runnable {
         return port;
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
         return this.mstrName + "(" + this.partitionID + ")";
 
     }
 
+    /** The m batch optimizer. */
     private BatchOptimizer mBatchOptimizer = null;
 
+    /**
+     * Update thread stats.
+     * 
+     * @param rowCount the row count
+     */
     final protected void updateThreadStats(int rowCount) {
-        recordCount += rowCount;
+        this.recordCount += rowCount;
 
-        if (mBatchOptimizer != null && selfTune && recordCount > tuneInterval) {
+        if (this.mBatchOptimizer != null && this.selfTune && this.recordCount > this.tuneInterval) {
             this.mBatchOptimizer.optimize(this);
         }
     }
 
+    /**
+     * Close.
+     * 
+     * @param success the success
+     */
     protected abstract void close(boolean success);
 
+    /**
+     * Close step.
+     * 
+     * @param success the success
+     */
     public void closeStep(boolean success) {
         this.close(success);
     }
 
+    /**
+     * Success.
+     * 
+     * @return true, if successful
+     */
     abstract public boolean success();
 
+    /** The n format. */
     private NumberFormat nFormat = NumberFormat.getNumberInstance();
+    
+    /** The Constant nano. */
     private static final double nano = Math.pow(10, 9);
+    
+    /** The Constant nanoToMilli. */
     private static final long nanoToMilli = (long) Math.pow(10, 6);
 
+    /**
+     * Gets the timing.
+     * 
+     * @return the timing
+     */
     public String getTiming() {
-        if (timing == false)
+        if (this.timing == false)
             return "N/A";
 
-        return "" + nFormat.format(this.totalTimeNano / nano) + " seconds";
+        return "" + this.nFormat.format(this.totalTimeNano / ETLWorker.nano) + " seconds";
     }
 
+    /**
+     * Gets the CPU timing.
+     * 
+     * @return the CPU timing
+     */
     public long getCPUTiming() {
-        return this.totalTimeNano / nanoToMilli;
+        return this.totalTimeNano / ETLWorker.nanoToMilli;
     }
 
+    /** The m waiting for. */
     private Object mWaitingFor = null;
 
+    /**
+     * Sets the waiting.
+     * 
+     * @param arg0 the new waiting
+     */
     public void setWaiting(Object arg0) {
         if (arg0 == null)
             this.startTimeNano = System.nanoTime();
@@ -1103,14 +1649,30 @@ abstract public class ETLWorker implements Runnable {
         this.mWaitingFor = arg0;
     }
 
+    /**
+     * Checks if is waiting.
+     * 
+     * @return true, if is waiting
+     */
     public boolean isWaiting() {
-        return mWaitingFor == null ? false : true;
+        return this.mWaitingFor == null ? false : true;
     }
 
+    /**
+     * Waiting for.
+     * 
+     * @return the object
+     */
     public Object waitingFor() {
-        return mWaitingFor;
+        return this.mWaitingFor;
     }
 
+    /**
+     * Switch target queue.
+     * 
+     * @param currentQueue the current queue
+     * @param newQueue the new queue
+     */
     abstract public void switchTargetQueue(ManagedBlockingQueue currentQueue, ManagedBlockingQueue newQueue);
 
 }

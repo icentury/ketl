@@ -1,19 +1,43 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 
+// TODO: Auto-generated Javadoc
 /*
  * Created on Apr 7, 2005 To change the template for this generated file go to Window&gt;Preferences&gt;Java&gt;Code
  * Generation&gt;Code and Comments
  */
+/**
+ * The Class KETLBootStrap.
+ */
 public class KETLBootStrap {
 
     /**
-     * @param args
+     * The main method.
+     * 
+     * @param args the args
      */
     public static void main(String[] args) {
         // Start up a KETL server in the background
@@ -31,6 +55,15 @@ public class KETLBootStrap {
         }
     }
 
+    /**
+     * Start process.
+     * 
+     * @param strWorkingDirectory the str working directory
+     * @param pProcessCommand the process command
+     * @param pBackground the background
+     * 
+     * @return true, if successful
+     */
     public static boolean startProcess(String strWorkingDirectory, String pProcessCommand, boolean pBackground) {
         Process pProcess = null;
         boolean bSuccess = true;

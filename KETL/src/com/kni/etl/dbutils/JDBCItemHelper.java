@@ -1,3 +1,25 @@
+/*
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
+ */
 package com.kni.etl.dbutils;
 
 import java.io.IOException;
@@ -11,10 +33,26 @@ import java.sql.SQLException;
 
 import org.w3c.dom.Element;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class JDBCItemHelper.
+ */
 public class JDBCItemHelper {
 
     // convert sql datatype to required datatype
     // ENHANCE: Implement full JDC 3.0 conversion
+    /**
+     * Sets the parameter from class.
+     * 
+     * @param pPreparedStatement the prepared statement
+     * @param parameterIndex the parameter index
+     * @param pClass the class
+     * @param pDataItem the data item
+     * @param maxCharLength the max char length
+     * @param pXMLConfig the XML config
+     * 
+     * @throws SQLException the SQL exception
+     */
     public void setParameterFromClass(PreparedStatement pPreparedStatement, int parameterIndex, Class pClass,
             Object pDataItem, int maxCharLength, Element pXMLConfig) throws SQLException {
 
@@ -141,6 +179,19 @@ public class JDBCItemHelper {
 
     }
 
+    /**
+     * Gets the object from result set.
+     * 
+     * @param pRS the RS
+     * @param columnIndex the column index
+     * @param pClass the class
+     * @param maxCharLength the max char length
+     * 
+     * @return the object from result set
+     * 
+     * @throws SQLException the SQL exception
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     public Object getObjectFromResultSet(ResultSet pRS, int columnIndex, Class pClass, int maxCharLength)
             throws SQLException, IOException {
 
@@ -225,6 +276,16 @@ public class JDBCItemHelper {
         return result;
     }
 
+    /**
+     * Gets the java type.
+     * 
+     * @param pSQLType the SQL type
+     * @param pLength the length
+     * @param pPrecision the precision
+     * @param pScale the scale
+     * 
+     * @return the java type
+     */
     public String getJavaType(int pSQLType, int pLength, int pPrecision, int pScale) {
 
         switch (pSQLType) {

@@ -51,16 +51,16 @@ public class OverlapSearchTrackingDBO implements SQLData
           long computationTime,
           long trackingTime)
   {
-    _sessionID = sessionID;
-    _memberID = memberID;
-    _pageSeq = pageSeq;
-    _queryProposalAccepts = queryProposalAccepts;
-    _queryEntries = queryEntries;
-    _queryOriginType = queryOriginType;
-    _queryOriginName = queryOriginName;
-    _numberOfResults = numberOfResults;
-    _computationTime = computationTime;
-    _trackingTime = trackingTime;
+    this._sessionID = sessionID;
+    this._memberID = memberID;
+    this._pageSeq = pageSeq;
+    this._queryProposalAccepts = queryProposalAccepts;
+    this._queryEntries = queryEntries;
+    this._queryOriginType = queryOriginType;
+    this._queryOriginName = queryOriginName;
+    this._numberOfResults = numberOfResults;
+    this._computationTime = computationTime;
+    this._trackingTime = trackingTime;
   }
 
 
@@ -68,70 +68,70 @@ public class OverlapSearchTrackingDBO implements SQLData
    * Access function */
   public int getSessionID()
   {
-    return _sessionID;
+    return this._sessionID;
   }
 
   /**
    * Access function */
   public int getMemberID()
   {
-    return _memberID;
+    return this._memberID;
   }
 
   /**
    * Access function */
   public int getPageSeq()
   {
-    return _pageSeq;
+    return this._pageSeq;
   }
 
   /**
    * Access function */
   public int getQueryProposalAccepts()
   {
-    return _queryProposalAccepts;
+    return this._queryProposalAccepts;
   }
 
   /**
    * Access function */
   public QueryEntryDBO[] getQueryEntries()
   {
-    return _queryEntries;
+    return this._queryEntries;
   }
 
   /**
    * Access function */
   public String getQueryOriginType()
   {
-    return _queryOriginType;
+    return this._queryOriginType;
   }
 
   /**
    * Access function */
   public String getQueryOriginName()
   {
-    return _queryOriginName;
+    return this._queryOriginName;
   }
 
   /**
    * Access function */
   public int getNumberOfResults()
   {
-    return _numberOfResults;
+    return this._numberOfResults;
   }
 
   /**
    * Access function */
   public long getComputationTime()
   {
-    return _computationTime;
+    return this._computationTime;
   }
 
   /**
    * Access function */
   public long getTrackingTime()
   {
-    return _trackingTime;
+    return this._trackingTime;
   }
 
   public String getSQLTypeName() throws SQLException
@@ -147,16 +147,16 @@ public class OverlapSearchTrackingDBO implements SQLData
 
   public void writeSQL(SQLOutput stream) throws SQLException
   {
-    stream.writeInt(_sessionID);
-    stream.writeInt(_memberID);
-    stream.writeInt(_pageSeq);
-    writeArray(stream, QueryEntryDBO.SQL_ARRAY_TYPE_NAME, _queryEntries);
-    stream.writeInt(_queryProposalAccepts);
-    stream.writeString(_queryOriginType);
-    stream.writeInt(_numberOfResults);
-    stream.writeLong(_computationTime);
-    stream.writeTimestamp(new Timestamp(_trackingTime));
-    stream.writeString(_queryOriginName);
+    stream.writeInt(this._sessionID);
+    stream.writeInt(this._memberID);
+    stream.writeInt(this._pageSeq);
+    this.writeArray(stream, QueryEntryDBO.SQL_ARRAY_TYPE_NAME, this._queryEntries);
+    stream.writeInt(this._queryProposalAccepts);
+    stream.writeString(this._queryOriginType);
+    stream.writeInt(this._numberOfResults);
+    stream.writeLong(this._computationTime);
+    stream.writeTimestamp(new Timestamp(this._trackingTime));
+    stream.writeString(this._queryOriginName);
   }
 
   public <T> void writeArray(SQLOutput stream,

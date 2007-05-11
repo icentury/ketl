@@ -37,7 +37,7 @@ public final class TimeTCPClient extends SocketClient
      ***/
     public TimeTCPClient()
     {
-        setDefaultPort(DEFAULT_PORT);
+        this.setDefaultPort(TimeTCPClient.DEFAULT_PORT);
     }
 
     /***
@@ -61,7 +61,7 @@ public final class TimeTCPClient extends SocketClient
     public long getTime() throws IOException
     {
         DataInputStream input;
-        input = new DataInputStream(_input_);
+        input = new DataInputStream(this._input_);
 
         return (input.readInt() & 0xffffffffL);
     }
@@ -84,6 +84,6 @@ public final class TimeTCPClient extends SocketClient
      ***/
     public Date getDate() throws IOException
     {
-        return new Date((getTime() - SECONDS_1900_TO_1970) * 1000L);
+        return new Date((this.getTime() - TimeTCPClient.SECONDS_1900_TO_1970) * 1000L);
     }
 }

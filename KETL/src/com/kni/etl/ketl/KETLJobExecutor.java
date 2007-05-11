@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.ketl;
 
 import java.io.FileReader;
@@ -41,26 +59,49 @@ import com.kni.etl.ketl.smp.ETLSplit;
 import com.kni.etl.ketl.smp.ETLThreadGroup;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.ETLTransform;
+import com.kni.etl.ketl.smp.ETLWorker;
 import com.kni.etl.ketl.smp.ETLWriter;
 import com.kni.etl.ketl.smp.Step;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class KETLJobExecutor.
+ */
 public class KETLJobExecutor extends ETLJobExecutor {
 
+    /** The Constant CLASS_ATTRIB. */
     public static final String CLASS_ATTRIB = "CLASS";
+    
+    /** The Constant STEP_TAG. */
     public static final String STEP_TAG = "STEP";
 
+    /**
+     * Check for non assigned channels.
+     * 
+     * @param steps the steps
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     private static void checkForNonAssignedChannels(Object[] steps) throws KETLThreadException {
-        for (int i = 0; i < steps.length; i++) {
-            Object[] ports = ((Step) steps[i]).getUnassignedChannels();
+        for (Object element : steps) {
+            Object[] ports = ((Step) element).getUnassignedChannels();
             if (ports != null) {
-                throw new KETLThreadException("Step '" + ((Step) steps[i]).getName() + "' channel(s) "
+                throw new KETLThreadException("Step '" + ((Step) element).getName() + "' channel(s) "
                         + Arrays.toString(ports) + " has not been assigned, please remove step or channel", Thread
                         .currentThread());
             }
         }
     }
 
+    /**
+     * Gets the required parameters from valid node.
+     * 
+     * @param node the node
+     * @param list the list
+     * 
+     * @return the required parameters from valid node
+     */
     static private ArrayList getRequiredParametersFromValidNode(Node node, ArrayList list) {
 
         // ignore any parameter lists, as these should not be resolved
@@ -83,7 +124,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
             Collections.addAll(al, (Object[]) tmp);
 
         for (int i = 0; i < nl.getLength(); i++) {
-            getRequiredParametersFromValidNode(nl.item(i), list);
+            KETLJobExecutor.getRequiredParametersFromValidNode(nl.item(i), list);
         }
 
         NamedNodeMap nm = node.getAttributes();
@@ -109,13 +150,20 @@ public class KETLJobExecutor extends ETLJobExecutor {
         return list;
     }
 
+    /**
+     * The main method.
+     * 
+     * @param args the arguments
+     */
     public static void main(String[] args) {
         ETLJobExecutor.execute(args, new KETLJobExecutor(), true);
     }
 
     // protected HashMap hmConnections = new HashMap();
+    /** The ej current job. */
     ETLJob ejCurrentJob = null;
 
+    /** The em. */
     private ETLThreadManager em;
 
     /**
@@ -125,6 +173,17 @@ public class KETLJobExecutor extends ETLJobExecutor {
         super();
     }
 
+    /**
+     * Compile job.
+     * 
+     * @param job the job
+     * 
+     * @return the ETL thread manager
+     * 
+     * @throws ParserConfigurationException the parser configuration exception
+     * @throws SQLException the SQL exception
+     * @throws Exception the exception
+     */
     private ETLThreadManager compileJob(Element job) throws ParserConfigurationException, SQLException, Exception {
         // create list of steps by type
         NodeList ls = job.getElementsByTagName("STEP");
@@ -149,7 +208,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
             String className = XMLHelper.getAttributeAsString(nmAttrs, "CLASS", null);
 
-            ETLStep.setOutDefaults((Element) node);
+            ETLWorker.setOutDefaults((Element) node);
 
             if (className == null)
                 throw new KETLThreadException("Step has no class attribute, check XML", this);
@@ -184,7 +243,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
         }
 
         // instantiate thread manager
-        em = new ETLThreadManager(this);
+        this.em = new ETLThreadManager(this);
 
         // partitions
         int partitions = XMLHelper.getAttributeAsInt(job.getAttributes(), "PARRALLISM", 1);// Runtime.getRuntime().availableProcessors());
@@ -208,7 +267,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                         + partitions, this);
 
             step.setThreadGroup(ETLThreadGroup.newInstance(null, ETLThreadManager.getThreadingType((Element) step
-                    .getConfig()), step, instancePartitions, em));
+                    .getConfig()), step, instancePartitions, this.em));
 
             readySources.put(step.getName(), step);
             pendingInstantiation.remove(step);
@@ -221,22 +280,22 @@ public class KETLJobExecutor extends ETLJobExecutor {
             for (Object o : pendingInstantiation) {
                 Step currentStep = (Step) o;
 
-                String[] sourceNames = ETLStep.getSource((Element) currentStep.getConfig());
+                String[] sourceNames = ETLWorker.getSource((Element) currentStep.getConfig());
 
                 // if merger then we need to get the left and right source steps
                 if (mergers.containsKey(currentStep.getName())) {
-                    if (sourceNames.length != 2 || sourceNames[ETLStep.LEFT] == null
-                            || sourceNames[ETLStep.RIGHT] == null)
+                    if (sourceNames.length != 2 || sourceNames[ETLWorker.LEFT] == null
+                            || sourceNames[ETLWorker.RIGHT] == null)
                         throw new KETLThreadException("LEFT and RIGHT source need to be specified", this);
 
-                    if (readySources.containsKey(sourceNames[ETLStep.LEFT])
-                            && readySources.containsKey(sourceNames[ETLStep.RIGHT])) {
+                    if (readySources.containsKey(sourceNames[ETLWorker.LEFT])
+                            && readySources.containsKey(sourceNames[ETLWorker.RIGHT])) {
                         currentStep.setThreadGroup(ETLThreadGroup.newInstance(((Step) readySources
-                                .get(sourceNames[ETLStep.LEFT])).getThreadGroup(ETLStep.getChannel(
-                                (Element) currentStep.getConfig(), ETLStep.LEFT)), ((Step) readySources
-                                .get(sourceNames[ETLStep.RIGHT])).getThreadGroup(ETLStep.getChannel(
-                                (Element) currentStep.getConfig(), ETLStep.RIGHT)), ETLThreadGroup.PIPELINE_MERGE,
-                                currentStep, partitions, em));
+                                .get(sourceNames[ETLWorker.LEFT])).getThreadGroup(ETLWorker.getChannel(
+                                (Element) currentStep.getConfig(), ETLWorker.LEFT)), ((Step) readySources
+                                .get(sourceNames[ETLWorker.RIGHT])).getThreadGroup(ETLWorker.getChannel(
+                                (Element) currentStep.getConfig(), ETLWorker.RIGHT)), ETLThreadGroup.PIPELINE_MERGE,
+                                currentStep, partitions, this.em));
                         readySources.put(currentStep.getName(), currentStep);
                     }
                 }
@@ -245,24 +304,24 @@ public class KETLJobExecutor extends ETLJobExecutor {
                         throw new KETLThreadException("Step " + currentStep.getName()
                                 + " does not support multiple sources", this);
 
-                    Step sourceStep = (Step) readySources.get(sourceNames[ETLStep.DEFAULT]);
+                    Step sourceStep = (Step) readySources.get(sourceNames[ETLWorker.DEFAULT]);
 
                     if (sourceStep == null)
                         continue;
 
                     // if splitter then split into 2 thread groups
                     if (splitters.containsKey(currentStep.getName())) {
-                        currentStep.setThreadGroups(ETLThreadGroup.newInstances(sourceStep.getThreadGroup(ETLStep
-                                .getChannel((Element) currentStep.getConfig(), ETLStep.DEFAULT)), ETLStep
+                        currentStep.setThreadGroups(ETLThreadGroup.newInstances(sourceStep.getThreadGroup(ETLWorker
+                                .getChannel((Element) currentStep.getConfig(), ETLWorker.DEFAULT)), ETLWorker
                                 .getChannels((Element) currentStep.getConfig()), ETLThreadGroup.PIPELINE_SPLIT,
-                                currentStep, partitions, em));
+                                currentStep, partitions, this.em));
                         readySources.put(currentStep.getName(), currentStep);
                     }
                     else // if writer or normal transform then map straight through with single source
                     {
-                        currentStep.setThreadGroup(ETLThreadGroup.newInstance(sourceStep.getThreadGroup(ETLStep
-                                .getChannel((Element) currentStep.getConfig(), ETLStep.DEFAULT)), ETLThreadManager
-                                .getThreadingType((Element) currentStep.getConfig()), currentStep, partitions, em));
+                        currentStep.setThreadGroup(ETLThreadGroup.newInstance(sourceStep.getThreadGroup(ETLWorker
+                                .getChannel((Element) currentStep.getConfig(), ETLWorker.DEFAULT)), ETLThreadManager
+                                .getThreadingType((Element) currentStep.getConfig()), currentStep, partitions, this.em));
                         readySources.put(currentStep.getName(), currentStep);
                     }
                 }
@@ -279,19 +338,21 @@ public class KETLJobExecutor extends ETLJobExecutor {
         }
 
         // check tranforms, splitters and reader that they are assigned a destination
-        checkForNonAssignedChannels(splitters.values().toArray());
-        checkForNonAssignedChannels(readers.values().toArray());
-        checkForNonAssignedChannels(transforms.values().toArray());
+        KETLJobExecutor.checkForNonAssignedChannels(splitters.values().toArray());
+        KETLJobExecutor.checkForNonAssignedChannels(readers.values().toArray());
+        KETLJobExecutor.checkForNonAssignedChannels(transforms.values().toArray());
 
-        return em;
+        return this.em;
     }
 
     /**
      * Insert the method's description here. Creation date: (5/4/2002 5:37:52 PM)
      * 
+     * @param ejJob the ej job
+     * 
      * @return boolean
-     * @param param com.kni.etl.ETLJob
      */
+    @Override
     protected boolean executeJob(ETLJob ejJob) {
         try {
             KETLJob kjJob;
@@ -312,11 +373,11 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 return false;
             }
 
-            ejCurrentJob = ejJob;
+            this.ejCurrentJob = ejJob;
 
             // Only accept KETL jobs...
             if ((ejJob instanceof KETLJob) == false) {
-                ejCurrentJob = null;
+                this.ejCurrentJob = null;
 
                 return false;
             }
@@ -326,7 +387,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
             // Build a DOM out of the XML string...
             try {
-                builder = dmfFactory.newDocumentBuilder();
+                builder = this.dmfFactory.newDocumentBuilder();
 
                 String jobXML = (String) kjJob.getAction(true);
 
@@ -346,7 +407,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                         + this.msXMLOverride + "</ROOT>")));
 
                 // parse XML and inherit references to external XML
-                if (inheritReferencedXML(xmlDOM, xmlDOM, null, xmlParameterList) == false) {
+                if (this.inheritReferencedXML(xmlDOM, xmlDOM, null, xmlParameterList) == false) {
                     jsJobStatus.setErrorCode(EngineConstants.ERROR_INHERITING_XML_CODE);
 
                     // CODES
@@ -359,7 +420,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 this.ejCurrentJob.setParameterListCache(this.getParameterListsUsed(xmlDOM, new HashMap()));
 
                 // parse XML and inherit references to external XML
-                if ((replaceParameters(xmlDOM, new ArrayList())) == false) {
+                if ((this.replaceParameters(xmlDOM, new ArrayList())) == false) {
                     jsJobStatus.setErrorCode(EngineConstants.ERROR_REPLACING_PARAMETER_IN_XML_CODE);
 
                     // CODES
@@ -370,15 +431,15 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
                 // disable QA jobs by setting disable attribute
                 if (this.aesIgnoreQAs != null) {
-                    for (int i = 0; i < this.aesIgnoreQAs.length; i++) {
+                    for (String element : this.aesIgnoreQAs) {
                         // search for qa nodes by name and disable if in list
                         Node[] aQANodes = XMLHelper.findElementsByName(xmlDOM, QACollection.QA, ETLStep.NAME_ATTRIB,
-                                aesIgnoreQAs[i]);
+                                element);
 
                         if (aQANodes != null) {
-                            for (int x = 0; x < aQANodes.length; x++) {
-                                if (aQANodes[x].getNodeType() == Node.ELEMENT_NODE) {
-                                    Element elementNode = (Element) aQANodes[x];
+                            for (Node element0 : aQANodes) {
+                                if (element0.getNodeType() == Node.ELEMENT_NODE) {
+                                    Element elementNode = (Element) element0;
                                     elementNode.setAttribute("IGNORE", "TRUE");
                                 }
                             }
@@ -396,7 +457,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                                 if ((qaTypeNode != null)
                                         && (qaTypeNode.getNodeType() == Node.ELEMENT_NODE)
                                         && XMLHelper.getAttributeAsString(qaTypeNode.getAttributes(),
-                                                ETLStep.NAME_ATTRIB, "_").equals(aesIgnoreQAs[i])) {
+                                                ETLStep.NAME_ATTRIB, "_").equals(element)) {
                                     Element elementNode = (Element) qaTypeNode;
                                     elementNode.setAttribute("IGNORE", "TRUE");
                                 }
@@ -417,7 +478,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
                 ResourcePool.LogException(e, this);
 
-                ejCurrentJob = null;
+                this.ejCurrentJob = null;
 
                 return false;
             }
@@ -426,16 +487,16 @@ public class KETLJobExecutor extends ETLJobExecutor {
             // so we can exit a little more gracefully...
             try {
                 try {
-                    em = compileJob((Element) xmlDOM.getElementsByTagName("ACTION").item(0));
+                    this.em = this.compileJob((Element) xmlDOM.getElementsByTagName("ACTION").item(0));
                 } catch (java.lang.reflect.InvocationTargetException e) {
                     throw (Exception) e.getCause();
                 }
-                em.start();
+                this.em.start();
 
                 if (this.mbCommandLine)
-                    em.monitor(10, 1000);
+                    this.em.monitor(10, 1000);
                 else
-                    em.monitor(10, 100, jsJobStatus);
+                    this.em.monitor(10, 100, jsJobStatus);
 
             } catch (KETLQAException e) {
                 jsJobStatus.setErrorCode(e.getErrorCode()); // BRIAN: NEED TO SET UP KETL
@@ -443,7 +504,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 // JOB ERROR CODES
                 jsJobStatus.setErrorMessage("Fatal QA error executing step '" + e.getETLStep().getName() + "'.");
                 jsJobStatus.setException(e);
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, this.dumpExceptionCause(e));
 
                 return false;
             } catch (KETLThreadException e) {
@@ -455,7 +516,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                         + (e.getSourceObject() instanceof ETLStep ? "step" : "") + " '"
                         + e.getSourceObject().toString() + "'.");
                 jsJobStatus.setException(e);
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, this.dumpExceptionCause(e));
 
                 return false;
             } catch (KETLReadException e) {
@@ -465,7 +526,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 // JOB ERROR CODES
                 jsJobStatus.setErrorMessage("Fatal error executing read step '" + e.getSourceThread().getName() + "'.");
                 jsJobStatus.setException(e);
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, this.dumpExceptionCause(e));
 
                 return false;
             } catch (KETLTransformException e) {
@@ -476,7 +537,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 jsJobStatus.setErrorMessage("Fatal error executing transform step '" + e.getSourceThread().getName()
                         + "'.");
                 jsJobStatus.setException(e);
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, this.dumpExceptionCause(e));
 
                 return false;
             } catch (KETLWriteException e) {
@@ -487,7 +548,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 jsJobStatus
                         .setErrorMessage("Fatal error executing write step '" + e.getSourceThread().getName() + "'.");
                 jsJobStatus.setException(e);
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, this.dumpExceptionCause(e));
 
                 return false;
             } catch (Throwable e) {
@@ -498,17 +559,17 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 jsJobStatus.setErrorMessage("Fatal error executing - '" + e.getMessage() + "'.");
                 jsJobStatus.setException(e);
                 ResourcePool.LogException(e, this);
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, dumpExceptionCause(e));
+                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, this.dumpExceptionCause(e));
 
                 return false;
             }
 
-            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, em.finalStatus(jsJobStatus));
+            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, this.em.finalStatus(jsJobStatus));
 
             return true;
         } finally {
             try{
-                closeSteps();
+                this.closeSteps();
             } finally {
                 // clear job reference as job done, and new job can be excepted
                 this.ejCurrentJob = null;
@@ -517,6 +578,13 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
     }
 
+    /**
+     * Dump exception cause.
+     * 
+     * @param pException the exception
+     * 
+     * @return the string
+     */
     String dumpExceptionCause(Throwable pException) {
 
         StringBuilder res = new StringBuilder(pException.getMessage() == null ? "N/A" : pException.getMessage());
@@ -539,10 +607,12 @@ public class KETLJobExecutor extends ETLJobExecutor {
     }
 
     /**
-     * @return
+     * Gets the current ETL job.
+     * 
+     * @return the current ETL job
      */
     public ETLJob getCurrentETLJob() {
-        return ejCurrentJob;
+        return this.ejCurrentJob;
     }
 
     /*
@@ -555,6 +625,14 @@ public class KETLJobExecutor extends ETLJobExecutor {
         return new KETLJob();
     }
 
+    /**
+     * Gets the parameter lists used.
+     * 
+     * @param node the node
+     * @param hm the hm
+     * 
+     * @return the parameter lists used
+     */
     private HashMap getParameterListsUsed(Node node, HashMap hm) {
 
         if (!(node.getNodeName().equalsIgnoreCase(EngineConstants.PARAMETER_LIST) || node.getNodeName()
@@ -570,12 +648,22 @@ public class KETLJobExecutor extends ETLJobExecutor {
         return hm;
     }
 
+    /**
+     * Inherit referenced XML.
+     * 
+     * @param xmlDOM the xml DOM
+     * @param xmlNode the xml node
+     * @param pParentParameterListName the parent parameter list name
+     * @param pParameterLists the parameter lists
+     * 
+     * @return true, if successful
+     */
     boolean inheritReferencedXML(Document xmlDOM, Node xmlNode, String pParentParameterListName,
             Document pParameterLists) {
         NodeList nl = xmlNode.getChildNodes();
         ArrayList al = new ArrayList();
 
-        mergeParameterLists(xmlDOM, pParameterLists, false);
+        this.mergeParameterLists(xmlDOM, pParameterLists, false);
 
         String strParameterListName = null;
 
@@ -586,7 +674,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
 
-            if (inheritReferencedXML(xmlDOM, n, strParameterListName, pParameterLists) == false) {
+            if (this.inheritReferencedXML(xmlDOM, n, strParameterListName, pParameterLists) == false) {
                 return false;
             }
 
@@ -608,7 +696,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 DocumentBuilder builder;
 
                 try {
-                    builder = dmfFactory.newDocumentBuilder();
+                    builder = this.dmfFactory.newDocumentBuilder();
 
                     Document tmpXMLDOM = builder.parse(new InputSource(new FileReader(xmlSource)));
 
@@ -655,8 +743,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                             return false;
                         }
 
-                        for (int x = 0; x < requiredParameters.length; x++) {
-                            String strParameter = requiredParameters[x];
+                        for (String strParameter : requiredParameters) {
                             String strParameterValue = null;
 
                             strParameterValue = XMLHelper.getParameterValueAsString(pParameterLists, tmpName,
@@ -697,12 +784,22 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
     /**
      * Insert the method's description here. Creation date: (5/7/2002 11:55:23 AM)
+     * 
+     * @return true, if initialize
      */
+    @Override
     protected boolean initialize() {
         // No need to do anything here.
         return true;
     }
 
+    /**
+     * Merge parameter lists.
+     * 
+     * @param xmlDOM the xml DOM
+     * @param pParameterLists the parameter lists
+     * @param pReplaceDuplicateWithChild the replace duplicate with child
+     */
     void mergeParameterLists(Document xmlDOM, Document pParameterLists, boolean pReplaceDuplicateWithChild) {
         NodeList nodes = xmlDOM.getElementsByTagName(EngineConstants.PARAMETER_LIST);
 
@@ -727,6 +824,14 @@ public class KETLJobExecutor extends ETLJobExecutor {
         }
     }
 
+    /**
+     * Replace parameters.
+     * 
+     * @param xmlNode the xml node
+     * @param pParameterListNames the parameter list names
+     * 
+     * @return true, if successful
+     */
     protected boolean replaceParameters(Node xmlNode, ArrayList pParameterListNames) {
 
         // do not recurse parameter lists
@@ -744,7 +849,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
         DocumentBuilder builder;
 
         try {
-            builder = dmfFactory.newDocumentBuilder();
+            builder = this.dmfFactory.newDocumentBuilder();
 
             if (strParameterListName != null && pParameterListNames.contains(strParameterListName) == false) {
                 pParameterListNames.add(strParameterListName);
@@ -754,7 +859,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
             for (int i = 0; i < nl.getLength(); i++) {
                 Node n = nl.item(i);
 
-                if (replaceParameters(n, pParameterListNames) == false) {
+                if (this.replaceParameters(n, pParameterListNames) == false) {
                     return false;
                 }
             }
@@ -764,7 +869,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
             else
                 xmlString = XMLHelper.outputXML(xmlNode);
 
-            ArrayList requiredParameters = getRequiredParametersFromValidNode(xmlNode, new ArrayList());
+            ArrayList requiredParameters = KETLJobExecutor.getRequiredParametersFromValidNode(xmlNode, new ArrayList());
 
             if (requiredParameters == null || requiredParameters.size() == 0) {
                 return true;
@@ -849,14 +954,20 @@ public class KETLJobExecutor extends ETLJobExecutor {
     /**
      * Insert the method's description here. Creation date: (5/8/2002 2:52:39 PM)
      * 
-     * @return boolean
      * @param jJob com.kni.etl.ETLJob
+     * 
+     * @return boolean
      */
+    @Override
     public boolean supportsJobType(ETLJob jJob) {
         // Only accept KETL jobs...
         return (jJob instanceof KETLJob);
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Thread#toString()
+     */
+    @Override
     public String toString() {
         if (this.ejCurrentJob != null) {
             return this.ejCurrentJob.getJobID();
@@ -865,17 +976,29 @@ public class KETLJobExecutor extends ETLJobExecutor {
         return KETLJobExecutor.class.getName();
     }
 
+    /**
+     * Close steps.
+     */
     protected void closeSteps() {
-        if (em != null) {
-            em.close(this.ejCurrentJob);
+        if (this.em != null) {
+            this.em.close(this.ejCurrentJob);
         }
         // clear QA tests
         this.mqaCollections.clear();
-        em = null;
+        this.em = null;
     }
 
+    /** The mqa collections. */
     private Map mqaCollections = new HashMap();
 
+    /**
+     * Register QA collection.
+     * 
+     * @param name the name
+     * @param collection the collection
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     private void registerQACollection(String name, QACollection collection) throws KETLThreadException {
 
         if (this.mqaCollections.put(name, collection) != null)
@@ -884,6 +1007,17 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
     }
 
+    /**
+     * Gets the QA collection.
+     * 
+     * @param name the name
+     * @param step the step
+     * @param xmlConfig the xml config
+     * 
+     * @return the QA collection
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     QACollection getQACollection(String name, ETLStep step, Node xmlConfig) throws KETLThreadException {
 
         synchronized (this.mqaCollections) {

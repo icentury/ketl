@@ -1,7 +1,24 @@
 /*
- * Copyright (c) 2006 Kinetic Networks, Inc. All Rights Reserved.
- * Created on Jul 5, 2006
- * 
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.smp;
 
@@ -18,21 +35,41 @@ import com.kni.etl.ketl.exceptions.KETLReadException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class ETLReader.
+ * 
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- *         Generation&gt;Code and Comments
+ * Generation&gt;Code and Comments
  */
 public abstract class ETLReader extends ETLStep {
 
+    /** The queue. */
     ManagedBlockingQueue queue;
+    
+    /** The core. */
     private DefaultReaderCore core;
+    
+    /** The mb sampling enabled. */
     private boolean mbSamplingEnabled = false;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#generateCoreHeader()
+     */
     @Override
     protected CharSequence generateCoreHeader() {
         return " public class " + this.getCoreClassName() + " extends ETLReaderCore { ";
     }
 
+    /**
+     * Increment error count.
+     * 
+     * @param e the e
+     * @param errors the errors
+     * @param recordCounter the record counter
+     * 
+     * @throws KETLReadException the KETL read exception
+     */
     final public void incrementErrorCount(KETLReadException e, int errors, int recordCounter) throws KETLReadException {
         try {
             super.incrementErrorCount(e, errors, recordCounter);
@@ -43,24 +80,40 @@ public abstract class ETLReader extends ETLStep {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getDefaultExceptionClass()
+     */
+    @Override
     final String getDefaultExceptionClass() {
         return KETLReadException.class.getCanonicalName();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#generateCoreImports()
+     */
+    @Override
     protected String generateCoreImports() {
         return super.generateCoreImports() + "import com.kni.etl.ketl.smp.ETLReaderCore;\n"
                 + "import com.kni.etl.ketl.smp.ETLReader;\n";
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#setCore(com.kni.etl.ketl.smp.DefaultCore)
+     */
     @Override
     final void setCore(DefaultCore newCore) {
-        core = (DefaultReaderCore) newCore;
+        this.core = (DefaultReaderCore) newCore;
     }
 
     /**
-     * @param pBatchSize
-     * @param pQueueSize
+     * The Constructor.
+     * 
      * @param pThreadManager TODO
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * 
+     * @throws KETLThreadException the KETL thread exception
      */
     public ETLReader(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
@@ -85,18 +138,31 @@ public abstract class ETLReader extends ETLStep {
                         + out.mstrName, this);
         }
 
-        mOutPorts = new ETLOutPort[this.hmOutports.size()];
+        this.mOutPorts = new ETLOutPort[this.hmOutports.size()];
 
-        this.hmOutports.values().toArray(mOutPorts);
+        this.hmOutports.values().toArray(this.mOutPorts);
     }
 
+    /**
+     * Always override outs.
+     * 
+     * @return true, if successful
+     */
     protected boolean alwaysOverrideOuts() {
         return false;
     }
 
+    /**
+     * Override outs.
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     protected void overrideOuts() throws KETLThreadException {
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getRecordExecuteMethodHeader()
+     */
     @Override
     protected String getRecordExecuteMethodHeader() {
         StringBuilder sb = new StringBuilder();
@@ -107,6 +173,9 @@ public abstract class ETLReader extends ETLStep {
         return sb.toString();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getRecordExecuteMethodFooter()
+     */
     @Override
     protected String getRecordExecuteMethodFooter() {
         return "}catch(Exception e) {try {this.getOwner().handleException(e);} catch(Exception e1){throw new KETLReadException(e1);}} return  SUCCESS;}";
@@ -117,10 +186,12 @@ public abstract class ETLReader extends ETLStep {
      * StringBuilder("\n//Going to be reader specific\n"); // generate constants used for references // generate port
      * maps // outputs return sb.toString(); }
      */
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#initializeOutports(com.kni.etl.ketl.ETLPort[])
+     */
+    @Override
     protected void initializeOutports(ETLPort[] outPortNodes) throws KETLThreadException {
-        for (int i = 0; i < outPortNodes.length; i++) {
-            ETLPort port = outPortNodes[i];
-
+        for (ETLPort port : outPortNodes) {
             if (port.isConstant()) {
                 port.instantiateConstant();
             }
@@ -142,13 +213,21 @@ public abstract class ETLReader extends ETLStep {
         this.queue.registerWriter(this);
     }
 
+    /** The m batch manager. */
     protected ReaderBatchManager mBatchManager;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#setBatchManager(com.kni.etl.ketl.smp.BatchManager)
+     */
     @Override
     final protected void setBatchManager(BatchManager batchManager) {
         this.mBatchManager = (ReaderBatchManager) batchManager;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#executeWorker()
+     */
+    @Override
     final protected void executeWorker() throws InterruptedException, ClassNotFoundException, KETLThreadException,
             KETLReadException {
 
@@ -161,11 +240,11 @@ public abstract class ETLReader extends ETLStep {
                 this.mBatchManager.initializeBatch();
             }
 
-            if (timing)
-                startTimeNano = System.nanoTime();
-            o = getNextBatch();
-            if (timing)
-                totalTimeNano += System.nanoTime() - startTimeNano;
+            if (this.timing)
+                this.startTimeNano = System.nanoTime();
+            o = this.getNextBatch();
+            if (this.timing)
+                this.totalTimeNano += System.nanoTime() - this.startTimeNano;
 
             if (this.mBatchManagement) {
                 o = this.mBatchManager.finishBatch(o, o.length);
@@ -182,28 +261,45 @@ public abstract class ETLReader extends ETLStep {
             this.queue.put(o);
         }
 
-        this.queue.put(ENDOBJ);
+        this.queue.put(ETLWorker.ENDOBJ);
 
     }
 
+    /** The m expected data types. */
     private Class[] mExpectedDataTypes;
+    
+    /** The m record width. */
     private int mRecordWidth;
+    
+    /** The m record counter. */
     protected int mRecordCounter;
+    
+    /** The m sampling rate. */
     private int mSamplingRate;
+    
+    /** The count. */
     private int count=0;
 
+    /**
+     * Gets the next batch.
+     * 
+     * @return the next batch
+     * 
+     * @throws KETLReadException the KETL read exception
+     * @throws KETLQAException the KETLQA exception
+     */
     final protected Object[][] getNextBatch() throws KETLReadException, KETLQAException {
         Object[][] batch = new Object[this.batchSize][];
         int resultLength = 0;
         for (int i = 0; i < this.batchSize; i++) {
-            Object[] o = new Object[mRecordWidth];
+            Object[] o = new Object[this.mRecordWidth];
             try {
-                int code = core.getNextRecord(o, mExpectedDataTypes, mRecordWidth);
+                int code = this.core.getNextRecord(o, this.mExpectedDataTypes, this.mRecordWidth);
 
-                if(this.mMonitor) ResourcePool.LogMessage(this,ResourcePool.DEBUG_MESSAGE,"[" + (count++)+"]" + java.util.Arrays.toString(o));
+                if(this.mMonitor) ResourcePool.LogMessage(this,ResourcePool.DEBUG_MESSAGE,"[" + (this.count++)+"]" + java.util.Arrays.toString(o));
 
                 switch (code) {
-                case ETLReaderCore.SUCCESS:
+                case DefaultReaderCore.SUCCESS:
                     this.mRecordCounter++;
                     this.recordCheck(o,null);                    
                     if ((this.mbSamplingEnabled == false || (this.mRecordCounter++ % this.mSamplingRate == 0)))
@@ -211,10 +307,10 @@ public abstract class ETLReader extends ETLStep {
                     else
                         i--;
                     break;
-                case ETLReaderCore.SKIP_RECORD:
+                case DefaultReaderCore.SKIP_RECORD:
                     i--;
                     break;
-                case ETLReaderCore.COMPLETE:
+                case DefaultReaderCore.COMPLETE:
                     // forces loop to finish
                     i = this.batchSize;
                     break;
@@ -235,12 +331,18 @@ public abstract class ETLReader extends ETLStep {
         return batch;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#setOutputRecordDataTypes(java.lang.Class[], java.lang.String)
+     */
     @Override
     void setOutputRecordDataTypes(Class[] pClassArray, String pChannel) {
         this.mExpectedDataTypes = pClassArray;
         this.mRecordWidth = this.mExpectedDataTypes.length;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#switchTargetQueue(com.kni.etl.ketl.smp.ManagedBlockingQueue, com.kni.etl.ketl.smp.ManagedBlockingQueue)
+     */
     @Override
     public void switchTargetQueue(ManagedBlockingQueue currentQueue, ManagedBlockingQueue newQueue) {
         this.queue = newQueue;        

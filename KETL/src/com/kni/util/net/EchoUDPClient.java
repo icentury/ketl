@@ -93,17 +93,19 @@ public final class EchoUDPClient extends DiscardUDPClient
      * @exception IOException If an error occurs during the datagram send
      *     operation.
      ***/
+    @Override
     public void send(byte[] data, int length, InetAddress host)
     throws IOException
     {
-        send(data, length, host, DEFAULT_PORT);
+        this.send(data, length, host, EchoUDPClient.DEFAULT_PORT);
     }
 
 
     /*** Same as <code> send(data, data.length, host) </code> ***/
+    @Override
     public void send(byte[] data, InetAddress host) throws IOException
     {
-        send(data, data.length, host, DEFAULT_PORT);
+        this.send(data, data.length, host, EchoUDPClient.DEFAULT_PORT);
     }
 
 
@@ -118,16 +120,16 @@ public final class EchoUDPClient extends DiscardUDPClient
      ***/
     public int receive(byte[] data, int length) throws IOException
     {
-        __receivePacket.setData(data);
-        __receivePacket.setLength(length);
-        _socket_.receive(__receivePacket);
-        return __receivePacket.getLength();
+        this.__receivePacket.setData(data);
+        this.__receivePacket.setLength(length);
+        this._socket_.receive(this.__receivePacket);
+        return this.__receivePacket.getLength();
     }
 
     /*** Same as <code> receive(data, data.length)</code> ***/
     public int receive(byte[] data) throws IOException
     {
-        return receive(data, data.length);
+        return this.receive(data, data.length);
     }
 
 }

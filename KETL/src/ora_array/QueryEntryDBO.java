@@ -36,9 +36,9 @@ public class QueryEntryDBO implements SQLData
                        Integer startYear,
                        Integer endYear)
   {
-    _company = company;
-    _startYear = startYear;
-    _endYear = endYear;
+    this._company = company;
+    this._startYear = startYear;
+    this._endYear = endYear;
   }
 
   /**
@@ -46,7 +46,7 @@ public class QueryEntryDBO implements SQLData
    */
   public String getCompany()
   {
-    return _company;
+    return this._company;
   }
 
   /**
@@ -54,7 +54,7 @@ public class QueryEntryDBO implements SQLData
    */
   public Integer getStartYear()
   {
-    return _startYear;
+    return this._startYear;
   }
 
   /**
@@ -62,7 +62,7 @@ public class QueryEntryDBO implements SQLData
    */
   public Integer getEndYear()
   {
-    return _endYear;
+    return this._endYear;
   }
 
   public String getSQLTypeName() throws SQLException
@@ -78,9 +78,9 @@ public class QueryEntryDBO implements SQLData
 
   public void writeSQL(SQLOutput stream) throws SQLException
   {
-    stream.writeString(_company);
-    writeIntegerObject(stream, _startYear);
-    writeIntegerObject(stream, _endYear);
+    stream.writeString(this._company);
+    QueryEntryDBO.writeIntegerObject(stream, this._startYear);
+    QueryEntryDBO.writeIntegerObject(stream, this._endYear);
   }
 
   /**

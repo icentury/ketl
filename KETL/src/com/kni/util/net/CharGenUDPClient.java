@@ -111,9 +111,9 @@ public final class CharGenUDPClient extends DatagramSocketClient
     public CharGenUDPClient()
     {
         // CharGen return packets have a maximum length of 512
-        __receiveData = new byte[512];
-        __receivePacket = new DatagramPacket(__receiveData, 512);
-        __sendPacket = new DatagramPacket(new byte[0], 0);
+        this.__receiveData = new byte[512];
+        this.__receivePacket = new DatagramPacket(this.__receiveData, 512);
+        this.__sendPacket = new DatagramPacket(new byte[0], 0);
     }
 
 
@@ -128,15 +128,15 @@ public final class CharGenUDPClient extends DatagramSocketClient
      ***/
     public void send(InetAddress host, int port) throws IOException
     {
-        __sendPacket.setAddress(host);
-        __sendPacket.setPort(port);
-        _socket_.send(__sendPacket);
+        this.__sendPacket.setAddress(host);
+        this.__sendPacket.setPort(port);
+        this._socket_.send(this.__sendPacket);
     }
 
     /*** Same as <code>send(host, CharGenUDPClient.DEFAULT_PORT);</code> ***/
     public void send(InetAddress host) throws IOException
     {
-        send(host, DEFAULT_PORT);
+        this.send(host, CharGenUDPClient.DEFAULT_PORT);
     }
 
     /***
@@ -152,10 +152,10 @@ public final class CharGenUDPClient extends DatagramSocketClient
         int length;
         byte[] result;
 
-        _socket_.receive(__receivePacket);
+        this._socket_.receive(this.__receivePacket);
 
-        result = new byte[length = __receivePacket.getLength()];
-        System.arraycopy(__receiveData, 0, result, 0, length);
+        result = new byte[length = this.__receivePacket.getLength()];
+        System.arraycopy(this.__receiveData, 0, result, 0, length);
 
         return result;
     }

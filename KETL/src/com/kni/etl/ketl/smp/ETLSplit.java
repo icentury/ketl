@@ -1,7 +1,24 @@
 /*
- * Copyright (c) 2006 Kinetic Networks, Inc. All Rights Reserved.
- * Created on Jul 5, 2006
- * 
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl.ketl.smp;
 
@@ -16,34 +33,67 @@ import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class ETLSplit.
+ * 
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- *         Generation&gt;Code and Comments
+ * Generation&gt;Code and Comments
  */
 public abstract class ETLSplit extends ETLStep {
 
+    /** The core. */
     private DefaultSplitCore core;
 
+    /** The queue. */
     ManagedBlockingQueue queue[];
+    
+    /** The src queue. */
     private ManagedBlockingQueue srcQueue;
+    
+    /** The queues. */
     int queues;
+    
+    /** The channel list. */
     ArrayList channelList = new ArrayList();
+    
+    /** The channel map. */
     HashMap channelMap = new HashMap();
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#generateCoreHeader()
+     */
     @Override
     protected CharSequence generateCoreHeader() {
         return " public class " + this.getCoreClassName() + " extends ETLSplitCore { ";
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getDefaultExceptionClass()
+     */
+    @Override
     final String getDefaultExceptionClass() {
         return KETLTransformException.class.getCanonicalName();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#generateCoreImports()
+     */
+    @Override
     protected String generateCoreImports() {
         return super.generateCoreImports() + "import com.kni.etl.ketl.smp.ETLSplitCore;\n"
                 + "import com.kni.etl.ketl.smp.ETLSplit;\n";
     }
 
+    /**
+     * Increment error count.
+     * 
+     * @param e the e
+     * @param objects the objects
+     * @param val the val
+     * 
+     * @throws KETLTransformException the KETL transform exception
+     */
     final public void incrementErrorCount(KETLTransformException e, Object[] objects, int val)
             throws KETLTransformException {
 
@@ -63,20 +113,33 @@ public abstract class ETLSplit extends ETLStep {
     }
 
     /**
-     * @param pQueueSize
-     * @param pQueueSize
+     * The Constructor.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
      */
     public ETLSplit(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#setOutputRecordDataTypes(java.lang.Class[], java.lang.String)
+     */
     @Override
     void setOutputRecordDataTypes(Class[] pClassArray, String pChannel) {
-        channelMap.put(pChannel, channelList.size());
-        channelList.add(pClassArray);
+        this.channelMap.put(pChannel, this.channelList.size());
+        this.channelList.add(pClassArray);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#generatePortMappingCode()
+     */
+    @Override
     protected String generatePortMappingCode() throws KETLThreadException {
         StringBuilder sb = new StringBuilder();
         // generate constants used for references
@@ -110,31 +173,39 @@ public abstract class ETLSplit extends ETLStep {
         return sb.toString();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#setCore(com.kni.etl.ketl.smp.DefaultCore)
+     */
     @Override
     final void setCore(DefaultCore newCore) {
-        core = (DefaultSplitCore) newCore;
+        this.core = (DefaultSplitCore) newCore;
     }
 
+    /** The m batch manager. */
     protected SplitBatchManager mBatchManager;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#executeWorker()
+     */
+    @Override
     final protected void executeWorker() throws InterruptedException, KETLTransformException {
 
         this.queues = this.queue.length;
-        this.mOutputRecordWidth = new int[queues];
+        this.mOutputRecordWidth = new int[this.queues];
         java.util.Arrays.fill(this.mOutputRecordWidth, -1);
 
-        this.mExpectedOutputDataTypes = new Class[queues][];
+        this.mExpectedOutputDataTypes = new Class[this.queues][];
         this.channelList.toArray(this.mExpectedOutputDataTypes);
 
-        Object[][][] res = new Object[queues][][];
+        Object[][][] res = new Object[this.queues][][];
         while (true) {
             this.interruptExecution();
             Object o;
             o = this.getSourceQueue().take();
-            if (o == ENDOBJ) {
+            if (o == ETLWorker.ENDOBJ) {
                 
                 while(this.remainingRecords()){
-                    processData(res,new Object[this.batchSize][this.mExpectedInputDataTypes.length]);
+                    this.processData(res,new Object[this.batchSize][this.mExpectedInputDataTypes.length]);
                 }
                 
                 for (int i = 0; i < this.queues; i++) {
@@ -149,22 +220,36 @@ public abstract class ETLSplit extends ETLStep {
 
             }
 
-            processData(res, data);
+            this.processData(res, data);
 
         }
 
     }
 
+    /**
+     * Remaining records.
+     * 
+     * @return true, if successful
+     */
     protected boolean remainingRecords() {
         return false;
     }
 
+    /**
+     * Process data.
+     * 
+     * @param res the res
+     * @param data the data
+     * 
+     * @throws KETLTransformException the KETL transform exception
+     * @throws InterruptedException the interrupted exception
+     */
     private void processData(Object[][][] res, Object[][] data) throws KETLTransformException, InterruptedException {
-        if (timing)
-            startTimeNano = System.nanoTime();
-        int rows = splitBatch(data, data.length, res);
-        if (timing)
-            totalTimeNano += System.nanoTime() - startTimeNano;
+        if (this.timing)
+            this.startTimeNano = System.nanoTime();
+        int rows = this.splitBatch(data, data.length, res);
+        if (this.timing)
+            this.totalTimeNano += System.nanoTime() - this.startTimeNano;
 
         this.updateThreadStats(rows);
 
@@ -173,20 +258,36 @@ public abstract class ETLSplit extends ETLStep {
         }        
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#setBatchManager(com.kni.etl.ketl.smp.BatchManager)
+     */
     @Override
     final protected void setBatchManager(BatchManager batchManager) {
         this.mBatchManager = (SplitBatchManager) batchManager;
     }
 
+    /** The m expected input data types. */
     private Class[] mExpectedInputDataTypes;
+    
+    /** The m expected output data types. */
     private Class[][] mExpectedOutputDataTypes;
+    
+    /** The m input record width. */
     private int mInputRecordWidth = -1;
+    
+    /** The m output record width. */
     private int[] mOutputRecordWidth = null;
 
     /**
-     * @param o
-     * @return
-     * @throws KETLTransformException
+     * Split batch.
+     * 
+     * @param pInputRecord the input record
+     * @param length the length
+     * @param pOutput the output
+     * 
+     * @return the int
+     * 
+     * @throws KETLTransformException the KETL transform exception
      */
     private int splitBatch(Object[][] pInputRecord, int length, Object[][][] pOutput) throws KETLTransformException {
         int rows = 0;
@@ -210,14 +311,14 @@ public abstract class ETLSplit extends ETLStep {
                 Object[] result = new Object[this.mOutputRecordWidth[path]];
 
                 try {
-                    int code = core.splitRecord(pInputRecord[i], this.mExpectedInputDataTypes, this.mInputRecordWidth,
+                    int code = this.core.splitRecord(pInputRecord[i], this.mExpectedInputDataTypes, this.mInputRecordWidth,
                             path, result, this.mExpectedOutputDataTypes[path], this.mOutputRecordWidth[path]);
 
                     switch (code) {
-                    case ETLSplitCore.SUCCESS:
+                    case DefaultSplitCore.SUCCESS:
                         pOutput[path][resultLength[path]++] = result;
                         break;
-                    case ETLSplitCore.SKIP_RECORD:
+                    case DefaultSplitCore.SKIP_RECORD:
                         break;
                     default:
                         throw new KETLTransformException("Invalid return code, check previous error message", code);
@@ -249,17 +350,25 @@ public abstract class ETLSplit extends ETLStep {
      */
     @Override
     final public void initializeQueues() {
-        for (int i = 0; i < this.queue.length; i++)
-            this.queue[i].registerWriter(this);
+        for (ManagedBlockingQueue element : this.queue)
+            element.registerWriter(this);
         this.getSourceQueue().registerReader(this);
     }
 
+    /**
+     * Sets the source queue.
+     * 
+     * @param srcQueue the src queue
+     * @param worker the worker
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     void setSourceQueue(ManagedBlockingQueue srcQueue, ETLWorker worker) throws KETLThreadException {
-        this.getUsedPortsFromWorker(worker, ETLWorker.getChannel((Element) this.getXMLConfig(), DEFAULT));
+        this.getUsedPortsFromWorker(worker, ETLWorker.getChannel(this.getXMLConfig(), ETLWorker.DEFAULT));
         this.srcQueue = srcQueue;
         try {
-            this.mExpectedInputDataTypes = worker.getOutputRecordDatatypes(ETLWorker.getChannel((Element) this
-                    .getXMLConfig(), DEFAULT));
+            this.mExpectedInputDataTypes = worker.getOutputRecordDatatypes(ETLWorker.getChannel(this
+                    .getXMLConfig(), ETLWorker.DEFAULT));
             this.mInputRecordWidth = this.mExpectedInputDataTypes.length;
         } catch (ClassNotFoundException e) {
             throw new KETLThreadException(e, this);
@@ -269,6 +378,9 @@ public abstract class ETLSplit extends ETLStep {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#switchTargetQueue(com.kni.etl.ketl.smp.ManagedBlockingQueue, com.kni.etl.ketl.smp.ManagedBlockingQueue)
+     */
     @Override
     public void switchTargetQueue(ManagedBlockingQueue currentQueue, ManagedBlockingQueue newQueue) {
         for (int i = 0; i < this.queue.length; i++)
@@ -276,10 +388,18 @@ public abstract class ETLSplit extends ETLStep {
                 this.queue[i] = newQueue;
     }
 
+    /**
+     * Gets the source queue.
+     * 
+     * @return the source queue
+     */
     ManagedBlockingQueue getSourceQueue() {
-        return srcQueue;
+        return this.srcQueue;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getRecordExecuteMethodHeader()
+     */
     @Override
     protected String getRecordExecuteMethodHeader() throws KETLThreadException {
         StringBuilder sb = new StringBuilder();
@@ -292,6 +412,9 @@ public abstract class ETLSplit extends ETLStep {
         return sb.toString();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getRecordExecuteMethodFooter()
+     */
     @Override
     protected String getRecordExecuteMethodFooter() {
         return " return SUCCESS;}";

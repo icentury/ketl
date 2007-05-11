@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.sessionizer;
 
 import java.io.IOException;
@@ -17,31 +35,72 @@ import com.kni.etl.stringtools.BoyerMooreAlgorithm;
 import com.kni.etl.stringtools.StringManipulator;
 import com.kni.etl.urltools.URLCleaner;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SessionBuilder.
+ */
 public class SessionBuilder implements Serializable {
 
-    /**
-     *
-     */
+    /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 3617291220687402039L;
+    
+    /** The Constant MAXSEARCHBUFFER. */
     static final int MAXSEARCHBUFFER = 1000;
+    
+    /** The Constant WEIGHT. */
     static final int WEIGHT = 0;
+    
+    /** The Constant SESSIONIDENTIFIER. */
     static final int SESSIONIDENTIFIER = 1;
+    
+    /** The Constant ENDOFLIST. */
     static final int ENDOFLIST = -1;
+    
+    /** The Active session definition. */
     transient private SessionDefinition ActiveSessionDefinition;
+    
+    /** The str man. */
     transient private StringManipulator strMan = new StringManipulator();
+    
+    /** The Current session. */
     transient private Session CurrentSession = new Session();
+    
+    /** The m web server settings. */
     transient private WebServerSettings[] mWebServerSettings;
+    
+    /** The search buffer. */
     transient char[] searchBuffer = new char[SessionBuilder.MAXSEARCHBUFFER];
+    
+    /** The m page parser definition. */
     transient PageParserPageDefinition[] mPageParserDefinition;
+    
+    /** The Active session store. */
     private SessionStore ActiveSessionStore;
+    
+    /** The D m_ LOA d_ ID. */
     private int DM_LOAD_ID = -1;
+    
+    /** The LOA d_ ID. */
     private int LOAD_ID = -1;
+    
+    /** The session weight index. */
     int[][] sessionWeightIndex = null;
+    
+    /** The session weight index length. */
     int sessionWeightIndexLength;
+    
+    /** The session identifier object index. */
     int[][] sessionIdentifierObjectIndex = null;
+    
+    /** The mb pages only. */
     boolean mbPagesOnly = false;
+    
+    /** The mb hits can be skipped. */
     boolean mbHitsCanBeSkipped = true;
 
+    /**
+     * Pre load web server settings.
+     */
     public void preLoadWebServerSettings() {
         // --------------- Preload End Marker and Seperators as
         // Strings---------------
@@ -78,9 +137,19 @@ public class SessionBuilder implements Serializable {
         this.mWebServerSettings[EngineConstants.NETSCAPE].addWebServerPair(WebServerSettings.OTHER, c1, e2);
     }
 
+    /** The m time pos. */
     private int mTimePos = -1;
+    
+    /** The item map. */
     private int itemMap[];
 
+    /**
+     * Instantiates a new session builder.
+     * 
+     * @param pStartSessionID the start session ID
+     * @param itemMap the item map
+     * @param list the list
+     */
     public SessionBuilder(IDCounter pStartSessionID, int[] itemMap, List list) {
         this.ActiveSessionStore = new SessionStore(pStartSessionID, list);
         this.preLoadWebServerSettings();
@@ -104,24 +173,40 @@ public class SessionBuilder implements Serializable {
         }
     }
 
+    /**
+     * Sets the pages only.
+     * 
+     * @param mpDef the mp def
+     * @param pmbPagesOnly the pmb pages only
+     * @param pmbHitCountRequired the pmb hit count required
+     */
     public void setPagesOnly(PageParserPageDefinition[] mpDef, boolean pmbPagesOnly, boolean pmbHitCountRequired) {
         this.mbPagesOnly = pmbPagesOnly;
         this.mPageParserDefinition = mpDef;
         this.mbHitsCanBeSkipped = !pmbHitCountRequired;
     }
 
+    /** The idx get request field. */
     int idxGetRequestField = -1;
+    
+    /** The idx error code field. */
     int idxErrorCodeField = -1;
+    
+    /** The url cleaner. */
     transient URLCleaner urlCleaner = null;
+    
+    /** The ignore hit. */
     public boolean ignoreHit = false;
 
     /**
      * Insert the method's description here. Creation date: (4/8/2002 2:40:02 PM)
      * 
-     * @return int
      * @param holder datasources.ResultRecord ObjectType(s) 1 : IP Address 2 : In Cookie 3 : out Cookie 4 : URL Request
-     *            5 : Browser identification 6 : HTML request error 7 : Default 8 : Data and Time of Hit
-     * @throws InterruptedException
+     * 5 : Browser identification 6 : HTML request error 7 : Default 8 : Data and Time of Hit
+     * 
+     * @return int
+     * 
+     * @throws InterruptedException      * @throws Exception the exception
      */
     public final Holder analyzeHit(Holder holder) throws Exception {
         // ActiveSessionDefinition
@@ -322,9 +407,11 @@ public class SessionBuilder implements Serializable {
     }
 
     /**
-     * @param pRecord
-     * @param recordFields
-     * @throws InterruptedException
+     * Sets the estimated time.
+     * 
+     * @param pDate the date
+     * 
+     * @throws InterruptedException      * @throws Exception the exception
      */
     private final void setEstimatedTime(java.util.Date pDate) throws Exception {
         // set timing attributes of session, when hit occured
@@ -351,8 +438,8 @@ public class SessionBuilder implements Serializable {
      * Insert the method's description here. Creation date: (5/13/2002 11:31:33 PM)
      * 
      * @param pLastActivityNull if true then non closed sessions will have null last activity
-     * @throws InterruptedException
-     */
+     * 
+     * @throws InterruptedException      */
     public final void closeOutAllSessions(boolean pLastActivityNull) {
         // set timing attributes of session, when hit occured
         this.ActiveSessionStore.closeOutAllSessions(pLastActivityNull);
@@ -361,9 +448,10 @@ public class SessionBuilder implements Serializable {
     /**
      * Insert the method's description here. Creation date: (4/16/2002 6:19:49 PM)
      * 
-     * @return char[]
      * @param pWebServerType int
      * @param pObjectType int
+     * 
+     * @return char[]
      */
     private final BoyerMooreAlgorithm[] getEndMarkersAsBoyerMoore(int pWebServerType, int pObjectType) {
         switch (pObjectType) {
@@ -380,6 +468,11 @@ public class SessionBuilder implements Serializable {
         return (this.mWebServerSettings[pWebServerType].getEndMarkersAsBoyerMoore(WebServerSettings.OTHER));
     }
 
+    /**
+     * Gets the last session ID.
+     * 
+     * @return the last session ID
+     */
     public final IDCounter getLastSessionID() {
         if (this.ActiveSessionStore != null) {
             return this.ActiveSessionStore.getLastSessionID();
@@ -388,6 +481,14 @@ public class SessionBuilder implements Serializable {
         return (null);
     }
 
+    /**
+     * Gets the seperators as boyer moore.
+     * 
+     * @param pWebServerType the web server type
+     * @param pObjectType the object type
+     * 
+     * @return the seperators as boyer moore
+     */
     private final BoyerMooreAlgorithm[] getSeperatorsAsBoyerMoore(int pWebServerType, int pObjectType) {
         switch (pObjectType) {
         case EngineConstants.IN_COOKIE:
@@ -466,10 +567,24 @@ public class SessionBuilder implements Serializable {
         this.sessionWeightIndexLength = this.sessionWeightIndex.length;
     }
 
+    /**
+     * Write object.
+     * 
+     * @param s the s
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
     }
 
+    /**
+     * Read object.
+     * 
+     * @param s the s
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     private void readObject(ObjectInputStream s) throws IOException {
         try {
             s.defaultReadObject();
@@ -482,6 +597,11 @@ public class SessionBuilder implements Serializable {
         }
     }
 
+    /**
+     * Sets the ID counter.
+     * 
+     * @param idCounter the new ID counter
+     */
     public void setIDCounter(IDCounter idCounter) {
         this.ActiveSessionStore.setIDCounter(idCounter);
     }

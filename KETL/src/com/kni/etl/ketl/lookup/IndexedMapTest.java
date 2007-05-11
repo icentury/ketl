@@ -1,13 +1,45 @@
+/*
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
+ */
 package com.kni.etl.ketl.lookup;
 
 import java.util.Random;
 
 import junit.framework.TestCase;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class IndexedMapTest.
+ */
 abstract public class IndexedMapTest extends TestCase {
 
+    /**
+     * Gets the map.
+     * 
+     * @return the map
+     */
     abstract PersistentMap getMap();
 
+    /** The map. */
     PersistentMap map = this.getMap();
 
     /*
@@ -31,14 +63,17 @@ abstract public class IndexedMapTest extends TestCase {
      * System.out.println("Finished"); } time = (new Date().getTime() - st.getTime()) / (float) 1000;
      * System.out.println("Read Done: " + time + ", " + vals / time + "rec/s"); map.clear(); }
      */
+    /**
+     * Test put medium.
+     */
     public void testPutMedium() {
 
         int i;
-        map.clear();
+        this.map.clear();
         for (i = 0; i < 500000; i++) {
             Object[] key = new Object[] { new Long(34 + i), new Float(43) };
 
-            map.put(key, new Object[] { new Long(34 + i), new Float(43) });
+            this.map.put(key, new Object[] { new Long(34 + i), new Float(43) });
 
             // Long l = (Long) map.get(key,"a");
             // Float f = (Float) map.get(key,"b");
@@ -59,24 +94,27 @@ abstract public class IndexedMapTest extends TestCase {
                 System.out.println("Lookups: " + i + ", Hits:" + hits);
             }
 
-            if ((Long) map.get(key, "a") != null)
+            if ((Long) this.map.get(key, "a") != null)
                 hits++;
 
         }
 
         System.out.println("Lookups: " + i);
 
-        map.clear();
+        this.map.clear();
 
     }
 
+    /**
+     * Test put small.
+     */
     public void testPutSmall() {
         int i;
-        map.clear();
+        this.map.clear();
         for (i = 0; i < 5000; i++) {
             Object[] key = new Object[] { new Long(34 + i), new Float(43) };
 
-            map.put(key, new Object[] { new Long(34 + i), new Float(43) });
+            this.map.put(key, new Object[] { new Long(34 + i), new Float(43) });
 
             // Long l = (Long) map.get(key,"a");
             // Float f = (Float) map.get(key,"b");
@@ -89,7 +127,7 @@ abstract public class IndexedMapTest extends TestCase {
         for (i = 0; i < 5000; i++) {
             Object[] key = new Object[] { new Long(34 + i), new Float(43) };
 
-            map.put(key, new Object[] { new Long(34 + i), new Float(43) });
+            this.map.put(key, new Object[] { new Long(34 + i), new Float(43) });
 
             // Long l = (Long) map.get(key,"a");
             // Float f = (Float) map.get(key,"b");
@@ -109,24 +147,27 @@ abstract public class IndexedMapTest extends TestCase {
                 System.out.println("Lookups: " + i + ", Hits: " + hits);
             }
 
-            if ((Long) map.get(key, "a") != null)
+            if ((Long) this.map.get(key, "a") != null)
                 hits++;
 
         }
 
         System.out.println("Lookups: " + i);
-        map.clear();
+        this.map.clear();
 
     }
 
+    /**
+     * Test put large.
+     */
     public void testPutLarge() {
         int i;
         long start = System.currentTimeMillis();
-        map.clear();
+        this.map.clear();
         for (i = 0; i < 5000000; i++) {
             Object[] key = new Object[] { new Long(34 + i), new Float(43) };
 
-            map.put(key, new Object[] { new Long(34 + i), new Float(43) });
+            this.map.put(key, new Object[] { new Long(34 + i), new Float(43) });
 
             // Long l = (Long) map.get(key,"a");
             // Float f = (Float) map.get(key,"b");
@@ -149,17 +190,22 @@ abstract public class IndexedMapTest extends TestCase {
                 System.out.println("Lookups: " + i + " Hits: " + hits);
             }
 
-            if ((Long) map.get(key, "a") != null)
+            if ((Long) this.map.get(key, "a") != null)
                 hits++;
 
         }
 
         end = System.currentTimeMillis();
         System.out.println("Lookups: " + i + " in " + (end - start) / 1000 + " seconds");
-        map.clear();
+        this.map.clear();
 
     }
 
+    /**
+     * Instantiates a new indexed map test.
+     * 
+     * @param name the name
+     */
     public IndexedMapTest(String name) {
         super(name);
     }

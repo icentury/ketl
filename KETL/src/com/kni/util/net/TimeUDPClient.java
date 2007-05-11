@@ -113,17 +113,17 @@ public final class TimeUDPClient extends DatagramSocketClient
         DatagramPacket sendPacket, receivePacket;
 
         sendPacket =
-            new DatagramPacket(__dummyData, __dummyData.length, host, port);
-        receivePacket = new DatagramPacket(__timeData, __timeData.length);
+            new DatagramPacket(this.__dummyData, this.__dummyData.length, host, port);
+        receivePacket = new DatagramPacket(this.__timeData, this.__timeData.length);
 
-        _socket_.send(sendPacket);
-        _socket_.receive(receivePacket);
+        this._socket_.send(sendPacket);
+        this._socket_.receive(receivePacket);
 
         time = 0L;
-        time |= (((__timeData[0] & 0xff) << 24) & 0xffffffffL);
-        time |= (((__timeData[1] & 0xff) << 16) & 0xffffffffL);
-        time |= (((__timeData[2] & 0xff) << 8) & 0xffffffffL);
-        time |= ((__timeData[3] & 0xff) & 0xffffffffL);
+        time |= (((this.__timeData[0] & 0xff) << 24) & 0xffffffffL);
+        time |= (((this.__timeData[1] & 0xff) << 16) & 0xffffffffL);
+        time |= (((this.__timeData[2] & 0xff) << 8) & 0xffffffffL);
+        time |= ((this.__timeData[3] & 0xff) & 0xffffffffL);
 
         return time;
     }
@@ -131,7 +131,7 @@ public final class TimeUDPClient extends DatagramSocketClient
     /*** Same as <code> getTime(host, DEFAULT_PORT); </code> ***/
     public long getTime(InetAddress host) throws IOException
     {
-        return getTime(host, DEFAULT_PORT);
+        return this.getTime(host, TimeUDPClient.DEFAULT_PORT);
     }
 
 
@@ -147,15 +147,15 @@ public final class TimeUDPClient extends DatagramSocketClient
      ***/
     public Date getDate(InetAddress host, int port) throws IOException
     {
-        return new Date((getTime(host, port) - SECONDS_1900_TO_1970)*1000L);
+        return new Date((this.getTime(host, port) - TimeUDPClient.SECONDS_1900_TO_1970)*1000L);
     }
 
 
     /*** Same as <code> getTime(host, DEFAULT_PORT); </code> ***/
     public Date getDate(InetAddress host) throws IOException
     {
-        return new Date((getTime(host, DEFAULT_PORT) -
-                         SECONDS_1900_TO_1970)*1000L);
+        return new Date((this.getTime(host, TimeUDPClient.DEFAULT_PORT) -
+                         TimeUDPClient.SECONDS_1900_TO_1970)*1000L);
     }
 
 }

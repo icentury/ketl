@@ -1,8 +1,24 @@
 /*
- * Created on Apr 22, 2006
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
  *
- * To change the template for this generated file go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
 package com.kni.etl;
 
@@ -30,53 +46,89 @@ import com.kni.etl.ketl.KETLCluster;
 import com.kni.etl.ketl.exceptions.KETLException;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
+ * The Class XMLMetadataBridge.
+ * 
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- *         Generation&gt;Code and Comments
+ * Generation&gt;Code and Comments
  */
 public class XMLMetadataBridge implements XMLMetadataCalls {
 
+    /**
+     * The Class MetadataConnectionException.
+     */
     class MetadataConnectionException extends Exception {
 
+        /** The Constant serialVersionUID. */
         private static final long serialVersionUID = 8981416986333722268L;
 
+        /**
+         * Instantiates a new metadata connection exception.
+         * 
+         * @param string the string
+         */
         public MetadataConnectionException(String string) {
             super(string);
         }
 
+        /**
+         * Instantiates a new metadata connection exception.
+         * 
+         * @param cause the cause
+         */
         public MetadataConnectionException(Throwable cause) {
             super(cause);
         }
     }
 
-    /**
-     * Get job errors if any as XML from the metadata <ETL><JOB ID="?" PROJECT="?" STATUS="> <ERRORS> <ERROR
-     * TIMESTAMP="" CODE="">Message</ERROR> </ERRORS> </JOB> </ETL>
-     */
+    /** Get job errors if any as XML from the metadata <ETL><JOB ID="?" PROJECT="?" STATUS="> <ERRORS> <ERROR TIMESTAMP="" CODE="">Message</ERROR> </ERRORS> </JOB> </ETL>. */
     private static int maxRows = 500;
+    
+    /** The md cache. */
     private static HashMap mdCache = new HashMap();
 
+    /** The m doc builder. */
     private static DocumentBuilder mDocBuilder;
+    
+    /** The m lock. */
     private static Object mLock = new Object();
 
+    /** The Constant REQUEST_CANCEL. */
     private final static String REQUEST_CANCEL = "Cancel";
 
+    /** The Constant REQUEST_EXECUTE. */
     private final static String REQUEST_EXECUTE = "Execute";
 
+    /** The Constant REQUEST_FAIL. */
     private final static String REQUEST_FAIL = "Fail";
 
+    /** The Constant REQUEST_PAUSE. */
     private final static String REQUEST_PAUSE = "Pause";
 
+    /** The Constant REQUEST_RESUME. */
     private final static String REQUEST_RESUME = "Resume";
 
+    /** The Constant REQUEST_SKIP. */
     private final static String REQUEST_SKIP = "Skip";
 
+    /** The Constant REQUEST_SUCCESS. */
     private final static String REQUEST_SUCCESS = "Success";
 
+    /** The Constant ROOTNODE_TAG. */
     private final static String ROOTNODE_TAG = "ETL";
 
+    /** The xml config. */
     private static Document xmlConfig = null;
 
+    /**
+     * Adds the child element.
+     * 
+     * @param target the target
+     * @param newTag the new tag
+     * 
+     * @return the element
+     */
     private static Element addChildElement(Node target, String newTag) {
         Document doc = target.getOwnerDocument();
         Element e = doc.createElement(newTag);
@@ -84,6 +136,14 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         return e;
     }
 
+    /**
+     * Configure.
+     * 
+     * @param pKETLPath the KETL path
+     * @param pKETLConfigFile the KETL config file
+     * 
+     * @throws Exception the exception
+     */
     public static void configure(String pKETLPath, String pKETLConfigFile) throws Exception {
 
         if (pKETLConfigFile == null)
@@ -103,6 +163,11 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * 
      * @see com.kni.etl.XMLBridge#getServerList()
      */
+    /**
+     * Gets the new document.
+     * 
+     * @return the new document
+     */
     private static synchronized Element getNewDocument() {
         Document doc = XMLMetadataBridge.mDocBuilder.newDocument();
         Element e = doc.createElement(XMLMetadataBridge.ROOTNODE_TAG);
@@ -111,10 +176,11 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         return e;
     }
 
+    /** The m default date format. */
     private SimpleDateFormat mDefaultDateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z");
 
     /**
-     * 
+     * Instantiates a new XML metadata bridge.
      */
     public XMLMetadataBridge() {
         super();
@@ -128,6 +194,15 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * <URL>jdbc:postgresql://localhost/postgres?prepareThreshold=1</URL> <MDPREFIX></MDPREFIX>
      * <PASSPHRASE>ZATXO+7vBD7k9uicS/JOlBtsuscFIA8bpWBHZcHYNrc=</PASSPHRASE> </SERVER> </SERVERS> Return true for
      * success else false
+     * 
+     * @param pUsername the username
+     * @param pPassword the password
+     * @param pJDBCDriver the JDBC driver
+     * @param pURL the URL
+     * @param pMDPrefix the MD prefix
+     * @param pPassphrase the passphrase
+     * 
+     * @return true, if add server
      */
     public boolean addServer(String pUsername, String pPassword, String pJDBCDriver, String pURL, String pMDPrefix,
             String pPassphrase) {
@@ -135,6 +210,14 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         return false;
     }
 
+    /**
+     * Adds the XML error node.
+     * 
+     * @param parent the parent
+     * @param err the err
+     * 
+     * @return the element
+     */
     private Element addXMLErrorNode(Element parent, ETLJobError err) {
         Element e = XMLMetadataBridge.addChildElement(parent, "ERROR");
         e.setAttribute("DATETIME", err.getDate() == null ? "" : this.mDefaultDateFormat.format(err.getDate()));
@@ -145,6 +228,14 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         return e;
     }
 
+    /**
+     * Adds the XML job execution node.
+     * 
+     * @param parent the parent
+     * @param j the j
+     * 
+     * @return the element
+     */
     private Element addXMLJobExecutionNode(Element parent, ETLJob j) {
         Element e = XMLMetadataBridge.addChildElement(parent, "JOB");
         e.setAttribute("ID", j.getJobID());
@@ -162,6 +253,14 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         return e;
     }
 
+    /**
+     * Adds the XML load node.
+     * 
+     * @param parent the parent
+     * @param load the load
+     * 
+     * @return the element
+     */
     private Element addXMLLoadNode(Element parent, ETLLoad load) {
         Element ld = XMLMetadataBridge.addChildElement(parent, "LOAD");
         ld.setAttribute("START_JOB_ID", load.start_job_id);
@@ -175,6 +274,13 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         return ld;
     }
 
+    /**
+     * Creates the XML message.
+     * 
+     * @param msg the msg
+     * 
+     * @return the element
+     */
     Element createXMLMessage(String msg) {
         Element root = XMLMetadataBridge.getNewDocument();
         Element e = XMLMetadataBridge.addChildElement(root, "MESSAGE");
@@ -184,7 +290,12 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
     /**
      * Delete the specified load from the current job_error_hist, job_log_hist and load table return true for success
-     * else false
+     * else false.
+     * 
+     * @param pServerID the server ID
+     * @param pLoadID the load ID
+     * 
+     * @return true, if delete load
      */
     public boolean deleteLoad(String pServerID, String pLoadID) {
         // TODO Auto-generated method stub
@@ -201,7 +312,15 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     /**
-     * Execute a job immediately Returns "success" for "failure"
+     * Execute a job immediately Returns "success" for "failure".
+     * 
+     * @param pServerID the server ID
+     * @param pProjectID the project ID
+     * @param pJobID the job ID
+     * @param pIgnoreDependencies the ignore dependencies
+     * @param pAllowMultiple the allow multiple
+     * 
+     * @return the string
      */
     public String executeJob(String pServerID, int pProjectID, String pJobID, boolean pIgnoreDependencies,
             boolean pAllowMultiple) {
@@ -220,6 +339,13 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         }
     }
 
+    /**
+     * Gets the current DB time stamp.
+     * 
+     * @param pServerID the server ID
+     * 
+     * @return the current DB time stamp
+     */
     public String getCurrentDBTimeStamp(String pServerID) {
         try {
             synchronized (XMLMetadataBridge.mLock) {
@@ -232,6 +358,9 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.XMLMetadataCalls#getExecutionErrors(java.lang.String, int, int, java.util.Date)
+     */
     public String getExecutionErrors(String pServerID, int pLoadID, int pExecID, Date pLastModified) {
         Element root = XMLMetadataBridge.getNewDocument();
         try {
@@ -291,6 +420,9 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.XMLMetadataCalls#getJobErrors(java.lang.String, java.lang.String, java.util.Date)
+     */
     public String getJobErrors(String pServerID, String pJobName, Date pLastModified) {
         Element root = XMLMetadataBridge.getNewDocument();
         try {
@@ -324,8 +456,11 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     /**
-     * @param root
-     * @param jobs
+     * Gets the jobs as XML.
+     * 
+     * @param root the root
+     * @param jobs the jobs
+     * @param pGetStatus the get status
      */
     private void getJobsAsXML(Element root, ETLJob[] jobs, boolean pGetStatus) {
         for (ETLJob j : jobs) {
@@ -399,6 +534,9 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     // TODO: implement paging
+    /* (non-Javadoc)
+     * @see com.kni.etl.XMLMetadataCalls#getLoadErrors(java.lang.String, int, java.util.Date)
+     */
     public String getLoadErrors(String pServerID, int pLoadID, Date pLastModified) {
         Element root = XMLMetadataBridge.getNewDocument();
         // This limits the file size for performance reasons
@@ -514,6 +652,12 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     /**
      * Create a project lock in the metadata with a timeout according to the value in the system.xml for the object
      * specified return an alphanumeric string as the lockid or -1 if lock not available
+     * 
+     * @param pServerID the server ID
+     * @param pProjectID the project ID
+     * @param pForceOverwrite the force overwrite
+     * 
+     * @return the lock
      */
     public int getLock(String pServerID, String pProjectID, boolean pForceOverwrite) {
         // TODO Auto-generated method stub
@@ -523,6 +667,15 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     /*
      * 2007-02-15 Dao Nguyen Change the pServerID to be server@hashedUserID@hashedPassword format; thus, authenticating
      * the user with each method call.
+     */
+    /**
+     * Gets the metadata by server.
+     * 
+     * @param pServerID the server ID
+     * 
+     * @return the metadata by server
+     * 
+     * @throws Exception the exception
      */
     private Metadata getMetadataByServer(String pServerID) throws Exception {
 
@@ -592,6 +745,15 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         }
     }
 
+    /**
+     * Hash M d5.
+     * 
+     * @param strToHash the str to hash
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String hashMD5(String strToHash) throws Exception {
         try {
             byte[] bHash = new byte[strToHash.length() * 2];
@@ -686,6 +848,9 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.XMLMetadataCalls#getConnected(java.lang.String)
+     */
     public String getConnected(String pServerID) {
         Element root = XMLMetadataBridge.getNewDocument();
         Element servers = XMLMetadataBridge.addChildElement(root, "SERVERS");
@@ -728,6 +893,13 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         return XMLHelper.outputXML(root, true);
     }
 
+    /**
+     * Handle error.
+     * 
+     * @param e the e
+     * 
+     * @return the string
+     */
     public String handleError(Exception e) {
         Element e1 = XMLMetadataBridge.getNewDocument();
         XMLMetadataBridge.addChildElement(e1, "ERROR").setTextContent(e.getMessage());
@@ -745,7 +917,13 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
     /**
      * Get a summary of load status changes for jobs after the last refresh date <ETL><JOB ID="?" STATUS=""> <JOB
-     * ID="?" STATUS=""> </ETL>
+     * ID="?" STATUS=""> </ETL>.
+     * 
+     * @param pServerID the server ID
+     * @param pLoadID the load ID
+     * @param pLastRefreshDate the last refresh date
+     * 
+     * @return the string
      */
     public String refreshLoadStatus(String pServerID, int pLoadID, Date pLastRefreshDate) {
         // TODO Auto-generated method stub
@@ -753,7 +931,12 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     /**
-     * Refresh a project lock to extend the lock timeout
+     * Refresh a project lock to extend the lock timeout.
+     * 
+     * @param pServerID the server ID
+     * @param pLockID the lock ID
+     * 
+     * @return true, if refresh lock
      */
     public boolean refreshLock(String pServerID, int pLockID) {
         return false;
@@ -761,7 +944,13 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
     /**
      * Get a summary of new or modified jobs after the last refresh date <ETL><JOB ID="?" STATUS=""> <JOB ID="?"
-     * STATUS=""> </ETL>
+     * STATUS=""> </ETL>.
+     * 
+     * @param pServerID the server ID
+     * @param pProjectID the project ID
+     * @param pLastRefreshDate the last refresh date
+     * 
+     * @return the string
      */
     public String refreshProjectStatus(String pServerID, String pProjectID, Date pLastRefreshDate) {
         // TODO Auto-generated method stub
@@ -769,7 +958,10 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     /**
-     * Release a project lock in the metadata
+     * Release a project lock in the metadata.
+     * 
+     * @param pServerID the server ID
+     * @param pLockID the lock ID
      */
     public void releaseLock(String pServerID, int pLockID) {
         return;
@@ -777,6 +969,10 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
     /**
      * Removes the specified server id from the KETLServers.xml file on the applications server
+     * 
+     * @param pServerID the server ID
+     * 
+     * @return true, if remove server
      */
     public boolean removeServer(String pServerID) {
         // TODO Auto-generated method stub
@@ -784,7 +980,26 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     /**
-     * Call the metadata library to add an entry to the schedule table return the new schedule id
+     * Call the metadata library to add an entry to the schedule table return the new schedule id.
+     * 
+     * @param pServerID the server ID
+     * @param pProjectID the project ID
+     * @param pJobID the job ID
+     * @param pMonth the month
+     * @param pMonthOfYear the month of year
+     * @param pDay the day
+     * @param pDayOfWeek the day of week
+     * @param pDayOfMonth the day of month
+     * @param pHour the hour
+     * @param pHourOfDay the hour of day
+     * @param pMinute the minute
+     * @param pMinuteOfHour the minute of hour
+     * @param pDescription the description
+     * @param pOnceOnlyDate the once only date
+     * @param pEnableDate the enable date
+     * @param pDisableDate the disable date
+     * 
+     * @return the string
      */
     public String scheduleJob(String pServerID, int pProjectID, String pJobID, int pMonth, int pMonthOfYear, int pDay,
             int pDayOfWeek, int pDayOfMonth, int pHour, int pHourOfDay, int pMinute, int pMinuteOfHour,
@@ -825,6 +1040,9 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.XMLMetadataCalls#setExecutionStatus(java.lang.String, int, int, java.lang.String)
+     */
     public String setExecutionStatus(String pServerID, int pLoadID, int pExecID, String pStatus) {
         Element root = XMLMetadataBridge.getNewDocument();
         Element eStatus = XMLMetadataBridge.addChildElement(root, "STATUS");
@@ -980,6 +1198,13 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * against the supplied if the modification date of the destination is greater than the one supplied then an
      * exception is raised Returns an XML document as string confirming change. <ETL><JOB ID="?" PROJECT="?"
      * SUCCESS="TRUE|FALSE"/></ETL>
+     * 
+     * @param pServerID the server ID
+     * @param pProjectID the project ID
+     * @param pJobXML the job XML
+     * @param pForceOverwrite the force overwrite
+     * 
+     * @return the string
      */
     public String updateJob(String pServerID, String pProjectID, String pJobXML, boolean pForceOverwrite) {
         // TODO Auto-generated method stub
@@ -991,6 +1216,11 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * These should really go into a class that can be called upon by both the Console and the GUI. But for now, we
      * don't want to touch the Console. NOTE: XML reader usually read top-down. If the parameter-list nodes comes after
      * the job nodes, this code could have problem...
+     * 
+     * @param pServerID the server ID
+     * @param xmlFile the xml file
+     * 
+     * @return the string
      */
     public String addJobsAndParams(String pServerID, String xmlFile) {
         Element root = XMLMetadataBridge.getNewDocument();

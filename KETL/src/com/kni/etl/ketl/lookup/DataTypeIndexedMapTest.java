@@ -1,3 +1,25 @@
+/*
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
+ */
 package com.kni.etl.ketl.lookup;
 
 import java.math.BigDecimal;
@@ -5,17 +27,25 @@ import java.util.Random;
 
 import junit.framework.TestCase;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class DataTypeIndexedMapTest.
+ */
 abstract public class DataTypeIndexedMapTest extends TestCase {
 
+    /** The map. */
     PersistentMap map;
 
+    /**
+     * Test put big decimal.
+     */
     public void testPutBigDecimal() {
         int i;
-        map.clear();
+        this.map.clear();
         for (i = 0; i < 50000; i++) {
             Object[] key = new Object[] { new BigDecimal(34.4553 + i), new Float(43) };
 
-            map.put(key, new Object[] { new BigDecimal(34.4553 + i), new Float(43) });
+            this.map.put(key, new Object[] { new BigDecimal(34.4553 + i), new Float(43) });
 
             // Long l = (Long) map.get(key,"a");
             // Float f = (Float) map.get(key,"b");
@@ -28,7 +58,7 @@ abstract public class DataTypeIndexedMapTest extends TestCase {
         for (i = 0; i < 5000; i++) {
             Object[] key = new Object[] { new BigDecimal(34.4553 + i), new Float(43) };
 
-            map.put(key, new Object[] { new BigDecimal(34.4553 + i), new Float(43) });
+            this.map.put(key, new Object[] { new BigDecimal(34.4553 + i), new Float(43) });
 
             // Long l = (Long) map.get(key,"a");
             // Float f = (Float) map.get(key,"b");
@@ -38,7 +68,7 @@ abstract public class DataTypeIndexedMapTest extends TestCase {
             }
         }
 
-        map.commit(true);
+        this.map.commit(true);
 
         int hits = 0;
         Random rmd = new Random();
@@ -50,16 +80,21 @@ abstract public class DataTypeIndexedMapTest extends TestCase {
                 System.out.println("Lookups: " + i + ", Hits: " + hits);
             }
             Object obj;
-            if ((obj = map.get(key, "a")) != null)
+            if ((obj = this.map.get(key, "a")) != null)
                 hits++;
             obj = null;
         }
 
         System.out.println("Lookups: " + i);
-        map.clear();
+        this.map.clear();
 
     }
 
+    /**
+     * Instantiates a new data type indexed map test.
+     * 
+     * @param name the name
+     */
     public DataTypeIndexedMapTest(String name) {
         super(name);
     }

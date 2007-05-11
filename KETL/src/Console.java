@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -34,61 +52,121 @@ import com.kni.etl.util.XMLHelper;
 import com.kni.util.ArgumentParserUtil;
 import com.kni.util.FileHelpers;
 
+// TODO: Auto-generated Javadoc
 /*
  * Created on Apr 4, 2005 To change the template for this generated file go to Window&gt;Preferences&gt;Java&gt;Code
  * Generation&gt;Code and Comments
  */
+/**
+ * The Class Console.
+ */
 public class Console {
 
+    /** The Constant CANCEL_JOB. */
     static final int CANCEL_JOB = 12;
+    
+    /** The Constant CONNECT. */
     static final int CONNECT = 6;
+    
+    /** The Constant DEFINITION. */
     static final int DEFINITION = 1;
+    
+    /** The Constant DELETE. */
     static final int DELETE = 8;
+    
+    /** The Constant DEPENDENCIES. */
     static final int DEPENDENCIES = 2;
+    
+    /** The Constant EXECUTE. */
     static final int EXECUTE = 3;
+    
+    /** The Constant EXECUTEDIRECT. */
     static final int EXECUTEDIRECT = 11;
+    
+    /** The Constant EXPORT. */
     static final int EXPORT = 7;
+    
+    /** The Constant HELP. */
     static final int HELP = 7;
+    
+    /** The Constant IGNOREDEPENDENCIES. */
     static final int IGNOREDEPENDENCIES = 4;
+    
+    /** The Constant IMPORT. */
     static final int IMPORT = 6;
+    
+    /** The Constant JOB. */
     static final int JOB = 3;
+    
+    /** The Constant JOBDETAIL_TYPES. */
     static final String[] JOBDETAIL_TYPES = { "XMLDEFINITION", "DEFINITION", "DEPENDENCIES", "EXECUTE",
             "IGNOREDEPENDENCIES", "MULTI", "IMPORT", "EXPORT", "DELETE", "RESTART", "SKIP", "EXECUTEDIRECT", "CANCEL" };
+    
+    /** The Constant LIST. */
     static final int LIST = 0;
+    
+    /** The Constant MULTI. */
     static final int MULTI = 5;
+    
+    /** The Constant PARAMETERLIST. */
     static final int PARAMETERLIST = 8;
 
+    /** The Constant PAUSE. */
     static final int PAUSE = 9;
 
+    /** The Constant PROJECT. */
     static final int PROJECT = 11;
 
+    /** The Constant QUIT. */
     static final int QUIT = 5;
+    
+    /** The Constant RESET. */
     static final int RESET = 1;
+    
+    /** The Constant LOOKUPS. */
     static final int LOOKUPS = 2;
+    
+    /** The Constant RESTART. */
     static final int RESTART = 4;
+    
+    /** The Constant LOADID. */
     static final int LOADID = 3;
 
+    /** The Constant RESTART_JOB. */
     static final int RESTART_JOB = 9;
 
+    /** The Constant RESUME. */
     static final int RESUME = 10;
+    
+    /** The Constant RUN. */
     static final int RUN = 13;
+    
+    /** The Constant LAST. */
     static final int LAST = 14;
+    
+    /** The Constant RUN_TYPES. */
     static final String[] RUN_TYPES = { "LIST", "RESET", "LOOKUPS", "LOADID" };
 
+    /** The Constant SERVER. */
     static final int SERVER = 12;
 
+    /** The Constant SHUTDOWN. */
     static final int SHUTDOWN = 0;
+    
+    /** The Constant SKIP. */
     static final int SKIP = 10;
+    
+    /** The Constant STARTUP. */
     static final int STARTUP = 1;
+    
+    /** The Constant STATUS. */
     static final int STATUS = 2;
 
-    /**
-     * The KETL Console allows for remote management of the KETL server Supported commands STATUS SHUTDOWN
-     * {IMMEDIATE|NORMAL} STARTUP JOB <NAME> {DEFINITION|XMLDEFINITION|DEPENDENCIES} RESTART {IMMEDIAITE|NORMAL} QUIT
-     */
+    /** The KETL Console allows for remote management of the KETL server Supported commands STATUS SHUTDOWN {IMMEDIATE|NORMAL} STARTUP JOB <NAME> {DEFINITION|XMLDEFINITION|DEPENDENCIES} RESTART {IMMEDIAITE|NORMAL} QUIT. */
     static final String[] strCommands = { "SHUTDOWN", "STARTUP", "STATUS", "JOB", "RESTART", "QUIT", "CONNECT", "HELP",
             "PARAMETERLIST", "PAUSE", "RESUME", "PROJECT", "SERVER", "RUN", "/" };
 
+    /** The Constant strSyntax. */
     static final String[] strSyntax = {
             "SHUTDOWN <SERVERID> {IMMEDIATE|NORMAL}",
             "STARTUP",
@@ -99,15 +177,23 @@ public class Console {
             "PROJECT LIST", "SERVER LIST", "RUN {LIST|RESET|<FILENAME>|LOADID <VALUE>}",
             "/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}" };
 
+    /** The Constant XMLDEFINITION. */
     static final int XMLDEFINITION = 0;
 
+    /**
+     * Display version info.
+     * 
+     * @return the string
+     */
     private static String displayVersionInfo() {
         EngineConstants.getVersion();
         return "KETL Console\n";
     }
 
     /**
-     * @param args
+     * The main method.
+     * 
+     * @param args the args
      */
     public static void main(String[] args) {
         ResourcePool.setCacheIndexPrefix("Console");
@@ -122,30 +208,56 @@ public class Console {
         ResourcePool.releaseAllLookups();
     }
 
+    /** The driver. */
     String driver;
+    
+    /** The input stream reader. */
     InputStreamReader inputStreamReader = new InputStreamReader(System.in);
+    
+    /** The k job exec. */
     ETLJobExecutor kJobExec = new KETLJobExecutor();
+    
+    /** The md. */
     Metadata md = null;
+    
+    /** The mdprefix. */
     String mdprefix;
+    
+    /** The m previous commands. */
     ArrayList mPreviousCommands = new ArrayList();
+    
+    /** The n current server. */
     Node nCurrentServer;
 
+    /** The os job exec. */
     ETLJobExecutor osJobExec = new OSJobExecutor();
 
+    /** The password. */
     String password;
 
+    /** The servername. */
     String servername = null;
 
+    /** The sql job exec. */
     ETLJobExecutor sqlJobExec = new SQLJobExecutor();
 
+    /** The stdin. */
     BufferedReader stdin = new BufferedReader(this.inputStreamReader);
 
+    /** The url. */
     String url;
 
+    /** The username. */
     String username;
 
+    /** The xml config. */
     Document xmlConfig = null;
 
+    /**
+     * Connected.
+     * 
+     * @return true, if successful
+     */
     private boolean connected() {
         if (this.md != null) {
             return true;
@@ -156,6 +268,15 @@ public class Console {
         return false;
     }
 
+    /**
+     * Connect to server.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
     private String connectToServer(String[] pCommands) throws IOException {
         if (this.md != null) {
             this.md.closeMetadata();
@@ -246,6 +367,13 @@ public class Console {
         return "Connected to " + this.servername;
     }
 
+    /**
+     * Help.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     */
     String help(String[] pCommands) {
         StringBuffer sb = new StringBuffer();
 
@@ -259,6 +387,15 @@ public class Console {
         return sb.toString();
     }
 
+    /**
+     * Import jobs.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String importJobs(String[] pCommands) throws Exception {
         String[] files = FileHelpers.getFilenames(pCommands[3]);
 
@@ -298,6 +435,15 @@ public class Console {
         return "Done";
     }
 
+    /**
+     * Import parameters.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String importParameters(String[] pCommands) throws Exception {
         String[] files = FileHelpers.getFilenames(pCommands[3]);
 
@@ -347,6 +493,15 @@ public class Console {
         return "Done";
     }
 
+    /**
+     * Job details.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String jobDetails(String[] pCommands) throws Exception {
         StringBuffer sb = new StringBuffer();
         StringBuffer sbJobList = new StringBuffer("Export Jobs:\n");
@@ -624,6 +779,14 @@ public class Console {
         return sb.toString();
     }
 
+    /**
+     * Job status table.
+     * 
+     * @param pJobs the jobs
+     * @param pTableHeader the table header
+     * 
+     * @return the string
+     */
     String jobStatusTable(Object[][] pJobs, String pTableHeader) {
         if (pJobs == null) {
             return "";
@@ -658,6 +821,15 @@ public class Console {
         return sb.toString();
     }
 
+    /**
+     * Parameter list.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String parameterList(String[] pCommands) throws Exception {
 
         if (this.connected()) {
@@ -689,6 +861,13 @@ public class Console {
         return "Done";
     }
 
+    /**
+     * Gets the XML parameterlist definition.
+     * 
+     * @param pListMatchString the list match string
+     * 
+     * @return the XML parameterlist definition
+     */
     private String getXMLParameterlistDefinition(String pListMatchString) {
         StringBuffer sb = new StringBuffer();
 
@@ -731,6 +910,15 @@ public class Console {
         return sb.toString();
     }
 
+    /**
+     * Pause.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String pause(String[] pCommands) throws Exception {
         if (this.connected()) {
 
@@ -752,6 +940,15 @@ public class Console {
         return "";
     }
 
+    /**
+     * Project.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String project(String[] pCommands) throws Exception {
         StringBuffer sb = new StringBuffer("Project(s)\nID\tDescription\n--\t-----------\n");
         if (this.connected()) {
@@ -768,6 +965,14 @@ public class Console {
         return sb.toString();
     }
 
+    /**
+     * Resolve command.
+     * 
+     * @param pCommand the command
+     * @param pCommandList the command list
+     * 
+     * @return the int
+     */
     private int resolveCommand(String pCommand, String[] pCommandList) {
         for (int i = 0; i < pCommandList.length; i++) {
             if (pCommandList[i].equalsIgnoreCase(pCommand)) {
@@ -778,6 +983,15 @@ public class Console {
         return -1;
     }
 
+    /**
+     * Restart.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String restart(String[] pCommands) throws Exception {
         if (this.connected()) {
             this.shutdown(pCommands);
@@ -787,6 +1001,15 @@ public class Console {
         return "";
     }
 
+    /**
+     * Resume.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String resume(String[] pCommands) throws Exception {
         if (this.connected()) {
 
@@ -808,6 +1031,11 @@ public class Console {
         return "";
     }
 
+    /**
+     * Run.
+     * 
+     * @param args the args
+     */
     void run(String[] args) {
         String configFile = Metadata.CONFIG_FILE;
 
@@ -965,6 +1193,13 @@ public class Console {
 
     }
 
+    /**
+     * Run job.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     */
     private String runJob(String[] pCommands) {
         StringBuffer sb = new StringBuffer();
 
@@ -1087,8 +1322,18 @@ public class Console {
         return sb.toString();
     }
 
+    /** The i load ID. */
     int iLoadID = (int) System.currentTimeMillis() / 2;
 
+    /**
+     * Server.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String server(String[] pCommands) throws Exception {
         StringBuilder sd = new StringBuilder();
 
@@ -1104,6 +1349,15 @@ public class Console {
         return sd.toString();
     }
 
+    /**
+     * Shutdown.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String shutdown(String[] pCommands) throws Exception {
         if (this.connected()) {
 
@@ -1162,6 +1416,15 @@ public class Console {
         return "Not connected";
     }
 
+    /**
+     * Startup.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String startup(String[] pCommands) throws Exception {
         if (this.connected()) {
             KETLCluster kc = this.md.getClusterDetails();
@@ -1230,6 +1493,15 @@ public class Console {
         return null;
     }
 
+    /**
+     * Status.
+     * 
+     * @param pCommands the commands
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String status(String[] pCommands) throws Exception {
         // Show how many servers in cluster, how many running
         if (this.connected()) {
@@ -1282,14 +1554,31 @@ public class Console {
      * specify job execution class:"); className = stdin.readLine(); // request class } return "Done"; }
      */
 
+    /**
+     * Syntax error.
+     * 
+     * @param pCommand the command
+     * 
+     * @return the string
+     */
     private String syntaxError(int pCommand) {
         return "Syntax Error: Wrong syntax for " + pCommand + "\n" + Console.strSyntax[pCommand];
     }
 
+    /**
+     * Unknown command.
+     * 
+     * @param pCommand the command
+     * 
+     * @return the string
+     */
     private String unknownCommand(String pCommand) {
         return ("Error unknown command: " + pCommand);
     }
 
+    /* (non-Javadoc)
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
         return "Console";

@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.ketl.writer;
 
 import java.net.MalformedURLException;
@@ -30,25 +48,68 @@ import com.kni.etl.ketl.smp.DefaultWriterCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SOAPWriter.
+ */
 public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConnection {
 
+    /** The call. */
     Call call = null;
+    
+    /** The call msg. */
     Object callMsg[];
+    
+    /** The dumped params. */
     boolean dumpedParams = false;
+    
+    /** The m default port. */
     QName mDefaultPort = null;
+    
+    /** The m method. */
     String mMethod;
+    
+    /** The m namespace. */
     String mNamespace;
+    
+    /** The m original hostname verifier. */
     javax.net.ssl.HostnameVerifier mOriginalHostnameVerifier = null;
+    
+    /** The m service. */
     Service mService;
+    
+    /** The m SOAP type. */
     int mSOAPType;
+    
+    /** The m URL. */
     URL mURL;
+    
+    /** The parameter types. */
     Class[] parameterTypes;
 
+    /**
+     * Instantiates a new SOAP writer.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public SOAPWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
+    /**
+     * Authenticate call.
+     * 
+     * @throws MalformedURLException the malformed URL exception
+     * @throws ServiceException the service exception
+     * @throws AxisFault the axis fault
+     * @throws RemoteException the remote exception
+     */
     protected void authenticateCall() throws MalformedURLException, ServiceException, AxisFault, RemoteException {
         String user = this.getParameterValue(0, SOAPConnection.USER_ATTRIB);
         String password = this.getParameterValue(0, SOAPConnection.PASSWORD_ATTRIB);
@@ -59,6 +120,9 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#complete()
+     */
     @Override
     public int complete() throws KETLThreadException {
 
@@ -71,6 +135,9 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
         return res;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
+     */
     @Override
     protected int initialize(Node xmlConfig) throws KETLThreadException {
 
@@ -119,6 +186,9 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
         return 0;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+     */
     public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
             throws KETLWriteException {
         for (int x = 0; x < pRecordWidth; x++) {
@@ -172,6 +242,15 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
         return 1;
     }
 
+    /**
+     * Setup service.
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     * @throws MalformedURLException the malformed URL exception
+     * @throws ServiceException the service exception
+     * @throws AxisFault the axis fault
+     * @throws RemoteException the remote exception
+     */
     protected void setupService() throws KETLThreadException, MalformedURLException, ServiceException, AxisFault,
             RemoteException {
         // startup code
@@ -249,15 +328,28 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
         this.authenticateCall();
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
 
     }
 
+    /**
+     * Gets the call.
+     * 
+     * @return the call
+     */
     final protected Call getCall() {
         return this.call;
     }
 
+    /**
+     * Gets the namespace.
+     * 
+     * @return the namespace
+     */
     final public String getNamespace() {
         return this.mNamespace;
     }

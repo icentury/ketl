@@ -86,7 +86,7 @@ public final class EchoTCPClient extends DiscardTCPClient
      ***/
     public EchoTCPClient ()
     {
-        setDefaultPort(DEFAULT_PORT);
+        this.setDefaultPort(EchoTCPClient.DEFAULT_PORT);
     }
 
     /***
@@ -101,7 +101,7 @@ public final class EchoTCPClient extends DiscardTCPClient
      ***/
     public InputStream getInputStream()
     {
-        return _input_;
+        return this._input_;
     }
 
 }

@@ -1,7 +1,25 @@
 /*
- * Copyright (c) 2005 Kinetic Networks, Inc. All Rights Reserved.
+ *  Copyright (C) May 11, 2007 Kinetic Networks, Inc. All Rights Reserved. 
+ *
+ *  This library is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU Lesser General Public
+ *  License as published by the Free Software Foundation; either
+ *  version 2.1 of the License, or (at your option) any later version.
+ *  
+ *  This library is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *  Lesser General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with this library; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307, USA.
+ *  
+ *  Kinetic Networks Inc
+ *  33 New Montgomery, Suite 1200
+ *  San Francisco CA 94105
+ *  http://www.kineticnetworks.com
  */
-
 package com.kni.etl.ketl.writer;
 
 import java.sql.BatchUpdateException;
@@ -40,6 +58,7 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.WriterBatchManager;
 import com.kni.etl.util.XMLHelper;
 
+// TODO: Auto-generated Javadoc
 /**
  * <p>
  * Title: JDBCELTWriter
@@ -59,128 +78,299 @@ import com.kni.etl.util.XMLHelper;
 abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWriterCore, DBConnection,
         WriterBatchManager, PrePostSQL {
 
+    /**
+     * Instantiates a new database ELT writer.
+     * 
+     * @param pXMLConfig the XML config
+     * @param pPartitionID the partition ID
+     * @param pPartition the partition
+     * @param pThreadManager the thread manager
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     public DatabaseELTWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
             throws KETLThreadException {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
     }
 
+    /**
+     * The Class Index.
+     */
     class Index {
 
+        /** The m columns. */
         ArrayList mColumns = new ArrayList();
+        
+        /** The m name. */
         String mName;
+        
+        /** The m non unique. */
         boolean mNonUnique;
     }
 
+    /**
+     * The Class IndexColumn.
+     */
     class IndexColumn {
 
+        /** The m ascending. */
         boolean mAscending;
+        
+        /** The m column. */
         String mColumn;
+        
+        /** The m position. */
         short mPosition;
     }
 
+    /** The Constant ALTERNATE_INSERT_VALUE. */
     public static final String ALTERNATE_INSERT_VALUE = "ALTERNATE_INSERT_VALUE";
+    
+    /** The Constant ALTERNATE_UPDATE_VALUE. */
     public static final String ALTERNATE_UPDATE_VALUE = "ALTERNATE_UPDATE_VALUE";
+    
+    /** The Constant ALTERNATE_VALUE_SUB. */
     private static final String ALTERNATE_VALUE_SUB = "${PARAM}";
+    
+    /** The Constant BATCH_ATTRIB. */
     public static final String BATCH_ATTRIB = "BATCHDATA";
+    
+    /** The Constant HANDLER_ATTRIB. */
     public static final String HANDLER_ATTRIB = "HANDLER";
+    
+    /** The Constant WRAP_ATTRIB. */
     public static final String WRAP_ATTRIB = "WRAP";
+    
+    /** The Constant HASH_COLUMN_ATTRIB. */
     public static final String HASH_COLUMN_ATTRIB = "HASHCOLUMN";
+    
+    /** The Constant HASH_COMPARE_ONLY_ATTRIB. */
     public static final String HASH_COMPARE_ONLY_ATTRIB = "HASHCOMPAREONLY";
+    
+    /** The Constant BULK. */
     private static final int BULK = 2;
+    
+    /** The Constant COMMITSIZE_ATTRIB. */
     public static final String COMMITSIZE_ATTRIB = "COMMITSIZE";
+    
+    /** The Constant COMPARE_ATTRIB. */
     public static final String COMPARE_ATTRIB = "COMPARE";
+    
+    /** The Constant INSERT_ATTRIB. */
     public static final String INSERT_ATTRIB = "INSERT";
+    
+    /** The Constant MAXTRANSACTIONSIZE_ATTRIB. */
     public static final String MAXTRANSACTIONSIZE_ATTRIB = "MAXTRANSACTIONSIZE";
+    
+    /** The Constant LOWER_CASE. */
     static final int LOWER_CASE = 0;
+    
+    /** The Constant MIXED_CASE. */
     static final int MIXED_CASE = 2;
+    
+    /** The Constant PK_ATTRIB. */
     public static final String PK_ATTRIB = "PK";
+    
+    /** The Constant ROLL. */
     private static final int ROLL = 0;
+    
+    /** The Constant SCHEMA_ATTRIB. */
     public static final String SCHEMA_ATTRIB = "SCHEMA";
 
+    /** The Constant SEQUENCE_ATTRIB. */
     public static final String SEQUENCE_ATTRIB = "SEQUENCE";
+    
+    /** The Constant SK_ATTRIB. */
     public static final String SK_ATTRIB = "SK";
+    
+    /** The Constant SWAP_PARTITION. */
     static final int SWAP_PARTITION = 0;
+    
+    /** The Constant SWAP_TABLE. */
     static final int SWAP_TABLE = 1;
+    
+    /** The Constant TABLE_ATTRIB. */
     public static final String TABLE_ATTRIB = "TABLE";
+    
+    /** The Constant TYPE_ATTRIB. */
     public static final String TYPE_ATTRIB = "TYPE";
+    
+    /** The Constant STREAM_ATTRIB. */
     public static final String STREAM_ATTRIB = "STREAMCHANGES";
+    
+    /** The Constant UPDATE_ATTRIB. */
     public static final String UPDATE_ATTRIB = "UPDATE";
+    
+    /** The Constant IGNOREINVALIDCOLUMNS_ATTRIB. */
     public static final String IGNOREINVALIDCOLUMNS_ATTRIB = "IGNOREINVALIDCOLUMNS";
+    
+    /** The Constant UPPER_CASE. */
     static final int UPPER_CASE = 1;
+    
+    /** The Constant UPSERT. */
     private static final int UPSERT = 1;
+    
+    /** The Constant HANDLE_DUPLICATES_ATTRIB. */
     private static final String HANDLE_DUPLICATES_ATTRIB = "HANDLEDUPLICATES";
+    
+    /** The madcd columns. */
     DatabaseColumnDefinition[] madcdColumns = null;
+    
+    /** The ma other columns. */
     String[] maOtherColumns = null;
+    
+    /** The m batch data. */
     boolean mBatchData = true;
+    
+    /** The m stream changes. */
     boolean mStreamChanges = true;
+    
+    /** The mc DB connection. */
     protected Connection mcDBConnection;
+    
+    /** The m DB case. */
     int mDBCase = -1;
+    
+    /** The m DB type. */
     String mDBType = null;
+    
+    /** The m dont compound statements. */
     boolean mDontCompoundStatements = false;
+    
+    /** The mi commit size. */
     int miCommitSize;
+    
+    /** The mi field population order. */
     private int[] miFieldPopulationOrder;
+    
+    /** The mi insert count. */
     int miInsertCount = 0;
+    
+    /** The mi max transaction size. */
     int miMaxTransactionSize = -1;
+    
+    /** The mi replace technique. */
     int miReplaceTechnique = DatabaseELTWriter.SWAP_TABLE;
+    
+    /** The m primary key specified. */
     private boolean mPrimaryKeySpecified = false;
+    
+    /** The ms all columns. */
     private String msAllColumns;
+    
+    /** The ms in batch SQL statement. */
     private String msInBatchSQLStatement = null;
+    
+    /** The ms insert values. */
     private String msInsertValues;
+    
+    /** The ms join. */
     String msJoin;
+    
+    /** The m source key specified. */
     private boolean mSourceKeySpecified = false;
+    
+    /** The ms post batch SQL. */
     private Object[] msPostBatchSQL = null;
+    
+    /** The ms post load SQL. */
     private Object[] msPostLoadSQL = null;
+    
+    /** The ms pre load SQL. */
     private Object[] msPreLoadSQL = null;
+    
+    /** The ms join columns. */
     private String msJoinColumns;
+    
+    /** The jdbc helper. */
     private JDBCItemHelper jdbcHelper;
 
+    /** The ms temp table name. */
     String msTempTableName = null;
 
+    /** The mstr schema name. */
     String mstrSchemaName = null;
 
+    /** The mstr table name. */
     String mstrTableName = null;
 
+    /** The ms update columns. */
     String msUpdateColumns;
+    
+    /** The ms update triggers. */
     String msUpdateTriggers;
 
+    /** The m type. */
     int mType = -1;
 
+    /** The m used connections. */
     ArrayList mUsedConnections = new ArrayList();
 
+    /** The mv column index. */
     HashMap mvColumnIndex = new HashMap();
 
+    /** The mv columns. */
     Vector mvColumns = new Vector(); // for building the column list and later converting it into the array
 
+    /** The str driver class. */
     private String strDriverClass = null;
 
+    /** The str password. */
     private String strPassword = null;
 
+    /** The str pre SQL. */
     private String strPreSQL = null;
 
+    /** The str URL. */
     private String strURL = null;
 
+    /** The str user name. */
     private String strUserName = null;
+    
+    /** The ms insert source columns. */
     private String msInsertSourceColumns;
+    
+    /** The mi analyze pos. */
     private int miAnalyzePos = -1;
 
+    /**
+     * The Class JDBCETLInPort.
+     */
     public class JDBCETLInPort extends ETLInPort {
 
+        /**
+         * The Class JDBCDatabaseColumnDefinition.
+         */
         class JDBCDatabaseColumnDefinition extends DatabaseColumnDefinition {
 
+            /* (non-Javadoc)
+             * @see com.kni.etl.dbutils.DatabaseColumnDefinition#getSourceClass()
+             */
             @Override
             public Class getSourceClass() {
                 return JDBCETLInPort.this.getPortClass();
             }
 
+            /**
+             * Instantiates a new JDBC database column definition.
+             * 
+             * @param pNode the node
+             * @param pColumnName the column name
+             * @param pDataType the data type
+             */
             public JDBCDatabaseColumnDefinition(Node pNode, String pColumnName, int pDataType) {
                 super(pNode, pColumnName, pDataType);
             }
 
         }
 
+        /** The dcd new column. */
         DatabaseColumnDefinition dcdNewColumn;
 
+        /* (non-Javadoc)
+         * @see com.kni.etl.ketl.ETLInPort#initialize(org.w3c.dom.Node)
+         */
         @Override
         public int initialize(Node xmlNode) throws ClassNotFoundException, KETLThreadException {
 
@@ -236,12 +426,25 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
             return 0;
         }
 
+        /**
+         * Instantiates a new JDBCETL in port.
+         * 
+         * @param esOwningStep the es owning step
+         * @param esSrcStep the es src step
+         */
         public JDBCETLInPort(ETLStep esOwningStep, ETLStep esSrcStep) {
             super(esOwningStep, esSrcStep);
         }
 
     }
 
+    /**
+     * Define hash column.
+     * 
+     * @param name the name
+     * 
+     * @return the database column definition
+     */
     private DatabaseColumnDefinition defineHashColumn(String name) {
         DatabaseColumnDefinition dcdNewColumn = new DatabaseColumnDefinition(null, name, java.sql.Types.INTEGER);
 
@@ -258,8 +461,24 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return dcdNewColumn;
     }
 
+    /**
+     * Builds the in batch SQL.
+     * 
+     * @param pTable the table
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     abstract protected String buildInBatchSQL(String pTable) throws Exception;
 
+    /**
+     * Builds the post batch SQL.
+     * 
+     * @return the object[]
+     * 
+     * @throws Exception the exception
+     */
     private Object[] buildPostBatchSQL() throws Exception {
 
         // UPDATE TABLE OR DELETE ROWS
@@ -274,6 +493,16 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
     }
 
+    /**
+     * Gets the upsert SQL.
+     * 
+     * @param sql the sql
+     * 
+     * @return the upsert SQL
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     * @throws SQLException the SQL exception
+     */
     private void getUpsertSQL(ArrayList sql) throws KETLThreadException, SQLException {
 
         if (this.mStreamChanges == false) {
@@ -397,9 +626,19 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         sql.add(sqlToExecute);
     }
 
+    /** The m index enable list. */
     private ArrayList mIndexEnableList = new ArrayList();
+    
+    /** The m index disable list. */
     private ArrayList mIndexDisableList = new ArrayList();
 
+    /**
+     * Builds the post load SQL.
+     * 
+     * @return the object[]
+     * 
+     * @throws Exception the exception
+     */
     private Object[] buildPostLoadSQL() throws Exception {
 
         ArrayList sql = new ArrayList();
@@ -584,6 +823,13 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         }
     }
 
+    /**
+     * Gets the failure cleanup load SQL.
+     * 
+     * @return the failure cleanup load SQL
+     * 
+     * @throws Exception the exception
+     */
     private Object[] getFailureCleanupLoadSQL() throws Exception {
 
         ArrayList sql = new ArrayList();
@@ -601,7 +847,11 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     }
 
     /**
-     * @throws Exception
+     * Builds the pre load SQL.
+     * 
+     * @return the object[]
+     * 
+     * @throws Exception the exception
      */
     private Object[] buildPreLoadSQL() throws Exception {
 
@@ -637,22 +887,42 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return sql.toArray();
     }
 
+    /**
+     * Coalesce.
+     * 
+     * @param arg1 the arg1
+     * @param arg2 the arg2
+     * 
+     * @return the string
+     * 
+     * @throws Exception the exception
+     */
     private String coalesce(String arg1, String arg2) throws Exception {
         return EngineConstants.replaceParameterV2(EngineConstants.replaceParameterV2(this.getStepTemplate(this.mDBType,
                 "COALESCE", true), "ARG1", arg1), "ARG2", arg2);
     }
 
+    /** The stmt. */
     StatementWrapper stmt;
+    
+    /** The max char length. */
     private int maxCharLength;
+    
+    /** The m batch counter. */
     protected int mBatchCounter;
+    
+    /** The fire pre batch. */
     protected boolean firePreBatch;
+    
+    /** The mb reinit on error. */
     private boolean mbReinitOnError;
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @return DOCUMENT ME!
-     * @throws KETLThreadException
+     * 
+     * @throws KETLThreadException the KETL thread exception
      */
     public int complete() throws KETLThreadException {
         int res = super.complete();
@@ -699,6 +969,13 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return res;
     }
 
+    /**
+     * Gets the all other table columns.
+     * 
+     * @return the all other table columns
+     * 
+     * @throws SQLException the SQL exception
+     */
     private String[] getAllOtherTableColumns() throws SQLException {
         Statement stmt = this.mcDBConnection.createStatement();
 
@@ -726,6 +1003,13 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return res;
     }
 
+    /**
+     * Gets the column data types.
+     * 
+     * @return the column data types
+     * 
+     * @throws SQLException the SQL exception
+     */
     private void getColumnDataTypes() throws SQLException {
         ResultSet rs = this.mcDBConnection.getMetaData().getColumns(
                 null,
@@ -761,10 +1045,17 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
     }
 
+    /** The m temp table feed. */
     static private int mTempTableFeed = 0;
 
     /**
-     * @throws SQLException
+     * Gets the unique object name.
+     * 
+     * @param pPrefix the prefix
+     * 
+     * @return the unique object name
+     * 
+     * @throws SQLException the SQL exception
      */
     private String getUniqueObjectName(String pPrefix) throws SQLException {
         boolean notFound = true;
@@ -790,21 +1081,53 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return res;
     }
 
+    /** The id quote. */
     private String idQuote;
+    
+    /** The id quote enabled. */
     private boolean idQuoteEnabled = false;
+    
+    /** The m handle duplicate keys. */
     protected boolean mHandleDuplicateKeys = false;
+    
+    /** The m statement seperator. */
     private String mStatementSeperator;
+    
+    /** The ms best join. */
     private String msBestJoin;
+    
+    /** The mb ignore invalid columns. */
     private boolean mbIgnoreInvalidColumns;
+    
+    /** The ms insert columns. */
     private String msInsertColumns;
+    
+    /** The mb replace mode. */
     private boolean mbReplaceMode;
+    
+    /** The m first SK. */
     private String mFirstSK;
+    
+    /** The m manage indexes. */
     private boolean mManageIndexes;
+    
+    /** The m hash column. */
     private String mHashColumn;
+    
+    /** The m hash column definition. */
     private DatabaseColumnDefinition mHashColumnDefinition;
+    
+    /** The mi hash fields. */
     private int[] miHashFields;
+    
+    /** The m hash compare only. */
     private boolean mHashCompareOnly;
 
+    /**
+     * Gets the ID quote.
+     * 
+     * @return the ID quote
+     */
     protected String getIDQuote() {
         if (this.idQuoteEnabled)
             return this.idQuote;
@@ -813,11 +1136,13 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     }
 
     /**
-     * DOCUMENT ME!
+     * DOCUMENT ME!.
      * 
      * @param nConfig DOCUMENT ME!
+     * 
      * @return DOCUMENT ME!
-     * @throws KETLThreadException
+     * 
+     * @throws KETLThreadException the KETL thread exception
      */
     public int initialize(Node nConfig) throws KETLThreadException {
         int res = super.initialize(nConfig);
@@ -1217,6 +1542,16 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return 0;
     }
 
+    /**
+     * Gets the all indexes.
+     * 
+     * @param string the string
+     * 
+     * @return the all indexes
+     * 
+     * @throws SQLException the SQL exception
+     * @throws KETLThreadException the KETL thread exception
+     */
     private void getAllIndexes(String string) throws SQLException, KETLThreadException {
 
         if (this.mManageIndexes == false)
@@ -1255,8 +1590,24 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         }
     }
 
+    /**
+     * Instantiate helper.
+     * 
+     * @param hdl the hdl
+     * 
+     * @return the JDBC item helper
+     * 
+     * @throws KETLThreadException the KETL thread exception
+     */
     abstract protected JDBCItemHelper instantiateHelper(String hdl) throws KETLThreadException;
 
+    /**
+     * Sets the DB case.
+     * 
+     * @param pStr the str
+     * 
+     * @return the string
+     */
     private String setDBCase(String pStr) {
 
         if (pStr == null)
@@ -1276,8 +1627,12 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return pStr;
     }
 
+    /** The dedupe counter. */
     protected int dedupeCounter = 0;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+     */
     public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
             throws KETLWriteException {
 
@@ -1340,24 +1695,55 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return res;
     }
 
+    /** The m batch log. */
     ArrayList mBatchLog = new ArrayList();
+    
+    /** The record num batch start. */
     int recordNumBatchStart;
 
+    /**
+     * Log batch.
+     * 
+     * @param inputRecords the input records
+     */
     private void logBatch(Object[] inputRecords) {
         this.mBatchLog.add(inputRecords);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.DBConnection#getConnection()
+     */
     public Connection getConnection() {
         return this.mcDBConnection;
     }
 
+    /** The mi retry batch. */
     int miRetryBatch = 0;
 
+    /** The m incremental commit. */
     boolean mIncrementalCommit = true;
 
+    /**
+     * Prepare statement wrapper.
+     * 
+     * @param Connection the connection
+     * @param sql the sql
+     * @param jdbcHelper the jdbc helper
+     * 
+     * @return the statement wrapper
+     * 
+     * @throws SQLException the SQL exception
+     */
     abstract StatementWrapper prepareStatementWrapper(Connection Connection, String sql, JDBCItemHelper jdbcHelper)
             throws SQLException;
 
+    /**
+     * Retry batch.
+     * 
+     * @return the int
+     * 
+     * @throws KETLWriteException the KETL write exception
+     */
     private int retryBatch() throws KETLWriteException {
         ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
                 "Retrying records in batch, to identify invalid records");
@@ -1448,6 +1834,13 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
     }
 
+    /**
+     * Gets the hash code.
+     * 
+     * @param record the record
+     * 
+     * @return the hash code
+     */
     private int getHashCode(Object[] record) {
 
         if (record == null)
@@ -1470,8 +1863,12 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return result;
     }
 
+    /** The m low memory threashold. */
     long mLowMemoryThreashold = -1;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.WriterBatchManager#finishBatch(int)
+     */
     public int finishBatch(int len) throws KETLWriteException {
         int result = 0;
         try {
@@ -1572,15 +1969,23 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return result;
     }
 
+    /** The m failed batch elements. */
     private Set mFailedBatchElements = new HashSet();
 
+    /**
+     * Clear batch log batch.
+     */
     protected void clearBatchLogBatch() {
         this.mBatchLog.clear();
         this.mFailedBatchElements.clear();
     }
 
+    /** The supports release savepoint. */
     boolean supportsSetSavepoint = false, supportsReleaseSavepoint = false;
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.WriterBatchManager#initializeBatch(java.lang.Object[][], int)
+     */
     public Object[][] initializeBatch(Object[][] data, int len) throws KETLWriteException {
         try {
             if (this.firePreBatch && this.mBatchData) {
@@ -1595,6 +2000,9 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return data;
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePostStatements()
+     */
     public void executePostStatements() throws SQLException {
         this.setWaiting("post statements to run");
         StatementManager.executeStatements(this.msPostLoadSQL, this.mcDBConnection, this.mStatementSeperator,
@@ -1629,6 +2037,9 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         this.setWaiting(null);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePreStatements()
+     */
     public void executePreStatements() throws SQLException {
         this.setWaiting("pre statements to run");
         StatementManager.executeStatements(this, this, "PRESQL", StatementManager.START);
@@ -1643,6 +2054,9 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         this.setWaiting(null);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePostBatchStatements()
+     */
     public void executePostBatchStatements() throws SQLException {
         this.setWaiting("post batch statements to run");
         StatementManager.executeStatements(this.msPostBatchSQL, this.mcDBConnection, this.mStatementSeperator,
@@ -1651,17 +2065,26 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         this.setWaiting(null);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.PrePostSQL#executePreBatchStatements()
+     */
     public void executePreBatchStatements() throws SQLException {
         this.setWaiting("pre batch statements to run");
         StatementManager.executeStatements(this, this, "PREBATCHSQL");
         this.setWaiting(null);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#getNewInPort(com.kni.etl.ketl.ETLStep)
+     */
     @Override
     protected ETLInPort getNewInPort(ETLStep srcStep) {
         return new JDBCETLInPort(this, srcStep);
     }
 
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+     */
     @Override
     protected void close(boolean success) {
         try {
@@ -1693,18 +2116,38 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         }
     }
 
+    /**
+     * Sets the all columns.
+     * 
+     * @param msAllColumns the new all columns
+     */
     void setAllColumns(String msAllColumns) {
         this.msAllColumns = msAllColumns;
     }
 
+    /**
+     * Gets the all columns.
+     * 
+     * @return the all columns
+     */
     String getAllColumns() {
         return this.msAllColumns;
     }
 
+    /**
+     * Sets the insert values.
+     * 
+     * @param msInsertValues the new insert values
+     */
     void setInsertValues(String msInsertValues) {
         this.msInsertValues = msInsertValues;
     }
 
+    /**
+     * Gets the insert values.
+     * 
+     * @return the insert values
+     */
     String getInsertValues() {
         return this.msInsertValues;
     }
