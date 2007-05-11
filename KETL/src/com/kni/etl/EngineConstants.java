@@ -89,19 +89,23 @@ public class EngineConstants {
     public final static String CUSTOM_FIELD_3_STR = "CUSTOMFIELD3";
     public final static int CUSTOM_FIELD_3 = 27;
     public final static String OTHER_STR = "";
-    private final static String[] OBJECT_TYPES = { null, IP_ADDRESS_STR, IN_COOKIE_STR, OUT_COOKIE_STR,
-            GET_REQUEST_STR, BROWSER_STR, HTML_ERROR_CODE_STR, OTHER_STR, HIT_DATE_TIME_STR, null, null, null, null,
-            null, BYTES_SENT_STR, SERVE_TIME_STR, CANONICAL_PORT_STR, REFERRER_URL_STR, REQUEST_PROTOCOL_STR, null,
-            SERVER_NAME_STR, REMOTE_USER_STR, REQUEST_METHOD_STR, QUERY_STRING_STR, REQUEST_STRING_STR,
-            CUSTOM_FIELD_1_STR, CUSTOM_FIELD_2_STR, CUSTOM_FIELD_3_STR };
+    private final static String[] OBJECT_TYPES = { null, EngineConstants.IP_ADDRESS_STR, EngineConstants.IN_COOKIE_STR,
+            EngineConstants.OUT_COOKIE_STR, EngineConstants.GET_REQUEST_STR, EngineConstants.BROWSER_STR,
+            EngineConstants.HTML_ERROR_CODE_STR, EngineConstants.OTHER_STR, EngineConstants.HIT_DATE_TIME_STR, null,
+            null, null, null, null, EngineConstants.BYTES_SENT_STR, EngineConstants.SERVE_TIME_STR,
+            EngineConstants.CANONICAL_PORT_STR, EngineConstants.REFERRER_URL_STR, EngineConstants.REQUEST_PROTOCOL_STR,
+            null, EngineConstants.SERVER_NAME_STR, EngineConstants.REMOTE_USER_STR, EngineConstants.REQUEST_METHOD_STR,
+            EngineConstants.QUERY_STRING_STR, EngineConstants.REQUEST_STRING_STR, EngineConstants.CUSTOM_FIELD_1_STR,
+            EngineConstants.CUSTOM_FIELD_2_STR, EngineConstants.CUSTOM_FIELD_3_STR };
 
     public final static int resolveObjectNameToID(String psObjectName) {
         if (psObjectName == null) {
             return -1;
         }
 
-        for (int i = 0; i < OBJECT_TYPES.length; i++) {
-            if ((OBJECT_TYPES[i] != null) && psObjectName.equalsIgnoreCase(OBJECT_TYPES[i])) {
+        for (int i = 0; i < EngineConstants.OBJECT_TYPES.length; i++) {
+            if ((EngineConstants.OBJECT_TYPES[i] != null)
+                    && psObjectName.equalsIgnoreCase(EngineConstants.OBJECT_TYPES[i])) {
                 return i;
             }
         }
@@ -110,8 +114,8 @@ public class EngineConstants {
     }
 
     public final static String resolveObjectIDToName(int psObjectType) {
-        if ((psObjectType >= 0) && (psObjectType < OBJECT_TYPES.length)) {
-            return OBJECT_TYPES[psObjectType];
+        if ((psObjectType >= 0) && (psObjectType < EngineConstants.OBJECT_TYPES.length)) {
+            return EngineConstants.OBJECT_TYPES[psObjectType];
         }
 
         return null;
@@ -124,9 +128,7 @@ public class EngineConstants {
             return piDefault;
         }
 
-        for (int i = 0; i < CONSTANTS.length; i++) {
-            Object[] o = CONSTANTS[i];
-
+        for (Object[] o : EngineConstants.CONSTANTS) {
             if ((o != null) && (o.length == 2) && (o[0] != null) && psConstantName.equalsIgnoreCase((String) o[0])) {
                 if (o[1] != null) {
                     try {
@@ -153,14 +155,16 @@ public class EngineConstants {
         if (psWebServerName == null) {
             return -1;
         }
-        else if (psWebServerName.equalsIgnoreCase(APACHE_STR) || psWebServerName.equalsIgnoreCase(IIS_STR)) {
-            return APACHE;
+        else if (psWebServerName.equalsIgnoreCase(EngineConstants.APACHE_STR)
+                || psWebServerName.equalsIgnoreCase(EngineConstants.IIS_STR)) {
+            return EngineConstants.APACHE;
         }
-        else if (psWebServerName.equalsIgnoreCase(IPLANET_STR) || psWebServerName.equalsIgnoreCase(NETSCAPE_STR)) {
-            return NETSCAPE;
+        else if (psWebServerName.equalsIgnoreCase(EngineConstants.IPLANET_STR)
+                || psWebServerName.equalsIgnoreCase(EngineConstants.NETSCAPE_STR)) {
+            return EngineConstants.NETSCAPE;
         }
         else {
-            return APACHE;
+            return EngineConstants.APACHE;
         }
     }
 
@@ -198,7 +202,7 @@ public class EngineConstants {
     private static String VERSION;
     private static double CACHEMEMRATIO = 0.5;
 
-    private static Document mSystemXML = _getSystemXML();
+    private static Document mSystemXML = EngineConstants._getSystemXML();
 
     /**
      * EngineConstants constructor comment.
@@ -218,29 +222,32 @@ public class EngineConstants {
             doc = XMLHelper.readXMLFromFile(Metadata.getKETLPath() + File.separator + Metadata.SYSTEM_FILE);
             // get all plugins
 
-            globals = (Element) XMLHelper.findElementByName(doc, "GLOBAL", null, null);
-            if (globals != null) {
-                Element e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "PARAMETERSTART");
+            EngineConstants.globals = (Element) XMLHelper.findElementByName(doc, "GLOBAL", null, null);
+            if (EngineConstants.globals != null) {
+                Element e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME",
+                        "PARAMETERSTART");
                 if (e != null) {
                     EngineConstants.VARIABLE_PARAMETER_START = XMLHelper.getTextContent(e);
                 }
 
-                e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "VERSION");
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "VERSION");
                 if (e != null) {
                     EngineConstants.VERSION = XMLHelper.getTextContent(e);
                     // Respectfully do not modify the following line of code without prior written permission from
                     // Kinetic Networks Inc.
                     ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "KETL Version "
-                            + VERSION + ", ©" + Calendar.getInstance().get(Calendar.YEAR) + " Kinetic Networks Inc.");
+                            + EngineConstants.VERSION + ", ©" + Calendar.getInstance().get(Calendar.YEAR)
+                            + " Kinetic Networks Inc.");
                     // End of section
                 }
 
-                e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "CACHEMEMRATIO");
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "CACHEMEMRATIO");
                 if (e != null) {
                     EngineConstants.CACHEMEMRATIO = Double.parseDouble(XMLHelper.getTextContent(e));
                 }
 
-                e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "INMEMORYCACHESIZE");
+                e = (Element) XMLHelper
+                        .getElementByName(EngineConstants.globals, "OPTION", "NAME", "INMEMORYCACHESIZE");
                 if (e != null) {
                     String tmp = XMLHelper.getTextContent(e);
 
@@ -258,7 +265,7 @@ public class EngineConstants {
                 else
                     EngineConstants.DEFAULTCACHESIZE = "64k";
 
-                e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "LOOKUPCLASS");
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "LOOKUPCLASS");
 
                 boolean lookForAlternative = false;
                 if (e != null) {
@@ -279,12 +286,12 @@ public class EngineConstants {
                     String[][] lookupsOptions = {
                             { "com.kni.etl.ketl.lookup.RawPerstIndexedMap", "org.garret.perst.Persistent" },
                             { "com.kni.etl.ketl.lookup.HSQLDBIndexedMap", "org.hsqldb.Database" } };
-                    for (int i = 0; i < lookupsOptions.length; i++) {
+                    for (String[] element : lookupsOptions) {
                         try {
-                            Class.forName(lookupsOptions[i][0]);
-                            Class.forName(lookupsOptions[i][1]);
+                            Class.forName(element[0]);
+                            Class.forName(element[1]);
 
-                            EngineConstants.LOOKUPCLASS = lookupsOptions[i][0];
+                            EngineConstants.LOOKUPCLASS = element[0];
 
                             if (lookForAlternative)
                                 ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
@@ -305,13 +312,14 @@ public class EngineConstants {
                     ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Cache engine "
                             + EngineConstants.LOOKUPCLASS);
 
-                e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "PARAMETEREND");
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "PARAMETEREND");
                 if (e != null) {
                     XMLHelper.getTextContent(e);
                     EngineConstants.VARIABLE_PARAMETER_END = XMLHelper.getTextContent(e);
                 }
 
-                e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "MAXERRORMESSAGELENGTH");
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME",
+                        "MAXERRORMESSAGELENGTH");
                 if (e != null) {
                     try {
                         EngineConstants.MAX_ERROR_MESSAGE_LENGTH = Integer.parseInt(XMLHelper.getTextContent(e));
@@ -320,12 +328,12 @@ public class EngineConstants {
                     }
                 }
 
-                e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "BADRECORDPATH");
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "BADRECORDPATH");
                 if (e != null) {
                     try {
                         EngineConstants.BAD_RECORD_PATH = XMLHelper.getTextContent(e);
 
-                        File f = new File(BAD_RECORD_PATH);
+                        File f = new File(EngineConstants.BAD_RECORD_PATH);
                         if (f.exists() == false) {
                             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
                                     "Creating bad record directory " + f.getAbsolutePath());
@@ -342,12 +350,12 @@ public class EngineConstants {
                     }
                 }
 
-                e = (Element) XMLHelper.getElementByName(globals, "OPTION", "NAME", "CACHEPATH");
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "CACHEPATH");
                 if (e != null) {
                     try {
                         EngineConstants.CACHE_PATH = XMLHelper.getTextContent(e);
 
-                        File f = new File(CACHE_PATH);
+                        File f = new File(EngineConstants.CACHE_PATH);
                         if (f.exists() == false) {
                             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
                                     "Creating cache directory " + f.getAbsolutePath());
@@ -373,27 +381,27 @@ public class EngineConstants {
                     ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "0 plugins found");
                 }
                 else {
-                    for (int i = 0; i < children.length; i++) {
+                    for (String element : children) {
                         // Get filename of file or directory
-                        if (children[i].endsWith(".xml") && new File(dir, children[i]).isFile()) {
+                        if (element.endsWith(".xml") && new File(dir, element).isFile()) {
                             try {
                                 Document pluginDoc = XMLHelper.readXMLFromFile(dir.getAbsolutePath() + File.separator
-                                        + children[i]);
+                                        + element);
 
                                 Node[] node = XMLHelper.findElementsByName(pluginDoc, "STEP", null, null);
-                                for (int p = 0; p < node.length; p++) {
-                                    String pluginName = XMLHelper.getAttributeAsString(node[p].getAttributes(),
+                                for (Node element0 : node) {
+                                    String pluginName = XMLHelper.getAttributeAsString(element0.getAttributes(),
                                             "CLASS", null);
                                     if (pluginName == null) {
                                         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
-                                                "Plugin in file " + children[i] + " does not have a name.");
+                                                "Plugin in file " + element + " does not have a name.");
                                     }
                                     else {
-                                        try {                                            
+                                        try {
                                             Class.forName(pluginName);
                                             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
                                                     "Plugin " + pluginName + " enabled.");
-                                            doc.getFirstChild().appendChild(doc.importNode(node[p], true));
+                                            doc.getFirstChild().appendChild(doc.importNode(element0, true));
                                         } catch (Exception e) {
                                             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
                                                     "Plugin " + pluginName + " failed to initialize: " + e.toString());
@@ -402,9 +410,8 @@ public class EngineConstants {
                                             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
                                                     "Plugin " + pluginName + " failed to initialize: " + e.toString());
 
-                                        
                                         }
-                                       }
+                                    }
                                 }
                             } catch (Exception e) {
                                 ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, e
@@ -431,11 +438,11 @@ public class EngineConstants {
     }
 
     public static synchronized Document getSystemXML() {
-        if (mSystemXML == null) {
-            mSystemXML = _getSystemXML();
+        if (EngineConstants.mSystemXML == null) {
+            EngineConstants.mSystemXML = EngineConstants._getSystemXML();
         }
 
-        return mSystemXML;
+        return EngineConstants.mSystemXML;
     }
 
     public static String replaceParameter(String strAction, String pParameterToLookFor, String pNewValue) {
@@ -506,7 +513,7 @@ public class EngineConstants {
         int loadIDPos = 0;
 
         if ((pNewValueFormat == null) || (pNewValueFormat.length == 0)) {
-            return replaceParameter(strAction, pParameterToLookFor, defaultValue);
+            return EngineConstants.replaceParameter(strAction, pParameterToLookFor, defaultValue);
         }
 
         if ((pNewValue == null) || (pNewValueFormat.length != pNewValue.length)) {
@@ -641,14 +648,14 @@ public class EngineConstants {
     }
 
     public static double getCacheMemoryRatio() {
-        return CACHEMEMRATIO;
+        return EngineConstants.CACHEMEMRATIO;
     }
 
     public static String getDefaultLookupClass() {
-        return LOOKUPCLASS;
+        return EngineConstants.LOOKUPCLASS;
     }
 
     public static String getDefaultCacheSize() {
-        return DEFAULTCACHESIZE;
+        return EngineConstants.DEFAULTCACHESIZE;
     }
 }
