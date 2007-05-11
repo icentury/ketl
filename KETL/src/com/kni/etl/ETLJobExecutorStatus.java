@@ -32,7 +32,8 @@ public class ETLJobExecutorStatus extends ETLStatus {
      * 
      * @return java.lang.String[]
      */
+    @Override
     public String[] getStatusMessages() {
-        return astrStatusMessages;
+        return ETLJobExecutorStatus.astrStatusMessages;
     }
 }
