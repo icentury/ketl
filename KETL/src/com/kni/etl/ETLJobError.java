@@ -23,59 +23,59 @@ public class ETLJobError {
     protected String sLevel = null; // TODO: implement this
 
     public void setExecID(int pExecID) {
-        iJobExecutionID = pExecID;
+        this.iJobExecutionID = pExecID;
     }
 
     public int getExecID() {
-        return iJobExecutionID;
+        return this.iJobExecutionID;
     }
 
     public void setJobID(String pJobID) {
-        sJobID = pJobID;
+        this.sJobID = pJobID;
     }
 
     public String getJobID() {
-        return sJobID;
+        return this.sJobID;
     }
 
     public void setDate(Date pDate) {
-        dDate = pDate;
+        this.dDate = pDate;
     }
 
     public Date getDate() {
-        return dDate;
+        return this.dDate;
     }
 
     public void setCode(String pCode) {
-        sCode = pCode;
+        this.sCode = pCode;
     }
 
     public String getCode() {
-        return sCode;
+        return this.sCode;
     }
 
     public void setMessag(String pMessage) {
-        sMessage = pMessage;
+        this.sMessage = pMessage;
     }
 
     public String getMessage() {
-        return sMessage;
+        return this.sMessage;
     }
 
     public void setDetails(String pDetails) {
-        sDetails = pDetails;
+        this.sDetails = pDetails;
     }
 
     public String getDetails() {
-        return sDetails;
+        return this.sDetails;
     }
 
     public void setStepName(String pStepName) {
-        sStepName = pStepName;
+        this.sStepName = pStepName;
     }
 
     public String getStepName() {
-        return sStepName;
+        return this.sStepName;
     }
 
 }
