@@ -1,16 +1,11 @@
 package com.kni.etl.ketl.dbutils.oracle;
 
-import java.io.IOException;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-import oracle.jdbc.OracleResultSet;
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
-import oracle.sql.Datum;
-
 import org.w3c.dom.Element;
 
 import com.kni.etl.dbutils.JDBCItemHelper;
@@ -56,6 +51,7 @@ public class OracleJDBCItemHelper extends JDBCItemHelper {
                     pXMLConfig);
     }
 
+    @Override
     public String getJavaType(int pSQLType, int pLength, int pPrecision, int pScale) {
 
         switch (pSQLType) {
