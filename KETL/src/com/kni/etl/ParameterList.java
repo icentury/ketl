@@ -21,7 +21,7 @@ public class ParameterList {
 
     public ParameterList(String strPath) {
         super();
-        mPath = strPath;
+        this.mPath = strPath;
     }
 
     /*
@@ -32,7 +32,7 @@ public class ParameterList {
     @Override
     public String toString() {
         if (this.hmParameterList == null)
-            return mPath + "<Empty>";
+            return this.mPath + "<Empty>";
 
         StringBuilder sb = new StringBuilder();
         for (Object o : this.hmParameterList.entrySet()) {
@@ -43,7 +43,7 @@ public class ParameterList {
             sb.append(":");
             sb.append(((Map.Entry) o).getValue());
         }
-        return mPath + ":" + sb.toString();
+        return this.mPath + ":" + sb.toString();
     }
 
     /**
@@ -53,11 +53,11 @@ public class ParameterList {
      * @param oKey java.lang.Object
      */
     public Object getParameter(Object oName) {
-        if (hmParameterList == null) {
+        if (this.hmParameterList == null) {
             return null;
         }
 
-        return hmParameterList.get(oName);
+        return this.hmParameterList.get(oName);
     }
 
     /**
@@ -67,20 +67,21 @@ public class ParameterList {
      * @param oValue java.lang.Object
      */
     public void setParameter(Object oName, Object oValue) {
-        if (hmParameterList == null) {
-            hmParameterList = new HashMap();
+        if (this.hmParameterList == null) {
+            this.hmParameterList = new HashMap();
         }
 
-        hmParameterList.put(oName, oValue);
+        this.hmParameterList.put(oName, oValue);
     }
 
     static public ArrayList recurseParameterList(Node xmlSourceNode, String strParameterListName) {
-        return recurseParameterList(xmlSourceNode, strParameterListName, new HashMap(), new HashSet(), new ArrayList(),
-                null);
+        return ParameterList.recurseParameterList(xmlSourceNode, strParameterListName, new HashMap(), new HashSet(),
+                new ArrayList(), null);
     }
 
     static public ArrayList recurseParameterList(String strParameterListName) {
-        return recurseParameterList(strParameterListName, new HashMap(), new HashSet(), new ArrayList(), null);
+        return ParameterList.recurseParameterList(strParameterListName, new HashMap(), new HashSet(), new ArrayList(),
+                null);
     }
 
     static private HashMap copyParameterValuesList(HashMap newParameterValuesList) {
@@ -107,7 +108,7 @@ public class ParameterList {
 
         // Duplicate list and add current parameter list
         // this helps protect against loops
-        HashMap newParameterValuesList = copyParameterValuesList(aParameterValuesList);
+        HashMap newParameterValuesList = ParameterList.copyParameterValuesList(aParameterValuesList);
         boolean hasSub = false;
         aParentParameterLists = new HashSet(aParentParameterLists);
 
@@ -116,10 +117,9 @@ public class ParameterList {
 
         if (parametersInList != null) {
 
-            // cycle through each parameter and add it to list of inherited parameters if it does not exist already
-            for (int i = 0; i < parametersInList.length; i++) {
-                if (newParameterValuesList.containsKey(parametersInList[i]) == false) {
-                    newParameterValuesList.put(parametersInList[i], null);
+            for (String element : parametersInList) {
+                if (newParameterValuesList.containsKey(element) == false) {
+                    newParameterValuesList.put(element, null);
                 }
             }
 
@@ -138,9 +138,9 @@ public class ParameterList {
                 if (subs != null) {
                     hasSub = true;
 
-                    for (int i = 0; i < subs.length; i++) {
+                    for (String element : subs) {
 
-                        if (aParentParameterLists.contains(subs[i])) {
+                        if (aParentParameterLists.contains(element)) {
                             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
                                     "Loop exists in sub parameter list(" + strParameterListName
                                             + ") pointing to itself at a lower level,"
@@ -148,9 +148,9 @@ public class ParameterList {
 
                         }
                         else {
-                            aParentParameterLists.add(subs[i]);
-                            recurseParameterList(xmlSourceNode, subs[i], newParameterValuesList, aParentParameterLists,
-                                    aParameterStore, strPath);
+                            aParentParameterLists.add(element);
+                            ParameterList.recurseParameterList(xmlSourceNode, element, newParameterValuesList,
+                                    aParentParameterLists, aParameterStore, strPath);
                         }
                     }
                 }
@@ -159,7 +159,7 @@ public class ParameterList {
         }
 
         if (hasSub == false) {
-            storeParameterSet(newParameterValuesList, aParameterStore, strPath);
+            ParameterList.storeParameterSet(newParameterValuesList, aParameterStore, strPath);
         }
 
         return aParameterStore;
@@ -177,9 +177,9 @@ public class ParameterList {
             String reqs[] = EngineConstants.getParametersFromText((String) ((Map.Entry) o).getValue());
 
             if (reqs != null)
-                for (int i = 0; i < reqs.length; i++)
+                for (String element : reqs)
                     ((Map.Entry) o).setValue(EngineConstants.replaceParameter((String) ((Map.Entry) o).getValue(),
-                            reqs[i], (String) aParametersAndValues.get(reqs[i])));
+                            element, (String) aParametersAndValues.get(element)));
 
             parametersToStore.setParameter(((Map.Entry) o).getKey(), ((Map.Entry) o).getValue());
         }
@@ -199,7 +199,7 @@ public class ParameterList {
 
         // Duplicate list and add current parameter list
         // this helps protect against loops
-        HashMap newParameterValuesList = copyParameterValuesList(aParameterValuesList);
+        HashMap newParameterValuesList = ParameterList.copyParameterValuesList(aParameterValuesList);
         boolean hasSub = false;
         aParentParameterLists = new HashSet(aParentParameterLists);
 
@@ -208,10 +208,9 @@ public class ParameterList {
 
         if (parametersInList != null) {
 
-            // cycle through each parameter and add it to list of inherited parameters if it does not exist already
-            for (int i = 0; i < parametersInList.length; i++) {
-                if (newParameterValuesList.containsKey(parametersInList[i]) == false) {
-                    newParameterValuesList.put(parametersInList[i], null);
+            for (String element : parametersInList) {
+                if (newParameterValuesList.containsKey(element) == false) {
+                    newParameterValuesList.put(element, null);
                 }
             }
 
@@ -230,9 +229,9 @@ public class ParameterList {
                 if (subs != null) {
                     hasSub = true;
 
-                    for (int i = 0; i < subs.length; i++) {
+                    for (String element : subs) {
 
-                        if (aParentParameterLists.contains(subs[i])) {
+                        if (aParentParameterLists.contains(element)) {
                             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
                                     "Loop exists in sub parameter list(" + strParameterListName
                                             + ") pointing to itself at a lower level,"
@@ -240,8 +239,8 @@ public class ParameterList {
 
                         }
                         else {
-                            aParentParameterLists.add(subs[i]);
-                            recurseParameterList(subs[i], newParameterValuesList, aParentParameterLists,
+                            aParentParameterLists.add(element);
+                            ParameterList.recurseParameterList(element, newParameterValuesList, aParentParameterLists,
                                     aParameterStore, strPath);
                         }
                     }
@@ -251,7 +250,7 @@ public class ParameterList {
         }
 
         if (hasSub == false) {
-            storeParameterSet(newParameterValuesList, aParameterStore, strPath);
+            ParameterList.storeParameterSet(newParameterValuesList, aParameterStore, strPath);
         }
 
         return aParameterStore;

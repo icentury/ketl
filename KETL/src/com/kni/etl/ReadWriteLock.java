@@ -26,83 +26,87 @@ public class ReadWriteLock implements Serializable {
     transient private Object mutex = new Object();
 
     public void getReadLock() {
-        synchronized (mutex) {
+        synchronized (this.mutex) {
             try {
-                while ((givenLocks == -1) || (waitingWriters != 0)) {
-                    if (TRACE) {
+                while ((this.givenLocks == -1) || (this.waitingWriters != 0)) {
+                    if (ReadWriteLock.TRACE) {
                         System.out.println(Thread.currentThread().toString() + "waiting for readlock");
                     }
 
-                    mutex.wait();
+                    this.mutex.wait();
                 }
             } catch (java.lang.InterruptedException e) {
                 System.out.println(e);
             }
 
-            givenLocks++;
+            this.givenLocks++;
 
-            if (TRACE) {
-                System.out.println(Thread.currentThread().toString() + " got readlock, GivenLocks = " + givenLocks);
+            if (ReadWriteLock.TRACE) {
+                System.out
+                        .println(Thread.currentThread().toString() + " got readlock, GivenLocks = " + this.givenLocks);
             }
         }
     }
 
     public void getWriteLock() {
-        synchronized (mutex) {
-            waitingWriters++;
+        synchronized (this.mutex) {
+            this.waitingWriters++;
 
             try {
-                while (givenLocks != 0) {
-                    if (TRACE) {
+                while (this.givenLocks != 0) {
+                    if (ReadWriteLock.TRACE) {
                         System.out.println(Thread.currentThread().toString() + "waiting for writelock");
                     }
 
-                    mutex.wait();
+                    this.mutex.wait();
                 }
             } catch (java.lang.InterruptedException e) {
                 System.out.println(e);
             }
 
-            waitingWriters--;
-            givenLocks = -1;
+            this.waitingWriters--;
+            this.givenLocks = -1;
 
-            if (TRACE) {
-                System.out.println(Thread.currentThread().toString() + " got writelock, GivenLocks = " + givenLocks);
+            if (ReadWriteLock.TRACE) {
+                System.out.println(Thread.currentThread().toString() + " got writelock, GivenLocks = "
+                        + this.givenLocks);
             }
         }
     }
 
     public void releaseLock() {
-        synchronized (mutex) {
-            if (givenLocks == 0) {
+        synchronized (this.mutex) {
+            if (this.givenLocks == 0) {
                 return;
             }
 
-            if (givenLocks == -1) {
-                givenLocks = 0;
+            if (this.givenLocks == -1) {
+                this.givenLocks = 0;
             }
             else {
-                givenLocks--;
+                this.givenLocks--;
             }
 
-            if (TRACE) {
-                System.out.println(Thread.currentThread().toString() + " released lock, GivenLocks = " + givenLocks);
+            if (ReadWriteLock.TRACE) {
+                System.out.println(Thread.currentThread().toString() + " released lock, GivenLocks = "
+                        + this.givenLocks);
             }
 
-            mutex.notifyAll();
+            this.mutex.notifyAll();
         }
     }
 
     public boolean isLocked() {
         boolean res = false;
 
-        synchronized (mutex) {
-            if (givenLocks != 0) {
+        synchronized (this.mutex) {
+            if (this.givenLocks != 0) {
                 res = true;
             }
 
-            if (TRACE) {
-                System.out.println(Thread.currentThread().toString() + " checked for lock, GivenLocks = " + givenLocks);
+            if (ReadWriteLock.TRACE) {
+                System.out.println(Thread.currentThread().toString() + " checked for lock, GivenLocks = "
+                        + this.givenLocks);
             }
         }
 
@@ -116,7 +120,7 @@ public class ReadWriteLock implements Serializable {
     private void readObject(ObjectInputStream s) throws IOException {
         try {
             s.defaultReadObject();
-            mutex = new Object();
+            this.mutex = new Object();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {

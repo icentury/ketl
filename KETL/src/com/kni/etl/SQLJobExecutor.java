@@ -35,12 +35,12 @@ public class SQLJobExecutor extends ETLJobExecutor {
         @Override
         public void run() {
             try {
-                while (alive) {
+                while (this.alive) {
 
-                    if (stmt != null && currentJob != null && currentJob.isCancelled()) {
+                    if (this.stmt != null && this.currentJob != null && this.currentJob.isCancelled()) {
                         try {
-                            stmt.cancel();
-                            currentJob.cancelSuccessfull(true);
+                            this.stmt.cancel();
+                            this.currentJob.cancelSuccessfull(true);
                         } catch (SQLException e) {
                             ResourcePool.LogException(e, this);
                         }
@@ -89,6 +89,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
      * @return boolean
      * @param param com.kni.etl.ETLJob
      */
+    @Override
     protected boolean executeJob(ETLJob ejJob) {
         this.monitor = new SQLJobMonitor();
         try {
@@ -108,15 +109,15 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
             // Get a connection to our database...
             try {
-                dbConnection = ResourcePool.getConnection(sjJob.getDatabaseDriverClass(), sjJob.getDatabaseURL(), sjJob
-                        .getDatabaseUser(), sjJob.getDatabasePassword(), sjJob.getPreSQL(), true);
+                this.dbConnection = ResourcePool.getConnection(sjJob.getDatabaseDriverClass(), sjJob.getDatabaseURL(),
+                        sjJob.getDatabaseUser(), sjJob.getDatabasePassword(), sjJob.getPreSQL(), true);
             } catch (Exception e) {
                 jsJobStatus.setErrorCode(1); // BRIAN: NEED TO SET UP SQL JOB ERROR CODES
                 jsJobStatus.setErrorMessage("Error connecting to database: " + e.getMessage());
             }
 
             // If we had an error connecting, return failure...
-            if (dbConnection == null) {
+            if (this.dbConnection == null) {
                 return false;
             }
 
@@ -126,7 +127,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
             try {
                 long start = (System.currentTimeMillis() - 1);
 
-                Statement stmt = dbConnection.createStatement();
+                Statement stmt = this.dbConnection.createStatement();
 
                 boolean defaultDebug = sjJob.mSQLNode == null ? false : XMLHelper.getAttributeAsBoolean(sjJob.mSQLNode
                         .getAttributes(), "DEBUG", false);
@@ -137,7 +138,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
                     stmt.setMaxRows(sjJob.getMaxRows());
                     curSQL = sjJob.getSQL();
-                    long executionTime = wrapExecution(stmt, curSQL, false);
+                    long executionTime = this.wrapExecution(stmt, curSQL, false);
                     curSQL = null;
                     sjJob.setResultSet(stmt.getResultSet());
                     sjJob.setUpdateCount(stmt.getUpdateCount());
@@ -169,8 +170,8 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
                             boolean autoCommit = XMLHelper.getAttributeAsBoolean(n.getAttributes(), SQLJob.AUTOCOMMIT,
                                     true);
-                            if (autoCommit != dbConnection.getAutoCommit()) {
-                                dbConnection.setAutoCommit(autoCommit);
+                            if (autoCommit != this.dbConnection.getAutoCommit()) {
+                                this.dbConnection.setAutoCommit(autoCommit);
                             }
 
                             sjJob.setMaxRows(XMLHelper.getAttributeAsInt(n.getAttributes(), SQLJob.MAXROWS, sjJob
@@ -185,7 +186,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
                             curSQL = sjJob.resolveParameters(XMLHelper.getTextContent(n));
                             try {
-                                long executionTime = wrapExecution(stmt, curSQL, debug);
+                                long executionTime = this.wrapExecution(stmt, curSQL, debug);
 
                                 curSQL = null;
                                 if (paramName != null) {
@@ -266,10 +267,10 @@ public class SQLJobExecutor extends ETLJobExecutor {
                     this.getStatus().setExtendedMessage("Effected rows " + sjJob.getUpdateCount());
                 }
 
-                ResourcePool.releaseConnection(dbConnection);
+                ResourcePool.releaseConnection(this.dbConnection);
 
                 sjJob.getStatus().setStats(sjJob.getUpdateCount(), System.currentTimeMillis() - start);
-                dbConnection = null;
+                this.dbConnection = null;
             } catch (Exception e) {
                 jsJobStatus.setErrorCode(2); // BRIAN: NEED TO SET UP SQL JOB ERROR CODES
 
@@ -295,19 +296,19 @@ public class SQLJobExecutor extends ETLJobExecutor {
                 }
 
                 jsJobStatus.setErrorMessage(msg);
-                if (dbConnection != null) {
+                if (this.dbConnection != null) {
                     try {
-                        if (dbConnection.getAutoCommit() == false) {
+                        if (this.dbConnection.getAutoCommit() == false) {
                             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
                                     "Rolling back transaction due to error");
-                            dbConnection.rollback();
+                            this.dbConnection.rollback();
                         }
                     } catch (SQLException e1) {
                         ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Rollback possibly failed, "
                                 + e1.getMessage());
                     }
-                    ResourcePool.releaseConnection(dbConnection);
-                    dbConnection = null;
+                    ResourcePool.releaseConnection(this.dbConnection);
+                    this.dbConnection = null;
                 }
 
                 return false;
@@ -324,6 +325,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
     /**
      * Insert the method's description here. Creation date: (5/7/2002 11:55:23 AM)
      */
+    @Override
     protected boolean initialize() {
         // No need to do anything here.
         return true;
@@ -335,6 +337,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
      * @return boolean
      * @param jJob com.kni.etl.ETLJob
      */
+    @Override
     public boolean supportsJobType(ETLJob jJob) {
         // Only accept SQL jobs...
         return (jJob instanceof SQLJob);
@@ -343,9 +346,10 @@ public class SQLJobExecutor extends ETLJobExecutor {
     /**
      * Insert the method's description here. Creation date: (5/7/2002 11:56:15 AM)
      */
+    @Override
     protected boolean terminate() {
         // release our database connections...
-        if (dbConnection != null) {
+        if (this.dbConnection != null) {
             return ResourcePool.releaseConnection(this.dbConnection);
         }
 

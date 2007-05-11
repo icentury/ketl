@@ -6,10 +6,6 @@ package com.kni.etl;
 
 import java.io.File;
 import java.io.InputStream;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.InputStreamHandler;
 
 /**
@@ -30,11 +26,11 @@ public class OSJobExecutor extends ETLJobExecutor {
         @Override
         public void run() {
             try {
-                while (alive) {
+                while (this.alive) {
 
-                    if (process != null && currentJob != null && currentJob.isCancelled()) {
-                        process.destroy();
-                        currentJob.cancelSuccessfull(true);
+                    if (this.process != null && this.currentJob != null && this.currentJob.isCancelled()) {
+                        this.process.destroy();
+                        this.currentJob.cancelSuccessfull(true);
                     }
                     Thread.sleep(500);
                 }
@@ -59,6 +55,7 @@ public class OSJobExecutor extends ETLJobExecutor {
      * @return boolean
      * @param param com.kni.etl.ETLJob
      */
+    @Override
     protected boolean executeJob(ETLJob jCurrentJob) {
         OSJob ojJob;
         boolean bSuccess = true;
@@ -144,8 +141,9 @@ public class OSJobExecutor extends ETLJobExecutor {
                     }
 
                     bSuccess = false;
-                } else
-                    jsJobStatus.setStats(-1,System.currentTimeMillis() - start);
+                }
+                else
+                    jsJobStatus.setStats(-1, System.currentTimeMillis() - start);
             } catch (Exception e) {
                 jsJobStatus.setErrorCode(2); // BRIAN: NEED TO SET UP OS JOB ERROR CODES
                 jsJobStatus.setErrorMessage("Error in process: " + e.getMessage());
@@ -155,13 +153,13 @@ public class OSJobExecutor extends ETLJobExecutor {
             this.monitor.alive = false;
         }
 
-        
         return bSuccess;
     }
 
     /**
      * Insert the method's description here. Creation date: (5/7/2002 2:26:26 PM)
      */
+    @Override
     protected boolean initialize() {
         return true;
     }
@@ -172,6 +170,7 @@ public class OSJobExecutor extends ETLJobExecutor {
      * @return boolean
      * @param param com.kni.etl.ETLJob
      */
+    @Override
     public boolean supportsJobType(ETLJob jJob) {
         // Only accept OS jobs...
         return (jJob instanceof OSJob);
@@ -180,6 +179,7 @@ public class OSJobExecutor extends ETLJobExecutor {
     /**
      * Insert the method's description here. Creation date: (5/7/2002 2:26:26 PM)
      */
+    @Override
     protected boolean terminate() {
         // No need to do anything here until we're asyncronously running executables with a polling mechanism...
         return true;

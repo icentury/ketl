@@ -36,28 +36,28 @@ public class ETLStatus {
      * @return Returns the endDate.
      */
     public final java.sql.Timestamp getEndDate() {
-        return mEndDate;
+        return this.mEndDate;
     }
 
     /**
      * @param pEndDate The endDate to set.
      */
     public final void setEndDate(java.sql.Timestamp pEndDate) {
-        mEndDate = pEndDate;
+        this.mEndDate = pEndDate;
     }
 
     /**
      * @return Returns the startDate.
      */
     public final java.sql.Timestamp getStartDate() {
-        return mStartDate;
+        return this.mStartDate;
     }
 
     /**
      * @param pStartDate The startDate to set.
      */
     public final void setStartDate(java.sql.Timestamp pStartDate) {
-        mStartDate = pStartDate;
+        this.mStartDate = pStartDate;
     }
 
     /**
@@ -65,7 +65,7 @@ public class ETLStatus {
      */
     public ETLStatus() {
         super();
-        setStatusCode(0); // Good practice to set default code here
+        this.setStatusCode(0); // Good practice to set default code here
     }
 
     /**
@@ -74,7 +74,7 @@ public class ETLStatus {
      * @return int
      */
     public synchronized int getErrorCode() {
-        return iErrorCode;
+        return this.iErrorCode;
     }
 
     /**
@@ -83,7 +83,7 @@ public class ETLStatus {
      * @return java.lang.String
      */
     public synchronized java.lang.String getErrorMessage() {
-        return strErrorMessage;
+        return this.strErrorMessage;
     }
 
     /**
@@ -92,7 +92,7 @@ public class ETLStatus {
      * @return int
      */
     public synchronized int getStatusCode() {
-        return iStatusCode;
+        return this.iStatusCode;
     }
 
     /**
@@ -101,7 +101,7 @@ public class ETLStatus {
      * @return int
      */
     public synchronized String getExtendedMessage() {
-        return strExtendedMessage;
+        return this.strExtendedMessage;
     }
 
     /**
@@ -110,9 +110,9 @@ public class ETLStatus {
      * @return java.lang.String
      */
     public String getStatusMessage() {
-        int iStatusCode = getStatusCode();
+        int iStatusCode = this.getStatusCode();
 
-        return getStatusMessageForCode(iStatusCode) + " " + this.strExtendedMessage;
+        return this.getStatusMessageForCode(iStatusCode) + " " + this.strExtendedMessage;
     }
 
     /**
@@ -122,9 +122,9 @@ public class ETLStatus {
      * @param iStatusCode int
      */
     public String getStatusMessageForCode(int iStatusCode) {
-        String[] astrMessages = getStatusMessages();
+        String[] astrMessages = this.getStatusMessages();
 
-        if (isValidStatusCode(iStatusCode)) {
+        if (this.isValidStatusCode(iStatusCode)) {
             return astrMessages[iStatusCode];
         }
 
@@ -137,7 +137,7 @@ public class ETLStatus {
      * @return java.lang.String[]
      */
     public String[] getStatusMessages() {
-        return astrStatusMessages;
+        return ETLStatus.astrStatusMessages;
     }
 
     /**
@@ -146,7 +146,7 @@ public class ETLStatus {
      * @return int
      */
     public synchronized int getWarningCode() {
-        return iWarningCode;
+        return this.iWarningCode;
     }
 
     /**
@@ -155,7 +155,7 @@ public class ETLStatus {
      * @return java.lang.String
      */
     public synchronized java.lang.String getWarningMessage() {
-        return strWarningMessage;
+        return this.strWarningMessage;
     }
 
     /**
@@ -165,12 +165,13 @@ public class ETLStatus {
      * @param iStatus int
      */
     public boolean isValidStatusCode(int iStatusCode) {
-        if ((iStatusCode >= 0) && (iStatusCode < getStatusMessages().length)) {
+        if ((iStatusCode >= 0) && (iStatusCode < this.getStatusMessages().length)) {
             return true;
         }
-        
-        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE, "isValidStatusCode: Invalid status code ID=" + iStatusCode);
-        
+
+        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
+                "isValidStatusCode: Invalid status code ID=" + iStatusCode);
+
         return false;
     }
 
@@ -180,7 +181,7 @@ public class ETLStatus {
      * @param newErrorCode int
      */
     public synchronized void setErrorCode(int newErrorCode) {
-        iErrorCode = newErrorCode;
+        this.iErrorCode = newErrorCode;
     }
 
     /**
@@ -189,7 +190,7 @@ public class ETLStatus {
      * @param newErrorMessage java.lang.String
      */
     public synchronized void setErrorMessage(java.lang.String newErrorMessage) {
-        strErrorMessage = newErrorMessage;
+        this.strErrorMessage = newErrorMessage;
     }
 
     /**
@@ -201,14 +202,15 @@ public class ETLStatus {
      */
     public synchronized int setStatusCode(int iNewStatus) {
         // Verify it's a valid status
-        
-        //ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE, "setStatusCode: status code ID=" + iNewStatus + ", previous status code ID = " + this.iStatusCode);
 
-        if (isValidStatusCode(iNewStatus)) {
-            iStatusCode = iNewStatus;
+        // ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE, "setStatusCode: status code ID=" +
+        // iNewStatus + ", previous status code ID = " + this.iStatusCode);
+
+        if (this.isValidStatusCode(iNewStatus)) {
+            this.iStatusCode = iNewStatus;
         }
 
-        return iStatusCode;
+        return this.iStatusCode;
     }
 
     /**
@@ -217,7 +219,7 @@ public class ETLStatus {
      * @param newWarningCode int
      */
     public synchronized void setWarningCode(int newWarningCode) {
-        iWarningCode = newWarningCode;
+        this.iWarningCode = newWarningCode;
     }
 
     /**
@@ -226,15 +228,15 @@ public class ETLStatus {
      * @param newWarningMessage java.lang.String
      */
     public synchronized void setWarningMessage(java.lang.String newWarningMessage) {
-        strWarningMessage = newWarningMessage;
+        this.strWarningMessage = newWarningMessage;
     }
 
     public synchronized void setExtendedMessage(java.lang.String newExtendedMessage) {
-        if (strExtendedMessage != null && strExtendedMessage.equals(newExtendedMessage))
+        if (this.strExtendedMessage != null && this.strExtendedMessage.equals(newExtendedMessage))
             return;
 
-        strExtendedMessage = newExtendedMessage;
-        messageChanged = true;
+        this.strExtendedMessage = newExtendedMessage;
+        this.messageChanged = true;
     }
 
     /**
@@ -242,11 +244,12 @@ public class ETLStatus {
      * 
      * @return a string representation of the receiver
      */
+    @Override
     public String toString() {
-        int iStatusCode = getStatusCode();
+        int iStatusCode = this.getStatusCode();
 
-        if (isValidStatusCode(iStatusCode)) {
-            return "(" + iStatusCode + ") " + getStatusMessage();
+        if (this.isValidStatusCode(iStatusCode)) {
+            return "(" + iStatusCode + ") " + this.getStatusMessage();
         }
 
         return "";
@@ -256,41 +259,40 @@ public class ETLStatus {
      * @return Returns the executionDate.
      */
     public final java.sql.Timestamp getExecutionDate() {
-        return mExecutionDate;
+        return this.mExecutionDate;
     }
 
     /**
      * @param pExecutionDate The executionDate to set.
      */
     public final void setExecutionDate(java.sql.Timestamp pExecutionDate) {
-        mExecutionDate = pExecutionDate;
+        this.mExecutionDate = pExecutionDate;
     }
 
     /**
      * @return Returns the server.
      */
     public final int getServerID() {
-        return miServer;
+        return this.miServer;
     }
 
     /**
      * @param pServer The server to set.
      */
     public final void setServerID(int pServer) {
-        miServer = pServer;
+        this.miServer = pServer;
     }
-    
- 
-    
+
     public final String getXMLStats() {
-        if(this.statsNode==null) return null;
+        if (this.statsNode == null)
+            return null;
         return XMLHelper.outputXML(this.statsNode);
     }
 
     protected Element getStatsNode() {
-        if (statsNode == null) {
+        if (this.statsNode == null) {
             Document documentRoot;
-            
+
             DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder;
             try {
@@ -299,18 +301,18 @@ public class ETLStatus {
                 throw new RuntimeException(e);
             }
             documentRoot = builder.newDocument();
-            statsNode = documentRoot.createElement("STATS");
-            documentRoot.appendChild(statsNode);
+            this.statsNode = documentRoot.createElement("STATS");
+            documentRoot.appendChild(this.statsNode);
         }
-        
-        return statsNode;
+
+        return this.statsNode;
     }
-    
-    public void setStats(int records,long executionTime) {
-        Element e = getStatsNode();
-                
-        e.setAttribute("RECORDS",Integer.toString(records));
+
+    public void setStats(int records, long executionTime) {
+        Element e = this.getStatsNode();
+
+        e.setAttribute("RECORDS", Integer.toString(records));
         e.setAttribute("TIMING", Long.toString(executionTime));
-        
+
     }
 }

@@ -76,17 +76,18 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
             this.next = next;
         }
 
+        @Override
         protected Object clone() {
-            return new Entry(hash, key, value, ((next == null) ? null : (Entry) next.clone()));
+            return new Entry(this.hash, this.key, this.value, ((this.next == null) ? null : (Entry) this.next.clone()));
         }
 
         // Map.Entry Ops
         public Object getKey() {
-            return key;
+            return this.key;
         }
 
         public Object getValue() {
-            return value;
+            return this.value;
         }
 
         public Object setValue(Object value) {
@@ -96,6 +97,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
             return oldValue;
         }
 
+        @Override
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry)) {
                 return false;
@@ -103,16 +105,18 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
 
             Map.Entry e = (Map.Entry) o;
 
-            return ((key == null) ? (e.getKey() == null) : key.equals(e.getKey()))
-                    && ((value == null) ? (e.getValue() == null) : value.equals(e.getValue()));
+            return ((this.key == null) ? (e.getKey() == null) : this.key.equals(e.getKey()))
+                    && ((this.value == null) ? (e.getValue() == null) : this.value.equals(e.getValue()));
         }
 
+        @Override
         public int hashCode() {
-            return hash ^ ((value == null) ? 0 : value.hashCode());
+            return this.hash ^ ((this.value == null) ? 0 : this.value.hashCode());
         }
 
+        @Override
         public String toString() {
-            return key + "=" + value;
+            return this.key + "=" + this.value;
         }
     }
 
@@ -124,7 +128,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
     private class HashIterator implements Iterator {
 
         Entry[] table = KNIHashMap.this.table;
-        int index = table.length;
+        int index = this.table.length;
         Entry entry = null;
         Entry lastReturned = null;
         int type;
@@ -133,53 +137,53 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
          * The modCount value that the iterator believes that the backing List should have. If this expectation is
          * violated, the iterator has detected concurrent modification.
          */
-        private int expectedModCount = modCount;
+        private int expectedModCount = KNIHashMap.this.modCount;
 
         HashIterator(int type) {
             this.type = type;
         }
 
         public boolean hasNext() {
-            while ((entry == null) && (index > 0))
-                entry = table[--index];
+            while ((this.entry == null) && (this.index > 0))
+                this.entry = this.table[--this.index];
 
-            return entry != null;
+            return this.entry != null;
         }
 
         public Object next() {
-            if (modCount != expectedModCount) {
+            if (KNIHashMap.this.modCount != this.expectedModCount) {
                 throw new ConcurrentModificationException();
             }
 
-            while ((entry == null) && (index > 0))
-                entry = table[--index];
+            while ((this.entry == null) && (this.index > 0))
+                this.entry = this.table[--this.index];
 
-            if (entry != null) {
-                Entry e = lastReturned = entry;
-                entry = e.next;
+            if (this.entry != null) {
+                Entry e = this.lastReturned = this.entry;
+                this.entry = e.next;
 
-                return (type == KEYS) ? e.key : ((type == VALUES) ? e.value : e);
+                return (this.type == KNIHashMap.KEYS) ? e.key : ((this.type == KNIHashMap.VALUES) ? e.value : e);
             }
 
             throw new NoSuchElementException();
         }
 
         public void remove() {
-            if (lastReturned == null) {
+            if (this.lastReturned == null) {
                 throw new IllegalStateException();
             }
 
-            if (modCount != expectedModCount) {
+            if (KNIHashMap.this.modCount != this.expectedModCount) {
                 throw new ConcurrentModificationException();
             }
 
             Entry[] tab = KNIHashMap.this.table;
-            int index = (lastReturned.hash & 0x7FFFFFFF) % tab.length;
+            int index = (this.lastReturned.hash & 0x7FFFFFFF) % tab.length;
 
             for (Entry e = tab[index], prev = null; e != null; prev = e, e = e.next) {
-                if (e == lastReturned) {
-                    modCount++;
-                    expectedModCount++;
+                if (e == this.lastReturned) {
+                    KNIHashMap.this.modCount++;
+                    this.expectedModCount++;
 
                     if (prev == null) {
                         tab[index] = e.next;
@@ -188,8 +192,8 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
                         prev.next = e.next;
                     }
 
-                    count--;
-                    lastReturned = null;
+                    KNIHashMap.this.count--;
+                    this.lastReturned = null;
 
                     return;
                 }
@@ -239,8 +243,8 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
         }
 
         this.loadFactor = loadFactor;
-        table = new Entry[initialCapacity];
-        threshold = (int) (initialCapacity * loadFactor);
+        this.table = new Entry[initialCapacity];
+        this.threshold = (int) (initialCapacity * loadFactor);
     }
 
     /**
@@ -250,24 +254,25 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      */
     public KNIHashMap(Map t) {
         this(Math.max(2 * t.size(), 11), 0.75f);
-        putAll(t);
+        this.putAll(t);
     }
 
     int capacity() {
-        return table.length;
+        return this.table.length;
     }
 
     /**
      * Removes all mappings from this map.
      */
+    @Override
     public void clear() {
-        Entry[] tab = table;
-        modCount++;
+        Entry[] tab = this.table;
+        this.modCount++;
 
         for (int index = tab.length; --index >= 0;)
             tab[index] = null;
 
-        count = 0;
+        this.count = 0;
     }
 
     /**
@@ -275,13 +280,14 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * 
      * @return a shallow copy of this map.
      */
+    @Override
     public Object clone() {
         try {
             KNIHashMap t = (KNIHashMap) super.clone();
-            t.table = new Entry[table.length];
+            t.table = new Entry[this.table.length];
 
-            for (int i = table.length; i-- > 0;) {
-                t.table[i] = (table[i] != null) ? (Entry) table[i].clone() : null;
+            for (int i = this.table.length; i-- > 0;) {
+                t.table[i] = (this.table[i] != null) ? (Entry) this.table[i].clone() : null;
             }
 
             t.keySet = null;
@@ -302,8 +308,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * @return <tt>true</tt> if this map contains a mapping for the specified key.
      * @param key key whose presence in this Map is to be tested.
      */
+    @Override
     public boolean containsKey(Object key) {
-        Entry[] tab = table;
+        Entry[] tab = this.table;
 
         if (key != null) {
             int hash = key.hashCode();
@@ -330,8 +337,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * @param value value whose presence in this map is to be tested.
      * @return <tt>true</tt> if this map maps one or more keys to the specified value.
      */
+    @Override
     public boolean containsValue(Object value) {
-        Entry[] tab = table;
+        Entry[] tab = this.table;
 
         if (value == null) {
             for (int i = tab.length; i-- > 0;)
@@ -362,14 +370,17 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * @return a collection view of the mappings contained in this map.
      * @see Map.Entry
      */
+    @Override
     public Set entrySet() {
-        if (entrySet == null) {
-            entrySet = new AbstractSet() {
+        if (this.entrySet == null) {
+            this.entrySet = new AbstractSet() {
 
+                @Override
                 public Iterator iterator() {
-                    return new HashIterator(ENTRIES);
+                    return new HashIterator(KNIHashMap.ENTRIES);
                 }
 
+                @Override
                 public boolean contains(Object o) {
                     if (!(o instanceof Map.Entry)) {
                         return false;
@@ -377,7 +388,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
 
                     Map.Entry entry = (Map.Entry) o;
                     Object key = entry.getKey();
-                    Entry[] tab = table;
+                    Entry[] tab = KNIHashMap.this.table;
                     int hash = ((key == null) ? 0 : key.hashCode());
                     int index = (hash & 0x7FFFFFFF) % tab.length;
 
@@ -389,6 +400,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
                     return false;
                 }
 
+                @Override
                 public boolean remove(Object o) {
                     if (!(o instanceof Map.Entry)) {
                         return false;
@@ -396,13 +408,13 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
 
                     Map.Entry entry = (Map.Entry) o;
                     Object key = entry.getKey();
-                    Entry[] tab = table;
+                    Entry[] tab = KNIHashMap.this.table;
                     int hash = ((key == null) ? 0 : key.hashCode());
                     int index = (hash & 0x7FFFFFFF) % tab.length;
 
                     for (Entry e = tab[index], prev = null; e != null; prev = e, e = e.next) {
                         if ((e.hash == hash) && e.equals(entry)) {
-                            modCount++;
+                            KNIHashMap.this.modCount++;
 
                             if (prev != null) {
                                 prev.next = e.next;
@@ -411,7 +423,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
                                 tab[index] = e.next;
                             }
 
-                            count--;
+                            KNIHashMap.this.count--;
                             e.value = null;
 
                             return true;
@@ -421,17 +433,19 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
                     return false;
                 }
 
+                @Override
                 public int size() {
-                    return count;
+                    return KNIHashMap.this.count;
                 }
 
+                @Override
                 public void clear() {
                     KNIHashMap.this.clear();
                 }
             };
         }
 
-        return entrySet;
+        return this.entrySet;
     }
 
     /**
@@ -443,8 +457,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * @return the value to which this map maps the specified key.
      * @param key key whose associated value is to be returned.
      */
+    @Override
     public Object get(Object key) {
-        Entry[] tab = table;
+        Entry[] tab = this.table;
 
         if (key != null) {
             int hash = key.hashCode();
@@ -470,8 +485,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * 
      * @return <tt>true</tt> if this map contains no key-value mappings.
      */
+    @Override
     public boolean isEmpty() {
-        return count == 0;
+        return this.count == 0;
     }
 
     /**
@@ -483,37 +499,43 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * 
      * @return a set view of the keys contained in this map.
      */
+    @Override
     public Set keySet() {
-        if (keySet == null) {
-            keySet = new AbstractSet() {
+        if (this.keySet == null) {
+            this.keySet = new AbstractSet() {
 
+                @Override
                 public Iterator iterator() {
-                    return new HashIterator(KEYS);
+                    return new HashIterator(KNIHashMap.KEYS);
                 }
 
+                @Override
                 public int size() {
-                    return count;
+                    return KNIHashMap.this.count;
                 }
 
+                @Override
                 public boolean contains(Object o) {
-                    return containsKey(o);
+                    return KNIHashMap.this.containsKey(o);
                 }
 
+                @Override
                 public boolean remove(Object o) {
                     return KNIHashMap.this.remove(o) != null;
                 }
 
+                @Override
                 public void clear() {
                     KNIHashMap.this.clear();
                 }
             };
         }
 
-        return keySet;
+        return this.keySet;
     }
 
     float loadFactor() {
-        return loadFactor;
+        return this.loadFactor;
     }
 
     /**
@@ -526,9 +548,10 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      *         <tt>null</tt> return can also indicate that the KNIHashMap previously associated <tt>null</tt> with
      *         the specified key.
      */
+    @Override
     public Object put(Object key, Object value) {
         // Makes sure the key is not already in the KNIHashMap.
-        Entry[] tab = table;
+        Entry[] tab = this.table;
         int hash = 0;
         int index = 0;
 
@@ -556,20 +579,20 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
             }
         }
 
-        modCount++;
+        this.modCount++;
 
-        if (count >= threshold) {
+        if (this.count >= this.threshold) {
             // Rehash the table if the threshold is exceeded
-            rehash();
+            this.rehash();
 
-            tab = table;
+            tab = this.table;
             index = (hash & 0x7FFFFFFF) % tab.length;
         }
 
         // Creates the new entry.
         Entry e = new Entry(hash, key, value, tab[index]);
         tab[index] = e;
-        count++;
+        this.count++;
 
         return null;
     }
@@ -580,12 +603,13 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * 
      * @param t Mappings to be stored in this map.
      */
+    @Override
     public void putAll(Map t) {
         Iterator i = t.entrySet().iterator();
 
         while (i.hasNext()) {
             Map.Entry e = (Map.Entry) i.next();
-            put(e.getKey(), e.getValue());
+            this.put(e.getKey(), e.getValue());
         }
     }
 
@@ -598,7 +622,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
 
         // Read in number of buckets and allocate the bucket array;
         int numBuckets = s.readInt();
-        table = new Entry[numBuckets];
+        this.table = new Entry[numBuckets];
 
         // Read in size (number of Mappings)
         int size = s.readInt();
@@ -607,7 +631,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
         for (int i = 0; i < size; i++) {
             Object key = s.readObject();
             Object value = s.readObject();
-            put(key, value);
+            this.put(key, value);
         }
     }
 
@@ -616,15 +640,15 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * is called automatically when the number of keys in this map exceeds its capacity and load factor.
      */
     private void rehash() {
-        int oldCapacity = table.length;
-        Entry[] oldMap = table;
+        int oldCapacity = this.table.length;
+        Entry[] oldMap = this.table;
 
         int newCapacity = (oldCapacity * 2) + 1;
         Entry[] newMap = new Entry[newCapacity];
 
-        modCount++;
-        threshold = (int) (newCapacity * loadFactor);
-        table = newMap;
+        this.modCount++;
+        this.threshold = (int) (newCapacity * this.loadFactor);
+        this.table = newMap;
 
         for (int i = oldCapacity; i-- > 0;) {
             for (Entry old = oldMap[i]; old != null;) {
@@ -646,8 +670,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      *         <tt>null</tt> return can also indicate that the map previously associated <tt>null</tt> with the
      *         specified key.
      */
+    @Override
     public Object remove(Object key) {
-        Entry[] tab = table;
+        Entry[] tab = this.table;
 
         if (key != null) {
             int hash = key.hashCode();
@@ -655,7 +680,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
 
             for (Entry e = tab[index], prev = null; e != null; prev = e, e = e.next) {
                 if ((e.hash == hash) && key.equals(e.key)) {
-                    modCount++;
+                    this.modCount++;
 
                     if (prev != null) {
                         prev.next = e.next;
@@ -664,7 +689,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
                         tab[index] = e.next;
                     }
 
-                    count--;
+                    this.count--;
 
                     Object oldValue = e.value;
                     e.value = null;
@@ -676,7 +701,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
         else {
             for (Entry e = tab[0], prev = null; e != null; prev = e, e = e.next) {
                 if (e.key == null) {
-                    modCount++;
+                    this.modCount++;
 
                     if (prev != null) {
                         prev.next = e.next;
@@ -685,7 +710,7 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
                         tab[0] = e.next;
                     }
 
-                    count--;
+                    this.count--;
 
                     Object oldValue = e.value;
                     e.value = null;
@@ -703,8 +728,9 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * 
      * @return the number of key-value mappings in this map.
      */
+    @Override
     public int size() {
-        return count;
+        return this.count;
     }
 
     /**
@@ -716,29 +742,34 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
      * 
      * @return a collection view of the values contained in this map.
      */
+    @Override
     public Collection values() {
-        if (values == null) {
-            values = new AbstractCollection() {
+        if (this.values == null) {
+            this.values = new AbstractCollection() {
 
+                @Override
                 public Iterator iterator() {
-                    return new HashIterator(VALUES);
+                    return new HashIterator(KNIHashMap.VALUES);
                 }
 
+                @Override
                 public int size() {
-                    return count;
+                    return KNIHashMap.this.count;
                 }
 
+                @Override
                 public boolean contains(Object o) {
-                    return containsValue(o);
+                    return KNIHashMap.this.containsValue(o);
                 }
 
+                @Override
                 public void clear() {
                     KNIHashMap.this.clear();
                 }
             };
         }
 
-        return values;
+        return this.values;
     }
 
     /**
@@ -754,14 +785,14 @@ public class KNIHashMap extends AbstractMap implements Map, Cloneable, java.io.S
         s.defaultWriteObject();
 
         // Write out number of buckets
-        s.writeInt(table.length);
+        s.writeInt(this.table.length);
 
         // Write out size (number of Mappings)
-        s.writeInt(count);
+        s.writeInt(this.count);
 
         // Write out keys and values (alternating)
-        for (int index = table.length - 1; index >= 0; index--) {
-            Entry entry = table[index];
+        for (int index = this.table.length - 1; index >= 0; index--) {
+            Entry entry = this.table[index];
 
             while (entry != null) {
                 s.writeObject(entry.key);

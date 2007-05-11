@@ -41,15 +41,16 @@ public class SQLJob extends ETLJob implements DBConnection {
     static final String WRITEBACK_PARAMETER = "WRITEBACK_PARAMETER";
 
     public boolean autoCommit() {
-        return bAutoCommit;
+        return this.bAutoCommit;
     }
 
+    @Override
     protected Node setChildNodes(Node pParentNode) {
         if (this.mSQLNode == null) {
             Node e = pParentNode.getOwnerDocument().createElement("SQL");
             Element x = pParentNode.getOwnerDocument().createElement("STATEMENT");
-            x.setAttribute(AUTOCOMMIT, "FALSE");
-            x.setAttribute(MAXROWS, Integer.toString(this.getMaxRows()));
+            x.setAttribute(SQLJob.AUTOCOMMIT, "FALSE");
+            x.setAttribute(SQLJob.MAXROWS, Integer.toString(this.getMaxRows()));
             e.appendChild(x);
             x.appendChild(pParentNode.getOwnerDocument().createTextNode(this.getAction(false).toString()));
             pParentNode.appendChild(e);
@@ -66,16 +67,17 @@ public class SQLJob extends ETLJob implements DBConnection {
     /**
      * Insert the method's description here. Creation date: (5/9/2002 2:28:24 PM)
      */
+    @Override
     public void cleanup() {
         // If we still have a ResultSet open, we should close it...
-        if (rsResultSet != null) {
+        if (this.rsResultSet != null) {
             // NOTE (B. Sullivan, 2002.05.09): we should probably get the Statement object and close it as well,
             // but if we ever open up the SQLJob to use PreparedStatements, then it gets messy...
             // We don't notice any leftovers on the database (ie, open cursors) in Oracle, so we're going to
             // leave this out for now.
             try {
-                rsResultSet.getStatement().close();
-                rsResultSet.close();
+                this.rsResultSet.getStatement().close();
+                this.rsResultSet.close();
             } catch (Exception e) {
                 // Just eat the exception
             }
@@ -85,8 +87,9 @@ public class SQLJob extends ETLJob implements DBConnection {
     /**
      * Insert the method's description here. Creation date: (5/9/2002 12:06:44 PM)
      */
+    @Override
     protected void finalize() throws Throwable {
-        cleanup();
+        this.cleanup();
 
         // It's good practice to call the superclass's finalize() method,
         // even if you know there is not one currently defined...
@@ -99,7 +102,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return java.lang.String
      */
     public java.lang.String getDatabaseDriverClass() {
-        return (String) getGlobalParameter(DRIVER_ATTRIB);
+        return (String) this.getGlobalParameter(DBConnection.DRIVER_ATTRIB);
     }
 
     /**
@@ -108,7 +111,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return int
      */
     public int getDatabaseMaxStatements() {
-        return miDatabaseMaxStatements;
+        return this.miDatabaseMaxStatements;
     }
 
     public int getMaxRows() {
@@ -125,7 +128,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return java.lang.String
      */
     public java.lang.String getDatabasePassword() {
-        return (String) getGlobalParameter(PASSWORD_ATTRIB);
+        return (String) this.getGlobalParameter(DBConnection.PASSWORD_ATTRIB);
     }
 
     /**
@@ -134,7 +137,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return java.lang.String
      */
     public java.lang.String getPreSQL() {
-        return (String) getGlobalParameter(PRESQL_ATTRIB);
+        return (String) this.getGlobalParameter(DBConnection.PRESQL_ATTRIB);
     }
 
     /**
@@ -143,7 +146,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return java.lang.String
      */
     public java.lang.String getDatabaseURL() {
-        return (String) getGlobalParameter(URL_ATTRIB);
+        return (String) this.getGlobalParameter(DBConnection.URL_ATTRIB);
     }
 
     /**
@@ -152,7 +155,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return java.lang.String
      */
     public java.lang.String getDatabaseUser() {
-        return (String) getGlobalParameter(USER_ATTRIB);
+        return (String) this.getGlobalParameter(DBConnection.USER_ATTRIB);
     }
 
     /**
@@ -161,7 +164,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return java.sql.ResultSet
      */
     public java.sql.ResultSet getResultSet() {
-        return rsResultSet;
+        return this.rsResultSet;
     }
 
     /**
@@ -170,7 +173,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return java.lang.String
      */
     public java.lang.String getSQL() throws Exception {
-        return resolveParameters((String) this.getAction(true));
+        return this.resolveParameters((String) this.getAction(true));
     }
 
     /**
@@ -181,14 +184,14 @@ public class SQLJob extends ETLJob implements DBConnection {
     public String resolveParameters(String pText) throws Exception {
         String[] strParms = EngineConstants.getParametersFromText(pText);
         if (strParms != null) {
-            for (int i = 0; i < strParms.length; i++) {
-                String parmValue = (String) getGlobalParameter(strParms[i]);
+            for (String element : strParms) {
+                String parmValue = (String) this.getGlobalParameter(element);
 
                 if (parmValue != null) {
-                    pText = EngineConstants.replaceParameter(pText, strParms[i], parmValue);
+                    pText = EngineConstants.replaceParameter(pText, element, parmValue);
                 }
                 else {
-                    throw new Exception("Parameter " + strParms[i] + " can not be found in parameter list");
+                    throw new Exception("Parameter " + element + " can not be found in parameter list");
                 }
             }
         }
@@ -201,7 +204,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @return int
      */
     public int getUpdateCount() {
-        return iUpdateCount;
+        return this.iUpdateCount;
     }
 
     /**
@@ -210,7 +213,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @param newDriverClass java.lang.String
      */
     public void setDatabaseDriverClass(java.lang.String newDatabaseDriverClass) {
-        setGlobalParameter(DRIVER_ATTRIB, newDatabaseDriverClass);
+        this.setGlobalParameter(DBConnection.DRIVER_ATTRIB, newDatabaseDriverClass);
     }
 
     /**
@@ -219,7 +222,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @param newMaxStatements int
      */
     public void setDatabaseMaxStatements(int newDatabaseMaxStatements) {
-        miDatabaseMaxStatements = newDatabaseMaxStatements;
+        this.miDatabaseMaxStatements = newDatabaseMaxStatements;
     }
 
     /**
@@ -228,7 +231,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @param newDatabasePassword java.lang.String
      */
     public void setDatabasePassword(java.lang.String newDatabasePassword) {
-        setGlobalParameter(PASSWORD_ATTRIB, newDatabasePassword);
+        this.setGlobalParameter(DBConnection.PASSWORD_ATTRIB, newDatabasePassword);
     }
 
     /**
@@ -237,7 +240,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @param newDatabaseURL java.lang.String
      */
     public void setDatabaseURL(java.lang.String newDatabaseURL) {
-        setGlobalParameter(URL_ATTRIB, newDatabaseURL);
+        this.setGlobalParameter(DBConnection.URL_ATTRIB, newDatabaseURL);
     }
 
     /**
@@ -246,7 +249,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @param newDatabaseUser java.lang.String
      */
     public void setDatabaseUser(java.lang.String newDatabaseUser) {
-        setGlobalParameter(USER_ATTRIB, newDatabaseUser);
+        this.setGlobalParameter(DBConnection.USER_ATTRIB, newDatabaseUser);
     }
 
     /**
@@ -255,7 +258,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @param newResult java.sql.ResultSet
      */
     public void setResultSet(java.sql.ResultSet newResult) {
-        rsResultSet = newResult;
+        this.rsResultSet = newResult;
     }
 
     /**
@@ -264,7 +267,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @param newSQL java.lang.String
      */
     public void setSQL(String newSQL) throws Exception {
-        setAction(newSQL);
+        this.setAction(newSQL);
     }
 
     /**
@@ -273,7 +276,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @param newUpdateCount int
      */
     public void setUpdateCount(int newUpdateCount) {
-        iUpdateCount = newUpdateCount;
+        this.iUpdateCount = newUpdateCount;
     }
 
     /**
@@ -281,6 +284,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * 
      * @return a string representation of the receiver
      */
+    @Override
     public String toString() {
         return (String) this.getAction(true);
     }
@@ -290,13 +294,14 @@ public class SQLJob extends ETLJob implements DBConnection {
      * 
      * @see com.kni.etl.ETLJob#setAction(java.lang.Object)
      */
+    @Override
     public void setAction(Object oAction) throws Exception {
         super.setAction(oAction);
 
         String sAction = (String) this.getAction(false);
 
         if (sAction == "" || sAction.indexOf("<SQL") == -1) {
-            mSQLNode = null;
+            this.mSQLNode = null;
             return;
         }
 
@@ -326,9 +331,9 @@ public class SQLJob extends ETLJob implements DBConnection {
                 return;
             }
 
-            mSQLNode = nl.item(0);
+            this.mSQLNode = nl.item(0);
         } catch (org.xml.sax.SAXParseException e) {
-            mSQLNode = null;
+            this.mSQLNode = null;
         } catch (Exception e) {
             this.getStatus().setErrorCode(ETLJobStatus.PENDING_CLOSURE_FAILED); // BRIAN: NEED TO SET UP KETL JOB ERROR
             // CODES
@@ -339,9 +344,8 @@ public class SQLJob extends ETLJob implements DBConnection {
     }
 
     public Connection getConnection() throws SQLException, ClassNotFoundException {
-        return ResourcePool.getConnection(getDatabaseDriverClass(), getDatabaseURL(), getDatabaseUser(),
-                getDatabasePassword(), getPreSQL(), true);
+        return ResourcePool.getConnection(this.getDatabaseDriverClass(), this.getDatabaseURL(), this.getDatabaseUser(),
+                this.getDatabasePassword(), this.getPreSQL(), true);
     }
 
-  
 }

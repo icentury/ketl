@@ -35,6 +35,7 @@ public class OSJob extends ETLJob {
         super();
     }
 
+    @Override
     protected Node setChildNodes(Node pParentNode) {
         Element e = pParentNode.getOwnerDocument().createElement("OSJOB");
         e.appendChild(pParentNode.getOwnerDocument().createTextNode(this.getAction(false).toString()));
@@ -62,8 +63,8 @@ public class OSJob extends ETLJob {
      */
     private OSJob(String strCommandLine, String strWorkingDirectory) throws Exception {
         super();
-        setCommandLine(strCommandLine);
-        setWorkingDirectory(strWorkingDirectory);
+        this.setCommandLine(strCommandLine);
+        this.setWorkingDirectory(strWorkingDirectory);
     }
 
     /**
@@ -105,14 +106,14 @@ public class OSJob extends ETLJob {
 
         if (strParms != null) {
 
-            for (int i = 0; i < strParms.length; i++) {
-                String parmValue = (String) this.getGlobalParameter(strParms[i]);
+            for (String element : strParms) {
+                String parmValue = (String) this.getGlobalParameter(element);
 
                 if (parmValue != null) {
-                    cmd = EngineConstants.replaceParameter(cmd, strParms[i], parmValue);
+                    cmd = EngineConstants.replaceParameter(cmd, element, parmValue);
                 }
                 else {
-                    throw new Exception("Parameter " + strParms[i] + " can not be found in parameter list");
+                    throw new Exception("Parameter " + element + " can not be found in parameter list");
                 }
             }
         }
@@ -126,7 +127,7 @@ public class OSJob extends ETLJob {
      * @return int
      */
     public int getExitValue() {
-        return miExitValue;
+        return this.miExitValue;
     }
 
     /**
@@ -135,7 +136,7 @@ public class OSJob extends ETLJob {
      * @return java.lang.Process
      */
     public java.lang.Process getProcess() {
-        return mpProcess;
+        return this.mpProcess;
     }
 
     /**
@@ -144,7 +145,7 @@ public class OSJob extends ETLJob {
      * @return java.lang.String
      */
     public java.lang.String getWorkingDirectory() {
-        return mstrWorkingDirectory;
+        return this.mstrWorkingDirectory;
     }
 
     /**
@@ -153,7 +154,7 @@ public class OSJob extends ETLJob {
      * @param newCommandLine java.lang.String
      */
     public void setCommandLine(String strCommandLine) throws Exception {
-        setAction(strCommandLine);
+        this.setAction(strCommandLine);
     }
 
     /**
@@ -162,7 +163,7 @@ public class OSJob extends ETLJob {
      * @param newExitValue int
      */
     public void setExitValue(int newExitValue) {
-        miExitValue = newExitValue;
+        this.miExitValue = newExitValue;
     }
 
     /**
@@ -171,7 +172,7 @@ public class OSJob extends ETLJob {
      * @param newProcess java.lang.Process
      */
     public void setProcess(java.lang.Process newProcess) {
-        mpProcess = newProcess;
+        this.mpProcess = newProcess;
     }
 
     /**
@@ -180,7 +181,7 @@ public class OSJob extends ETLJob {
      * @param newWorkingDirectory java.lang.String
      */
     public void setWorkingDirectory(java.lang.String newWorkingDirectory) {
-        mstrWorkingDirectory = newWorkingDirectory;
+        this.mstrWorkingDirectory = newWorkingDirectory;
     }
 
     /**
@@ -188,6 +189,7 @@ public class OSJob extends ETLJob {
      * 
      * @return a string representation of the receiver
      */
+    @Override
     public String toString() {
         return (String) this.getAction(true);
     }

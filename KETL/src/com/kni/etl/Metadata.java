@@ -115,14 +115,14 @@ public class Metadata {
     static private String mKETLPath = null;
 
     static public void setKETLPath(String arg0) {
-        mKETLPath = arg0 == null ? "." : arg0;
+        Metadata.mKETLPath = arg0 == null ? "." : arg0;
     }
 
     /**
      * @param configFile
      */
     static public Document LoadConfigFile(String ketlpath, String configFile) {
-        setKETLPath(ketlpath);
+        Metadata.setKETLPath(ketlpath);
 
         // Read XML config file
         StringBuffer sb = new StringBuffer();
@@ -191,7 +191,7 @@ public class Metadata {
 
         if (this.mEncryptionEnabled) {
             if (pPassphrase == null) {
-                mPassphrase = "default KETL";
+                this.mPassphrase = "default KETL";
 
                 File fs = new File((Metadata.mKETLPath == null ? "" : Metadata.mKETLPath + File.separator)
                         + ".ketl_pass");
@@ -206,7 +206,7 @@ public class Metadata {
                     }
 
                     if (sb.length() > 5) {
-                        mPassphrase = sb.toString();
+                        this.mPassphrase = sb.toString();
                     }
                     else
                         throw new Exception("Pass phrase needs to be more than 5 characters");
@@ -214,8 +214,8 @@ public class Metadata {
                 else {
                     FileWriter out = new FileWriter(fs);
                     java.util.Date dt = new java.util.Date();
-                    mPassphrase = new DesEncrypter(mPassphrase).encrypt(dt.toString());
-                    out.append(mPassphrase);
+                    this.mPassphrase = new DesEncrypter(this.mPassphrase).encrypt(dt.toString());
+                    out.append(this.mPassphrase);
                     out.flush();
                     out.close();
 
@@ -233,7 +233,7 @@ public class Metadata {
                 this.mPassphraseFilePath = "(N/A)";
                 this.mPassphrase = pPassphrase;
             }
-            this.mEncryptor = new DesEncrypter(mPassphrase);
+            this.mEncryptor = new DesEncrypter(this.mPassphrase);
         }
 
         // DateTimeFormatter = new SimpleDateFormat("yyyy:MM:dd:HH:mm:ss");
@@ -253,20 +253,20 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection
+            m_stmt = this.metadataConnection
                     .prepareStatement("SELECT load_id, start_job_id, start_date, project_id, end_date, ignored_parents, failed, 0  FROM  "
-                            + tablePrefix
-                            + loadTableName()
+                            + this.tablePrefix
+                            + this.loadTableName()
                             + " A where start_date >= coalesce(?,start_date) and load_id = coalesce(?,load_id) and load_id in (select load_id from "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB_LOG) union all "
                             + " SELECT load_id, start_job_id, start_date, project_id, end_date, ignored_parents, failed, 1  FROM  "
-                            + tablePrefix
-                            + loadTableName()
+                            + this.tablePrefix
+                            + this.loadTableName()
                             + " A where start_date >= coalesce(?,start_date) and load_id = coalesce(?,load_id) and load_id in (select load_id from "
-                            + tablePrefix + "JOB_LOG_HIST) order by start_job_id, start_date desc");
+                            + this.tablePrefix + "JOB_LOG_HIST) order by start_job_id, start_date desc");
 
             if (pStartDate == null) {
                 m_stmt.setNull(1, Types.TIMESTAMP);
@@ -337,26 +337,26 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
             // the job_id's are in the JOB_LOG and JOB_LOG_HIST tables; join to
             // LOAD table to get load info
-            m_stmt = metadataConnection
+            m_stmt = this.metadataConnection
                     .prepareStatement("SELECT a.load_id, a.start_job_id, a.start_date as load_start_date, a.project_id, "
                             + "a.end_date as load_end_date, a.ignored_parents, a.failed, 0 as is_running, b.dm_load_id FROM  "
-                            + tablePrefix
-                            + loadTableName()
+                            + this.tablePrefix
+                            + this.loadTableName()
                             + " a, "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB_LOG b "
                             + "where a.load_id=b.load_id and b.start_date >= coalesce(?,b.start_date) and job_id = coalesce(?,job_id) "
                             + " union all "
                             + "SELECT a.load_id, a.start_job_id, a.start_date as load_start_date, a.project_id, "
                             + "a.end_date as load_end_date, a.ignored_parents, a.failed, 1 as is_running, b.dm_load_id FROM  "
-                            + tablePrefix
-                            + loadTableName()
+                            + this.tablePrefix
+                            + this.loadTableName()
                             + " a, "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB_LOG_HIST b "
                             + "where a.load_id=b.load_id and b.start_date >= coalesce(?,b.start_date) and job_id = coalesce(?,job_id)");
 
@@ -414,12 +414,11 @@ public class Metadata {
      */
     public ETLJob[] getLoadJobs(java.util.Date pStartDate, int pLoadID) throws Exception {
 
-        ETLJob[] tmp = getExecutionDetails(pStartDate, pLoadID, -1);
+        ETLJob[] tmp = this.getExecutionDetails(pStartDate, pLoadID, -1);
 
         this.populateJobDetails(tmp);
 
-        for (int i = 0; i < tmp.length; i++) {
-            ETLJob j = tmp[i];
+        for (ETLJob j : tmp) {
             j.dependencies = this.getJobDependencies(j.getJobID());
         }
 
@@ -433,18 +432,18 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
             // test to see if column exist
             String JOB_LOG_LAST_UPDATE_COL = "start_date";
-            if (columnExists("JOB_LOG", "LAST_UPDATE_DATE"))
+            if (this.columnExists("JOB_LOG", "LAST_UPDATE_DATE"))
                 JOB_LOG_LAST_UPDATE_COL = "LAST_UPDATE_DATE";
             String JOB_LOG_HIST_LAST_UPDATE_COL = "start_date";
-            if (columnExists("JOB_LOG_HIST", "LAST_UPDATE_DATE"))
+            if (this.columnExists("JOB_LOG_HIST", "LAST_UPDATE_DATE"))
                 JOB_LOG_HIST_LAST_UPDATE_COL = "LAST_UPDATE_DATE";
 
             String sql = "SELECT  job_id,start_date,status_id,end_date,message,dm_load_id,retry_attempts,execution_date,server_id FROM  "
-                    + tablePrefix
+                    + this.tablePrefix
                     + "JOB_LOG A where "
                     + JOB_LOG_LAST_UPDATE_COL
                     + " >= coalesce(?,"
@@ -452,7 +451,7 @@ public class Metadata {
             if (pExecID > 0)
                 sql += " and dm_load_id = ?";
             sql += " union all SELECT  job_id,start_date,status_id,end_date,message,dm_load_id,retry_attempts,execution_date,server_id FROM  "
-                    + tablePrefix
+                    + this.tablePrefix
                     + "JOB_LOG_HIST A where "
                     + JOB_LOG_HIST_LAST_UPDATE_COL
                     + " >= coalesce(?,"
@@ -460,7 +459,7 @@ public class Metadata {
             if (pExecID > 0)
                 sql += " and dm_load_id = ?";
 
-            m_stmt = metadataConnection.prepareStatement(sql);
+            m_stmt = this.metadataConnection.prepareStatement(sql);
 
             int iDate2, iLoad2;
             if (pExecID > 0) {
@@ -525,14 +524,14 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
             // test to see if column exist
             String JOB_LOG_LAST_UPDATE_SQL = "";
-            if (columnExists("JOB", "LAST_UPDATE_DATE"))
+            if (this.columnExists("JOB", "LAST_UPDATE_DATE"))
                 JOB_LOG_LAST_UPDATE_SQL = " and LAST_UPDATE_DATE >= coalesce(?,LAST_UPDATE_DATE) ";
 
-            m_stmt = metadataConnection.prepareStatement("SELECT  job_id FROM  " + tablePrefix
+            m_stmt = this.metadataConnection.prepareStatement("SELECT  job_id FROM  " + this.tablePrefix
                     + "JOB A where project_id = ?" + JOB_LOG_LAST_UPDATE_SQL);
 
             m_stmt.setInt(1, pProjectID);
@@ -564,8 +563,7 @@ public class Metadata {
             jobs.toArray(tmp);
             this.populateJobDetails(tmp);
 
-            for (int i = 0; i < tmp.length; i++) {
-                ETLJob j = tmp[i];
+            for (ETLJob j : tmp) {
                 j.dependencies = this.getJobDependencies(j.getJobID());
             }
 
@@ -585,8 +583,8 @@ public class Metadata {
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
                     "Attempting to send email, list of recipients follows:");
 
-            m_stmt = metadataConnection.prepareStatement("select disable_alerting,project_id,ACTION from "
-                    + tablePrefix + "job where job_id = ?");
+            m_stmt = this.metadataConnection.prepareStatement("select disable_alerting,project_id,ACTION from "
+                    + this.tablePrefix + "job where job_id = ?");
             m_stmt.setString(1, pNew_job_id);
             m_rs = m_stmt.executeQuery();
 
@@ -603,8 +601,8 @@ public class Metadata {
             }
 
             if ((sAlertingDisabled == null) || (sAlertingDisabled.compareTo("Y") != 0)) {
-                m_stmt = metadataConnection.prepareStatement("select hostname,login,pwd,from_address    from  "
-                        + tablePrefix + "mail_server_detail");
+                m_stmt = this.metadataConnection.prepareStatement("select hostname,login,pwd,from_address    from  "
+                        + this.tablePrefix + "mail_server_detail");
                 m_rs = m_stmt.executeQuery();
 
                 String sMailHost = null;
@@ -651,11 +649,11 @@ public class Metadata {
                     // After connection attempt, you should check the reply code
                     // to verify
                     // success.
-                    m_stmt = metadataConnection
+                    m_stmt = this.metadataConnection
                             .prepareStatement("SELECT ADDRESS,SUBJECT_PREFIX,MAX_MESSAGE_LENGTH,ADDRESS_NAME FROM  "
-                                    + tablePrefix
+                                    + this.tablePrefix
                                     + "alert_subscription a,  "
-                                    + tablePrefix
+                                    + this.tablePrefix
                                     + "alert_address b WHERE a.address_id = b.address_id AND (a.job_id = ? OR a.project_id = ? OR a.all_errors = 'Y')");
                     m_stmt.setString(1, pNew_job_id);
                     m_stmt.setInt(2, iProjectID);
@@ -735,8 +733,8 @@ public class Metadata {
             ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
                     "Attempting to send email, list of recipients follows:");
 
-            m_stmt = metadataConnection.prepareStatement("select disable_alerting,project_id,ACTION from "
-                    + tablePrefix + "job where job_id = ?");
+            m_stmt = this.metadataConnection.prepareStatement("select disable_alerting,project_id,ACTION from "
+                    + this.tablePrefix + "job where job_id = ?");
             m_stmt.setString(1, pNew_job_id);
             m_rs = m_stmt.executeQuery();
 
@@ -753,8 +751,8 @@ public class Metadata {
             }
 
             if ((sAlertingDisabled == null) || (sAlertingDisabled.compareTo("Y") != 0)) {
-                m_stmt = metadataConnection.prepareStatement("select hostname,login,pwd,from_address    from  "
-                        + tablePrefix + "mail_server_detail");
+                m_stmt = this.metadataConnection.prepareStatement("select hostname,login,pwd,from_address    from  "
+                        + this.tablePrefix + "mail_server_detail");
                 m_rs = m_stmt.executeQuery();
 
                 String sMailHost = null;
@@ -805,11 +803,11 @@ public class Metadata {
                     // After connection attempt, you should check the reply code
                     // to verify
                     // success.
-                    m_stmt = metadataConnection
+                    m_stmt = this.metadataConnection
                             .prepareStatement("SELECT ADDRESS,SUBJECT_PREFIX,MAX_MESSAGE_LENGTH,ADDRESS_NAME FROM  "
-                                    + tablePrefix
+                                    + this.tablePrefix
                                     + "alert_subscription a,  "
-                                    + tablePrefix
+                                    + this.tablePrefix
                                     + "alert_address b WHERE a.address_id = b.address_id AND (a.job_id = ? OR a.project_id = ? OR a.all_errors = 'Y')");
                     m_stmt.setString(1, pNew_job_id);
                     m_stmt.setInt(2, iProjectID);
@@ -877,8 +875,8 @@ public class Metadata {
                                                     + " ("
                                                     + pNew_job_id
                                                     + ")\r\n"
-                                                    + (plainTxt ? this.getNewTextEmail(msgParts, maxMsgLength)
-                                                            : getNewHTMLEmail(levelStr, msgParts))
+                                                    + (plainTxt ? this.getNewTextEmail(msgParts, maxMsgLength) : this
+                                                            .getNewHTMLEmail(levelStr, msgParts))
                                                     + (pAttachment != null && new File(pAttachment).exists() ? "\r\n--DataSeparatorString\r\nContent-Disposition: attachment;filename=\"trace.log\"\r\nContent-transfer-encoding: base64\r\n\r\n"
                                                             + EncodeBase64.encode(pAttachment) + "\r\n\r\n"
                                                             : "") + "\r\n--DataSeparatorString--");
@@ -916,7 +914,7 @@ public class Metadata {
     }
 
     private String getNewHTMLEmail(String level, String[] msgParts) {
-        return getMessageAsHTML(level, msgParts);
+        return this.getMessageAsHTML(level, msgParts);
 
     }
 
@@ -952,11 +950,12 @@ public class Metadata {
                 .append("--DataSeparatorString\r\nContent-Type: text/html; charset=\"us-ascii\"\r\n\r\n<html><head><meta http-equiv=\"Content-Language\" content=\"en-us\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\"><style>\n<!--\n.tbl { border-left-style: none; border-right-style: none;border-top: 1.5pt solid green; border-bottom: 1.5pt solid green }\n.ms-simple1-tl { border-left-style: none; border-right-style: none; border-top-style: none;border-bottom: .75pt solid green }\n.row {  border-left-style: none; border-right-style: none; border-top-style: none;border-bottom: .75pt solid green;font-size: 9pt }--></style></head><body><font face=\"Arial\"><b>KETL "
                         + level + "</b><table border=\"0\" width=\"100%\" id=\"table1\" class=\"tbl\">\r\n");
 
-        sb.append(writeHTMLRow(level + " Message", msgParts[0]));
-        sb.append(writeHTMLRow("Job ID", msgParts[1]));
-        sb.append(writeHTMLRow("Datetime", msgParts[2]));
-        sb.append(writeHTMLRow(level + " Code", msgParts[3]));
-        sb.append(writeHTMLRow("Extended Message", msgParts[4] == null ? "NULL" : msgParts[4].replace("\n", "<br/>")));
+        sb.append(this.writeHTMLRow(level + " Message", msgParts[0]));
+        sb.append(this.writeHTMLRow("Job ID", msgParts[1]));
+        sb.append(this.writeHTMLRow("Datetime", msgParts[2]));
+        sb.append(this.writeHTMLRow(level + " Code", msgParts[3]));
+        sb.append(this.writeHTMLRow("Extended Message", msgParts[4] == null ? "NULL" : msgParts[4].replace("\n",
+                "<br/>")));
 
         return sb.toString();
     }
@@ -981,7 +980,7 @@ public class Metadata {
             if ((pJobDependencies[i][1] != null) && (pJobDependencies[i][1].compareTo(pJobID) == 0)) {
                 bHasChildren = "Y";
                 pJobDependencies[i][1] = null;
-                getChildJobs(pJobDependencies, pJobDependencies[i][0], pFinalJobList);
+                Metadata.getChildJobs(pJobDependencies, pJobDependencies[i][0], pFinalJobList);
             }
         }
 
@@ -1122,25 +1121,25 @@ public class Metadata {
      */
     public void closeMetadata() {
         synchronized (this.oLock) {
-            columnExists.clear();
-            if (metadataConnection == null) {
+            this.columnExists.clear();
+            if (this.metadataConnection == null) {
                 return;
             }
 
             try {
-                if (mIncIdentColStmt != null) {
+                if (this.mIncIdentColStmt != null) {
                     try {
-                        mIncIdentColStmt.close();
+                        this.mIncIdentColStmt.close();
                     } catch (Exception e) {
                         System.out.println(e);
                     }
                 }
 
-                metadataConnection.rollback();
-                metadataConnection.close();
-                metadataConnection = null;
+                this.metadataConnection.rollback();
+                this.metadataConnection.close();
+                this.metadataConnection = null;
             } catch (SQLException ee) {
-                metadataConnection = null;
+                this.metadataConnection = null;
                 System.out.println(ee);
             }
         }
@@ -1155,7 +1154,7 @@ public class Metadata {
      */
     public boolean executeJob(int pProjectID, String pJobID, boolean pIgnoreDependencies) throws SQLException,
             java.lang.Exception {
-        return executeJob(pProjectID, pJobID, pIgnoreDependencies, false);
+        return this.executeJob(pProjectID, pJobID, pIgnoreDependencies, false);
     }
 
     public KETLCluster getClusterDetails() throws SQLException, java.lang.Exception {
@@ -1166,26 +1165,27 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection
+            m_stmt = this.metadataConnection
                     .prepareStatement("select a.server_id,server_name,status_desc,last_ping_time,start_time,c.description,threads, "
-                            + currentTimeStampSyntax
+                            + this.currentTimeStampSyntax
                             + " from "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "server_executor a, "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "job_executor_job_type b, "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "job_type c, "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "server d, "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "server_status e "
                             + " where a.job_executor_id = b.job_executor_id "
                             + " and b.job_type_id = c.job_type_id "
                             + "  and d.status_id = e.status_id "
-                            + "  and a.server_id = d.server_id " + " order by server_name,c.description  ");
+                            + "  and a.server_id = d.server_id "
+                            + " order by server_name,c.description  ");
             m_rs = m_stmt.executeQuery();
 
             while (m_rs.next()) {
@@ -1211,11 +1211,11 @@ public class Metadata {
                 m_stmt.close();
             }
 
-            m_stmt = metadataConnection.prepareStatement("select server_id,c.description,status_desc,count(*) "
-                    + " from " + tablePrefix + "job_log a , " + tablePrefix + "job_status b,  " + " " + tablePrefix
-                    + "job_type c, " + tablePrefix + "job d " + " where a.status_id = b.status_id "
-                    + " and a.job_id = d.job_id " + " and c.job_type_id = d.job_type_id "
-                    + " group by server_id,status_desc,c.description");
+            m_stmt = this.metadataConnection.prepareStatement("select server_id,c.description,status_desc,count(*) "
+                    + " from " + this.tablePrefix + "job_log a , " + this.tablePrefix + "job_status b,  " + " "
+                    + this.tablePrefix + "job_type c, " + this.tablePrefix + "job d "
+                    + " where a.status_id = b.status_id " + " and a.job_id = d.job_id "
+                    + " and c.job_type_id = d.job_type_id " + " group by server_id,status_desc,c.description");
             m_rs = m_stmt.executeQuery();
 
             while (m_rs.next()) {
@@ -1273,10 +1273,10 @@ public class Metadata {
             ETLStatus etlJobStatus = new ETLJobStatus();
 
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
             if (pAllowMultiple == false) {
-                m_stmt = metadataConnection.prepareStatement("SELECT COUNT(*) FROM  " + tablePrefix
+                m_stmt = this.metadataConnection.prepareStatement("SELECT COUNT(*) FROM  " + this.tablePrefix
                         + "JOB_LOG WHERE JOB_ID = ?");
                 m_stmt.setString(1, pJobID);
                 m_rs = m_stmt.executeQuery();
@@ -1304,21 +1304,21 @@ public class Metadata {
             }
 
             // get next load_id
-            m_stmt = metadataConnection.prepareStatement(this.useIdentityColumn ? this.nextLoadIDSyntax : ("SELECT "
-                    + nextLoadIDSyntax + singleRowPullSyntax + ""));
+            m_stmt = this.metadataConnection.prepareStatement(this.useIdentityColumn ? this.nextLoadIDSyntax
+                    : ("SELECT " + this.nextLoadIDSyntax + this.singleRowPullSyntax + ""));
             m_rs = m_stmt.executeQuery();
 
             String jobID = pJobID;
             int loadID;
 
-            PreparedStatement newLoadStmt = metadataConnection.prepareStatement("INSERT INTO  " + tablePrefix
-                    + loadTableName() + "(LOAD_ID,START_JOB_ID,START_DATE,PROJECT_ID) VALUES(?,?,"
-                    + currentTimeStampSyntax + ",?)");
-            PreparedStatement dependenciesStmt = metadataConnection
-                    .prepareStatement("SELECT JOB_ID, PARENT_JOB_ID  FROM  " + tablePrefix
-                            + "JOB_DEPENDENCIE A WHERE JOB_ID IN (SELECT JOB_ID FROM  " + tablePrefix
-                            + "JOB WHERE PROJECT_ID = ? )  AND PARENT_JOB_ID IN (SELECT JOB_ID FROM  " + tablePrefix
-                            + "JOB  WHERE PROJECT_ID = ?)");
+            PreparedStatement newLoadStmt = this.metadataConnection.prepareStatement("INSERT INTO  " + this.tablePrefix
+                    + this.loadTableName() + "(LOAD_ID,START_JOB_ID,START_DATE,PROJECT_ID) VALUES(?,?,"
+                    + this.currentTimeStampSyntax + ",?)");
+            PreparedStatement dependenciesStmt = this.metadataConnection
+                    .prepareStatement("SELECT JOB_ID, PARENT_JOB_ID  FROM  " + this.tablePrefix
+                            + "JOB_DEPENDENCIE A WHERE JOB_ID IN (SELECT JOB_ID FROM  " + this.tablePrefix
+                            + "JOB WHERE PROJECT_ID = ? )  AND PARENT_JOB_ID IN (SELECT JOB_ID FROM  "
+                            + this.tablePrefix + "JOB  WHERE PROJECT_ID = ?)");
 
             PreparedStatement insJobsStmt = null;
             PreparedStatement insNoDepJobStmt = null;
@@ -1365,16 +1365,17 @@ public class Metadata {
                     // recursively cycle through deps now
                     ArrayList aFinalJobList = new ArrayList();
 
-                    getChildJobs(sJobDependencies, pJobID, aFinalJobList);
+                    Metadata.getChildJobs(sJobDependencies, pJobID, aFinalJobList);
 
                     int iStatus;
                     String sStatusMessage;
 
                     if (insJobsStmt == null) {
-                        insJobsStmt = metadataConnection.prepareStatement("INSERT INTO  " + tablePrefix
+                        insJobsStmt = this.metadataConnection.prepareStatement("INSERT INTO  " + this.tablePrefix
                                 + "JOB_LOG(JOB_ID,LOAD_ID,STATUS_ID,START_DATE,MESSAGE,DM_LOAD_ID) SELECT JOB_ID,?,?,"
-                                + currentTimeStampSyntax + ",?," + (this.useIdentityColumn ? "null" : nextLoadIDSyntax)
-                                + " FROM  " + tablePrefix + "job where job_id = ?");
+                                + this.currentTimeStampSyntax + ",?,"
+                                + (this.useIdentityColumn ? "null" : this.nextLoadIDSyntax) + " FROM  "
+                                + this.tablePrefix + "job where job_id = ?");
                     }
 
                     for (i = 0; i < aFinalJobList.size(); i++) {
@@ -1406,10 +1407,11 @@ public class Metadata {
                 // if job didn't have any children it will not of been added so
                 // must add now
                 if (insNoDepJobStmt == null) {
-                    insNoDepJobStmt = metadataConnection.prepareStatement("INSERT INTO  " + tablePrefix
+                    insNoDepJobStmt = this.metadataConnection.prepareStatement("INSERT INTO  " + this.tablePrefix
                             + "JOB_LOG(JOB_ID,LOAD_ID,STATUS_ID,START_DATE,MESSAGE,DM_LOAD_ID) SELECT JOB_ID,?,?,"
-                            + currentTimeStampSyntax + ",?, " + (this.useIdentityColumn ? "null" : nextLoadIDSyntax)
-                            + "  FROM  " + tablePrefix + "JOB where not exists (select 1 from  " + tablePrefix
+                            + this.currentTimeStampSyntax + ",?, "
+                            + (this.useIdentityColumn ? "null" : this.nextLoadIDSyntax) + "  FROM  " + this.tablePrefix
+                            + "JOB where not exists (select 1 from  " + this.tablePrefix
                             + "job_log where load_id = ? AND job_id = ?) AND JOB_ID = ?");
                 }
 
@@ -1455,7 +1457,7 @@ public class Metadata {
     }
 
     public ETLJob getJob(String pJobID) throws SQLException, java.lang.Exception {
-        return getJob(pJobID, 0, 0);
+        return this.getJob(pJobID, 0, 0);
     }
 
     public ETLJob[] populateJobDetails(ETLJob[] pJobs) throws SQLException, java.lang.Exception {
@@ -1467,9 +1469,9 @@ public class Metadata {
 
             int i = 0;
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.createStatement();
+            m_stmt = this.metadataConnection.createStatement();
             while (i < pJobs.length) {
 
                 StringBuilder sb = new StringBuilder("");
@@ -1487,9 +1489,9 @@ public class Metadata {
                 m_rs = m_stmt
                         .executeQuery("SELECT CLASS_NAME,PROJECT_ID,JOB_ID,ACTION,NAME,RETRY_ATTEMPTS,PARAMETER_LIST_ID,"
                                 + "A.JOB_TYPE_ID,a.DESCRIPTION,b.DESCRIPTION,DISABLE_ALERTING,SECONDS_BEFORE_RETRY FROM  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "JOB A,  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "JOB_TYPE B WHERE A.JOB_TYPE_ID = B.JOB_TYPE_ID AND JOB_ID in ("
                                 + sb.toString()
                                 + ")");
@@ -1595,14 +1597,14 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection
+            m_stmt = this.metadataConnection
                     .prepareStatement("SELECT CLASS_NAME,PROJECT_ID,JOB_ID,ACTION,NAME,RETRY_ATTEMPTS,PARAMETER_LIST_ID,"
                             + "A.JOB_TYPE_ID,a.DESCRIPTION,b.DESCRIPTION,DISABLE_ALERTING,SECONDS_BEFORE_RETRY FROM  "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB A,  "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB_TYPE B WHERE A.JOB_TYPE_ID = B.JOB_TYPE_ID AND JOB_ID = ?");
             m_stmt.setString(1, pJobID);
             m_rs = m_stmt.executeQuery();
@@ -1696,10 +1698,10 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement("SELECT STATUS_ID,DM_LOAD_ID,LOAD_ID FROM  " + tablePrefix
-                    + "JOB_LOG A " + "WHERE JOB_ID like ?");
+            m_stmt = this.metadataConnection.prepareStatement("SELECT STATUS_ID,DM_LOAD_ID,LOAD_ID FROM  "
+                    + this.tablePrefix + "JOB_LOG A " + "WHERE JOB_ID like ?");
             m_stmt.setString(1, pJob.getJobID());
             m_rs = m_stmt.executeQuery();
 
@@ -1727,10 +1729,10 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement("SELECT STATUS_ID FROM  " + tablePrefix + "JOB_LOG A "
-                    + "WHERE DM_LOAD_ID = ?");
+            m_stmt = this.metadataConnection.prepareStatement("SELECT STATUS_ID FROM  " + this.tablePrefix
+                    + "JOB_LOG A " + "WHERE DM_LOAD_ID = ?");
             m_stmt.setInt(1, pLoadID);
             m_rs = m_stmt.executeQuery();
 
@@ -1768,14 +1770,14 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection
+            m_stmt = this.metadataConnection
                     .prepareStatement("SELECT CLASS_NAME,PROJECT_ID,JOB_ID,ACTION,NAME,RETRY_ATTEMPTS,PARAMETER_LIST_ID,"
                             + "A.JOB_TYPE_ID,a.DESCRIPTION,b.DESCRIPTION,DISABLE_ALERTING,SECONDS_BEFORE_RETRY FROM  "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB A,  "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB_TYPE B WHERE A.JOB_TYPE_ID = B.JOB_TYPE_ID AND JOB_ID = ?");
             m_stmt.setString(1, pJobID);
             m_rs = m_stmt.executeQuery();
@@ -1867,9 +1869,9 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement("SELECT JOB_ID FROM  " + tablePrefix + "JOB A "
+            m_stmt = this.metadataConnection.prepareStatement("SELECT JOB_ID FROM  " + this.tablePrefix + "JOB A "
                     + "WHERE JOB_ID like ?");
             m_stmt.setString(1, pJobID);
             m_rs = m_stmt.executeQuery();
@@ -1898,7 +1900,7 @@ public class Metadata {
         ETLJob[] jobs = new ETLJob[jobsToFetch.size()];
 
         for (int i = 0; i < jobs.length; i++) {
-            jobs[i] = getJob((String) jobsToFetch.get(i));
+            jobs[i] = this.getJob((String) jobsToFetch.get(i));
         }
 
         return (jobs);
@@ -1911,13 +1913,14 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection
+            m_stmt = this.metadataConnection
                     .prepareStatement("select a.job_id,d.description,start_date,end_date,b.server_name,message "
-                            + " from " + tablePrefix + "job_log a, " + tablePrefix + "server b, " + tablePrefix
-                            + "job_type d," + tablePrefix + "job e " + " where a.status_id = ? "
-                            + " and a.job_id = e.job_id " + " and d.job_type_id = e.job_type_id "
+                            + " from " + this.tablePrefix + "job_log a, " + this.tablePrefix + "server b, "
+                            + this.tablePrefix + "job_type d," + this.tablePrefix + "job e "
+                            + " where a.status_id = ? " + " and a.job_id = e.job_id "
+                            + " and d.job_type_id = e.job_type_id "
                             + " and a.server_id = b.server_id ORDER by a.job_id");
             m_stmt.setInt(1, pStatus);
             m_rs = m_stmt.executeQuery();
@@ -1949,10 +1952,11 @@ public class Metadata {
                 m_stmt.close();
             }
 
-            m_stmt = metadataConnection.prepareStatement("select a.job_id,d.description,start_date,end_date,message "
-                    + " from " + tablePrefix + "job_log a,  " + tablePrefix + "job_type d," + tablePrefix + "job e "
-                    + " where a.status_id = ? " + " and a.job_id = e.job_id "
-                    + " and d.job_type_id = e.job_type_id and a.server_id is null" + " ORDER by a.job_id");
+            m_stmt = this.metadataConnection
+                    .prepareStatement("select a.job_id,d.description,start_date,end_date,message " + " from "
+                            + this.tablePrefix + "job_log a,  " + this.tablePrefix + "job_type d," + this.tablePrefix
+                            + "job e " + " where a.status_id = ? " + " and a.job_id = e.job_id "
+                            + " and d.job_type_id = e.job_type_id and a.server_id is null" + " ORDER by a.job_id");
             m_stmt.setInt(1, pStatus);
             m_rs = m_stmt.executeQuery();
 
@@ -2006,25 +2010,25 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_jobStmt = metadataConnection.prepareStatement("insert into " + tablePrefix
+            m_jobStmt = this.metadataConnection.prepareStatement("insert into " + this.tablePrefix
                     + "job(job_id,job_type_id,project_id,parameter_list_id,name,"
                     + "description,retry_attempts,seconds_before_retry,disable_alerting,"
                     + "action) values(?,?,?,?,?,?,?,?,?,?)");
 
-            m_updStmt = metadataConnection.prepareStatement("update " + tablePrefix
+            m_updStmt = this.metadataConnection.prepareStatement("update " + this.tablePrefix
                     + "job set job_type_id = ?,project_id = ?,parameter_list_id = ?,name = ?,"
                     + "description = ?,retry_attempts = ?,seconds_before_retry = ?,disable_alerting = ?,"
                     + "action = ? where job_id = ?");
 
-            m_deps = metadataConnection.prepareStatement("insert into " + tablePrefix
+            m_deps = this.metadataConnection.prepareStatement("insert into " + this.tablePrefix
                     + "job_dependencie(parent_job_id,job_id,continue_if_failed) values(?,?,?)");
 
-            m_depDel = metadataConnection.prepareStatement("delete from  " + tablePrefix
+            m_depDel = this.metadataConnection.prepareStatement("delete from  " + this.tablePrefix
                     + "job_dependencie where parent_job_id = ?");
 
-            m_depSingleDel = metadataConnection.prepareStatement("delete from  " + tablePrefix
+            m_depSingleDel = this.metadataConnection.prepareStatement("delete from  " + this.tablePrefix
                     + "job_dependencie where parent_job_id = ? and job_id = ?");
 
             // find parameter lists
@@ -2123,7 +2127,7 @@ public class Metadata {
             // if not existing then insert
             if (eJob == null) {
                 m_jobStmt.setString(1, ID);
-                m_jobStmt.setInt(2, getJobTypeID(type));
+                m_jobStmt.setInt(2, this.getJobTypeID(type));
                 m_jobStmt.setInt(3, iProject);
 
                 if (pm == null) {
@@ -2133,11 +2137,12 @@ public class Metadata {
                     m_jobStmt.setInt(4, pmID);
                 }
 
-                setString(m_jobStmt, 5, XMLHelper.getAttributeAsString(pJob.getAttributes(), "NAME", null));
-                setString(m_jobStmt, 6, XMLHelper.getAttributeAsString(pJob.getAttributes(), "DESCRIPTION", null));
+                this.setString(m_jobStmt, 5, XMLHelper.getAttributeAsString(pJob.getAttributes(), "NAME", null));
+                this.setString(m_jobStmt, 6, XMLHelper.getAttributeAsString(pJob.getAttributes(), "DESCRIPTION", null));
                 m_jobStmt.setInt(7, XMLHelper.getAttributeAsInt(pJob.getAttributes(), "RETRY_ATTEMPTS", 0));
                 m_jobStmt.setInt(8, XMLHelper.getAttributeAsInt(pJob.getAttributes(), "SECONDS_BEFORE_RETRY", 10));
-                setString(m_jobStmt, 9, XMLHelper.getAttributeAsString(pJob.getAttributes(), "DISABLE_ALERTING", null));
+                this.setString(m_jobStmt, 9, XMLHelper.getAttributeAsString(pJob.getAttributes(), "DISABLE_ALERTING",
+                        null));
 
                 // ALL Jobs should be wrapped by tags, ignore DEPENDS_ON and
                 // WAITS_ON.
@@ -2172,7 +2177,7 @@ public class Metadata {
             }
             else // update current job
             {
-                m_updStmt.setInt(1, getJobTypeID(type));
+                m_updStmt.setInt(1, this.getJobTypeID(type));
                 m_updStmt.setInt(2, iProject);
 
                 if (pm == null) {
@@ -2182,11 +2187,12 @@ public class Metadata {
                     m_updStmt.setInt(3, pmID);
                 }
 
-                setString(m_updStmt, 4, XMLHelper.getAttributeAsString(pJob.getAttributes(), "NAME", null));
-                setString(m_updStmt, 5, XMLHelper.getAttributeAsString(pJob.getAttributes(), "DESCRIPTION", null));
+                this.setString(m_updStmt, 4, XMLHelper.getAttributeAsString(pJob.getAttributes(), "NAME", null));
+                this.setString(m_updStmt, 5, XMLHelper.getAttributeAsString(pJob.getAttributes(), "DESCRIPTION", null));
                 m_updStmt.setInt(6, XMLHelper.getAttributeAsInt(pJob.getAttributes(), "RETRY_ATTEMPTS", 0));
                 m_updStmt.setInt(7, XMLHelper.getAttributeAsInt(pJob.getAttributes(), "SECONDS_BEFORE_RETRY", 10));
-                setString(m_updStmt, 8, XMLHelper.getAttributeAsString(pJob.getAttributes(), "DISABLE_ALERTING", null));
+                this.setString(m_updStmt, 8, XMLHelper.getAttributeAsString(pJob.getAttributes(), "DISABLE_ALERTING",
+                        null));
 
                 // ALL Jobs should be wrapped by tags, ignore DEPENDS_ON and
                 // WAITS_ON.
@@ -2306,15 +2312,15 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_insert = metadataConnection
+            m_insert = this.metadataConnection
                     .prepareStatement("insert into "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "parameter(parameter_id,parameter_list_id,parameter_name,parameter_value,sub_parameter_list_name)"
-                            + " select coalesce(max(parameter_id)+1,1),?,?,?,? from " + tablePrefix + "parameter");
+                            + " select coalesce(max(parameter_id)+1,1),?,?,?,? from " + this.tablePrefix + "parameter");
 
-            m_update = metadataConnection.prepareStatement("update " + tablePrefix
+            m_update = this.metadataConnection.prepareStatement("update " + this.tablePrefix
                     + "parameter set parameter_value = ?,sub_parameter_list_name = ? "
                     + " where parameter_name = ? and parameter_list_id = ?");
 
@@ -2352,7 +2358,7 @@ public class Metadata {
                             subList = x.getNodeValue();
                         }
 
-                        if (mEncryptionEnabled) {
+                        if (this.mEncryptionEnabled) {
                             if (name.equalsIgnoreCase("PASSWORD") && value != null) {
                                 value = this.mEncryptor.encrypt(value);
                             }
@@ -2433,12 +2439,12 @@ public class Metadata {
         try {
             synchronized (this.oLock) {
                 // Make metadata connection alive.
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
-                m_update = metadataConnection.prepareStatement("update " + tablePrefix
+                m_update = this.metadataConnection.prepareStatement("update " + this.tablePrefix
                         + "parameter set parameter_value = ? " + " where parameter_name = ? and parameter_list_id = ?");
 
-                if (mEncryptionEnabled) {
+                if (this.mEncryptionEnabled) {
                     if (strParameterName.equalsIgnoreCase("PASSWORD")) {
                         strValue = this.mEncryptor.encrypt(strValue);
                     }
@@ -2488,10 +2494,10 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement("SELECT JOB_ID,CONTINUE_IF_FAILED FROM  " + tablePrefix
-                    + "JOB_DEPENDENCIE A " + "WHERE PARENT_JOB_ID = ?");
+            m_stmt = this.metadataConnection.prepareStatement("SELECT JOB_ID,CONTINUE_IF_FAILED FROM  "
+                    + this.tablePrefix + "JOB_DEPENDENCIE A " + "WHERE PARENT_JOB_ID = ?");
             m_stmt.setString(1, pJobID);
             m_rs = m_stmt.executeQuery();
 
@@ -2502,11 +2508,11 @@ public class Metadata {
 
                     res[0] = m_rs.getString(1);
 
-                    if (m_rs.getString(2).equalsIgnoreCase(WAITS_ON)) {
-                        res[1] = WAITS_ON;
+                    if (m_rs.getString(2).equalsIgnoreCase(Metadata.WAITS_ON)) {
+                        res[1] = Metadata.WAITS_ON;
                     }
                     else {
-                        res[1] = DEPENDS_ON;
+                        res[1] = Metadata.DEPENDS_ON;
                     }
 
                     jobsToFetch.add(res);
@@ -2544,11 +2550,11 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            for (int i = 0; i < jobReferences.length; i++) {
-                m_stmt = metadataConnection.prepareStatement("DELETE  FROM " + tablePrefix + jobReferences[i][0]
-                        + " WHERE " + jobReferences[i][1] + " = ?");
+            for (String[] element : Metadata.jobReferences) {
+                m_stmt = this.metadataConnection.prepareStatement("DELETE  FROM " + this.tablePrefix + element[0]
+                        + " WHERE " + element[1] + " = ?");
                 m_stmt.setString(1, pJobID);
                 m_stmt.executeUpdate();
 
@@ -2570,10 +2576,10 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement("SELECT PROJECT_DESC FROM  " + tablePrefix + "PROJECT A "
-                    + "WHERE PROJECT_ID = ?");
+            m_stmt = this.metadataConnection.prepareStatement("SELECT PROJECT_DESC FROM  " + this.tablePrefix
+                    + "PROJECT A " + "WHERE PROJECT_ID = ?");
             m_stmt.setInt(1, pProjectID);
             m_rs = m_stmt.executeQuery();
 
@@ -2602,10 +2608,10 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement("SELECT PROJECT_ID FROM  " + tablePrefix + "PROJECT A "
-                    + "WHERE PROJECT_DESC = ?");
+            m_stmt = this.metadataConnection.prepareStatement("SELECT PROJECT_ID FROM  " + this.tablePrefix
+                    + "PROJECT A " + "WHERE PROJECT_DESC = ?");
             m_stmt.setString(1, pProjectName);
             m_rs = m_stmt.executeQuery();
 
@@ -2634,10 +2640,10 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement("SELECT PROJECT_ID, PROJECT_DESC FROM  " + tablePrefix
-                    + "PROJECT A ");
+            m_stmt = this.metadataConnection.prepareStatement("SELECT PROJECT_ID, PROJECT_DESC FROM  "
+                    + this.tablePrefix + "PROJECT A ");
             m_rs = m_stmt.executeQuery();
 
             // cycle through pending jobs setting next run date
@@ -2667,11 +2673,11 @@ public class Metadata {
         if (this.getProjectID(mProjectName) == -1) {
             synchronized (this.oLock) {
                 // Make metadata connection alive.
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
-                m_stmt = metadataConnection.prepareStatement("INSERT INTO " + tablePrefix
+                m_stmt = this.metadataConnection.prepareStatement("INSERT INTO " + this.tablePrefix
                         + "PROJECT(PROJECT_ID,PROJECT_DESC) " + "SELECT COALESCE(MAX(PROJECT_ID)+1,1),? FROM "
-                        + tablePrefix + "PROJECT ");
+                        + this.tablePrefix + "PROJECT ");
                 m_stmt.setString(1, mProjectName);
                 m_stmt.executeUpdate();
 
@@ -2691,12 +2697,12 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement("INSERT INTO " + tablePrefix
+            m_stmt = this.metadataConnection.prepareStatement("INSERT INTO " + this.tablePrefix
                     + "PARAMETER_LIST(PARAMETER_LIST_ID,PARAMETER_LIST_NAME) "
-                    + "SELECT COALESCE(MAX(PARAMETER_LIST_ID)+1,1),? FROM " + tablePrefix + "PARAMETER_LIST "
-                    + "WHERE NOT EXISTS (SELECT PARAMETER_LIST_NAME FROM " + tablePrefix
+                    + "SELECT COALESCE(MAX(PARAMETER_LIST_ID)+1,1),? FROM " + this.tablePrefix + "PARAMETER_LIST "
+                    + "WHERE NOT EXISTS (SELECT PARAMETER_LIST_NAME FROM " + this.tablePrefix
                     + "PROJECT WHERE PARAMETER_LIST_NAME = ?)");
             m_stmt.setString(1, mPlist);
             m_stmt.setString(2, mPlist);
@@ -2726,9 +2732,9 @@ public class Metadata {
         synchronized (this.oLock) {
             try {
                 // Make metadata connection alive.
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
-                m_stmt = metadataConnection.prepareStatement("SELECT CURRENT_VALUE FROM  " + tablePrefix
+                m_stmt = this.metadataConnection.prepareStatement("SELECT CURRENT_VALUE FROM  " + this.tablePrefix
                         + "ID_GENERATOR WHERE ID_NAME = ? FOR UPDATE");
                 m_stmt.setString(1, pIDName);
 
@@ -2749,7 +2755,7 @@ public class Metadata {
 
                 if (maxID == -1) {
                     ResourcePool.LogMessage("Sequence " + pIDName + " being auto-created and defaulting to 0");
-                    m_stmt = metadataConnection.prepareStatement("insert into " + tablePrefix
+                    m_stmt = this.metadataConnection.prepareStatement("insert into " + this.tablePrefix
                             + "ID_GENERATOR(ID_NAME,CURRENT_VALUE) VALUES('" + pIDName + "',0)");
                     m_stmt.executeUpdate();
 
@@ -2760,14 +2766,14 @@ public class Metadata {
                     maxID = 0;
                 }
 
-                m_stmt = metadataConnection.prepareStatement("UPDATE  " + tablePrefix
+                m_stmt = this.metadataConnection.prepareStatement("UPDATE  " + this.tablePrefix
                         + "ID_GENERATOR SET CURRENT_VALUE = ? WHERE ID_NAME = ?"); //$NON-NLS-1$
 
                 m_stmt.setDouble(1, maxID + idBatchSize);
                 m_stmt.setString(2, pIDName);
 
                 m_stmt.execute();
-                metadataConnection.commit();
+                this.metadataConnection.commit();
 
                 if (m_stmt != null) {
                     m_stmt.close();
@@ -2801,13 +2807,13 @@ public class Metadata {
 
         synchronized (this.oLock) {
             try {
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
-                m_stmt = metadataConnection
+                m_stmt = this.metadataConnection
                         .prepareStatement("select weight,protocol,hostname,directory,template,parameter_list_id from  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "page_set_to_page_definition a,  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "page_definition b where a.PAGE_ID = b.PAGE_ID and a.page_set_id = ? ORDER by weight ASC");
                 m_stmt.setInt(1, pParameterSetID);
                 m_rs = m_stmt.executeQuery();
@@ -2833,9 +2839,9 @@ public class Metadata {
                     pDefs[fieldCnt].setTemplate(m_rs.getString(5));
 
                     if (m_pStmt == null) {
-                        m_pStmt = metadataConnection
+                        m_pStmt = this.metadataConnection
                                 .prepareStatement(" SELECT parameter_name, parameter_value, parameter_required, remove_parameter_value, remove_parameter,value_seperator  FROM  "
-                                        + tablePrefix + "page_parameter_list where parameter_list_id = ?");
+                                        + this.tablePrefix + "page_parameter_list where parameter_list_id = ?");
                     }
 
                     m_pStmt.setInt(1, m_rs.getInt(6));
@@ -2930,11 +2936,11 @@ public class Metadata {
     }
 
     public Object[][] getParameterList(String strParameterListName) {
-        return getParameterList(strParameterListName, this.getParameterListID(strParameterListName));
+        return this.getParameterList(strParameterListName, this.getParameterListID(strParameterListName));
     }
 
     public Object[][] getParameterList(int iParameterListID) {
-        return getParameterList(null, iParameterListID);
+        return this.getParameterList(null, iParameterListID);
     }
 
     // Use name first to find the parameters for this list. If name is null,
@@ -2954,63 +2960,63 @@ public class Metadata {
         ArrayList postEncrypt = new ArrayList();
         try {
             synchronized (this.oLock) {
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
                 if (strParameterListName == null) {
                     String sql = null;
 
-                    if (bAnsi92OuterJoin) {
+                    if (this.bAnsi92OuterJoin) {
                         sql = "SELECT PARAMETER_NAME, PARAMETER_VALUE, SUB_PARAMETER_LIST_ID, CASE WHEN SUB_PARAMETER_LIST_ID IS NOT NULL THEN SPL.PARAMETER_LIST_NAME ELSE P.SUB_PARAMETER_LIST_NAME END FROM  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER p "
                                 + " inner join "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER_LIST pl on (p.PARAMETER_LIST_ID = pl.PARAMETER_LIST_ID) "
                                 + " left outer join "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER_LIST spl "
                                 + " on (p.SUB_PARAMETER_LIST_ID = spl.PARAMETER_LIST_ID) "
                                 + " WHERE pl.PARAMETER_LIST_ID = ?";
                     }
                     else {
                         sql = "SELECT PARAMETER_NAME, PARAMETER_VALUE, SUB_PARAMETER_LIST_ID, CASE WHEN SUB_PARAMETER_LIST_ID IS NOT NULL THEN SPL.PARAMETER_LIST_NAME ELSE P.SUB_PARAMETER_LIST_NAME END FROM  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER p,  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER_LIST spl WHERE p.PARAMETER_LIST_ID = ? AND p.SUB_PARAMETER_LIST_ID = spl.PARAMETER_LIST_ID (+)"; //$NON-NLS-1$
                     }
 
-                    stmt = metadataConnection.prepareStatement(sql);
+                    stmt = this.metadataConnection.prepareStatement(sql);
                     stmt.setInt(1, iParameterListID);
                 }
                 else // use name
                 {
                     String sql = null;
 
-                    if (bAnsi92OuterJoin) {
+                    if (this.bAnsi92OuterJoin) {
                         sql = "SELECT PARAMETER_NAME, PARAMETER_VALUE, SUB_PARAMETER_LIST_ID, CASE WHEN SUB_PARAMETER_LIST_ID IS NOT NULL THEN SPL.PARAMETER_LIST_NAME ELSE P.SUB_PARAMETER_LIST_NAME END FROM  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER p "
                                 + " inner join "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER_LIST pl on (p.PARAMETER_LIST_ID = pl.PARAMETER_LIST_ID) "
                                 + " left outer join "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER_LIST spl "
                                 + " on (p.SUB_PARAMETER_LIST_ID = spl.PARAMETER_LIST_ID) "
                                 + " WHERE pl.PARAMETER_LIST_NAME LIKE ?";
                     }
                     else {
                         sql = "SELECT PARAMETER_NAME, PARAMETER_VALUE, SUB_PARAMETER_LIST_ID, CASE WHEN SUB_PARAMETER_LIST_ID IS NOT NULL THEN SPL.PARAMETER_LIST_NAME ELSE P.SUB_PARAMETER_LIST_NAME END FROM  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER p,  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER_LIST pl,  "
-                                + tablePrefix
+                                + this.tablePrefix
                                 + "PARAMETER_LIST spl WHERE p.PARAMETER_LIST_ID = pl.PARAMETER_LIST_ID AND pl.PARAMETER_LIST_NAME LIKE ? AND p.SUB_PARAMETER_LIST_ID = spl.PARAMETER_LIST_ID (+)";
                     }
 
-                    stmt = metadataConnection.prepareStatement(sql);
+                    stmt = this.metadataConnection.prepareStatement(sql);
                     stmt.setString(1, strParameterListName);
                 }
 
@@ -3028,20 +3034,20 @@ public class Metadata {
                         parameterList = tmp;
                     }
 
-                    parameterList[fieldCnt][PARAMETER_NAME] = rs.getString(1);
-                    parameterList[fieldCnt][PARAMETER_VALUE] = rs.getString(2);
+                    parameterList[fieldCnt][Metadata.PARAMETER_NAME] = rs.getString(1);
+                    parameterList[fieldCnt][Metadata.PARAMETER_VALUE] = rs.getString(2);
 
-                    if (mEncryptionEnabled) {
+                    if (this.mEncryptionEnabled) {
                         // auto encrypt any passwords
-                        if (((String) parameterList[fieldCnt][PARAMETER_NAME]).equalsIgnoreCase("PASSWORD")) {
+                        if (((String) parameterList[fieldCnt][Metadata.PARAMETER_NAME]).equalsIgnoreCase("PASSWORD")) {
                             try {
-                                parameterList[fieldCnt][PARAMETER_VALUE] = this.mEncryptor
-                                        .decrypt((String) parameterList[fieldCnt][PARAMETER_VALUE]);
+                                parameterList[fieldCnt][Metadata.PARAMETER_VALUE] = this.mEncryptor
+                                        .decrypt((String) parameterList[fieldCnt][Metadata.PARAMETER_VALUE]);
                             } catch (Exception e) {
                                 if (iParameterListID >= 0)
                                     postEncrypt.add(new Object[] { new Integer(iParameterListID),
-                                            parameterList[fieldCnt][PARAMETER_NAME],
-                                            parameterList[fieldCnt][PARAMETER_VALUE] });
+                                            parameterList[fieldCnt][Metadata.PARAMETER_NAME],
+                                            parameterList[fieldCnt][Metadata.PARAMETER_VALUE] });
                             }
                         }
                     }
@@ -3050,10 +3056,10 @@ public class Metadata {
                     iSubParameterListID = rs.getInt(3);
 
                     if (rs.wasNull() == false) {
-                        parameterList[fieldCnt][SUB_PARAMETER_LIST] = new Integer(iSubParameterListID);
+                        parameterList[fieldCnt][Metadata.SUB_PARAMETER_LIST] = new Integer(iSubParameterListID);
                     }
 
-                    parameterList[fieldCnt][SUB_PARAMETER_LIST_NAME] = rs.getString(4);
+                    parameterList[fieldCnt][Metadata.SUB_PARAMETER_LIST_NAME] = rs.getString(4);
                 }
 
                 // Close open resources
@@ -3095,9 +3101,9 @@ public class Metadata {
         ArrayList postEncrypt = new ArrayList();
         try {
             synchronized (this.oLock) {
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
-                stmt = metadataConnection.prepareStatement("SELECT PARAMETER_VALUE FROM " + tablePrefix
+                stmt = this.metadataConnection.prepareStatement("SELECT PARAMETER_VALUE FROM " + this.tablePrefix
                         + "PARAMETER WHERE PARAMETER_LIST_ID = ? AND PARAMETER_NAME = ?");
                 stmt.setInt(1, iParameterListID);
                 stmt.setString(2, strParameterName);
@@ -3107,7 +3113,7 @@ public class Metadata {
                 while (rs.next()) {
                     String value = rs.getString(1);
 
-                    if (mEncryptionEnabled) {
+                    if (this.mEncryptionEnabled) {
                         // auto encrypt any passwords
                         if (strParameterName.equalsIgnoreCase("PASSWORD")) {
                             try {
@@ -3163,8 +3169,8 @@ public class Metadata {
 
         try {
             synchronized (this.oLock) {
-                stmt = metadataConnection.prepareStatement("SELECT DISTINCT PARAMETER_LIST_NAME FROM  " + tablePrefix
-                        + "PARAMETER_LIST WHERE PARAMETER_LIST_NAME LIKE ?"); //$NON-NLS-1$
+                stmt = this.metadataConnection.prepareStatement("SELECT DISTINCT PARAMETER_LIST_NAME FROM  "
+                        + this.tablePrefix + "PARAMETER_LIST WHERE PARAMETER_LIST_NAME LIKE ?"); //$NON-NLS-1$
                 stmt.setString(1, strParameterListName);
 
                 rs = stmt.executeQuery();
@@ -3207,7 +3213,7 @@ public class Metadata {
 
         try {
             synchronized (this.oLock) {
-                stmt = metadataConnection.prepareStatement("SELECT PARAMETER_LIST_NAME FROM  " + tablePrefix
+                stmt = this.metadataConnection.prepareStatement("SELECT PARAMETER_LIST_NAME FROM  " + this.tablePrefix
                         + "PARAMETER_LIST WHERE PARAMETER_LIST_ID = ?"); //$NON-NLS-1$
                 stmt.setInt(1, strParameterID);
 
@@ -3243,7 +3249,7 @@ public class Metadata {
 
         try {
             synchronized (this.oLock) {
-                stmt = metadataConnection.prepareStatement("SELECT PARAMETER_LIST_ID FROM  " + tablePrefix
+                stmt = this.metadataConnection.prepareStatement("SELECT PARAMETER_LIST_ID FROM  " + this.tablePrefix
                         + "PARAMETER_LIST WHERE PARAMETER_LIST_NAME = ?"); //$NON-NLS-1$
                 stmt.setString(1, strParameterID);
 
@@ -3279,7 +3285,7 @@ public class Metadata {
 
         try {
             synchronized (this.oLock) {
-                stmt = metadataConnection.prepareStatement("SELECT JOB_TYPE_ID FROM  " + tablePrefix
+                stmt = this.metadataConnection.prepareStatement("SELECT JOB_TYPE_ID FROM  " + this.tablePrefix
                         + "JOB_TYPE WHERE DESCRIPTION = ?"); //$NON-NLS-1$
                 stmt.setString(1, strParameterID);
 
@@ -3315,7 +3321,7 @@ public class Metadata {
 
         try {
             synchronized (this.oLock) {
-                stmt = metadataConnection.prepareStatement("SELECT CLASS_NAME FROM  " + tablePrefix
+                stmt = this.metadataConnection.prepareStatement("SELECT CLASS_NAME FROM  " + this.tablePrefix
                         + "JOB_TYPE WHERE JOB_TYPE_ID = ?");
                 stmt.setInt(1, pTypeID);
 
@@ -3357,14 +3363,14 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
-            m_stmt = metadataConnection
+            this.refreshMetadataConnection();
+            m_stmt = this.metadataConnection
                     .prepareStatement("SELECT JOB_TYPE.CLASS_NAME FROM  "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB_EXECUTOR ,  "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB_EXECUTOR_JOB_TYPE ,  "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "JOB_TYPE WHERE JOB_TYPE.JOB_TYPE_ID = JOB_EXECUTOR_JOB_TYPE.JOB_TYPE_ID AND JOB_EXECUTOR.JOB_EXECUTOR_ID = JOB_EXECUTOR_JOB_TYPE.JOB_EXECUTOR_ID AND JOB_EXECUTOR.CLASS_NAME = ?"); //$NON-NLS-1$
             m_stmt.setString(1, pClassName);
             m_rs = m_stmt.executeQuery();
@@ -3400,14 +3406,14 @@ public class Metadata {
         }
 
         synchronized (this.oLock) {
-            String sql = "INSERT INTO  " + tablePrefix
+            String sql = "INSERT INTO  " + this.tablePrefix
                     + "JOB_QA_HIST(JOB_ID,QA_ID,QA_TYPE,STEP_NAME,DETAILS,RECORD_DATE) VALUES(?,?,?,?,?,?)";
 
             try {
                 // Make metadata connection alive.
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
-                m_stmt = metadataConnection.prepareStatement(sql);
+                m_stmt = this.metadataConnection.prepareStatement(sql);
 
                 m_stmt.setString(1, job_id);
                 m_stmt.setString(2, qa_id);
@@ -3422,7 +3428,7 @@ public class Metadata {
                     m_stmt.close();
                 }
 
-                metadataConnection.commit();
+                this.metadataConnection.commit();
             } catch (Exception e) {
                 ResourcePool.LogException(e, this);
 
@@ -3440,7 +3446,7 @@ public class Metadata {
         String[] res = null;
 
         synchronized (this.oLock) {
-            String sql = "SELECT DETAILS " + " FROM  " + tablePrefix + "JOB_QA_HIST " + " WHERE JOB_ID = ?  "
+            String sql = "SELECT DETAILS " + " FROM  " + this.tablePrefix + "JOB_QA_HIST " + " WHERE JOB_ID = ?  "
                     + " AND QA_ID = ?  " + " AND QA_TYPE = ?  " + " AND STEP_NAME = ?  ";
 
             Date[][] dates = new Date[sampleSize][2];
@@ -3485,9 +3491,9 @@ public class Metadata {
             sql = sql + " ORDER BY RECORD_DATE DESC";
 
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement(sql);
+            m_stmt = this.metadataConnection.prepareStatement(sql);
 
             m_stmt.setString(1, job_id);
             m_stmt.setString(2, qa_id);
@@ -3546,10 +3552,10 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            m_stmt = metadataConnection.prepareStatement("SELECT CLASS_NAME,THREADS,QUEUE_SIZE FROM  " + tablePrefix
-                    + "SERVER_EXECUTOR A,  " + tablePrefix
+            m_stmt = this.metadataConnection.prepareStatement("SELECT CLASS_NAME,THREADS,QUEUE_SIZE FROM  "
+                    + this.tablePrefix + "SERVER_EXECUTOR A,  " + this.tablePrefix
                     + "JOB_EXECUTOR B WHERE A.JOB_EXECUTOR_ID = B.JOB_EXECUTOR_ID AND A.SERVER_ID = ?"); //$NON-NLS-1$
             m_stmt.setInt(1, pServerID);
             m_rs = m_stmt.executeQuery();
@@ -3599,8 +3605,8 @@ public class Metadata {
     public SessionDefinition getSessionDefinition(int pSessionDefinitionID, ETLStatus pStatus) {
         synchronized (this.oLock) {
             try {
-                if (metadataConnection == null) {
-                    refreshMetadataConnection();
+                if (this.metadataConnection == null) {
+                    this.refreshMetadataConnection();
                 }
 
                 // set field definition
@@ -3615,8 +3621,8 @@ public class Metadata {
                         + " (coalesce(FIRST_CLICK_ID_TIMEOUT,SESSION_TIMEOUT)),"
                         + " (coalesce(MAIN_ID_TIMEOUT,SESSION_TIMEOUT)),"
                         + " (coalesce(PERSISTANT_ID_TIMEOUT,SESSION_TIMEOUT)),"
-                        + " (coalesce(IP_BROWSER_ID_TIMEOUT,SESSION_TIMEOUT))" + " FROM  " + tablePrefix
-                        + "session_identifier a, " + "       " + tablePrefix + "session_definition b "
+                        + " (coalesce(IP_BROWSER_ID_TIMEOUT,SESSION_TIMEOUT))" + " FROM  " + this.tablePrefix
+                        + "session_identifier a, " + "       " + this.tablePrefix + "session_definition b "
                         + " WHERE b.session_definition_id = ? "
                         + " AND b.session_definition_id = a.session_definition_id " + " ORDER BY weight, "
                         + " session_identifier_id "); //$NON-NLS-1$
@@ -3723,43 +3729,43 @@ public class Metadata {
     protected void refreshMetadataConnection() throws SQLException, java.lang.Exception {
         if (this.metadataConnection != null) {
             try {
-                if (ResourcePool.testConnection(metadataConnection) == false) {
+                if (ResourcePool.testConnection(this.metadataConnection) == false) {
                     System.err.println("checkConnection connection closed for reason unknown");
-                    metadataConnection = null;
+                    this.metadataConnection = null;
                 }
             } catch (Exception ee) {
                 System.err.println("checkConnection Exception: " + ee);
                 System.err.println("checkConnection SQLException: Server will attempt to reconnect");
 
-                metadataConnection = null;
+                this.metadataConnection = null;
                 // testConnectionStmt = null;
             }
         }
 
-        if (metadataConnection == null) {
-            columnExists.clear();
-            Class.forName(JDBCDriver);
+        if (this.metadataConnection == null) {
+            this.columnExists.clear();
+            Class.forName(this.JDBCDriver);
 
-            metadataConnection = DriverManager.getConnection(JDBCURL, Username, Password);
+            this.metadataConnection = DriverManager.getConnection(this.JDBCURL, this.Username, this.Password);
 
-            metadataConnection.setAutoCommit(false);
+            this.metadataConnection.setAutoCommit(false);
 
             // perform version checks
-            performVersionCheck();
+            this.performVersionCheck();
 
-            DatabaseMetaData mdDB = metadataConnection.getMetaData();
+            DatabaseMetaData mdDB = this.metadataConnection.getMetaData();
 
             boolean ansi92 = mdDB.supportsANSI92EntryLevelSQL();
             boolean outerJoins = mdDB.supportsLimitedOuterJoins();
 
             int dbType = -1;
 
-            for (int i = 0; i < dbTypes.length; i++) {
-                if (dbTypes[i].equalsIgnoreCase(mdDB.getDatabaseProductName())) {
+            for (int i = 0; i < this.dbTypes.length; i++) {
+                if (this.dbTypes[i].equalsIgnoreCase(mdDB.getDatabaseProductName())) {
                     dbType = i;
 
                     // finish loop
-                    i = dbTypes.length;
+                    i = this.dbTypes.length;
                     this.currentTimeStampSyntax = this.dbTimeStampTypes[dbType];
                     this.nextLoadIDSyntax = this.dbSequenceSyntax[dbType].replaceAll("#", "LOAD_ID");
                     this.useIdentityColumn = this.dbUseIdentityColumn[dbType];
@@ -3770,7 +3776,8 @@ public class Metadata {
 
                     String incrementIdenentityColumnSyntax = this.dbIncrementIdentityColumnSyntax[dbType];
                     if (incrementIdenentityColumnSyntax != null) {
-                        mIncIdentColStmt = metadataConnection.prepareStatement(incrementIdenentityColumnSyntax);
+                        this.mIncIdentColStmt = this.metadataConnection
+                                .prepareStatement(incrementIdenentityColumnSyntax);
                     }
                 }
             }
@@ -3793,20 +3800,22 @@ public class Metadata {
             stmt = this.metadataConnection.createStatement();
             // check for update code 2.1.0
             try {
-                stmt.execute("select count(*) from " + tablePrefix + "job_log_hist where LAST_UPDATE_DATE is null union select count(*) from "
-                        + tablePrefix + "job_log where LAST_UPDATE_DATE is null" );
+                stmt.execute("select count(*) from " + this.tablePrefix
+                        + "job_log_hist where LAST_UPDATE_DATE is null union select count(*) from " + this.tablePrefix
+                        + "job_log where LAST_UPDATE_DATE is null");
             } catch (Exception e) {
                 throw new RuntimeException("Metadata needs updating to 2.1, see scripts in $KETLDIR/setup");
             }
             // check for clob code 2.1.9
             try {
-                stmt.execute("select count(*) from " + tablePrefix + "job_log_hist where stats is null union select count(*) from "
-                        + tablePrefix + "job_log where stats is null");
+                stmt.execute("select count(*) from " + this.tablePrefix
+                        + "job_log_hist where stats is null union select count(*) from " + this.tablePrefix
+                        + "job_log where stats is null");
             } catch (Exception e) {
                 throw new RuntimeException("Metadata needs updating to 2.1.9, see scripts in $KETLDIR/setup");
             }
         } finally {
-            if(stmt != null)
+            if (stmt != null)
                 stmt.close();
         }
     }
@@ -3819,15 +3828,15 @@ public class Metadata {
 
             String key = pTablename + (char) 0 + pColumn;
 
-            Object res = columnExists.get(key);
+            Object res = this.columnExists.get(key);
             if (res != null)
                 return (Boolean) res;
 
-            refreshMetadataConnection();
-            Statement stmt = metadataConnection.createStatement();
+            this.refreshMetadataConnection();
+            Statement stmt = this.metadataConnection.createStatement();
 
             try {
-                ResultSet rs = stmt.executeQuery("SELECT count(" + pColumn + ") FROM " + tablePrefix + pTablename);
+                ResultSet rs = stmt.executeQuery("SELECT count(" + pColumn + ") FROM " + this.tablePrefix + pTablename);
                 found = true;
                 rs.close();
             } catch (Exception e) {
@@ -3838,7 +3847,7 @@ public class Metadata {
                 stmt.close();
             }
 
-            columnExists.put(key, found);
+            this.columnExists.put(key, found);
         }
         return found;
     }
@@ -3858,8 +3867,8 @@ public class Metadata {
         synchronized (this.oLock) {
             try {
                 // Make metadata connection alive.
-                refreshMetadataConnection();
-                m_stmt = metadataConnection.prepareStatement("SELECT MAX(SERVER_ID) FROM  " + tablePrefix
+                this.refreshMetadataConnection();
+                m_stmt = this.metadataConnection.prepareStatement("SELECT MAX(SERVER_ID) FROM  " + this.tablePrefix
                         + "SERVER WHERE SERVER_NAME = ?"); //$NON-NLS-1$
 
                 m_stmt.setString(1, pServerName);
@@ -3888,7 +3897,7 @@ public class Metadata {
                     // create new server
                     PreparedStatement selNextServerID = this.metadataConnection
                             .prepareStatement(this.useIdentityColumn ? this.nextServerIDSyntax : ("SELECT "
-                                    + nextServerIDSyntax + " " + singleRowPullSyntax + "")); //$NON-NLS-1$
+                                    + this.nextServerIDSyntax + " " + this.singleRowPullSyntax + "")); //$NON-NLS-1$
 
                     if (this.mIncIdentColStmt != null) {
                         this.mIncIdentColStmt.execute();
@@ -3909,7 +3918,7 @@ public class Metadata {
                         m_stmt.close();
                     }
 
-                    m_stmt = this.metadataConnection.prepareStatement("INSERT INTO  " + tablePrefix
+                    m_stmt = this.metadataConnection.prepareStatement("INSERT INTO  " + this.tablePrefix
                             + "SERVER(SERVER_ID,SERVER_NAME,STATUS_ID) VALUES(?,?,?)"); //$NON-NLS-1$
                     m_stmt.setInt(1, serverID);
                     m_stmt.setString(2, pServerName);
@@ -3924,23 +3933,23 @@ public class Metadata {
                                     + pServerName
                                     + " will be initialized with a predefined number of executors, to modify this go to the server_executors table.");
 
-                    m_stmt = this.metadataConnection.prepareStatement("INSERT INTO  " + tablePrefix
+                    m_stmt = this.metadataConnection.prepareStatement("INSERT INTO  " + this.tablePrefix
                             + "SERVER_EXECUTOR(SERVER_ID,JOB_EXECUTOR_ID,THREADS) "
                             + " SELECT ?,JOB_EXECUTOR_ID,CASE JOB_EXECUTOR_ID WHEN 4 THEN 1 ELSE 2 END FROM "
-                            + tablePrefix + "JOB_EXECUTOR");
+                            + this.tablePrefix + "JOB_EXECUTOR");
                     m_stmt.setInt(1, serverID);
                     m_stmt.execute();
 
-                    metadataConnection.commit();
+                    this.metadataConnection.commit();
                 }
                 else {
-                    m_stmt = this.metadataConnection.prepareStatement("UPDATE  " + tablePrefix
+                    m_stmt = this.metadataConnection.prepareStatement("UPDATE  " + this.tablePrefix
                             + "SERVER SET STATUS_ID = ? WHERE SERVER_ID = ?"); //$NON-NLS-1$
                     m_stmt.setInt(1, ETLServerStatus.SERVER_ALIVE);
                     m_stmt.setInt(2, serverID);
                     m_stmt.execute();
 
-                    metadataConnection.commit();
+                    this.metadataConnection.commit();
                 }
 
                 if (m_rs != null) {
@@ -3979,9 +3988,9 @@ public class Metadata {
         synchronized (this.oLock) {
             try {
                 // Make metadata connection alive.
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
-                if (metadataConnection != null) {
+                if (this.metadataConnection != null) {
                     String job_id = "NA";
                     String step_name = "NA";
                     int executionID = -1;
@@ -3996,9 +4005,9 @@ public class Metadata {
                     }
 
                     // write error to log if errors occured
-                    m_stmt = metadataConnection
+                    m_stmt = this.metadataConnection
                             .prepareStatement("INSERT INTO  "
-                                    + tablePrefix
+                                    + this.tablePrefix
                                     + "Job_Error_Hist(JOB_ID,DM_LOAD_ID,STEP_NAME,MESSAGE,CODE,ERROR_DATETIME,DETAILS) VALUES(?,?,?,?,?,?,?)"); //$NON-NLS-1$
 
                     String msg = strMessage;
@@ -4023,10 +4032,10 @@ public class Metadata {
                     }
 
                     m_stmt.execute();
-                    metadataConnection.commit();
+                    this.metadataConnection.commit();
 
                     if (bSendEmail) {
-                        sendAlertEmail(job_id, Integer.toString(iErrorCode), strMessage, strExtendedDetails,
+                        this.sendAlertEmail(job_id, Integer.toString(iErrorCode), strMessage, strExtendedDetails,
                                 new java.util.Date(), executionID, pETLJob.getDumpFile(), iLevel);
                     }
 
@@ -4061,7 +4070,7 @@ public class Metadata {
         synchronized (this.oLock) {
             try {
                 // Make metadata connection alive.
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
                 boolean logStats = false;
                 switch (pETLJob.getStatus().getStatusCode()) {
@@ -4070,13 +4079,14 @@ public class Metadata {
                 case ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL:
                 case ETLJobStatus.PENDING_CLOSURE_SKIP:
                 case ETLJobStatus.PENDING_CLOSURE_CANCELLED:
-                    m_stmt = metadataConnection.prepareStatement("UPDATE  " + tablePrefix + "JOB_LOG SET END_DATE = "
-                            + currentTimeStampSyntax + ", STATUS_ID = ?,MESSAGE =  ?, STATS = ? WHERE DM_LOAD_ID = ?"); //$NON-NLS-1$
+                    m_stmt = this.metadataConnection.prepareStatement("UPDATE  " + this.tablePrefix
+                            + "JOB_LOG SET END_DATE = " + this.currentTimeStampSyntax
+                            + ", STATUS_ID = ?,MESSAGE =  ?, STATS = ? WHERE DM_LOAD_ID = ?"); //$NON-NLS-1$
                     logStats = true;
                     break;
 
                 default:
-                    m_stmt = metadataConnection.prepareStatement("UPDATE  " + tablePrefix
+                    m_stmt = this.metadataConnection.prepareStatement("UPDATE  " + this.tablePrefix
                             + "JOB_LOG SET STATUS_ID = ?, MESSAGE = ? WHERE DM_LOAD_ID = ?"); //$NON-NLS-1$
 
                     break;
@@ -4113,14 +4123,14 @@ public class Metadata {
                     m_stmt.close();
                 }
 
-                metadataConnection.commit();
+                this.metadataConnection.commit();
 
                 // write error to log if errors occured
                 if ((pETLJob.getStatus().getStatusCode() == ETLJobStatus.PENDING_CLOSURE_FAILED)
                         || (pETLJob.getStatus().getStatusCode() == ETLJobStatus.WAITING_TO_BE_RETRIED)) {
-                    m_stmt = metadataConnection.prepareStatement("INSERT INTO  " + tablePrefix
+                    m_stmt = this.metadataConnection.prepareStatement("INSERT INTO  " + this.tablePrefix
                             + "Job_Error(JOB_ID,DM_LOAD_ID,MESSAGE,CODE,ERROR_DATETIME) VALUES(?,?,?,?,"
-                            + currentTimeStampSyntax + ")"); //$NON-NLS-1$
+                            + this.currentTimeStampSyntax + ")"); //$NON-NLS-1$
 
                     String msg = pETLJob.getStatus().getErrorMessage() + "\n" + pETLJob.getStatus().getStatusMessage();
 
@@ -4134,14 +4144,14 @@ public class Metadata {
                     m_stmt.setString(4, new Integer(pETLJob.getStatus().getErrorCode()).toString());
 
                     m_stmt.execute();
-                    metadataConnection.commit();
+                    this.metadataConnection.commit();
 
                     // if code allows emails, in otherwords not do not send
                     // email error code
                     if (pETLJob.getStatus().getErrorCode() != ETLJobStatus.DO_NOT_SEND_EMAIL_ERROR_CODE) {
                         // if not waiting to be retried
                         if (pETLJob.getStatus().getStatusCode() != ETLJobStatus.WAITING_TO_BE_RETRIED) {
-                            sendAlertEmail(pETLJob.getJobID(), new Integer(pETLJob.getStatus().getErrorCode())
+                            this.sendAlertEmail(pETLJob.getJobID(), new Integer(pETLJob.getStatus().getErrorCode())
                                     .toString(), pETLJob.getStatus().getErrorMessage(), pETLJob.getStatus()
                                     .getStatusMessage(), new java.util.Date(), pETLJob.getJobExecutionID(), pETLJob
                                     .getDumpFile(), ResourcePool.ERROR_MESSAGE);
@@ -4173,16 +4183,16 @@ public class Metadata {
         synchronized (this.oLock) {
             try {
                 // Make metadata connection alive.
-                refreshMetadataConnection();
+                this.refreshMetadataConnection();
 
-                m_stmt = metadataConnection.prepareStatement("UPDATE  " + tablePrefix
+                m_stmt = this.metadataConnection.prepareStatement("UPDATE  " + this.tablePrefix
                         + "ID_GENERATOR SET CURRENT_VALUE = ? WHERE ID_NAME = ?"); //$NON-NLS-1$
 
                 m_stmt.setDouble(1, pValue);
                 m_stmt.setString(2, pIDName);
 
                 m_stmt.execute();
-                metadataConnection.commit();
+                this.metadataConnection.commit();
 
                 if (m_stmt != null) {
                     m_stmt.close();
@@ -4204,23 +4214,23 @@ public class Metadata {
      */
     public void setRepository(String pUserName, String pPassword, String pJDBCURL, String pJDBCDriver, String pMDPrefix)
             throws Exception {
-        JDBCDriver = pJDBCDriver;
-        JDBCURL = pJDBCURL;
-        Username = pUserName;
-        Password = pPassword;
+        this.JDBCDriver = pJDBCDriver;
+        this.JDBCURL = pJDBCURL;
+        this.Username = pUserName;
+        this.Password = pPassword;
 
         if (pMDPrefix != null) {
             this.tablePrefix = pMDPrefix;
         }
 
-        refreshMetadataConnection();
+        this.refreshMetadataConnection();
         this.checkPassphrase();
 
     }
 
     private void checkPassphrase() throws Exception {
 
-        if (mEncryptionEnabled) {
+        if (this.mEncryptionEnabled) {
             int id = this.getParameterListID("$INTERNAL");
 
             String[] o = null;
@@ -4271,19 +4281,19 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
-            stmt1 = metadataConnection.prepareStatement("SELECT SHUTDOWN_NOW," + currentTimeStampSyntax
-                    + ",STATUS_ID FROM  " + tablePrefix + "SERVER WHERE SERVER_ID = ?"); //$NON-NLS-1$
+            this.refreshMetadataConnection();
+            stmt1 = this.metadataConnection.prepareStatement("SELECT SHUTDOWN_NOW," + this.currentTimeStampSyntax
+                    + ",STATUS_ID FROM  " + this.tablePrefix + "SERVER WHERE SERVER_ID = ?"); //$NON-NLS-1$
 
             stmt1.setInt(1, pServerID);
 
             m_rs = stmt1.executeQuery();
 
-            stmt2 = metadataConnection
+            stmt2 = this.metadataConnection
                     .prepareStatement("UPDATE  "
-                            + tablePrefix
+                            + this.tablePrefix
                             + "SERVER SET STATUS_ID = ?,START_TIME = (coalesce(?,START_TIME)),SHUTDOWN_TIME = ?,LAST_PING_TIME = "
-                            + currentTimeStampSyntax + ", SHUTDOWN_NOW = NULL WHERE SERVER_ID = ?");
+                            + this.currentTimeStampSyntax + ", SHUTDOWN_NOW = NULL WHERE SERVER_ID = ?");
 
             // cycle through results
             while (m_rs.next()) {
@@ -4330,7 +4340,7 @@ public class Metadata {
                 }
 
                 stmt2.executeUpdate();
-                metadataConnection.commit();
+                this.metadataConnection.commit();
             }
 
             // Close open resources
@@ -4362,8 +4372,8 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
-            stmt1 = metadataConnection.prepareStatement("UPDATE " + tablePrefix
+            this.refreshMetadataConnection();
+            stmt1 = this.metadataConnection.prepareStatement("UPDATE " + this.tablePrefix
                     + "SERVER set SHUTDOWN_NOW = ? WHERE SERVER_NAME = ?"); //$NON-NLS-1$
 
             if (bImmediate) {
@@ -4379,7 +4389,7 @@ public class Metadata {
                 shutdown = true;
             }
 
-            metadataConnection.commit();
+            this.metadataConnection.commit();
 
             if (stmt1 != null) {
                 stmt1.close();
@@ -4401,8 +4411,8 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
-            stmt1 = metadataConnection.prepareStatement("UPDATE " + tablePrefix
+            this.refreshMetadataConnection();
+            stmt1 = this.metadataConnection.prepareStatement("UPDATE " + this.tablePrefix
                     + "SERVER set SHUTDOWN_NOW = ? WHERE SERVER_ID = ?"); //$NON-NLS-1$
 
             if (bImmediate) {
@@ -4418,7 +4428,7 @@ public class Metadata {
                 shutdown = true;
             }
 
-            metadataConnection.commit();
+            this.metadataConnection.commit();
 
             if (stmt1 != null) {
                 stmt1.close();
@@ -4439,8 +4449,8 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
-            stmt1 = metadataConnection.prepareStatement("UPDATE " + tablePrefix
+            this.refreshMetadataConnection();
+            stmt1 = this.metadataConnection.prepareStatement("UPDATE " + this.tablePrefix
                     + "SERVER set STATUS_ID = ? WHERE SERVER_NAME = ?"); //$NON-NLS-1$
 
             if (bState) {
@@ -4454,7 +4464,7 @@ public class Metadata {
 
             stmt1.executeUpdate();
 
-            metadataConnection.commit();
+            this.metadataConnection.commit();
 
             if (stmt1 != null) {
                 stmt1.close();
@@ -4475,8 +4485,8 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
-            stmt1 = metadataConnection.prepareStatement("UPDATE " + tablePrefix
+            this.refreshMetadataConnection();
+            stmt1 = this.metadataConnection.prepareStatement("UPDATE " + this.tablePrefix
                     + "SERVER set STATUS_ID = ? WHERE SERVER_ID = ?"); //$NON-NLS-1$
 
             if (bState) {
@@ -4490,7 +4500,7 @@ public class Metadata {
 
             stmt1.executeUpdate();
 
-            metadataConnection.commit();
+            this.metadataConnection.commit();
 
             if (stmt1 != null) {
                 stmt1.close();
@@ -4504,9 +4514,9 @@ public class Metadata {
      * @return Returns the mKETLPath.
      */
     public static final String getKETLPath() {
-        if (mKETLPath == null)
+        if (Metadata.mKETLPath == null)
             return ".";
-        return mKETLPath;
+        return Metadata.mKETLPath;
     }
 
     /**
@@ -4550,20 +4560,20 @@ public class Metadata {
             if (pEnableDate == null || pEnableDate.before(pNow))
                 pEnableDate = pNow;
             // 1st, call this function w/o any increments (e.g. the schedule may be later this year)
-            pNextRunDate = getNextDate(pEnableDate, -1, pMonthOfYear, -1, pDayOfWeek, pDayOfMonth, -1, pHourOfDay, -1,
-                    pMinuteOfHour);
+            pNextRunDate = Metadata.getNextDate(pEnableDate, -1, pMonthOfYear, -1, pDayOfWeek, pDayOfMonth, -1,
+                    pHourOfDay, -1, pMinuteOfHour);
             // 2nd, test if this date is in the past, then add the increments
             if (pNextRunDate == null || pNextRunDate.before(pNow))
-                pNextRunDate = getNextDate(pEnableDate, pMonth, pMonthOfYear, pDay, pDayOfWeek, pDayOfMonth, pHour,
-                        pHourOfDay, pMinute, pMinuteOfHour);
+                pNextRunDate = Metadata.getNextDate(pEnableDate, pMonth, pMonthOfYear, pDay, pDayOfWeek, pDayOfMonth,
+                        pHour, pHourOfDay, pMinute, pMinuteOfHour);
         }
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
             // A.make sure this exact schedule has not been created already
-            String sql = "SELECT schedule_id FROM " + tablePrefix + "job_schedule WHERE job_id='" + pJobID + "'";
+            String sql = "SELECT schedule_id FROM " + this.tablePrefix + "job_schedule WHERE job_id='" + pJobID + "'";
             if (pMonth > 0)
                 sql += " AND month=" + pMonth;
             if (pMonthOfYear >= 0 && pMonthOfYear <= 11)
@@ -4587,7 +4597,7 @@ public class Metadata {
                 sql += " AND next_run_date=?";
             }
 
-            m_stmt_sel = metadataConnection.prepareStatement(sql);
+            m_stmt_sel = this.metadataConnection.prepareStatement(sql);
             if (pOnceOnlyDate != null)
                 m_stmt_sel.setTimestamp(1, new Timestamp(pNextRunDate.getTime()));
             m_rs = m_stmt_sel.executeQuery();
@@ -4603,11 +4613,11 @@ public class Metadata {
             }
 
             // B.create a new schedule for this job
-            m_stmt_add = metadataConnection.prepareStatement("INSERT INTO " + tablePrefix
+            m_stmt_add = this.metadataConnection.prepareStatement("INSERT INTO " + this.tablePrefix
                     + "job_schedule (schedule_id, job_id, month, month_of_year, day, day_of_week, day_of_month,"
                     + "hour, hour_of_day, minute, minute_of_hour, next_run_date, schedule_desc) "
-                    + "SELECT COALESCE(MAX(schedule_id)+1,1), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? FROM " + tablePrefix
-                    + "job_schedule ");
+                    + "SELECT COALESCE(MAX(schedule_id)+1,1), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? FROM "
+                    + this.tablePrefix + "job_schedule ");
             // .first setup the defaults
             m_stmt_add.setString(1, pJobID);
             m_stmt_add.setNull(2, java.sql.Types.INTEGER);
@@ -4773,18 +4783,18 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
             sql = "SELECT e.dm_load_id, e.job_id, e.message, e.code, e.error_datetime, "
-                    + "NULL as details, NULL as step_name FROM " + tablePrefix + "JOB_ERROR e"
+                    + "NULL as details, NULL as step_name FROM " + this.tablePrefix + "JOB_ERROR e"
                     + " where e.error_datetime >= coalesce(?,e.error_datetime)"
                     + " and e.dm_load_id = coalesce(?,e.dm_load_id)" + " union all "
                     + "SELECT e.dm_load_id, e.job_id, e.message, e.code, e.error_datetime, "
-                    + "e.details, e.step_name FROM " + tablePrefix + "JOB_ERROR_HIST e"
+                    + "e.details, e.step_name FROM " + this.tablePrefix + "JOB_ERROR_HIST e"
                     + " where e.error_datetime >= coalesce(?,e.error_datetime)"
                     + " and e.dm_load_id = coalesce(?,e.dm_load_id)";
 
-            m_stmt = metadataConnection.prepareStatement(sql);
+            m_stmt = this.metadataConnection.prepareStatement(sql);
             if (pLastModified == null) {
                 m_stmt.setNull(1, Types.TIMESTAMP);
                 m_stmt.setNull(3, Types.TIMESTAMP);
@@ -4830,12 +4840,12 @@ public class Metadata {
     public Date getCurrentDBTimeStamp() throws Exception {
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
             Date currDate = null;
-            metadataConnection.commit();
-            PreparedStatement stmt = metadataConnection.prepareStatement("SELECT " + currentTimeStampSyntax + " FROM "
-                    + this.tablePrefix + "SERVER_STATUS WHERE STATUS_ID = 1");
+            this.metadataConnection.commit();
+            PreparedStatement stmt = this.metadataConnection.prepareStatement("SELECT " + this.currentTimeStampSyntax
+                    + " FROM " + this.tablePrefix + "SERVER_STATUS WHERE STATUS_ID = 1");
 
             ResultSet rs = stmt.executeQuery();
             if (rs.next())
@@ -4854,31 +4864,31 @@ public class Metadata {
 
         synchronized (this.oLock) {
             // Make metadata connection alive.
-            refreshMetadataConnection();
+            this.refreshMetadataConnection();
 
-            // do not delete any loads that are currently executing (i.e. in job_log or error_log) 
+            // do not delete any loads that are currently executing (i.e. in job_log or error_log)
             // Do the deletes in this order: 1st, delete the error history
-            m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix 
-                    + "job_error_hist WHERE dm_load_id IN (SELECT dm_load_id FROM " + tablePrefix
+            m_stmt = this.metadataConnection.prepareStatement("DELETE FROM " + this.tablePrefix
+                    + "job_error_hist WHERE dm_load_id IN (SELECT dm_load_id FROM " + this.tablePrefix
                     + "job_log_hist WHERE load_id in (" + pLoadIDs + "))");
             m_stmt.executeUpdate();
             if (m_stmt != null)
                 m_stmt.close();
 
-            // 2nd, delete the log history 
-            m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix
+            // 2nd, delete the log history
+            m_stmt = this.metadataConnection.prepareStatement("DELETE FROM " + this.tablePrefix
                     + "job_log_hist WHERE load_id in (" + pLoadIDs + ")");
             m_stmt.executeUpdate();
             if (m_stmt != null)
                 m_stmt.close();
 
-            //3rd, delete the load if there's a load end date
-            m_stmt = metadataConnection.prepareStatement("DELETE FROM " + tablePrefix
+            // 3rd, delete the load if there's a load end date
+            m_stmt = this.metadataConnection.prepareStatement("DELETE FROM " + this.tablePrefix
                     + "load WHERE load_id in (" + pLoadIDs + ") and end_date is not null");
             m_stmt.executeUpdate();
             if (m_stmt != null)
                 m_stmt.close();
-            
+
             this.metadataConnection.commit();
         }
 

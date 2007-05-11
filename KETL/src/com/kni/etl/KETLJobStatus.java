@@ -38,6 +38,7 @@ public class KETLJobStatus extends ETLJobStatus {
         public long value = 0;
     }
 
+    @Override
     public synchronized String getErrorMessage() {
         return super.getErrorMessage();
     }
@@ -47,12 +48,13 @@ public class KETLJobStatus extends ETLJobStatus {
      * 
      * @see com.kni.etl.ETLStatus#getStatusMessage()
      */
+    @Override
     public String getStatusMessage() {
         return super.getStatusMessage();
     }
 
     public synchronized int generateStepIdentifier() {
-        return stepID++;
+        return this.stepID++;
     }
 
     /*
@@ -60,6 +62,7 @@ public class KETLJobStatus extends ETLJobStatus {
      * 
      * @see com.kni.etl.ETLStatus#getStatusMessageForCode(int)
      */
+    @Override
     public String getStatusMessageForCode(int iStatusCode) {
         return super.getStatusMessageForCode(iStatusCode);
     }
@@ -69,24 +72,25 @@ public class KETLJobStatus extends ETLJobStatus {
      * 
      * @see com.kni.etl.ETLStatus#getWarningMessage()
      */
+    @Override
     public synchronized String getWarningMessage() {
         return super.getWarningMessage();
     }
 
     public synchronized void incrementErrorCount(int pStep, int pPartition, long pAmount) {
-        this.errorCount = incrementCount(pStep, pPartition, pAmount, this.errorCount);
+        this.errorCount = this.incrementCount(pStep, pPartition, pAmount, this.errorCount);
     }
 
     public synchronized void incrementInsertCount(int pStep, int pPartition, long pAmount) {
-        this.insertCount = incrementCount(pStep, pPartition, pAmount, this.insertCount);
+        this.insertCount = this.incrementCount(pStep, pPartition, pAmount, this.insertCount);
     }
 
     public synchronized void incrementUpdateCount(int pStep, int pPartition, long pAmount) {
-        this.updateCount = incrementCount(pStep, pPartition, pAmount, this.updateCount);
+        this.updateCount = this.incrementCount(pStep, pPartition, pAmount, this.updateCount);
     }
 
     public synchronized void incrementBatchCount(int pStep, int pPartition, long pAmount) {
-        this.batchCount = incrementCount(pStep, pPartition, pAmount, this.batchCount);
+        this.batchCount = this.incrementCount(pStep, pPartition, pAmount, this.batchCount);
     }
 
     public synchronized String getXMLSynchronized() {
@@ -149,18 +153,18 @@ public class KETLJobStatus extends ETLJobStatus {
     }
 
     public synchronized long getTotalErrorCount() {
-        return getTotalCount(this.errorCount);
+        return this.getTotalCount(this.errorCount);
     }
 
     public synchronized long getTotalInsertCount() {
-        return getTotalCount(this.insertCount);
+        return this.getTotalCount(this.insertCount);
     }
 
     public synchronized long getTotalBatchCount() {
-        return getTotalCount(this.batchCount);
+        return this.getTotalCount(this.batchCount);
     }
 
     public synchronized long getTotalUpdateCount() {
-        return getTotalCount(this.updateCount);
+        return this.getTotalCount(this.updateCount);
     }
 }

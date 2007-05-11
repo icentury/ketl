@@ -68,8 +68,8 @@ public final class FieldLevelFastInputChannel {
 
         if (pZipped) {
             this.mInputStream = Channels.newInputStream(iStream);
-            this.mGZipStream = new GZIPInputStream(mInputStream);
-            this.mWorkBuffer = new InputStreamReader(mGZipStream, Charset.forName(pCharSet).newDecoder());
+            this.mGZipStream = new GZIPInputStream(this.mInputStream);
+            this.mWorkBuffer = new InputStreamReader(this.mGZipStream, Charset.forName(pCharSet).newDecoder());
         }
         else { // decode and read from the file channel
             this.mWorkBuffer = Channels.newReader(iStream, Charset.forName(pCharSet).newDecoder(), -1);
@@ -136,33 +136,33 @@ public final class FieldLevelFastInputChannel {
     // us this little method to prevent calling synchronized method all the time
     // marginal performance improvement
     final private int read() throws IOException {
-        if (pos == charsRead) {
-            pos = 0;
-            charsRead = this.mWorkBuffer.read(this.mTempBuffer);
-            if (charsRead == -1)
+        if (this.pos == this.charsRead) {
+            this.pos = 0;
+            this.charsRead = this.mWorkBuffer.read(this.mTempBuffer);
+            if (this.charsRead == -1)
                 return -1;
         }
 
-        return this.mTempBuffer[pos++];
+        return this.mTempBuffer[this.pos++];
     }
 
     // us this little method to prevent calling synchronized method all the time
     // marginal performance improvement
     final private int read(char[] pBuf, int pStart, int pLength) throws IOException {
         // bulk copy if possible
-        int fetchSize = charsRead - pos > pLength ? pLength : charsRead - pos;
+        int fetchSize = this.charsRead - this.pos > pLength ? pLength : this.charsRead - this.pos;
         int readChars = 0;
 
         if (fetchSize > 0) {
-            System.arraycopy(this.mTempBuffer, pos, pBuf, pStart, fetchSize);
+            System.arraycopy(this.mTempBuffer, this.pos, pBuf, pStart, fetchSize);
             pStart += fetchSize;
             pLength -= fetchSize;
-            pos += fetchSize;
+            this.pos += fetchSize;
             readChars = fetchSize;
         }
 
         for (int i = pStart; i < pStart + pLength; i++) {
-            int ch = read();
+            int ch = this.read();
             if (ch == -1) {
                 return readChars == 0 ? -1 : readChars;
             }
@@ -208,13 +208,13 @@ public final class FieldLevelFastInputChannel {
             pAvgSize++;
         }
 
-        if (EOF) {
+        if (this.EOF) {
             throw new EOFException();
         }
 
         if (pOutput.length < ((quoteStart == null ? 0 : quoteStart.length) + pFieldMaxLength + (quoteEnd == null ? 0
                 : quoteEnd.length))) {
-            return BUFFER_TO_SMALL;
+            return FieldLevelFastInputChannel.BUFFER_TO_SMALL;
         }
         do {
             while (pos < pFieldMaxLength) {
@@ -222,8 +222,8 @@ public final class FieldLevelFastInputChannel {
                 // get current char
                 int ch = this.read();
                 if (ch == -1) {
-                    EOF = true;
-                    if (mbAllowForNoDelimeterAtEOF)
+                    this.EOF = true;
+                    if (this.mbAllowForNoDelimeterAtEOF)
                         return pos;
                     throw new EOFException();
                 }
@@ -232,8 +232,8 @@ public final class FieldLevelFastInputChannel {
                 if (pEscapeChar != null && ch == pEscapeChar.charValue()) {
                     ch = this.read();
                     if (ch == -1) {
-                        EOF = true;
-                        if (mbAllowForNoDelimeterAtEOF)
+                        this.EOF = true;
+                        if (this.mbAllowForNoDelimeterAtEOF)
                             return pos;
                         throw new EOFException();
                     }
@@ -254,7 +254,7 @@ public final class FieldLevelFastInputChannel {
                     for (int x = 1; x < quoteLength; x++) {
                         ch = this.read();
                         if (ch == -1) {
-                            EOF = true;
+                            this.EOF = true;
                             throw new EOFException();
                         }
                         pOutput[pos++] = (char) ch;
@@ -288,7 +288,7 @@ public final class FieldLevelFastInputChannel {
                     for (int x = 1; x < quoteLength; x++) {
                         ch = this.read();
                         if (ch == -1) {
-                            EOF = true;
+                            this.EOF = true;
                             throw new EOFException();
                         }
                         pOutput[pos++] = (char) ch;
@@ -320,7 +320,7 @@ public final class FieldLevelFastInputChannel {
                         for (int x = 1; x < delimiterLength; x++) {
                             ch = this.read();
                             if (ch == -1) {
-                                EOF = true;
+                                this.EOF = true;
                                 throw new EOFException();
                             }
                             pOutput[pos++] = (char) ch;
@@ -363,19 +363,19 @@ public final class FieldLevelFastInputChannel {
         int res;
         boolean hasQuotes = ((quoteStart == null) || (quoteEnd == null)) ? false : true;
 
-        if (EOF) {
+        if (this.EOF) {
             throw new EOFException();
         }
 
         res = this.read(pOutput, 0, pFieldLength);
 
         if (res == -1) {
-            EOF = true;
+            this.EOF = true;
             throw new EOFException();
         }
 
         if (res != pFieldLength) {
-            EOF = true;
+            this.EOF = true;
             throw new IOException("Requested field length greater than remaining characters, remaining = " + res
                     + ", request = " + pFieldLength);
         }

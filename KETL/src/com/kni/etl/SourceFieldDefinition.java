@@ -63,18 +63,18 @@ public class SourceFieldDefinition {
         super();
 
         /* field ends at delimiter */
-        MaxLength = -1;
+        this.MaxLength = -1;
 
         /*
          * 1 = String, 2 = int, 3 = date, 4 = double, 5 = char, 6 = char array of maxlength
          */
-        DataType = null;
+        this.DataType = null;
 
         /* 0 = Desc, 1 = Asc */
-        ReadOrder = 0;
+        this.ReadOrder = 0;
 
         /* Default to do not read data order by this column */
-        ReadOrderSequence = -1;
+        this.ReadOrderSequence = -1;
     }
 
     public final byte[] getDelimiterAsBytes() {
@@ -94,23 +94,23 @@ public class SourceFieldDefinition {
     }
 
     public final void setQuoteEnd(java.lang.String pQuoteEnd) {
-        quoteEnd = pQuoteEnd;
+        this.quoteEnd = pQuoteEnd;
 
-        if (quoteEnd != null) {
-            hasQuotes = true;
-            quoteEndLength = quoteEnd.length();
+        if (this.quoteEnd != null) {
+            this.hasQuotes = true;
+            this.quoteEndLength = this.quoteEnd.length();
             this.bQuoteEnd = this.getQuoteEnd().getBytes();
             this.cQuoteEnd = this.getQuoteEnd().toCharArray();
         }
         else {
-            quoteEndLength = 0;
+            this.quoteEndLength = 0;
             this.bQuoteEnd = null;
             this.cQuoteEnd = null;
         }
     }
 
     public final java.lang.String getQuoteEnd() {
-        return quoteEnd;
+        return this.quoteEnd;
     }
 
     public final void setEscapeDoubleQuotes(boolean arg0) {
@@ -127,7 +127,7 @@ public class SourceFieldDefinition {
         }
 
         this.escapeCharacter = pEscChar.toCharArray();
-        this.escapeChar = escapeCharacter[0];
+        this.escapeChar = this.escapeCharacter[0];
 
         if ((this.escapeCharacter != null) && (this.escapeCharacter.length > 1)) {
             ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE,
@@ -136,30 +136,30 @@ public class SourceFieldDefinition {
     }
 
     public final int getQuoteEndLength() {
-        return quoteEndLength;
+        return this.quoteEndLength;
     }
 
     public final void setDelimiter(java.lang.String delimiter) {
-        Delimiter = delimiter;
+        this.Delimiter = delimiter;
 
         if (delimiter != null) {
-            DelimeterLength = delimiter.length();
+            this.DelimeterLength = delimiter.length();
             this.bDelimiter = this.getDelimiter().getBytes();
             this.cDelimiter = this.getDelimiter().toCharArray();
         }
         else {
-            DelimeterLength = 0;
+            this.DelimeterLength = 0;
             this.bDelimiter = null;
             this.cDelimiter = null;
         }
     }
 
     public final java.lang.String getDelimiter() {
-        return Delimiter;
+        return this.Delimiter;
     }
 
     public final int getDelimiterLength() {
-        return DelimeterLength;
+        return this.DelimeterLength;
     }
 
     public final byte[] getQuoteStartAsBytes() {
@@ -171,27 +171,27 @@ public class SourceFieldDefinition {
     }
 
     public final void setQuoteStart(java.lang.String pQuoteStart) {
-        quoteStart = pQuoteStart;
+        this.quoteStart = pQuoteStart;
 
-        if (quoteStart != null) {
-            hasQuotes = true;
-            quoteStartLength = quoteStart.length();
+        if (this.quoteStart != null) {
+            this.hasQuotes = true;
+            this.quoteStartLength = this.quoteStart.length();
             this.bQuoteStart = this.getQuoteStart().getBytes();
             this.cQuoteStart = this.getQuoteStart().toCharArray();
         }
         else {
-            quoteStartLength = 0;
+            this.quoteStartLength = 0;
             this.bQuoteStart = null;
             this.cQuoteStart = null;
         }
     }
 
     public final java.lang.String getQuoteStart() {
-        return quoteStart;
+        return this.quoteStart;
     }
 
     public final int getQuoteStartLength() {
-        return quoteStartLength;
+        return this.quoteStartLength;
     }
 
     /*
@@ -199,12 +199,14 @@ public class SourceFieldDefinition {
      * 
      * @see java.lang.Object#toString()
      */
+    @Override
     public String toString() {
-        return "data type = " + DataType.getCanonicalName() + ", max length = " + MaxLength + ", delimeter = "
-                + Delimiter + ", fixed width = " + FixedLength + ", format string = " + FormatString
-                + ", read order = " + ReadOrder + ", read sequence = " + ReadOrderSequence + ", default value = "
-                + DefaultValue + ", null if = " + NullIf + ", trim = " + TrimValue + ", object type = "
-                + EngineConstants.resolveObjectIDToName(ObjectType);
+        return "data type = " + this.DataType.getCanonicalName() + ", max length = " + this.MaxLength
+                + ", delimeter = " + this.Delimiter + ", fixed width = " + this.FixedLength + ", format string = "
+                + this.FormatString + ", read order = " + this.ReadOrder + ", read sequence = "
+                + this.ReadOrderSequence + ", default value = " + this.DefaultValue + ", null if = " + this.NullIf
+                + ", trim = " + this.TrimValue + ", object type = "
+                + EngineConstants.resolveObjectIDToName(this.ObjectType);
     }
 
     /**

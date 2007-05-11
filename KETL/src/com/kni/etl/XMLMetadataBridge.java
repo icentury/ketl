@@ -93,9 +93,9 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
         System.out.println("Using the following KETL config file: " + pKETLPath + File.separator + pKETLConfigFile);
 
-        xmlConfig = Metadata.LoadConfigFile(pKETLPath, pKETLPath + File.separator + pKETLConfigFile);
+        XMLMetadataBridge.xmlConfig = Metadata.LoadConfigFile(pKETLPath, pKETLPath + File.separator + pKETLConfigFile);
 
-        mDocBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        XMLMetadataBridge.mDocBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     }
 
     /*
@@ -104,8 +104,8 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * @see com.kni.etl.XMLBridge#getServerList()
      */
     private static synchronized Element getNewDocument() {
-        Document doc = mDocBuilder.newDocument();
-        Element e = doc.createElement(ROOTNODE_TAG);
+        Document doc = XMLMetadataBridge.mDocBuilder.newDocument();
+        Element e = doc.createElement(XMLMetadataBridge.ROOTNODE_TAG);
         doc.appendChild(e);
         doc.setXmlStandalone(true);
         return e;
@@ -136,7 +136,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     private Element addXMLErrorNode(Element parent, ETLJobError err) {
-        Element e = addChildElement(parent, "ERROR");
+        Element e = XMLMetadataBridge.addChildElement(parent, "ERROR");
         e.setAttribute("DATETIME", err.getDate() == null ? "" : this.mDefaultDateFormat.format(err.getDate()));
         e.setAttribute("CODE", err.getCode());
         e.setAttribute("MESSAGE", err.getMessage());
@@ -146,7 +146,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     private Element addXMLJobExecutionNode(Element parent, ETLJob j) {
-        Element e = addChildElement(parent, "JOB");
+        Element e = XMLMetadataBridge.addChildElement(parent, "JOB");
         e.setAttribute("ID", j.getJobID());
         e.setAttribute("NAME", j.getName());
         e.setAttribute("TYPE", j.getJobTypeName());
@@ -163,7 +163,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     private Element addXMLLoadNode(Element parent, ETLLoad load) {
-        Element ld = addChildElement(parent, "LOAD");
+        Element ld = XMLMetadataBridge.addChildElement(parent, "LOAD");
         ld.setAttribute("START_JOB_ID", load.start_job_id);
         ld.setAttribute("LOAD_ID", Integer.toString(load.LoadID));
         ld.setAttribute("FAILED", load.failed ? "TRUE" : "FALSE");
@@ -176,8 +176,8 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     Element createXMLMessage(String msg) {
-        Element root = getNewDocument();
-        Element e = addChildElement(root, "MESSAGE");
+        Element root = XMLMetadataBridge.getNewDocument();
+        Element e = XMLMetadataBridge.addChildElement(root, "MESSAGE");
         e.setTextContent(msg);
         return root;
     }
@@ -189,7 +189,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     public boolean deleteLoad(String pServerID, String pLoadID) {
         // TODO Auto-generated method stub
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
                 boolean isSuccessful = md.deleteLoad(pLoadID);
                 return isSuccessful;
@@ -206,7 +206,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     public String executeJob(String pServerID, int pProjectID, String pJobID, boolean pIgnoreDependencies,
             boolean pAllowMultiple) {
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
                 boolean isSuccessful = md.executeJob(pProjectID, pJobID, pIgnoreDependencies, pAllowMultiple);
                 if (isSuccessful)
@@ -222,7 +222,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
     public String getCurrentDBTimeStamp(String pServerID) {
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
                 Date currDate = md.getCurrentDBTimeStamp();
                 return currDate == null ? "" : this.mDefaultDateFormat.format(currDate);
@@ -233,29 +233,26 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     public String getExecutionErrors(String pServerID, int pLoadID, int pExecID, Date pLastModified) {
-        Element root = getNewDocument();
+        Element root = XMLMetadataBridge.getNewDocument();
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 // get the load details
                 ETLLoad[] loads = md.getLoads(pLastModified, pLoadID);
-                for (int w = 0; w < loads.length; w++) {
-                    ETLLoad load = loads[w];
-                    Element e0 = addXMLLoadNode(root, load);
+                for (ETLLoad load : loads) {
+                    Element e0 = this.addXMLLoadNode(root, load);
 
                     // get the job execution details (single job execution)
                     ETLJob[] jobs = md.getExecutionDetails(pLastModified, pLoadID, pExecID);
-                    for (int x = 0; x < jobs.length; x++) {
-                        ETLJob job = jobs[x];
-                        Element e1 = addXMLJobExecutionNode(e0, job);
+                    for (ETLJob job : jobs) {
+                        Element e1 = this.addXMLJobExecutionNode(e0, job);
                         int execID = job.getJobExecutionID();
 
                         // for each job, get all errors via the execution id
-                        ETLJobError[] errors = md.getExecutionErrors(pLastModified, execID, maxRows);
-                        for (int y = 0; y < errors.length; y++) {
-                            ETLJobError err = errors[y];
-                            addXMLErrorNode(e1, err);
+                        ETLJobError[] errors = md.getExecutionErrors(pLastModified, execID, XMLMetadataBridge.maxRows);
+                        for (ETLJobError err : errors) {
+                            this.addXMLErrorNode(e1, err);
                         }
                     }
                 }
@@ -274,14 +271,14 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     public String getJob(String pServerID, int pProjectID, String pJobID) {
 
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 ETLJob j = md.getJob(pJobID);
                 if (j == null)
                     return null;
 
-                Element e = getNewDocument();
+                Element e = XMLMetadataBridge.getNewDocument();
 
                 j.getXMLJobDefinition(e);
 
@@ -295,29 +292,26 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     public String getJobErrors(String pServerID, String pJobName, Date pLastModified) {
-        Element root = getNewDocument();
+        Element root = XMLMetadataBridge.getNewDocument();
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 // get all loads that contain this job
                 ETLLoad[] loads = md.getJobLoads(pLastModified, pJobName);
-                for (int w = 0; w < loads.length; w++) {
-                    ETLLoad load = loads[w];
-                    Element e0 = addXMLLoadNode(root, load);
+                for (ETLLoad load : loads) {
+                    Element e0 = this.addXMLLoadNode(root, load);
 
                     // get the job execution details (single job execution)
                     ETLJob[] jobs = md.getExecutionDetails(pLastModified, load.LoadID, load.jobExecutionID);
-                    for (int x = 0; x < jobs.length; x++) {
-                        ETLJob job = jobs[x];
-                        Element e1 = addXMLJobExecutionNode(e0, job);
+                    for (ETLJob job : jobs) {
+                        Element e1 = this.addXMLJobExecutionNode(e0, job);
                         int execID = job.getJobExecutionID();
 
                         // for each job, get all errors via the execution id
-                        ETLJobError[] errors = md.getExecutionErrors(pLastModified, execID, maxRows);
-                        for (int y = 0; y < errors.length; y++) {
-                            ETLJobError err = errors[y];
-                            addXMLErrorNode(e1, err);
+                        ETLJobError[] errors = md.getExecutionErrors(pLastModified, execID, XMLMetadataBridge.maxRows);
+                        for (ETLJobError err : errors) {
+                            this.addXMLErrorNode(e1, err);
                         }
                     }
                 }
@@ -334,15 +328,14 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * @param jobs
      */
     private void getJobsAsXML(Element root, ETLJob[] jobs, boolean pGetStatus) {
-        for (int x = 0; x < jobs.length; x++) {
-            ETLJob j = jobs[x];
-            Element e = addChildElement(root, "JOB");
+        for (ETLJob j : jobs) {
+            Element e = XMLMetadataBridge.addChildElement(root, "JOB");
             e.setAttribute("ID", j.getJobID());
             e.setAttribute("NAME", j.getName());
             e.setAttribute("PROJECT", j.getProjectName());
             e.setAttribute("TYPE", j.getJobTypeName());
             if (pGetStatus) {
-                Element status = addChildElement(e, "STATUS");
+                Element status = XMLMetadataBridge.addChildElement(e, "STATUS");
                 status.setAttribute("START_DATE", this.mDefaultDateFormat.format(j.getStatus().getStartDate()));
                 status.setAttribute("END_DATE", j.getStatus().getEndDate() == null ? "" : this.mDefaultDateFormat
                         .format(j.getStatus().getEndDate()));
@@ -367,17 +360,17 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
                 e.setAttribute("DISABLE_ALERTING", "N");
             }
 
-            for (int i = 0; i < j.dependencies.length; i++) {
+            for (String[] element0 : j.dependencies) {
                 Element deps;
 
-                if (j.dependencies[i][1] == Metadata.DEPENDS_ON) {
-                    deps = addChildElement(e, "DEPENDS_ON");
+                if (element0[1] == Metadata.DEPENDS_ON) {
+                    deps = XMLMetadataBridge.addChildElement(e, "DEPENDS_ON");
                 }
                 else {
-                    deps = addChildElement(e, "WAITS_ON");
+                    deps = XMLMetadataBridge.addChildElement(e, "WAITS_ON");
                 }
 
-                deps.setTextContent(j.dependencies[i][0]);
+                deps.setTextContent(element0[0]);
             }
 
         }
@@ -390,7 +383,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      */
     public String getJobStatus(String pServerID, int pJobExecutionID) {
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 /*
@@ -407,13 +400,13 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
     // TODO: implement paging
     public String getLoadErrors(String pServerID, int pLoadID, Date pLastModified) {
-        Element root = getNewDocument();
+        Element root = XMLMetadataBridge.getNewDocument();
         // This limits the file size for performance reasons
         String MSG_TOO_LARGE = "FILE TOO LARGE";
         int MAX_ROWS = 1000;
 
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
                 int rowCnt = 0;
 
@@ -421,35 +414,32 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
                 ETLLoad[] loads = md.getLoads(pLastModified, pLoadID);
                 rowCnt += loads.length;
                 if (rowCnt > MAX_ROWS) {
-                    Element msgXML = createXMLMessage(MSG_TOO_LARGE);
+                    Element msgXML = this.createXMLMessage(MSG_TOO_LARGE);
                     return XMLHelper.outputXML(msgXML, true);
                 }
-                for (int w = 0; w < loads.length; w++) {
-                    ETLLoad load = loads[w];
-                    Element e0 = addXMLLoadNode(root, load);
+                for (ETLLoad load : loads) {
+                    Element e0 = this.addXMLLoadNode(root, load);
 
                     // get all jobs within this load
                     ETLJob[] jobs = md.getLoadJobs(pLastModified, pLoadID);
                     rowCnt += jobs.length;
                     if (rowCnt > MAX_ROWS) {
-                        Element msgXML = createXMLMessage(MSG_TOO_LARGE);
+                        Element msgXML = this.createXMLMessage(MSG_TOO_LARGE);
                         return XMLHelper.outputXML(msgXML, true);
                     }
-                    for (int x = 0; x < jobs.length; x++) {
-                        ETLJob job = jobs[x];
-                        Element e1 = addXMLJobExecutionNode(e0, job);
+                    for (ETLJob job : jobs) {
+                        Element e1 = this.addXMLJobExecutionNode(e0, job);
                         int execID = job.getJobExecutionID();
 
                         // for each job, get all errors via the execution id
-                        ETLJobError[] errors = md.getExecutionErrors(pLastModified, execID, maxRows);
+                        ETLJobError[] errors = md.getExecutionErrors(pLastModified, execID, XMLMetadataBridge.maxRows);
                         rowCnt += errors.length;
                         if (rowCnt > MAX_ROWS) {
-                            Element msgXML = createXMLMessage(MSG_TOO_LARGE);
+                            Element msgXML = this.createXMLMessage(MSG_TOO_LARGE);
                             return XMLHelper.outputXML(msgXML, true);
                         }
-                        for (int y = 0; y < errors.length; y++) {
-                            ETLJobError err = errors[y];
-                            addXMLErrorNode(e1, err);
+                        for (ETLJobError err : errors) {
+                            this.addXMLErrorNode(e1, err);
                         }
                     }
                 }
@@ -467,15 +457,15 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * @see com.kni.etl.XMLBridge#getLoadJobs(int, int, java.util.Date)
      */
     public String getLoadJobs(String pServerID, int pLoadID, Date pLastModified) {
-        Element root = getNewDocument();
+        Element root = XMLMetadataBridge.getNewDocument();
 
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 ETLJob[] jobs = md.getLoadJobs(pLastModified, pLoadID);
 
-                getJobsAsXML(root, jobs, true);
+                this.getJobsAsXML(root, jobs, true);
             }
             return XMLHelper.outputXML(root, true);
         } catch (Exception e1) {
@@ -489,28 +479,28 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * @see com.kni.etl.XMLBridge#getLoads(int, java.util.Date)
      */
     public String getLoads(String pServerID, Date pLastModified) {
-        Element e = getNewDocument();
+        Element e = XMLMetadataBridge.getNewDocument();
 
         try {
 
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 ETLLoad[] loads = md.getLoads(pLastModified, -1);
 
-                Element loadsRoot = addChildElement(e, "LOADS");
+                Element loadsRoot = XMLMetadataBridge.addChildElement(e, "LOADS");
 
-                for (int i = 0; i < loads.length; i++) {
-                    Element ld = addChildElement(loadsRoot, "LOAD");
-                    ld.setAttribute("START_JOB_ID", loads[i].start_job_id);
-                    ld.setAttribute("LOAD_ID", Integer.toString(loads[i].LoadID));
-                    ld.setAttribute("FAILED", loads[i].failed ? "TRUE" : "FALSE");
-                    ld.setAttribute("IGNORED_PARENTS", loads[i].ignored_parents ? "TRUE" : "FALSE");
-                    ld.setAttribute("PROJECT_ID", Integer.toString(loads[i].project_id));
-                    ld.setAttribute("RUNNING", loads[i].running ? "TRUE" : "FALSE");
-                    ld.setAttribute("START_DATE", this.mDefaultDateFormat.format(loads[i].start_date));
-                    ld.setAttribute("END_DATE", loads[i].end_date == null ? "" : this.mDefaultDateFormat
-                            .format(loads[i].end_date));
+                for (ETLLoad element : loads) {
+                    Element ld = XMLMetadataBridge.addChildElement(loadsRoot, "LOAD");
+                    ld.setAttribute("START_JOB_ID", element.start_job_id);
+                    ld.setAttribute("LOAD_ID", Integer.toString(element.LoadID));
+                    ld.setAttribute("FAILED", element.failed ? "TRUE" : "FALSE");
+                    ld.setAttribute("IGNORED_PARENTS", element.ignored_parents ? "TRUE" : "FALSE");
+                    ld.setAttribute("PROJECT_ID", Integer.toString(element.project_id));
+                    ld.setAttribute("RUNNING", element.running ? "TRUE" : "FALSE");
+                    ld.setAttribute("START_DATE", this.mDefaultDateFormat.format(element.start_date));
+                    ld.setAttribute("END_DATE", element.end_date == null ? "" : this.mDefaultDateFormat
+                            .format(element.end_date));
                 }
             }
 
@@ -541,12 +531,12 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         }
 
         // if this user has already been authenticated and the metadata connected, then use it.
-        if (mdCache.containsKey(pServerID)) {
-            ResourcePool.setMetadata((Metadata) mdCache.get(pServerID));
+        if (XMLMetadataBridge.mdCache.containsKey(pServerID)) {
+            ResourcePool.setMetadata((Metadata) XMLMetadataBridge.mdCache.get(pServerID));
             return ResourcePool.getMetadata();
         }
 
-        if (xmlConfig == null) {
+        if (XMLMetadataBridge.xmlConfig == null) {
             throw new KETLException("KETL path or KETL servers file not found");
         }
 
@@ -558,7 +548,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         String clientHashedPwsd = pServerID.substring(pos2 + 1);
 
         // try for localhost
-        Node serverNode = XMLHelper.findElementByName(xmlConfig, "SERVER", "NAME", serverName);
+        Node serverNode = XMLHelper.findElementByName(XMLMetadataBridge.xmlConfig, "SERVER", "NAME", serverName);
 
         if (serverNode == null) {
             throw new KETLException("ERROR: Problems getting server name, check config file");
@@ -574,8 +564,8 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         String passphrase = XMLHelper.getChildNodeValueAsString(serverNode, "PASSPHRASE", null, null, null);
 
         // validate this user
-        String serverHashedUser = hashMD5(mdUser[0]);
-        String serverHashedPswd = hashMD5(mdUser[1]);
+        String serverHashedUser = this.hashMD5(mdUser[0]);
+        String serverHashedPswd = this.hashMD5(mdUser[1]);
         if (!clientHashedUser.equals(serverHashedUser) || !clientHashedPwsd.equals(serverHashedPswd)) {
             throw new KETLException("Invalid UserID and/or Password for " + serverName);
         }
@@ -592,7 +582,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
             md.setRepository(mdUser[0], mdUser[1], mdUser[2], mdUser[3], mdPrefix);
 
             // cache the connection
-            mdCache.put(pServerID, md);
+            XMLMetadataBridge.mdCache.put(pServerID, md);
 
             ResourcePool.setMetadata(md);
 
@@ -609,8 +599,8 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
             md.update(strToHash.getBytes("UTF-16LE"));
             bHash = md.digest();
             StringBuffer hexString = new StringBuffer();
-            for (int intI = 0; intI < bHash.length; intI++) {
-                String strTemp = Integer.toHexString(bHash[intI]);
+            for (byte element : bHash) {
+                String strTemp = Integer.toHexString(element);
                 // remove leading zeros and append
                 hexString.append(strTemp.replaceAll("f", ""));
             }
@@ -626,15 +616,15 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * @see com.kni.etl.XMLBridge#getProjectJobs(int, int, java.util.Date)
      */
     public String getProjectJobs(String pServerID, int pProjectID, Date pLastModified) {
-        Element root = getNewDocument();
+        Element root = XMLMetadataBridge.getNewDocument();
 
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 ETLJob[] jobs = md.getProjectJobs(pLastModified, pProjectID);
 
-                getJobsAsXML(root, jobs, false);
+                this.getJobsAsXML(root, jobs, false);
             }
             return XMLHelper.outputXML(root, true);
         } catch (Exception e1) {
@@ -649,17 +639,17 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      */
     public String getProjects(String pServerID, Date pLastModified) {
         try {
-            synchronized (mLock) {
-                Element root = getNewDocument();
+            synchronized (XMLMetadataBridge.mLock) {
+                Element root = XMLMetadataBridge.getNewDocument();
 
                 Metadata md = this.getMetadataByServer(pServerID);
 
-                Element e = addChildElement(root, "PROJECTS");
+                Element e = XMLMetadataBridge.addChildElement(root, "PROJECTS");
                 Object[] result = md.getProjects();
 
-                for (int i = 0; i < result.length; i++) {
-                    Element p = addChildElement(e, "PROJECT");
-                    Object[] tmp = (Object[]) result[i];
+                for (Object element : result) {
+                    Element p = XMLMetadataBridge.addChildElement(e, "PROJECT");
+                    Object[] tmp = (Object[]) element;
                     p.setAttribute("ID", ((Integer) tmp[0]).toString());
                     p.setAttribute("NAME", (String) tmp[1]);
                 }
@@ -682,7 +672,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
         try {
 
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pRootServerID);
 
                 KETLCluster kc = md.getClusterDetails();
@@ -697,11 +687,11 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     public String getConnected(String pServerID) {
-        Element root = getNewDocument();
-        Element servers = addChildElement(root, "SERVERS");
+        Element root = XMLMetadataBridge.getNewDocument();
+        Element servers = XMLMetadataBridge.addChildElement(root, "SERVERS");
         try {
             this.getMetadataByServer(pServerID);
-            Element server = addChildElement(servers, "SERVER");
+            Element server = XMLMetadataBridge.addChildElement(servers, "SERVER");
             int pos1 = pServerID.indexOf("@");
             String serverName = pServerID.substring(0, pos1);
             server.setTextContent(serverName);
@@ -718,9 +708,9 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      *      user is logged onto.
      */
     public String getServerList(String clientHashedUser, String clientHashedPwsd) {
-        Element root = getNewDocument();
-        Element servers = addChildElement(root, "SERVERS");
-        Iterator it = mdCache.keySet().iterator();
+        Element root = XMLMetadataBridge.getNewDocument();
+        Element servers = XMLMetadataBridge.addChildElement(root, "SERVERS");
+        Iterator it = XMLMetadataBridge.mdCache.keySet().iterator();
         while (it.hasNext()) {
             String pServerID = (String) it.next();
             // parse the server string
@@ -731,7 +721,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
             String serverHashedPswd = pServerID.substring(pos2 + 1);
 
             if (clientHashedUser.equals(serverHashedUser) && clientHashedPwsd.equals(serverHashedPswd)) {
-                Element server = addChildElement(servers, "SERVER");
+                Element server = XMLMetadataBridge.addChildElement(servers, "SERVER");
                 server.setTextContent(serverName);
             }
         }
@@ -739,8 +729,8 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     public String handleError(Exception e) {
-        Element e1 = getNewDocument();
-        addChildElement(e1, "ERROR").setTextContent(e.getMessage());
+        Element e1 = XMLMetadataBridge.getNewDocument();
+        XMLMetadataBridge.addChildElement(e1, "ERROR").setTextContent(e.getMessage());
         if (e instanceof PassphraseException) {
             System.out.println(e.getMessage());
             System.out.println("Passphrase location: " + ((PassphraseException) e).getPassphraseFilePath());
@@ -800,9 +790,9 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
             int pDayOfWeek, int pDayOfMonth, int pHour, int pHourOfDay, int pMinute, int pMinuteOfHour,
             String pDescription, Date pOnceOnlyDate, Date pEnableDate, Date pDisableDate) {
         // NOTE: pProjectID is currently not used.
-        Element root = getNewDocument();
-        Element eSchedID = addChildElement(root, "SCHEDULE_ID");
-        Element eError = addChildElement(root, "ERROR");
+        Element root = XMLMetadataBridge.getNewDocument();
+        Element eSchedID = XMLMetadataBridge.addChildElement(root, "SCHEDULE_ID");
+        Element eError = XMLMetadataBridge.addChildElement(root, "ERROR");
         eSchedID.setTextContent("-1");
 
         // C# does not allow NULLs for Dates, so test for minValue
@@ -816,7 +806,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
             pDisableDate = null;
 
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 ETLJobSchedule sched = new ETLJobSchedule(pMonth, pMonthOfYear, pDay, pDayOfWeek, pDayOfMonth, pHour,
@@ -836,12 +826,12 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     }
 
     public String setExecutionStatus(String pServerID, int pLoadID, int pExecID, String pStatus) {
-        Element root = getNewDocument();
-        Element eStatus = addChildElement(root, "STATUS");
+        Element root = XMLMetadataBridge.getNewDocument();
+        Element eStatus = XMLMetadataBridge.addChildElement(root, "STATUS");
         eStatus.setTextContent("Failed");
 
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 // get the job execution details (single job execution)
@@ -854,13 +844,13 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
                     switch (currJobStatus) {
                     case ETLJobStatus.WAITING_FOR_CHILDREN:
                     case ETLJobStatus.WAITING_TO_BE_RETRIED:
-                        if (pStatus.equals(REQUEST_EXECUTE))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_EXECUTE))
                             job.getStatus().setStatusCode(ETLJobStatus.READY_TO_RUN);
-                        if (pStatus.equals(REQUEST_PAUSE))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_PAUSE))
                             job.getStatus().setStatusCode(ETLJobStatus.WAITING_TO_PAUSE);
-                        if (pStatus.equals(REQUEST_SKIP))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_SKIP))
                             job.getStatus().setStatusCode(ETLJobStatus.WAITING_TO_SKIP);
-                        if (pStatus.equals(REQUEST_CANCEL)) {
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_CANCEL)) {
                             // for the root job, this will cancel the load
                             // for a non-root job, this will "pause" the workflow at that point (so use pause instead)
                             job.getStatus().setStatusCode(ETLJobStatus.PENDING_CLOSURE_CANCELLED);
@@ -869,7 +859,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
 
                     case ETLJobStatus.WAITING_TO_PAUSE:
                     case ETLJobStatus.WAITING_TO_SKIP:
-                        if (pStatus.equals(REQUEST_EXECUTE))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_EXECUTE))
                             job.getStatus().setStatusCode(ETLJobStatus.WAITING_FOR_CHILDREN);
                         break;
 
@@ -877,7 +867,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
                         /*
                          * if (pStatus.equals(REQUEST_PAUSE)) job.getStatus().setStatusCode(ETLJobStatus.ATTEMPT_PAUSE);
                          */
-                        if (pStatus.equals(REQUEST_CANCEL))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_CANCEL))
                             job.getStatus().setStatusCode(ETLJobStatus.ATTEMPT_CANCEL);
                         // the ETLDaemon will read from DB and then attempt to interrupt threat
                         break;
@@ -887,13 +877,13 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
                      * job.getStatus().setStatusCode(ETLJobStatus.ATTEMPT_CANCEL); break;
                      */
                     case ETLJobStatus.PAUSED:
-                        if (pStatus.equals(REQUEST_EXECUTE))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_EXECUTE))
                             job.getStatus().setStatusCode(ETLJobStatus.READY_TO_RUN);
-                        if (pStatus.equals(REQUEST_SKIP))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_SKIP))
                             job.getStatus().setStatusCode(ETLJobStatus.PENDING_CLOSURE_SKIP);
-                        if (pStatus.equals(REQUEST_SUCCESS))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_SUCCESS))
                             job.getStatus().setStatusCode(ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL);
-                        if (pStatus.equals(REQUEST_FAIL))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_FAIL))
                             job.getStatus().setStatusCode(ETLJobStatus.PENDING_CLOSURE_FAILED);
                         break;
 
@@ -903,15 +893,15 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
                     case ETLJobStatus.SKIPPED:
                     case ETLJobStatus.PENDING_CLOSURE_CANCELLED:
                     case ETLJobStatus.CANCELLED:
-                        if (pStatus.equals(REQUEST_EXECUTE))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_EXECUTE))
                             job.getStatus().setStatusCode(ETLJobStatus.READY_TO_RUN);
                         break;
 
                     case ETLJobStatus.FAILED:
                     case ETLJobStatus.PENDING_CLOSURE_FAILED:
-                        if (pStatus.equals(REQUEST_SUCCESS))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_SUCCESS))
                             job.getStatus().setStatusCode(ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL);
-                        if (pStatus.equals(REQUEST_EXECUTE))
+                        if (pStatus.equals(XMLMetadataBridge.REQUEST_EXECUTE))
                             job.getStatus().setStatusCode(ETLJobStatus.READY_TO_RUN);
                         break;
 
@@ -945,7 +935,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     public String setJobStatus(String pServerID, String pProjectID, String pJobID, int pLoadID, int pJobExecutionID,
             String pState) {
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 ETLJob j = md.getJob(pJobID, pLoadID, pJobExecutionID);
@@ -1003,11 +993,11 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
      * the job nodes, this code could have problem...
      */
     public String addJobsAndParams(String pServerID, String xmlFile) {
-        Element root = getNewDocument();
-        Element eStatus = addChildElement(root, "STATUS");
+        Element root = XMLMetadataBridge.getNewDocument();
+        Element eStatus = XMLMetadataBridge.addChildElement(root, "STATUS");
         eStatus.setTextContent("Failed");
         try {
-            synchronized (mLock) {
+            synchronized (XMLMetadataBridge.mLock) {
                 Metadata md = this.getMetadataByServer(pServerID);
 
                 if (xmlFile == null)

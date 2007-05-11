@@ -5,16 +5,16 @@ public class SharedCounter {
     int counter = 0;
 
     public synchronized int increment(int i) {
-        counter += i;
-        return counter;
+        this.counter += i;
+        return this.counter;
     }
 
     public int value() {
-        return counter;
+        return this.counter;
     }
 
     public void set(int newValue) {
-        counter = newValue;
+        this.counter = newValue;
     }
 
 }
