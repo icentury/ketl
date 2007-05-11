@@ -58,13 +58,13 @@ public class ETLJob {
 
     private void writeObject(ObjectOutputStream s) throws IOException {
         s.defaultWriteObject();
-        s.writeObject(moAction.toString());
+        s.writeObject(this.moAction.toString());
     }
 
     private void readObject(ObjectInputStream s) throws IOException {
         try {
             s.defaultReadObject();
-            moAction = s.readObject();
+            this.moAction = s.readObject();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -96,33 +96,33 @@ public class ETLJob {
      * @return Returns the parameterListCache.
      */
     public final HashMap getParameterListCache() {
-        return mTagLevelParameterListCache;
+        return this.mTagLevelParameterListCache;
     }
 
     /**
      * @param pParameterListCache The parameterListCache to set.
      */
     public final void setParameterListCache(HashMap pParameterListCache) {
-        mTagLevelParameterListCache = pParameterListCache;
+        this.mTagLevelParameterListCache = pParameterListCache;
     }
 
     /**
      * @return Returns the description.
      */
     public String getDescription() {
-        return Description;
+        return this.Description;
     }
 
     /**
      * @param description The description to set.
      */
     public void setDescription(String description) {
-        Description = description;
+        this.Description = description;
     }
 
     public String getXMLJobDefinition(Element rootNode) {
         try {
-            Element e = getJobAsXMLElement(rootNode);
+            Element e = this.getJobAsXMLElement(rootNode);
 
             return XMLHelper.outputXML(e);
         } catch (Exception e) {
@@ -134,7 +134,7 @@ public class ETLJob {
 
     public String getXMLJobDefinition() {
         try {
-            Element e = getJobAsXMLElement(null);
+            Element e = this.getJobAsXMLElement(null);
 
             return XMLHelper.outputXML(e);
         } catch (Exception e) {
@@ -195,26 +195,26 @@ public class ETLJob {
         else
             e.setAttribute("DISABLE_ALERTING", "N");
 
-        if (dependencies == null) {
-            dependencies = ResourcePool.getMetadata().getJobDependencies(this.getJobID());
+        if (this.dependencies == null) {
+            this.dependencies = ResourcePool.getMetadata().getJobDependencies(this.getJobID());
         }
 
-        for (int i = 0; i < dependencies.length; i++) {
+        for (String[] element : this.dependencies) {
             Element deps;
 
-            if (dependencies[i][1] == Metadata.DEPENDS_ON) {
+            if (element[1] == Metadata.DEPENDS_ON) {
                 deps = documentRoot.createElement("DEPENDS_ON");
             }
             else {
                 deps = documentRoot.createElement("WAITS_ON");
             }
 
-            deps.appendChild(documentRoot.createTextNode(dependencies[i][0]));
+            deps.appendChild(documentRoot.createTextNode(element[0]));
             e.appendChild(deps);
             e.appendChild(documentRoot.createTextNode("\n"));
         }
 
-        setChildNodes(e);
+        this.setChildNodes(e);
         e.appendChild(documentRoot.createTextNode("\n"));
         return e;
     }
@@ -240,27 +240,27 @@ public class ETLJob {
         String strWaitsOn = null;
         String strDependsOn = null;
 
-        if (dependencies == null) {
-            dependencies = ResourcePool.getMetadata().getJobDependencies(this.getJobID());
+        if (this.dependencies == null) {
+            this.dependencies = ResourcePool.getMetadata().getJobDependencies(this.getJobID());
         }
 
         StringBuffer sb = new StringBuffer();
 
-        for (int x = 0; x < dependencies.length; x++) {
-            if (dependencies[x][1] == Metadata.DEPENDS_ON) {
+        for (String[] element : this.dependencies) {
+            if (element[1] == Metadata.DEPENDS_ON) {
                 if (strDependsOn == null) {
-                    strDependsOn = "DEPENDS_ON (Critical dependencies)\n\t" + dependencies[x][0];
+                    strDependsOn = "DEPENDS_ON (Critical dependencies)\n\t" + element[0];
                 }
                 else {
-                    strDependsOn = strDependsOn + "\n\t" + dependencies[x][0];
+                    strDependsOn = strDependsOn + "\n\t" + element[0];
                 }
             }
             else {
                 if (strWaitsOn == null) {
-                    strWaitsOn = "WAITS_ON (Non-critical dependencies)\n\t" + dependencies[x][0];
+                    strWaitsOn = "WAITS_ON (Non-critical dependencies)\n\t" + element[0];
                 }
                 else {
-                    strWaitsOn = strWaitsOn + "\n\t" + dependencies[x][0];
+                    strWaitsOn = strWaitsOn + "\n\t" + element[0];
                 }
             }
         }
@@ -277,9 +277,9 @@ public class ETLJob {
     }
 
     public String getJobDefinition() throws Exception {
-        if (jobDefinition == null) {
-            if (dependencies == null) {
-                dependencies = ResourcePool.getMetadata().getJobDependencies(this.getJobID());
+        if (this.jobDefinition == null) {
+            if (this.dependencies == null) {
+                this.dependencies = ResourcePool.getMetadata().getJobDependencies(this.getJobID());
             }
 
             String strWaitsOn = null;
@@ -287,21 +287,21 @@ public class ETLJob {
 
             StringBuffer sb = new StringBuffer();
 
-            for (int x = 0; x < dependencies.length; x++) {
-                if (dependencies[x][1] == Metadata.DEPENDS_ON) {
+            for (String[] element : this.dependencies) {
+                if (element[1] == Metadata.DEPENDS_ON) {
                     if (strDependsOn == null) {
-                        strDependsOn = "--   DEPENDS_ON = " + dependencies[x][0];
+                        strDependsOn = "--   DEPENDS_ON = " + element[0];
                     }
                     else {
-                        strDependsOn = strDependsOn + ", " + dependencies[x][0];
+                        strDependsOn = strDependsOn + ", " + element[0];
                     }
                 }
                 else {
                     if (strWaitsOn == null) {
-                        strWaitsOn = "--   WAITS_ON = " + dependencies[x][0];
+                        strWaitsOn = "--   WAITS_ON = " + element[0];
                     }
                     else {
-                        strWaitsOn = strWaitsOn + ", " + dependencies[x][0];
+                        strWaitsOn = strWaitsOn + ", " + element[0];
                     }
                 }
             }
@@ -327,24 +327,24 @@ public class ETLJob {
             sb.append("-- }\n");
             sb.append(this.getAction(false) + "\n");
             sb.append("-- END_SQL_JOB\n");
-            jobDefinition = sb.toString();
+            this.jobDefinition = sb.toString();
         }
 
-        return (jobDefinition);
+        return (this.jobDefinition);
     }
 
     /**
      * @return Returns the name.
      */
     public String getName() {
-        return Name;
+        return this.Name;
     }
 
     /**
      * @param name The name to set.
      */
     public void setName(String name) {
-        Name = name;
+        this.Name = name;
     }
 
     /**
@@ -355,8 +355,8 @@ public class ETLJob {
     public ETLJob() throws Exception {
         super();
 
-        if (jsStatus == null) {
-            jsStatus = new ETLJobStatus();
+        if (this.jsStatus == null) {
+            this.jsStatus = new ETLJobStatus();
         }
     }
 
@@ -370,7 +370,7 @@ public class ETLJob {
 
     public ETLJob(ETLJobStatus pjsStatus) throws Exception {
         this();
-        jsStatus = pjsStatus;
+        this.jsStatus = pjsStatus;
     }
 
     /**
@@ -379,41 +379,39 @@ public class ETLJob {
      * @return boolean
      */
     public boolean cancelJob() {
-        return setCancelJob(true);
+        return this.setCancelJob(true);
     }
 
     /**
      * To be used by jobs that have connections to close, etc. Creation date: (5/9/2002 2:27:36 PM)
      */
     public void cleanup() {
-        closeLog();
+        this.closeLog();
     }
 
     /**
      * Insert the method's description here. Creation date: (5/8/2002 3:32:26 PM)
-     * @param resolveConstants TODO
      * 
+     * @param resolveConstants TODO
      * @return java.lang.String
      */
     public Object getAction(boolean resolveConstants) {
-        if (moAction instanceof String) {
-            String strAction = (String) moAction;
+        if (this.moAction instanceof String) {
+            String strAction = (String) this.moAction;
 
             if (strAction != null && resolveConstants) {
-                strAction = getInternalConstants(strAction);
+                strAction = this.getInternalConstants(strAction);
             }
 
             return strAction;
         }
 
-        return moAction;
+        return this.moAction;
     }
 
     public String getInternalConstants(String strAction) {
-        // replace any load id variables with real load id's
-        for (int i = 0; i < EngineConstants.PARAMETER_LOAD_ID.length; i++) {
-            strAction = EngineConstants.replaceParameter(strAction, EngineConstants.PARAMETER_LOAD_ID[i], new Integer(
-                    this.getLoadID()).toString());
+        for (String element : EngineConstants.PARAMETER_LOAD_ID) {
+            strAction = EngineConstants.replaceParameter(strAction, element, new Integer(this.getLoadID()).toString());
         }
 
         // replace any date variables with real load id's
@@ -441,10 +439,9 @@ public class ETLJob {
             }
         }
 
-        // replace any job execution id variables with real job execution id's
-        for (int i = 0; i < EngineConstants.PARAMETER_JOB_EXECUTION_ID.length; i++) {
-            strAction = EngineConstants.replaceParameter(strAction, EngineConstants.PARAMETER_JOB_EXECUTION_ID[i],
-                    new Integer(this.getJobExecutionID()).toString());
+        for (String element : EngineConstants.PARAMETER_JOB_EXECUTION_ID) {
+            strAction = EngineConstants.replaceParameter(strAction, element, new Integer(this.getJobExecutionID())
+                    .toString());
         }
         return strAction;
     }
@@ -455,7 +452,7 @@ public class ETLJob {
      * @return int
      */
     public int getJobExecutionID() {
-        return iJobExecutionID;
+        return this.iJobExecutionID;
     }
 
     /**
@@ -464,7 +461,7 @@ public class ETLJob {
      * @return int
      */
     public String getJobID() {
-        return sJobID;
+        return this.sJobID;
     }
 
     /**
@@ -473,7 +470,7 @@ public class ETLJob {
      * @return int
      */
     public int getLoadID() {
-        return iLoadID;
+        return this.iLoadID;
     }
 
     /**
@@ -482,7 +479,7 @@ public class ETLJob {
      * @return int
      */
     public int getMaxRetries() {
-        return MaxRetries;
+        return this.MaxRetries;
     }
 
     /**
@@ -502,7 +499,7 @@ public class ETLJob {
      * @return int
      */
     public int getRetryAttempts() {
-        return RetryAttempts;
+        return this.RetryAttempts;
     }
 
     /**
@@ -511,7 +508,7 @@ public class ETLJob {
      * @return int
      */
     public int getSecondsBeforeRetry() {
-        return SecondsBeforeRetry;
+        return this.SecondsBeforeRetry;
     }
 
     /**
@@ -523,23 +520,22 @@ public class ETLJob {
      * @return com.kni.etl.ETLJobStatus
      */
     public ETLJobStatus getStatus() {
-        return jsStatus;
+        return this.jsStatus;
     }
 
-    
     private boolean bCancelSuccessfull = false;
-    
-    public void cancelSuccessfull(boolean arg0){
-        bCancelSuccessfull = arg0;
+
+    public void cancelSuccessfull(boolean arg0) {
+        this.bCancelSuccessfull = arg0;
     }
-    
+
     /**
      * Insert the method's description here. Creation date: (5/3/2002 5:28:54 PM)
      * 
      * @return boolean
      */
     public boolean isCancelSuccessfull() {
-        return bCancelSuccessfull;
+        return this.bCancelSuccessfull;
     }
 
     /**
@@ -548,7 +544,7 @@ public class ETLJob {
      * @return boolean
      */
     public synchronized boolean isCancelled() {
-        return bCancelJob;
+        return this.bCancelJob;
     }
 
     /**
@@ -557,7 +553,7 @@ public class ETLJob {
      * @return boolean
      */
     public synchronized boolean isCompleted() {
-        switch (jsStatus.getStatusCode()) {
+        switch (this.jsStatus.getStatusCode()) {
         case ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL:
         case ETLJobStatus.PENDING_CLOSURE_FAILED:
         case ETLJobStatus.PENDING_CLOSURE_CANCELLED:
@@ -568,7 +564,7 @@ public class ETLJob {
     }
 
     public synchronized boolean isSuccessful() {
-        switch (jsStatus.getStatusCode()) {
+        switch (this.jsStatus.getStatusCode()) {
         case ETLJobStatus.SUCCESSFUL:
         case ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL:
             return true;
@@ -584,7 +580,7 @@ public class ETLJob {
      * @throws Exception TODO
      */
     public void setAction(Object oAction) throws Exception {
-        moAction = oAction;
+        this.moAction = oAction;
     }
 
     /**
@@ -595,13 +591,13 @@ public class ETLJob {
      */
     public boolean setCancelJob(boolean bCancel) {
         // Cannot change the cancel flag if we're already completed...
-        if (isCompleted() == true) {
+        if (this.isCompleted() == true) {
             return false;
         }
 
         // Only set the flag if it's a new value...
-        if (bCancel != bCancelJob) {
-            bCancelJob = bCancel;
+        if (bCancel != this.bCancelJob) {
+            this.bCancelJob = bCancel;
 
             return true;
         }
@@ -615,7 +611,7 @@ public class ETLJob {
      * @param newJobExecutionID int
      */
     public void setJobExecutionID(int newJobExecutionID) {
-        iJobExecutionID = newJobExecutionID;
+        this.iJobExecutionID = newJobExecutionID;
     }
 
     /**
@@ -624,7 +620,7 @@ public class ETLJob {
      * @param newJobID int
      */
     public void setJobID(String newJobID) {
-        sJobID = newJobID;
+        this.sJobID = newJobID;
     }
 
     /**
@@ -633,7 +629,7 @@ public class ETLJob {
      * @param newLoadID int
      */
     public void setLoadID(int newLoadID) {
-        iLoadID = newLoadID;
+        this.iLoadID = newLoadID;
     }
 
     /**
@@ -642,7 +638,7 @@ public class ETLJob {
      * @param newMaxRetries int
      */
     public void setMaxRetries(int newMaxRetries) {
-        MaxRetries = newMaxRetries;
+        this.MaxRetries = newMaxRetries;
     }
 
     /**
@@ -665,7 +661,7 @@ public class ETLJob {
      * @param newRetryAttempts int
      */
     public void setRetryAttempts(int newRetryAttempts) {
-        RetryAttempts = newRetryAttempts;
+        this.RetryAttempts = newRetryAttempts;
     }
 
     /**
@@ -678,7 +674,7 @@ public class ETLJob {
             this.SecondsBeforeRetry = 0;
         }
         else {
-            SecondsBeforeRetry = newSecondsBeforeRetry;
+            this.SecondsBeforeRetry = newSecondsBeforeRetry;
         }
     }
 
@@ -687,6 +683,7 @@ public class ETLJob {
      * 
      * @return a string representation of the receiver
      */
+    @Override
     public String toString() {
         // Insert code to print the receiver here.
         // This implementation forwards the message to super. You may replace or supplement this.
@@ -697,28 +694,28 @@ public class ETLJob {
      * @return
      */
     public java.util.Date getCreationDate() {
-        return mdCreationDate;
+        return this.mdCreationDate;
     }
 
     /**
      * @return Returns the projectID.
      */
     public int getProjectID() {
-        return ProjectID;
+        return this.ProjectID;
     }
 
     /**
      * @param projectID The projectID to set.
      */
     public void setProjectID(int projectID) {
-        ProjectID = projectID;
+        this.ProjectID = projectID;
     }
 
     /**
      * @return Returns the parameterListID.
      */
     public int getGlobalParameterListID() {
-        return miGlobalParameterListID;
+        return this.miGlobalParameterListID;
     }
 
     /**
@@ -762,14 +759,14 @@ public class ETLJob {
      * @return Returns the disableAlerting.
      */
     public boolean isAlertingDisabled() {
-        return DisableAlerting;
+        return this.DisableAlerting;
     }
 
     /**
      * @param disableAlerting The disableAlerting to set.
      */
     public void setDisableAlerting(boolean disableAlerting) {
-        DisableAlerting = disableAlerting;
+        this.DisableAlerting = disableAlerting;
     }
 
     public String getParameterValue(String parameterListName, String parameterName, String defaultValue) {
@@ -857,7 +854,7 @@ public class ETLJob {
     }
 
     private void flushLog() throws IOException {
-        if (moDump != null) {
+        if (this.moDump != null) {
             this.mDumpWriter.flush();
             this.moDumpBuffer.flush();
             this.moDump.flush();
@@ -867,7 +864,7 @@ public class ETLJob {
     private void closeLog() {
         if (this.mLoggerFailed == false && this.moDump != null) {
             try {
-                if (moDump != null) {
+                if (this.moDump != null) {
                     this.mDumpWriter.flush();
                     this.mDumpWriter.close();
                     this.moDumpBuffer.close();
@@ -898,18 +895,18 @@ public class ETLJob {
         if (this.mLoggerFailed)
             return;
         try {
-            if (moDump == null) {
-                mDumpFile = this.getLoggingPath() + File.separator + this.getJobID() + "."
+            if (this.moDump == null) {
+                this.mDumpFile = this.getLoggingPath() + File.separator + this.getJobID() + "."
                         + this.getJobExecutionID() + ".joblog";
-                moDump = new FileOutputStream(mDumpFile);
-                moDumpBuffer = new BufferedOutputStream(moDump);
-                mDumpWriter = new PrintWriter(moDumpBuffer);
+                this.moDump = new FileOutputStream(this.mDumpFile);
+                this.moDumpBuffer = new BufferedOutputStream(this.moDump);
+                this.mDumpWriter = new PrintWriter(this.moDumpBuffer);
             }
 
             if (obj instanceof Error)
-                ((Error) obj).printStackTrace(mDumpWriter);
+                ((Error) obj).printStackTrace(this.mDumpWriter);
             else
-                mDumpWriter.println(obj.toString());
+                this.mDumpWriter.println(obj.toString());
 
         } catch (IOException e) {
             this.mLoggerFailed = true;
@@ -930,7 +927,7 @@ public class ETLJob {
             ResourcePool.LogException(e, this);
             rootPath = "log";
         }
-        
+
         return rootPath;
     }
 
