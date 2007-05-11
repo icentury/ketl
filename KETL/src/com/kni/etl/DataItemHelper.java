@@ -26,47 +26,47 @@ public class DataItemHelper {
 
     public static final int getDataTypeIDbyName(String pDataTypeName) {
         if (pDataTypeName == null) {
-            return STRING;
+            return DataItemHelper.STRING;
         }
 
         if (pDataTypeName.equals("FLOAT")) {
-            return FLOAT;
+            return DataItemHelper.FLOAT;
         }
 
         if (pDataTypeName.equals("STRING")) {
-            return STRING;
+            return DataItemHelper.STRING;
         }
 
         if (pDataTypeName.equals("LONG")) {
-            return LONG;
+            return DataItemHelper.LONG;
         }
 
         if (pDataTypeName.equals("INTEGER")) {
-            return INTEGER;
+            return DataItemHelper.INTEGER;
         }
 
         if (pDataTypeName.equals("DATE")) {
-            return DATE;
+            return DataItemHelper.DATE;
         }
 
         if (pDataTypeName.equals("DOUBLE")) {
-            return DOUBLE;
+            return DataItemHelper.DOUBLE;
         }
 
         if (pDataTypeName.equals("CHAR")) {
-            return CHAR;
+            return DataItemHelper.CHAR;
         }
 
         if (pDataTypeName.equals("CHARARRAY")) {
-            return CHARARRAY;
+            return DataItemHelper.CHARARRAY;
         }
 
         if (pDataTypeName.equals("BOOLEAN")) {
-            return BOOLEAN;
+            return DataItemHelper.BOOLEAN;
         }
 
         if (pDataTypeName.equals("BYTEARRAY")) {
-            return BYTEARRAY;
+            return DataItemHelper.BYTEARRAY;
         }
 
         return -1;
