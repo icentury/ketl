@@ -6,7 +6,7 @@ import com.kni.etl.dbutils.JDBCItemHelper;
 
 public class HSQLDBItemHelper extends JDBCItemHelper {
 
-   static public String getType(Class cl, boolean isKey) throws SQLException {
+    static public String getType(Class cl, boolean isKey) throws SQLException {
         if (cl == Integer.class)
             return "INTEGER";
         if (cl == Double.class)
