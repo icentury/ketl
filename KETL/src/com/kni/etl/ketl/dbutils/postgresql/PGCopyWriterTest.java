@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Date;
 
+import junit.framework.Assert;
 import junit.framework.TestCase;
 
 public class PGCopyWriterTest extends TestCase {
@@ -21,7 +22,7 @@ public class PGCopyWriterTest extends TestCase {
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException cnfe) {
             cnfe.printStackTrace();
-            fail("Couldn't find driver class:");
+            Assert.fail("Couldn't find driver class:");
 
         }
 
@@ -34,7 +35,7 @@ public class PGCopyWriterTest extends TestCase {
                 c = DriverManager.getConnection("jdbc:postgresql://localhost/postgres", "postgres", "postgres");
             } catch (SQLException se) {
                 se.printStackTrace();
-                fail("Couldn't connect: print out a stack trace and exit.");
+                Assert.fail("Couldn't connect: print out a stack trace and exit.");
 
             }
 
@@ -43,7 +44,7 @@ public class PGCopyWriterTest extends TestCase {
                 stmt = c.createStatement();
             } catch (SQLException e) {
                 e.printStackTrace();
-                fail("Creating statement");
+                Assert.fail("Creating statement");
             }
 
             String tableName = "COPYTEST" + System.nanoTime();
@@ -52,7 +53,7 @@ public class PGCopyWriterTest extends TestCase {
                         + "(colStr text,colDbl double precision, colInt integer,colTimestamp timestamp)");
             } catch (SQLException e) {
                 e.printStackTrace();
-                fail("Creating target test table " + tableName);
+                Assert.fail("Creating target test table " + tableName);
             }
 
             PGCopyWriter copyWriter = null;
@@ -60,7 +61,7 @@ public class PGCopyWriterTest extends TestCase {
                 copyWriter = new PGCopyWriter(c);
             } catch (SQLException e) {
                 e.printStackTrace();
-                fail("Instantiating copy writer");
+                Assert.fail("Instantiating copy writer");
             }
 
             copyWriter.createLoadCommand(tableName, new String[] { "colStr", "colDbl", "colInt", "colTimestamp" });
@@ -82,20 +83,20 @@ public class PGCopyWriterTest extends TestCase {
                     copyWriter.setTimestamp(4, new java.sql.Timestamp(i));
                 } catch (IOException e) {
                     e.printStackTrace();
-                    fail("Writing field to record for submission to db using copy writer");
+                    Assert.fail("Writing field to record for submission to db using copy writer");
                 }
 
                 try {
                     copyWriter.addBatch();
                 } catch (Exception e) {
-                    fail("Submitting record into batch");
+                    Assert.fail("Submitting record into batch");
                 }
 
                 if (i % 50000 == 0 || i == vals) {
                     try {
                         copyWriter.executeBatch();
                     } catch (Exception e) {
-                        fail("Submitting batch");
+                        Assert.fail("Submitting batch");
                     }
                     System.out.println("Submitting batch, records inserted: " + i);
 
@@ -105,7 +106,7 @@ public class PGCopyWriterTest extends TestCase {
             try {
                 c.commit();
             } catch (Exception e) {
-                fail("Commit data");
+                Assert.fail("Commit data");
             }
 
             float time = (new Date().getTime() - st.getTime()) / (float) 1000;
@@ -115,20 +116,20 @@ public class PGCopyWriterTest extends TestCase {
             try {
                 copyWriter.close();
             } catch (Exception e) {
-                fail("Close copy writer");
+                Assert.fail("Close copy writer");
             }
 
             try {
                 stmt.executeUpdate("drop table " + tableName);
             } catch (Exception e) {
-                fail("Drop target table " + tableName);
+                Assert.fail("Drop target table " + tableName);
             }
         } finally {
 
             try {
                 c.close();
             } catch (SQLException e) {
-                fail("Closing connection");
+                Assert.fail("Closing connection");
                 e.printStackTrace();
             }
         }
