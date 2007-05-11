@@ -5,8 +5,6 @@
 package com.kni.etl;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
 import com.kni.etl.util.XMLHelper;
 
 /**
@@ -82,7 +80,7 @@ public class ETLJobStatus extends ETLStatus {
 
     public void setStats(String name, int partitions, int partitionID, int recordReaderCount, int recordWriterCount,
             int recordReadErrorCount, int recordWriteErrorCount, long timing) {
-        Element e = getStatsNode();
+        Element e = this.getStatsNode();
 
         Element step = (Element) XMLHelper.getElementByName(e, "STEP", "NAME", name);
 
@@ -107,7 +105,7 @@ public class ETLJobStatus extends ETLStatus {
 
     public void setStats(int recordReaderCount, int recordWriterCount, int recordReadErrorCount,
             int recordWriteErrorCount, long executionTime) {
-        Element e = getStatsNode();
+        Element e = this.getStatsNode();
 
         e.setAttribute("READ", Integer.toString(recordReaderCount));
         e.setAttribute("WRITE", Integer.toString(recordWriterCount));
@@ -118,7 +116,7 @@ public class ETLJobStatus extends ETLStatus {
     }
 
     public void setStats(int statement, int updateCount, long executionTime) {
-        Element e = getStatsNode();
+        Element e = this.getStatsNode();
 
         Element step = e.getOwnerDocument().createElement("STATEMENT");
         e.appendChild(step);
