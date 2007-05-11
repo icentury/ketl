@@ -50,10 +50,10 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.mDatumTrueSQLTimestamp = new boolean[madcdColumns.length];
         this.mDatumPadLength = new int[madcdColumns.length];
         this.mDatumNeedsDelimiter = new boolean[madcdColumns.length];
-        this.dateFormatter = new SimpleDateFormat(dateTimeFormat);
-        this.sqlTimeFormatter = new SimpleDateFormat(sqlTimeFormat);
-        this.sqlTimestampFormatter = new SimpleDateFormat(sqlTimestampFormat);
-        this.sqlDateFormatter = new SimpleDateFormat(dateTimeFormat);
+        this.dateFormatter = new SimpleDateFormat(this.dateTimeFormat);
+        this.sqlTimeFormatter = new SimpleDateFormat(this.sqlTimeFormat);
+        this.sqlTimestampFormatter = new SimpleDateFormat(this.sqlTimestampFormat);
+        this.sqlDateFormatter = new SimpleDateFormat(this.dateTimeFormat);
         this.doubleFormatter = new DecimalFormat();
         this.doubleFormatter.setGroupingUsed(false);
 
@@ -82,73 +82,74 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
             Class pClass = madcdColumns[i].getSourceClass();
 
             // by default not delimiter
-            mDatumNeedsDelimiter[i] = false;
+            this.mDatumNeedsDelimiter[i] = false;
 
             if (pClass == Short.class || pClass == short.class) {
                 cols.append("INTEGER(2) NULLIF NC" + i + "=X'0', NC" + i + " FILLER BYTEINT");
-                recordLenSize += 3;
+                this.recordLenSize += 3;
             }
             else if (pClass == Integer.class || pClass == int.class) {
                 cols.append("INTEGER(4)NULLIF NC" + i + "=X'0', NC" + i + " FILLER BYTEINT");
-                recordLenSize += 5;
+                this.recordLenSize += 5;
             }
             else if (pClass == Double.class || pClass == double.class) {
                 cols.append("DOUBLE NULLIF NC" + i + "=X'0', NC" + i + " FILLER BYTEINT");
-                recordLenSize += 9;
+                this.recordLenSize += 9;
             }
             else if (pClass == Float.class || pClass == float.class) {
                 cols.append("FLOAT NULLIF NC" + i + "=X'0', NC" + i + " FILLER BYTEINT");
-                recordLenSize += 5;
+                this.recordLenSize += 5;
             }
             else if (pClass == Long.class || pClass == long.class) {
                 cols.append("INTEGER(8) NULLIF NC" + i + "=X'0', NC" + i + " FILLER BYTEINT");
-                recordLenSize += 9;
+                this.recordLenSize += 9;
             }
             else if (pClass == String.class) {
                 this.mDatumPadLength[i] = Integer.toString(this.mColumnDetails[i].iSize).length();
 
                 cols.append("VARCHARC(" + this.mDatumPadLength[i] + "," + this.mColumnDetails[i].iSize + ")");
-                recordLenSize += this.mColumnDetails[i].iSize + this.mDatumPadLength[i];
+                this.recordLenSize += this.mColumnDetails[i].iSize + this.mDatumPadLength[i];
             }
             else if (pClass == java.util.Date.class) {
-                mDatumNeedsDelimiter[i] = i < mColumns - 1 ? true : false;
+                this.mDatumNeedsDelimiter[i] = i < this.mColumns - 1 ? true : false;
                 cols.append(madcdColumns[i].sTypeName + " \"" + this.ORACLE_DATE_FORMAT + "\""
                         + (i == madcdColumns.length - 1 ? "" : "  terminated by \"|\""));
-                recordLenSize += this.ORACLE_DATE_FORMAT.getBytes().length + DEL_LENGTH;
+                this.recordLenSize += this.ORACLE_DATE_FORMAT.getBytes().length + SQLLoaderStatementWrapper.DEL_LENGTH;
             }
             else if (pClass == java.sql.Date.class) {
-                mDatumNeedsDelimiter[i] = i < mColumns - 1 ? true : false;
+                this.mDatumNeedsDelimiter[i] = i < this.mColumns - 1 ? true : false;
                 cols.append(madcdColumns[i].sTypeName + " \"" + this.ORACLE_DATE_FORMAT + "\""
                         + (i == madcdColumns.length - 1 ? "" : "  terminated by \"|\""));
-                recordLenSize += this.ORACLE_DATE_FORMAT.getBytes().length + DEL_LENGTH;
+                this.recordLenSize += this.ORACLE_DATE_FORMAT.getBytes().length + SQLLoaderStatementWrapper.DEL_LENGTH;
             }
             else if (pClass == java.sql.Time.class) {
-                mDatumNeedsDelimiter[i] = i < mColumns - 1 ? true : false;
+                this.mDatumNeedsDelimiter[i] = i < this.mColumns - 1 ? true : false;
                 cols.append(madcdColumns[i].sTypeName + " \"" + this.ORACLE_TIME_FORMAT + "\""
                         + (i == madcdColumns.length - 1 ? "" : "  terminated by \"|\""));
-                recordLenSize += this.ORACLE_TIME_FORMAT.getBytes().length + DEL_LENGTH;
+                this.recordLenSize += this.ORACLE_TIME_FORMAT.getBytes().length + SQLLoaderStatementWrapper.DEL_LENGTH;
             }
             else if (pClass == java.sql.Timestamp.class) {
-                mDatumNeedsDelimiter[i] = i < mColumns - 1 ? true : false;
-                mDatumTrueSQLTimestamp[i] = madcdColumns[i].sTypeName.startsWith("TIMESTAMP");
+                this.mDatumNeedsDelimiter[i] = i < this.mColumns - 1 ? true : false;
+                this.mDatumTrueSQLTimestamp[i] = madcdColumns[i].sTypeName.startsWith("TIMESTAMP");
 
                 cols.append(madcdColumns[i].sTypeName + " \""
-                        + (mDatumTrueSQLTimestamp[i] ? this.ORACLE_TIMESTAMP_FORMAT : this.ORACLE_DATE_FORMAT) + "\""
-                        + (i == madcdColumns.length - 1 ? "" : "  terminated by \"|\""));
+                        + (this.mDatumTrueSQLTimestamp[i] ? this.ORACLE_TIMESTAMP_FORMAT : this.ORACLE_DATE_FORMAT)
+                        + "\"" + (i == madcdColumns.length - 1 ? "" : "  terminated by \"|\""));
 
-                recordLenSize += this.ORACLE_TIMESTAMP_FORMAT.getBytes().length + DEL_LENGTH;
+                this.recordLenSize += this.ORACLE_TIMESTAMP_FORMAT.getBytes().length
+                        + SQLLoaderStatementWrapper.DEL_LENGTH;
             }
             else if (pClass == Boolean.class || pClass == boolean.class) {
                 throw new IOException("Oracle does not support the followin datatype " + pClass.getCanonicalName());
             }
             else if (pClass == Character.class || pClass == char.class) {
                 cols.append("CHAR(1) " + (i == madcdColumns.length - 1 ? "" : "  terminated by \"|\""));
-                recordLenSize += 4 + DEL_LENGTH;
+                this.recordLenSize += 4 + SQLLoaderStatementWrapper.DEL_LENGTH;
             }
             else if (pClass == Byte[].class || pClass == byte[].class) {
                 this.mDatumPadLength[i] = Integer.toString(this.mColumnDetails[i].iSize).length();
                 cols.append("VARRAWC(" + this.mDatumPadLength[i] + "," + this.mColumnDetails[i].iSize + ")");
-                recordLenSize += this.mColumnDetails[i].iSize + this.mDatumPadLength[i];
+                this.recordLenSize += this.mColumnDetails[i].iSize + this.mDatumPadLength[i];
             }
             else {
                 throw new IOException("Datatype not supported " + pClass.getCanonicalName());
@@ -156,32 +157,35 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
         }
 
-        recordLenSize = Integer.toString(recordLenSize).length();
+        this.recordLenSize = Integer.toString(this.recordLenSize).length();
 
-        String template = "LOAD DATA  LENGTH CHARACTER BYTEORDER BIG ENDIAN INFILE '" + getDataFile() + "' \"VAR "
-                + recordLenSize
+        String template = "LOAD DATA  LENGTH CHARACTER BYTEORDER BIG ENDIAN INFILE '" + this.getDataFile() + "' \"VAR "
+                + this.recordLenSize
                 + "\" APPEND INTO TABLE ${DESTINATIONTABLENAME}\n\tTRAILING NULLCOLS (${DESTINATIONCOLUMNS})\n\t";
 
         template = EngineConstants.replaceParameterV2(template, "DESTINATIONCOLUMNS", cols.toString());
         template = EngineConstants.replaceParameterV2(template, "DESTINATIONTABLENAME", pTableName);
 
         File file = File.createTempFile("KETL", ".def");
-        mControlFile = file.getAbsolutePath();
+        this.mControlFile = file.getAbsolutePath();
         Writer out = new FileWriter(file);
         out.write(template);
         out.close();
         template = EngineConstants.replaceParameterV2(template, "DESTINATIONTABLENAME", pTableName);
 
         this.mLoadStatement = EngineConstants.replaceParameterV2(loadStatement, "CONTROLFILE", this.mControlFile);
-        this.mLoadStatement = EngineConstants.replaceParameterV2(mLoadStatement, "BADDATA", this.mControlFile + ".bad");
-        this.mLoadStatement = EngineConstants.replaceParameterV2(mLoadStatement, "LOG", this.mControlFile + ".log");
+        this.mLoadStatement = EngineConstants.replaceParameterV2(this.mLoadStatement, "BADDATA", this.mControlFile
+                + ".bad");
+        this.mLoadStatement = EngineConstants
+                .replaceParameterV2(this.mLoadStatement, "LOG", this.mControlFile + ".log");
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, this.mLoadStatement);
     }
 
+    @Override
     final public void close() throws SQLException {
         super.close();
         // delete control file
-        File fl = new File(mControlFile);
+        File fl = new File(this.mControlFile);
         fl.delete();
     }
 
@@ -217,10 +221,12 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
     private final static byte[] TRUE = "1".getBytes();
     private final static byte[] FALSE = "0".getBytes();
 
+    @Override
     public void setBoolean(int pos, boolean arg0) {
-        this.setObject(pos, arg0 ? TRUE : FALSE);
+        this.setObject(pos, arg0 ? SQLLoaderStatementWrapper.TRUE : SQLLoaderStatementWrapper.FALSE);
     }
 
+    @Override
     public void setByteArrayValue(int pos, byte[] arg0) {
         String sLen = Integer.toString(arg0.length);
         sLen = this.pad(sLen, this.mDatumPadLength[pos - 1], '0');
@@ -233,47 +239,56 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, z);
     }
 
+    @Override
     public void setFloat(int pos, Float arg0) {
-        this.setObject(pos, packF4(arg0));
+        this.setObject(pos, SQLLoaderStatementWrapper.packF4(arg0));
     }
 
+    @Override
     public void setInt(int pos, Integer arg0) {
-        this.setObject(pos, pack4(arg0));
+        this.setObject(pos, SQLLoaderStatementWrapper.pack4(arg0));
     }
 
+    @Override
     public void setLong(int pos, Long arg0) {
-        this.setObject(pos, pack8(arg0));
+        this.setObject(pos, SQLLoaderStatementWrapper.pack8(arg0));
     }
 
+    @Override
     public void setShort(int pos, Short arg0) {
-        this.setObject(pos, pack2(arg0));
+        this.setObject(pos, SQLLoaderStatementWrapper.pack2(arg0));
     }
 
+    @Override
     public void setDouble(int pos, Double arg0) {
-        this.setObject(pos, packF8(arg0));
+        this.setObject(pos, SQLLoaderStatementWrapper.packF8(arg0));
     }
 
+    @Override
     public void setNull(int pos, int dataType) {
         switch (dataType) {
         case java.sql.Types.VARCHAR:
         case java.sql.Types.BLOB:
-            mDatums[pos - 1] = this.pad("0", this.mDatumPadLength[pos - 1], '0').getBytes();
+            this.mDatums[pos - 1] = this.pad("0", this.mDatumPadLength[pos - 1], '0').getBytes();
             break;
         default:
-            mDatums[pos - 1] = mNull;
+            this.mDatums[pos - 1] = SQLLoaderStatementWrapper.mNull;
         }
 
-        recordLen += mDatums[pos - 1].length + (this.mDatumNeedsDelimiter[pos - 1] ? DEL_LENGTH : 0);
+        this.recordLen += this.mDatums[pos - 1].length
+                + (this.mDatumNeedsDelimiter[pos - 1] ? SQLLoaderStatementWrapper.DEL_LENGTH : 0);
 
     }
 
+    @Override
     public void setObject(int pos, byte[] arg0) {
 
-        mDatums[pos - 1] = arg0;
-        recordLen += arg0.length + (this.mDatumNeedsDelimiter[pos - 1] ? DEL_LENGTH : 0);
+        this.mDatums[pos - 1] = arg0;
+        this.recordLen += arg0.length + (this.mDatumNeedsDelimiter[pos - 1] ? SQLLoaderStatementWrapper.DEL_LENGTH : 0);
 
     }
 
+    @Override
     public void setString(int pos, String arg0) {
 
         this.setObject(pos, (this.pad(Integer.toString(arg0.length()), this.mDatumPadLength[pos - 1], '0') + arg0)
@@ -281,18 +296,21 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     }
 
+    @Override
     public void setTimestamp(int pos, Date arg0) {
         this.setObject(pos, this.dateFormatter.format(arg0).getBytes());
     }
 
+    @Override
     public void setSQLDate(int pos, java.sql.Date arg0) {
 
         this.setObject(pos, this.sqlDateFormatter.format(arg0).getBytes());
     }
 
+    @Override
     public void setSQLTimestamp(int pos, java.sql.Timestamp arg0) {
 
-        if (mDatumTrueSQLTimestamp[pos - 1] == false) {
+        if (this.mDatumTrueSQLTimestamp[pos - 1] == false) {
             this.setTimestamp(pos, arg0);
             return;
         }
@@ -338,11 +356,11 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
     }
 
     public static byte[] packF4(Float val) {
-        return pack4(val == null ? null : Float.floatToIntBits(val));
+        return SQLLoaderStatementWrapper.pack4(val == null ? null : Float.floatToIntBits(val));
     }
 
     public static byte[] packF8(Double val) {
-        return pack8(val == null ? null : Double.doubleToLongBits(val));
+        return SQLLoaderStatementWrapper.pack8(val == null ? null : Double.doubleToLongBits(val));
     }
 
     StringBuffer tmpPadBuffer = new StringBuffer();
@@ -357,16 +375,17 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         if (diff < 0)
             throw new Error("Input string length greater than requested length");
 
-        tmpPadBuffer.setLength(0);
+        this.tmpPadBuffer.setLength(0);
 
         for (int i = 0; i < diff; i++)
-            tmpPadBuffer.append(padChar);
+            this.tmpPadBuffer.append(padChar);
 
-        tmpPadBuffer.append(word);
+        this.tmpPadBuffer.append(word);
 
-        return tmpPadBuffer.toString();
+        return this.tmpPadBuffer.toString();
     }
 
+    @Override
     public void setSQLTime(int pos, java.sql.Time arg0) {
         this.setObject(pos, this.sqlTimeFormatter.format(arg0).getBytes());
     }
@@ -378,18 +397,18 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
             break;
         case EX_WARN:
             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-                    "SQL*Loader reported a warning, check the log " + mControlFile + ".log");
+                    "SQL*Loader reported a warning, check the log " + this.mControlFile + ".log");
             break;
         default:
             Thread.sleep(1000);
-            if (filesOpen() == false) {
+            if (this.filesOpen() == false) {
                 // this is here in the event that the pipe fails and hangs the other thread
                 ResourcePool.LogException(new KETLWriteException("STDERROR:" + this.getStandardErrorMessage()
                         + "\nSTDOUT:" + this.getStandardOutMessage()), thread);
                 if (thread != Thread.currentThread())
                     thread.interrupt();
             }
-            return new SQLException("SQL*Loader Failed\nExtended Log: " + mControlFile + ".log\nError code: "
+            return new SQLException("SQL*Loader Failed\nExtended Log: " + this.mControlFile + ".log\nError code: "
                     + finalStatus + "\nSTDERROR:" + this.getStandardErrorMessage() + "\nSTDOUT:"
                     + this.getStandardOutMessage());
         }
@@ -399,13 +418,13 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     @Override
     protected void writeRecord() throws IOException, Error {
-        this.mWriter.write(pad(Integer.toString(recordLen), recordLenSize, '0').getBytes());
+        this.mWriter.write(this.pad(Integer.toString(this.recordLen), this.recordLenSize, '0').getBytes());
 
-        recordLen = 0;
-        for (int i = 0; i < mColumns; i++) {
-            this.mWriter.write((byte[]) this.mDatums[i]);
-            if (this.mDatumNeedsDelimiter[i] && i < (mColumns - 1)) {
-                this.mWriter.write(mDelimiter.getBytes());
+        this.recordLen = 0;
+        for (int i = 0; i < this.mColumns; i++) {
+            this.mWriter.write(this.mDatums[i]);
+            if (this.mDatumNeedsDelimiter[i] && i < (this.mColumns - 1)) {
+                this.mWriter.write(SQLLoaderStatementWrapper.mDelimiter.getBytes());
             }
             this.mDatums[i] = null;
         }
