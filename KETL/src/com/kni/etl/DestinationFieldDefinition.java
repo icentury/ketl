@@ -37,23 +37,25 @@ public class DestinationFieldDefinition {
      */
     public DestinationFieldDefinition(String pCharSet) {
         super();
-        mCharSet = pCharSet;
+        this.mCharSet = pCharSet;
     }
 
     public byte[] getDelimiterAsBytes() throws UnsupportedEncodingException {
-        if ((bDelimiter == null) && (Delimiter != null)) {
-            bDelimiter = mCharSet == null ? this.Delimiter.getBytes() : this.Delimiter.getBytes(mCharSet);
+        if ((this.bDelimiter == null) && (this.Delimiter != null)) {
+            this.bDelimiter = this.mCharSet == null ? this.Delimiter.getBytes() : this.Delimiter
+                    .getBytes(this.mCharSet);
         }
 
-        return bDelimiter;
+        return this.bDelimiter;
     }
 
     public byte[] getDefaultValueAsBytes() throws UnsupportedEncodingException {
-        if ((bDefeaultValue == null) && (DefaultValue != null)) {
-            bDefeaultValue = mCharSet == null ? this.DefaultValue.getBytes() : this.DefaultValue.getBytes(mCharSet);
+        if ((this.bDefeaultValue == null) && (this.DefaultValue != null)) {
+            this.bDefeaultValue = this.mCharSet == null ? this.DefaultValue.getBytes() : this.DefaultValue
+                    .getBytes(this.mCharSet);
         }
 
-        return bDefeaultValue;
+        return this.bDefeaultValue;
     }
 
     public SimpleDateFormat getSimpleDateFormat() {
@@ -61,8 +63,8 @@ public class DestinationFieldDefinition {
             this.sSimpleDateFormatter = new SimpleDateFormat();
         }
 
-        if (FormatString != null) {
-            this.sSimpleDateFormatter.applyPattern(FormatString);
+        if (this.FormatString != null) {
+            this.sSimpleDateFormatter.applyPattern(this.FormatString);
         }
 
         return (this.sSimpleDateFormatter);
@@ -73,8 +75,8 @@ public class DestinationFieldDefinition {
             this.sDecimalFormatter = new DecimalFormat();
         }
 
-        if (FormatString != null) {
-            this.sDecimalFormatter.applyPattern(FormatString);
+        if (this.FormatString != null) {
+            this.sDecimalFormatter.applyPattern(this.FormatString);
         }
 
         return (this.sDecimalFormatter);
