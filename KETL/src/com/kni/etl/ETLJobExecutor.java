@@ -44,7 +44,7 @@ public abstract class ETLJobExecutor extends Thread {
      */
     public ETLJobExecutor() {
         super();
-        dmfFactory = DocumentBuilderFactory.newInstance();
+        this.dmfFactory = DocumentBuilderFactory.newInstance();
     }
 
     /**
@@ -120,7 +120,7 @@ public abstract class ETLJobExecutor extends Thread {
      * @return int
      */
     public int getSleepPeriod() {
-        return iSleepPeriod;
+        return this.iSleepPeriod;
     }
 
     /**
@@ -129,7 +129,7 @@ public abstract class ETLJobExecutor extends Thread {
      * @return com.kni.etl.ETLJobExecutorStatus
      */
     public ETLJobExecutorStatus getStatus() {
-        return jesStatus;
+        return this.jesStatus;
     }
 
     private static int exit(int code, Throwable e, boolean pExitCleanly) {
@@ -146,7 +146,7 @@ public abstract class ETLJobExecutor extends Thread {
     }
 
     public static void execute(String[] args, ETLJobExecutor pETLJobExecutor, boolean pExitCleanly) {
-        int res = _execute(args, pETLJobExecutor, pExitCleanly, 0);
+        int res = ETLJobExecutor._execute(args, pETLJobExecutor, pExitCleanly, 0);
         ResourcePool.releaseLoadLookups(0);
 
         if (pExitCleanly)
@@ -170,33 +170,32 @@ public abstract class ETLJobExecutor extends Thread {
         String[] ignoreQAs = null;
         String server = null;
 
-        // extract login information for metadata and xml filename
-        for (int index = 0; index < args.length; index++) {
-            if ((server == null) && (args[index].indexOf("SERVER=") != -1)) {
-                server = ArgumentParserUtil.extractArguments(args[index], "SERVER=");
+        for (String element : args) {
+            if ((server == null) && (element.indexOf("SERVER=") != -1)) {
+                server = ArgumentParserUtil.extractArguments(element, "SERVER=");
             }
 
-            if ((ignoreQAs == null) && (args[index].indexOf("IGNOREQA=[") != -1)) {
-                ignoreQAs = ArgumentParserUtil.extractMultipleArguments(args[index], "IGNOREQA=[");
+            if ((ignoreQAs == null) && (element.indexOf("IGNOREQA=[") != -1)) {
+                ignoreQAs = ArgumentParserUtil.extractMultipleArguments(element, "IGNOREQA=[");
             }
 
-            if ((fileName == null) && (args[index].indexOf("FILE=") != -1)) {
-                fileName = ArgumentParserUtil.extractArguments(args[index], "FILE=");
+            if ((fileName == null) && (element.indexOf("FILE=") != -1)) {
+                fileName = ArgumentParserUtil.extractArguments(element, "FILE=");
             }
 
-            if ((jobName == null) && (args[index].indexOf("JOB_NAME=") != -1)) {
-                jobName = ArgumentParserUtil.extractArguments(args[index], "JOB_NAME=");
+            if ((jobName == null) && (element.indexOf("JOB_NAME=") != -1)) {
+                jobName = ArgumentParserUtil.extractArguments(element, "JOB_NAME=");
             }
-            if ((jobID == null) && (args[index].indexOf("JOBID=") != -1)) {
-                jobID = ArgumentParserUtil.extractArguments(args[index], "JOBID=");
-            }
-
-            if ((args[index].indexOf("LOADID=") != -1)) {
-                iLoadID = Integer.parseInt(ArgumentParserUtil.extractArguments(args[index], "LOADID="));
+            if ((jobID == null) && (element.indexOf("JOBID=") != -1)) {
+                jobID = ArgumentParserUtil.extractArguments(element, "JOBID=");
             }
 
-            if (args[index].indexOf("PARAMETER=[") != -1) {
-                String[] param = ArgumentParserUtil.extractMultipleArguments(args[index], "PARAMETER=[");
+            if ((element.indexOf("LOADID=") != -1)) {
+                iLoadID = Integer.parseInt(ArgumentParserUtil.extractArguments(element, "LOADID="));
+            }
+
+            if (element.indexOf("PARAMETER=[") != -1) {
+                String[] param = ArgumentParserUtil.extractMultipleArguments(element, "PARAMETER=[");
                 overrideParameters.add(param);
             }
         }
@@ -207,7 +206,7 @@ public abstract class ETLJobExecutor extends Thread {
                     .println("Wrong arguments:  FILE=<XML_FILE> (SERVER=localhost) (JOB_NAME=<NAME>) (PARAMETER=[(TestList),PATH,/u01]) (IGNOREQA=[FileTest,SizeTest])");
             System.out.println("example:  FILE=c:\\transform.xml JOB_NAME=Transform SERVER=localhost");
 
-            return exit(com.kni.etl.EngineConstants.WRONG_ARGUMENT_EXIT_CODE, null, pExitCleanly);
+            return ETLJobExecutor.exit(com.kni.etl.EngineConstants.WRONG_ARGUMENT_EXIT_CODE, null, pExitCleanly);
         }
 
         // metadata object isn't set and login information found then connect to metadata
@@ -216,7 +215,7 @@ public abstract class ETLJobExecutor extends Thread {
             Document doc;
             if (ResourcePool.getMetadata() == null) {
                 if ((doc = Metadata.LoadConfigFile(null, Metadata.CONFIG_FILE)) != null) {
-                    md = connectToServer(doc, server);
+                    md = ETLJobExecutor.connectToServer(doc, server);
                     ResourcePool.setMetadata(md);
                 }
             }
@@ -239,7 +238,7 @@ public abstract class ETLJobExecutor extends Thread {
         } catch (Exception e) {
             System.out.println("Error reading file '" + args[0] + "': " + e.getMessage());
 
-            return exit(com.kni.etl.EngineConstants.READXML_ERROR_EXIT_CODE, e, pExitCleanly);
+            return ETLJobExecutor.exit(com.kni.etl.EngineConstants.READXML_ERROR_EXIT_CODE, e, pExitCleanly);
         }
 
         String strJobXML = sb.toString();
@@ -263,7 +262,8 @@ public abstract class ETLJobExecutor extends Thread {
             if ((nl.getLength() > 1) && (jobName != null)) {
                 System.out.println("ERROR: JOB_NAME argument not applicable to XML file with multiple jobs");
 
-                return exit(com.kni.etl.EngineConstants.MULTIJOB_JOB_OVERRIDE_ERROR_EXIT_CODE, null, pExitCleanly);
+                return ETLJobExecutor.exit(com.kni.etl.EngineConstants.MULTIJOB_JOB_OVERRIDE_ERROR_EXIT_CODE, null,
+                        pExitCleanly);
             }
 
             for (int i = 0; i < nl.getLength(); i++) {
@@ -321,7 +321,8 @@ public abstract class ETLJobExecutor extends Thread {
                                 if ((str[0] == null) || (str[1] == null)) {
                                     System.out.println("ERROR: Badly formed parameter override ParameterName=" + str[0]
                                             + ", ParameterValue=" + str[1]);
-                                    return exit(com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
+                                    return ETLJobExecutor.exit(
+                                            com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
                                             pExitCleanly);
                                 }
                             }
@@ -330,7 +331,8 @@ public abstract class ETLJobExecutor extends Thread {
                                 if ((str[0] == null) || (str[1] == null) || (str[2] == null)) {
                                     System.out.println("ERROR: Badly formed parameter override ParameterListName = "
                                             + str[0] + " ParameterName=" + str[1] + ", ParameterValue=" + str[2]);
-                                    return exit(com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
+                                    return ETLJobExecutor.exit(
+                                            com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
                                             pExitCleanly);
                                 }
                             }
@@ -383,7 +385,8 @@ public abstract class ETLJobExecutor extends Thread {
                         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Job failed ("
                                 + kj.getStatus().getErrorCode() + ") : " + kj.getStatus().getErrorMessage());
 
-                        return exit(kj.getStatus().getErrorCode(), kj.getStatus().getException(), pExitCleanly);
+                        return ETLJobExecutor.exit(kj.getStatus().getErrorCode(), kj.getStatus().getException(),
+                                pExitCleanly);
 
                     }
 
@@ -396,7 +399,7 @@ public abstract class ETLJobExecutor extends Thread {
         } catch (org.xml.sax.SAXException e) {
             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "ERROR: parsing XML document, "
                     + e.toString());
-            return (exit(EngineConstants.INVALID_XML_EXIT_CODE, e, pExitCleanly));
+            return (ETLJobExecutor.exit(EngineConstants.INVALID_XML_EXIT_CODE, e, pExitCleanly));
         } catch (RuntimeException e) {
             Throwable t = e.getCause() == null ? e : (Exception) e.getCause();
 
@@ -405,10 +408,10 @@ public abstract class ETLJobExecutor extends Thread {
                 exitCode = ((KETLQAException) t).getErrorCode();
             else
                 ResourcePool.LogException(e.getCause() == null ? e : (Exception) e.getCause(), null);
-            return (exit(exitCode, e, pExitCleanly));
+            return (ETLJobExecutor.exit(exitCode, e, pExitCleanly));
         } catch (Exception e) {
             ResourcePool.LogException(e, null);
-            return (exit(EngineConstants.OTHER_ERROR_EXIT_CODE, e, pExitCleanly));
+            return (ETLJobExecutor.exit(EngineConstants.OTHER_ERROR_EXIT_CODE, e, pExitCleanly));
         }
 
         return 0;
@@ -460,35 +463,36 @@ public abstract class ETLJobExecutor extends Thread {
     /**
      * Loops on the job queue, taking each job and running with it. Creation date: (5/3/2002 5:43:04 PM)
      */
+    @Override
     public void run() {
         ETLJob jCurrentJob;
         boolean bSuccess;
 
-        mbCommandLine = false;
+        this.mbCommandLine = false;
 
         String orginalName = this.getName();
 
         this.setName(orginalName + "(" + this.getClass().getName() + ") - Starting");
 
         // Run any initialization code that the subclasses will need...
-        if (initialize() == false) {
-            jesStatus.setStatusCode(ETLJobExecutorStatus.ERROR);
+        if (this.initialize() == false) {
+            this.jesStatus.setStatusCode(ETLJobExecutorStatus.ERROR);
 
             return;
         }
 
-        while (bShutdown == false) {
+        while (this.bShutdown == false) {
             this.setName(orginalName + "(" + this.getClass().getName() + ") - Ready");
             // We're ready to get the next job, so set our status to READY...
-            if (jesStatus.getStatusCode() != ETLJobExecutorStatus.READY) {
-                jesStatus.setStatusCode(ETLJobExecutorStatus.READY);
+            if (this.jesStatus.getStatusCode() != ETLJobExecutorStatus.READY) {
+                this.jesStatus.setStatusCode(ETLJobExecutorStatus.READY);
             }
 
             jCurrentJob = null;
 
-            synchronized (llPendingQueue) {
-                if (llPendingQueue.size() > 0) {
-                    jCurrentJob = (ETLJob) llPendingQueue.removeLast();
+            synchronized (this.llPendingQueue) {
+                if (this.llPendingQueue.size() > 0) {
+                    jCurrentJob = (ETLJob) this.llPendingQueue.removeLast();
                 }
             }
 
@@ -499,7 +503,7 @@ public abstract class ETLJobExecutor extends Thread {
                         this.setSleepPeriod(this.getSleepPeriod() + 500);
                     }
 
-                    sleep(this.getSleepPeriod());
+                    Thread.sleep(this.getSleepPeriod());
                 } catch (Exception e) {
                 }
 
@@ -509,7 +513,7 @@ public abstract class ETLJobExecutor extends Thread {
             this.setSleepPeriod(100);
 
             // We've got a job, so set our executor's status to WORKING...
-            jesStatus.setStatusCode(ETLJobExecutorStatus.WORKING);
+            this.jesStatus.setStatusCode(ETLJobExecutorStatus.WORKING);
             this.setName(this.getName() + "(" + this.getClass().getName() + ") - Executing");
             // Make sure that this job wasn't cancelled while it was in the queue...
             if (jCurrentJob.isCancelled()) {
@@ -521,7 +525,7 @@ public abstract class ETLJobExecutor extends Thread {
 
             // Update the status of the job and let's go!
             jCurrentJob.getStatus().setStatusCode(ETLJobStatus.EXECUTING);
-            bSuccess = executeJob(jCurrentJob);
+            bSuccess = this.executeJob(jCurrentJob);
 
             ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Job executed: ID = " + jCurrentJob.sJobID
                     + ", STATUS ID = " + jCurrentJob.getStatus().getStatusCode() + ", CANCEL STATUS =  "
@@ -542,9 +546,9 @@ public abstract class ETLJobExecutor extends Thread {
         }
 
         // Run any initialization code that the subclasses will need...but set the shutdown status regardless...
-        jesStatus.setStatusCode(ETLJobExecutorStatus.SHUTTING_DOWN);
-        terminate();
-        jesStatus.setStatusCode(ETLJobExecutorStatus.TERMINATED);
+        this.jesStatus.setStatusCode(ETLJobExecutorStatus.SHUTTING_DOWN);
+        this.terminate();
+        this.jesStatus.setStatusCode(ETLJobExecutorStatus.TERMINATED);
 
     }
 
@@ -554,7 +558,7 @@ public abstract class ETLJobExecutor extends Thread {
      * @param param java.util.LinkedList
      */
     public void setPendingQueue(LinkedList llQueue) {
-        llPendingQueue = llQueue;
+        this.llPendingQueue = llQueue;
     }
 
     /**
@@ -563,7 +567,7 @@ public abstract class ETLJobExecutor extends Thread {
      * @param newSleepPeriod int
      */
     public void setSleepPeriod(int newSleepPeriod) {
-        iSleepPeriod = newSleepPeriod;
+        this.iSleepPeriod = newSleepPeriod;
     }
 
     /**
@@ -572,7 +576,7 @@ public abstract class ETLJobExecutor extends Thread {
      * anything it needs to. BRIAN: should we make this final? Creation date: (5/3/2002 6:50:09 PM)
      */
     public void shutdown() {
-        bShutdown = true;
+        this.bShutdown = true;
     }
 
     /**
