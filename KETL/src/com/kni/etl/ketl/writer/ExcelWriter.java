@@ -60,7 +60,7 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
-    /** The m tab port index. */
+    /** The tab port index. */
     private int mTabPortIndex = -1;
     
     /** The xml out. */
@@ -138,7 +138,7 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
     }
 
-    /** The m current tab. */
+    /** The current tab. */
     private Object mCurrentTab = null;
 
     /**
@@ -293,7 +293,7 @@ public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
         this.writeData("</ss:Table></ss:Worksheet>");
     }
 
-    /** The m data length warning. */
+    /** The data length warning. */
     private boolean mDataLengthWarning = true;
 
     /**

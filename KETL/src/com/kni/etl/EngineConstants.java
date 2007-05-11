@@ -433,7 +433,7 @@ public class EngineConstants {
     /** The CACHEMEMRATIO. */
     private static double CACHEMEMRATIO = 0.5;
 
-    /** The m system XML. */
+    /** The system XML. */
     private static Document mSystemXML = EngineConstants._getSystemXML();
 
     /**

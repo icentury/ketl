@@ -59,13 +59,13 @@ public class ETLJob {
     /** The b cancel job. */
     protected boolean bCancelJob = false;
     
-    /** The i load ID. */
+    /** The load ID. */
     protected int iLoadID;
     
     /** The s job ID. */
     protected String sJobID;
     
-    /** The i job execution ID. */
+    /** The job execution ID. */
     protected int iJobExecutionID;
     
     /** The str action. */
@@ -74,7 +74,7 @@ public class ETLJob {
     /** The mo action. */
     transient protected Object moAction;
     
-    /** The m tag level parameter list cache. */
+    /** The tag level parameter list cache. */
     HashMap mTagLevelParameterListCache = null;
     
     /** The md creation date. */
@@ -1020,25 +1020,25 @@ public class ETLJob {
 
     }
 
-    /** The m counters. */
+    /** The counters. */
     private HashMap mCounters = new HashMap();
     
-    /** The m logs. */
+    /** The logs. */
     private HashMap mLogs = new HashMap();
     
-    /** The m logger failed. */
+    /** The logger failed. */
     private boolean mLoggerFailed = false;
     
     /** The mo dump. */
     private OutputStream moDump;
     
-    /** The m dump file. */
+    /** The dump file. */
     private String mDumpFile;
     
     /** The mo dump buffer. */
     private BufferedOutputStream moDumpBuffer;
     
-    /** The m dump writer. */
+    /** The dump writer. */
     private PrintWriter mDumpWriter;
 
     /**

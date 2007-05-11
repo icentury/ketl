@@ -79,7 +79,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
      */
     class DimensionETLInPort extends ETLInPort {
 
-        /** The m column. */
+        /** The column. */
         DatabaseColumnDefinition mColumn = null;
         
         /** The effective date. */
@@ -386,34 +386,34 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     /** The max char length. */
     private int maxCharLength;
 
-    /** The m batch counter. */
+    /** The batch counter. */
     private int mBatchCounter;
 
-    /** The m batch data. */
+    /** The batch data. */
     private boolean mBatchData = true;
 
-    /** The m batch log. */
+    /** The batch log. */
     ArrayList mBatchLog = new ArrayList();
 
     /** The mb reinit on error. */
     private boolean mbReinitOnError;
 
-    /** The m cache persistence ID. */
+    /** The cache persistence ID. */
     private Integer mCachePersistenceID;
 
-    /** The m cache size. */
+    /** The cache size. */
     private int mCacheSize;
 
     /** The mc DB connection. */
     private Connection mcDBConnection;
 
-    /** The m DB case. */
+    /** The DB case. */
     private int mDBCase = -1;
     
-    /** The m DB type. */
+    /** The DB type. */
     private String mDBType;
 
-    /** The m failed batch elements. */
+    /** The failed batch elements. */
     private Set mFailedBatchElements = new HashSet();
 
     /** The mi commit size. */
@@ -428,16 +428,16 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     /** The mi mode. */
     private int miMode;
     
-    /** The m incremental commit. */
+    /** The incremental commit. */
     private boolean mIncrementalCommit;
     
     /** The mi retry batch. */
     private int miRetryBatch;
 
-    /** The m key source. */
+    /** The key source. */
     private SharedCounter mKeySource;
 
-    /** The m lookup. */
+    /** The lookup. */
     private PersistentMap mLookup;
 
     /** The ms all columns. */
@@ -449,7 +449,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     /** The ms insert values. */
     private String msInsertValues;
     
-    /** The m PK col count. */
+    /** The PK col count. */
     public int mSKColCount = 0, mPKColCount = 0;
     
     /** The ms key table all columns. */
@@ -473,7 +473,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     /** The mstr table name. */
     private String mstrTableName;
     
-    /** The m used connections. */
+    /** The used connections. */
     private List mUsedConnections = new ArrayList();
 
     /** The expiration date port. */
@@ -515,7 +515,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     /** The supports set savepoint. */
     private boolean supportsSetSavepoint;
     
-    /** The m allow insert. */
+    /** The allow insert. */
     private boolean mAllowInsert;
 
     /**
@@ -1014,7 +1014,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         return (Integer) res;
     }
 
-    /** The m SCD. */
+    /** The SCD. */
     private int mSCD;
     
     /** The purge cache. */

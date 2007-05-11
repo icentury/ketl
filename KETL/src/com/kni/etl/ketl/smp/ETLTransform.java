@@ -58,25 +58,25 @@ public abstract class ETLTransform extends ETLStep {
     /** The core. */
     private DefaultTransformCore core;
 
-    /** The m sort data. */
+    /** The sort data. */
     private boolean mAggregate = false, mSortData = false;
     
-    /** The m batch manager. */
+    /** The batch manager. */
     private TransformBatchManager mBatchManager;
     
-    /** The m default comparator. */
+    /** The default comparator. */
     private Comparator mDefaultComparator = null;
 
-    /** The m expected output data types. */
+    /** The expected output data types. */
     private Class[] mExpectedInputDataTypes, mExpectedOutputDataTypes;
 
-    /** The m external sort. */
+    /** The external sort. */
     private ExternalSort mExternalSort;
 
-    /** The m input record width. */
+    /** The input record width. */
     private int mInputRecordWidth = -1;
 
-    /** The m output record width. */
+    /** The output record width. */
     private int mOutputRecordWidth = -1;
 
     /** The post sort batch size. */

@@ -141,7 +141,7 @@ abstract public class ETLCore implements DefaultCore {
         return tms;
     }
 
-    /** The m gregorian calendar. */
+    /** The gregorian calendar. */
     GregorianCalendar mGregorianCalendar = new GregorianCalendar();
 
     /**
@@ -282,7 +282,7 @@ abstract public class ETLCore implements DefaultCore {
         }
     }
 
-    /** The m local lookups. */
+    /** The local lookups. */
     private HashMap mLocalLookups = new HashMap();
 
     /**

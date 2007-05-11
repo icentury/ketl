@@ -151,16 +151,16 @@ public class Metadata {
     /** The db single row pull. */
     private String[] dbSingleRowPull = { "", " FROM DUAL ", "" };
 
-    /** The m load table name. */
+    /** The load table name. */
     private String[] mLoadTableName = { null, null, "root_load" };
 
-    /** The m passphrase. */
+    /** The passphrase. */
     private String mPassphrase;
 
-    /** The m passphrase file path. */
+    /** The passphrase file path. */
     private String mPassphraseFilePath = null;
 
-    /** The m KETL path. */
+    /** The KETL path. */
     static private String mKETLPath = null;
 
     /**
@@ -227,16 +227,16 @@ public class Metadata {
     /** The Constant SYSTEM_FILE. */
     final static public String SYSTEM_FILE = "xml" + File.separator + "system.xml";
 
-    /** The m encryptor. */
+    /** The encryptor. */
     private DesEncrypter mEncryptor;
 
-    /** The m encryption enabled. */
+    /** The encryption enabled. */
     private boolean mEncryptionEnabled = true;
 
-    /** The m inc ident col stmt. */
+    /** The inc ident col stmt. */
     private PreparedStatement mIncIdentColStmt = null;
 
-    /** The m resolved load table name. */
+    /** The resolved load table name. */
     private String mResolvedLoadTableName;
 
     /**
@@ -2751,7 +2751,7 @@ public class Metadata {
     /**
      * Sets the parameter value.
      * 
-     * @param iParameterListId the i parameter list id
+     * @param iParameterListId The parameter list id
      * @param strParameterName the str parameter name
      * @param strValue the str value
      * 
@@ -3045,7 +3045,7 @@ public class Metadata {
     /**
      * Creates the project.
      * 
-     * @param mProjectName the m project name
+     * @param mProjectName The project name
      * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
@@ -3078,7 +3078,7 @@ public class Metadata {
     /**
      * Creates the parameter list.
      * 
-     * @param mPlist the m plist
+     * @param mPlist The plist
      * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
@@ -3346,7 +3346,7 @@ public class Metadata {
     /**
      * Gets the parameter list.
      * 
-     * @param iParameterListID the i parameter list ID
+     * @param iParameterListID The parameter list ID
      * 
      * @return the parameter list
      */
@@ -3366,7 +3366,7 @@ public class Metadata {
      * Gets the parameter list.
      * 
      * @param strParameterListName the str parameter list name
-     * @param iParameterListID the i parameter list ID
+     * @param iParameterListID The parameter list ID
      * 
      * @return the parameter list
      */
@@ -3516,7 +3516,7 @@ public class Metadata {
     /**
      * Gets the parameter value.
      * 
-     * @param iParameterListID the i parameter list ID
+     * @param iParameterListID The parameter list ID
      * @param strParameterName the str parameter name
      * 
      * @return the parameter value
@@ -4494,8 +4494,8 @@ public class Metadata {
      * 
      * @param pETLJob the ETL job
      * @param oStep the o step
-     * @param iErrorCode the i error code
-     * @param iLevel the i level
+     * @param iErrorCode The error code
+     * @param iLevel The level
      * @param strMessage the str message
      * @param strExtendedDetails the str extended details
      * @param bSendEmail the b send email
@@ -4511,8 +4511,8 @@ public class Metadata {
      * 
      * @param pETLJob com.kni.etl.ETLJob
      * @param oStep the o step
-     * @param iErrorCode the i error code
-     * @param iLevel the i level
+     * @param iErrorCode The error code
+     * @param iLevel The level
      * @param strMessage the str message
      * @param strExtendedDetails the str extended details
      * @param bSendEmail the b send email

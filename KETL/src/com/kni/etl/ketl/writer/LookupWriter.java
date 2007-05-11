@@ -66,7 +66,7 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
     /** The Constant VALUE_ATTRIB. */
     private static final String VALUE_ATTRIB = "VALUE";
 
-    /** The m values. */
+    /** The values. */
     public int mKeys = 0, mValues = 0;
 
     /**
@@ -74,10 +74,10 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
      */
     public class LookupWriterInPort extends ETLInPort {
 
-        /** The m key. */
+        /** The key. */
         private int mKey;
 
-        /** The m value. */
+        /** The value. */
         private int mValue;
 
         /* (non-Javadoc)
@@ -148,10 +148,10 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
-    /** The m cache persistence ID. */
+    /** The cache persistence ID. */
     private Integer mCachePersistenceID = -1;
 
-    /** The m cache size. */
+    /** The cache size. */
     private int mCacheSize;
 
     /** The cache persistence. */
@@ -262,7 +262,7 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
 
     }
 
-    /** The m lookup. */
+    /** The lookup. */
     private PersistentMap mLookup;
 
     /* (non-Javadoc)

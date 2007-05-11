@@ -65,13 +65,13 @@ public class SessionBuilder implements Serializable {
     /** The Current session. */
     transient private Session CurrentSession = new Session();
     
-    /** The m web server settings. */
+    /** The web server settings. */
     transient private WebServerSettings[] mWebServerSettings;
     
     /** The search buffer. */
     transient char[] searchBuffer = new char[SessionBuilder.MAXSEARCHBUFFER];
     
-    /** The m page parser definition. */
+    /** The page parser definition. */
     transient PageParserPageDefinition[] mPageParserDefinition;
     
     /** The Active session store. */
@@ -137,7 +137,7 @@ public class SessionBuilder implements Serializable {
         this.mWebServerSettings[EngineConstants.NETSCAPE].addWebServerPair(WebServerSettings.OTHER, c1, e2);
     }
 
-    /** The m time pos. */
+    /** The time pos. */
     private int mTimePos = -1;
     
     /** The item map. */

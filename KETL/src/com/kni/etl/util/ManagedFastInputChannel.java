@@ -39,10 +39,10 @@ public class ManagedFastInputChannel {
     /** The mi current record. */
     public int miCurrentRecord;
     
-    /** The m path. */
+    /** The path. */
     public String mPath;
     
-    /** The m reader. */
+    /** The reader. */
     public FieldLevelFastInputChannel mReader;
 
     /**

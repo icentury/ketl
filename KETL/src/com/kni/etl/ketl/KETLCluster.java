@@ -51,36 +51,36 @@ public class KETLCluster {
      */
     class Server {
 
-        /** The m name. */
+        /** The name. */
         public String mName;
         
-        /** The m started. */
+        /** The started. */
         public Timestamp mStarted;
         
-        /** The m system time. */
+        /** The system time. */
         public Timestamp mSystemTime;
         
-        /** The m last ping. */
+        /** The last ping. */
         public Timestamp mLastPing;
         
-        /** The m status. */
+        /** The status. */
         public String mStatus;
         
-        /** The m executors. */
+        /** The executors. */
         public HashMap mExecutors = new HashMap();
         
-        /** The m server ID. */
+        /** The server ID. */
         public int mServerID;
 
         /**
          * The Constructor.
          * 
-         * @param mName the m name
-         * @param mStarted the m started
-         * @param mLastPing the m last ping
-         * @param mStatus the m status
-         * @param mServerID the m server ID
-         * @param mSystemTime the m system time
+         * @param mName The name
+         * @param mStarted The started
+         * @param mLastPing The last ping
+         * @param mStatus The status
+         * @param mServerID The server ID
+         * @param mSystemTime The system time
          */
         public Server(int mServerID, String mName, Timestamp mStarted, Timestamp mLastPing, String mStatus,
                 Timestamp mSystemTime) {
@@ -96,8 +96,8 @@ public class KETLCluster {
         /**
          * Adds the executor.
          * 
-         * @param mName the m name
-         * @param mObject the m object
+         * @param mName The name
+         * @param mObject The object
          */
         public void addExecutor(String mName, Object mObject) {
             this.mExecutors.put(mName, mObject);
@@ -106,7 +106,7 @@ public class KETLCluster {
         /**
          * Gets the executor.
          * 
-         * @param mName the m name
+         * @param mName The name
          * 
          * @return the executor
          */
@@ -173,20 +173,20 @@ public class KETLCluster {
      */
     class Executor {
 
-        /** The m name. */
+        /** The name. */
         String mName;
         
-        /** The m states. */
+        /** The states. */
         ArrayList mStates = new ArrayList();
         
-        /** The m count. */
+        /** The count. */
         int mCount;
 
         /**
          * Instantiates a new executor.
          * 
-         * @param mName the m name
-         * @param mCount the m count
+         * @param mName The name
+         * @param mCount The count
          */
         public Executor(String mName, int mCount) {
             super();
@@ -197,7 +197,7 @@ public class KETLCluster {
         /**
          * Adds the executor state.
          * 
-         * @param mState the m state
+         * @param mState The state
          */
         public void addExecutorState(Object mState) {
             this.mStates.add(mState);
@@ -233,17 +233,17 @@ public class KETLCluster {
      */
     class ExecutorState {
 
-        /** The m status. */
+        /** The status. */
         String mStatus;
         
-        /** The m count. */
+        /** The count. */
         int mCount;
 
         /**
          * The Constructor.
          * 
-         * @param mStatus the m status
-         * @param mCount the m count
+         * @param mStatus The status
+         * @param mCount The count
          */
         public ExecutorState(String mStatus, int mCount) {
             super();
@@ -262,18 +262,18 @@ public class KETLCluster {
         }
     }
 
-    /** The m servers. */
+    /** The servers. */
     HashMap mServers = new HashMap();
 
     /**
      * Adds the server.
      * 
-     * @param mServerID the m server ID
-     * @param mName the m name
-     * @param mStarted the m started
-     * @param mLastPing the m last ping
-     * @param mStatus the m status
-     * @param mSystemTime the m system time
+     * @param mServerID The server ID
+     * @param mName The name
+     * @param mStarted The started
+     * @param mLastPing The last ping
+     * @param mStatus The status
+     * @param mSystemTime The system time
      */
     public void addServer(int mServerID, String mName, Timestamp mStarted, Timestamp mLastPing, String mStatus,
             Timestamp mSystemTime) {
@@ -286,9 +286,9 @@ public class KETLCluster {
     /**
      * Adds the executor.
      * 
-     * @param mServerID the m server ID
-     * @param mName the m name
-     * @param mCount the m count
+     * @param mServerID The server ID
+     * @param mName The name
+     * @param mCount The count
      */
     public void addExecutor(int mServerID, String mName, int mCount) {
         Server s = (Server) this.mServers.get(new Integer(mServerID));
@@ -299,10 +299,10 @@ public class KETLCluster {
     /**
      * Adds the executor state.
      * 
-     * @param mServerID the m server ID
-     * @param mName the m name
-     * @param mState the m state
-     * @param mCount the m count
+     * @param mServerID The server ID
+     * @param mName The name
+     * @param mState The state
+     * @param mCount The count
      */
     public void addExecutorState(int mServerID, String mName, String mState, int mCount) {
         Executor e;
@@ -419,7 +419,7 @@ public class KETLCluster {
     /**
      * Checks if is server alive.
      * 
-     * @param mServerName the m server name
+     * @param mServerName The server name
      * 
      * @return true, if is server alive
      */
@@ -453,7 +453,7 @@ public class KETLCluster {
     /**
      * Checks if is server alive.
      * 
-     * @param mServerID the m server ID
+     * @param mServerID The server ID
      * 
      * @return true, if is server alive
      */

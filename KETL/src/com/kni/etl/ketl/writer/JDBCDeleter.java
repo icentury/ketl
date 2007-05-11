@@ -122,7 +122,7 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
     /** The mi commit size. */
     int miCommitSize;
 
-    /** The m stmt. */
+    /** The stmt. */
     private PreparedStatement mStmt = null;
     
     /** The mstr table name. */
@@ -139,7 +139,7 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
     /** The mi in count. */
     int miInCount = 0;
     
-    /** The m data types. */
+    /** The data types. */
     int[] mDataTypes;
     
     /** The rows effected. */

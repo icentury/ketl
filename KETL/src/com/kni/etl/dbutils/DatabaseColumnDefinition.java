@@ -52,16 +52,16 @@ public class DatabaseColumnDefinition extends ColumnDefinition {
     /** The HAS h_ COLUMN. */
     public static int HASH_COLUMN = 1 << 5;
 
-    /** The m alternate insert value. */
+    /** The alternate insert value. */
     private String mAlternateInsertValue = null;
     
-    /** The m alternate update value. */
+    /** The alternate update value. */
     private String mAlternateUpdateValue = null;
     
-    /** The m wrap value. */
+    /** The wrap value. */
     private String mWrapValue = null;
     
-    /** The m src class. */
+    /** The src class. */
     private Class mSrcClass;
     
     /** The exists. */

@@ -60,7 +60,7 @@ import com.kni.etl.util.XMLHelper;
  */
 public abstract class ETLStep extends ETLWorker {
 
-    /** The m job. */
+    /** The job. */
     private ETLJob mJob;
 
     /* (non-Javadoc)
@@ -141,7 +141,7 @@ public abstract class ETLStep extends ETLWorker {
     /** The mkj executor. */
     protected KETLJobExecutor mkjExecutor = null;
     
-    /** The m step template. */
+    /** The step template. */
     private HashMap mStepTemplate = new HashMap();
 
     /**
@@ -182,13 +182,13 @@ public abstract class ETLStep extends ETLWorker {
     /** The mo dump buffer. */
     private OutputStream moDump, moDumpBuffer;
     
-    /** The m dump writer. */
+    /** The dump writer. */
     private Writer mDumpWriter;
     
-    /** The m dump file. */
+    /** The dump file. */
     private String mDumpFile;
     
-    /** The m logger failed. */
+    /** The logger failed. */
     private boolean mLoggerFailed = false;
 
 
@@ -340,7 +340,7 @@ public abstract class ETLStep extends ETLWorker {
     /**
      * Gets the parameter value.
      * 
-     * @param iParamList the i param list
+     * @param iParamList The param list
      * @param strParamName the str param name
      * 
      * @return the parameter value
@@ -614,7 +614,7 @@ public abstract class ETLStep extends ETLWorker {
     /** The DEFAUL t_ BATCHSIZE. */
     protected static int DEFAULT_BATCHSIZE = 1000;
     
-    /** The m show exceptions. */
+    /** The show exceptions. */
     protected boolean mbLogBadRecords = false, mShowExceptions = false;
     
     /** The DEFAUL t_ ERRORLIMIT. */
@@ -823,7 +823,7 @@ public abstract class ETLStep extends ETLWorker {
         return this.mShowExceptions;
     }
 
-    /** The m error counter. */
+    /** The error counter. */
     SharedCounter mErrorCounter = null;
 
     /**
@@ -844,7 +844,7 @@ public abstract class ETLStep extends ETLWorker {
         return this.mLastError;
     }
 
-    /** The m last error. */
+    /** The last error. */
     private Exception mLastError = null;
 
     /** The mb first thread to start. */

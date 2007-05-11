@@ -40,10 +40,10 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ETLThreadGroup {
 
-    /** The m queue. */
+    /** The queue. */
     private ManagedBlockingQueue[] mQueue;
     
-    /** The m ETL workers. */
+    /** The ETL workers. */
     private ETLWorker[] mETLWorkers;
     
     /** The Constant FANOUT. */
@@ -64,23 +64,23 @@ public class ETLThreadGroup {
     /** The Constant FANIN. */
     public final static int FANIN = 3;
     
-    /** The m ETL thread manager. */
+    /** The ETL thread manager. */
     private ETLThreadManager mETLThreadManager;
     
-    /** The m queue size. */
+    /** The queue size. */
     private int mQueueSize;
     
     /** The Constant DEFAULTQUEUESIZE. */
     private final static int DEFAULTQUEUESIZE = 5;
     
-    /** The m port list. */
+    /** The port list. */
     private String[] mPortList = null;
 
     /**
      * New instance.
      * 
      * @param srcGrp the src grp
-     * @param iType the i type
+     * @param iType The type
      * @param type the type
      * @param partitions the partitions
      * @param pThreadManager the thread manager
@@ -107,7 +107,7 @@ public class ETLThreadGroup {
      * 
      * @param srcLeftGrp the src left grp
      * @param srcRightGrp the src right grp
-     * @param iType the i type
+     * @param iType The type
      * @param type the type
      * @param partitions the partitions
      * @param pThreadManager the thread manager
@@ -134,7 +134,7 @@ public class ETLThreadGroup {
      * 
      * @param srcGrp the src grp
      * @param pPorts the ports
-     * @param iType the i type
+     * @param iType The type
      * @param type the type
      * @param partitions the partitions
      * @param pThreadManager the thread manager
@@ -199,7 +199,7 @@ public class ETLThreadGroup {
      * Instantiates a new ETL thread group.
      * 
      * @param srcGrp the src grp
-     * @param iType the i type
+     * @param iType The type
      * @param type the type
      * @param partitions the partitions
      * @param pThreadManager the thread manager
@@ -428,7 +428,7 @@ public class ETLThreadGroup {
      * 
      * @param srcGrp the src grp
      * @param pPaths the paths
-     * @param iType the i type
+     * @param iType The type
      * @param type the type
      * @param partitions the partitions
      * @param pThreadManager the thread manager
@@ -488,7 +488,7 @@ public class ETLThreadGroup {
      * 
      * @param srcLeftGrp the src left grp
      * @param srcRightGrp the src right grp
-     * @param iType the i type
+     * @param iType The type
      * @param type the type
      * @param partitions the partitions
      * @param pThreadManager the thread manager

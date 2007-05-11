@@ -213,7 +213,7 @@ public abstract class ETLReader extends ETLStep {
         this.queue.registerWriter(this);
     }
 
-    /** The m batch manager. */
+    /** The batch manager. */
     protected ReaderBatchManager mBatchManager;
 
     /* (non-Javadoc)
@@ -265,16 +265,16 @@ public abstract class ETLReader extends ETLStep {
 
     }
 
-    /** The m expected data types. */
+    /** The expected data types. */
     private Class[] mExpectedDataTypes;
     
-    /** The m record width. */
+    /** The record width. */
     private int mRecordWidth;
     
-    /** The m record counter. */
+    /** The record counter. */
     protected int mRecordCounter;
     
-    /** The m sampling rate. */
+    /** The sampling rate. */
     private int mSamplingRate;
     
     /** The count. */

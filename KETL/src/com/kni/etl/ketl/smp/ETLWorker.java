@@ -336,40 +336,40 @@ abstract public class ETLWorker implements Runnable {
     /** The hm outports. */
     protected HashMap hmOutports = new HashMap();
 
-    /** The m batch management. */
+    /** The batch management. */
     protected final boolean mBatchManagement = this.implementsBatchManagement();
 
-    /** The m channel class mapping. */
+    /** The channel class mapping. */
     HashMap mChannelClassMapping = new HashMap();
 
-    /** The m channel ports used. */
+    /** The channel ports used. */
     protected HashMap mChannelPortsUsed = new HashMap();
 
-    /** The m code fields. */
+    /** The code fields. */
     ArrayList mCodeFields = new ArrayList();
 
-    /** The m code fields lookup. */
+    /** The code fields lookup. */
     HashMap mCodeFieldsLookup = new HashMap();
 
     /** The mhm inport index. */
     private HashMap mhmInportIndex = new HashMap();
 
-    /** The m hm outport index. */
+    /** The hm outport index. */
     protected HashMap mHmOutportIndex = new HashMap();
 
-    /** The m in ports. */
+    /** The in ports. */
     protected ETLInPort[] mInPorts;
     
-    /** The m out ports. */
+    /** The out ports. */
     protected ETLOutPort[] mOutPorts;
     
-    /** The m source outs. */
+    /** The source outs. */
     HashMap mSourceOuts = new HashMap();
 
     /** The mstr name. */
     String mstrName;
 
-    /** The m thread manager. */
+    /** The thread manager. */
     private ETLThreadManager mThreadManager;
 
     /**
@@ -402,10 +402,10 @@ abstract public class ETLWorker implements Runnable {
     /** The timing. */
     protected boolean timing;
 
-    /** The m debug. */
+    /** The debug. */
     protected boolean mDebug;
     
-    /** The m monitor. */
+    /** The monitor. */
     protected boolean mMonitor;
 
     /**
@@ -1175,7 +1175,7 @@ abstract public class ETLWorker implements Runnable {
         this.initializeOutports(this.mOutPorts);
     }
 
-    /** The m fan in worker used. */
+    /** The fan in worker used. */
     private HashMap mFanInWorkerUsed = new HashMap();
 
     /**
@@ -1442,7 +1442,7 @@ abstract public class ETLWorker implements Runnable {
         }
     }
 
-    /** The m fail all. */
+    /** The fail all. */
     private boolean mFailAll = false;
 
     /**
@@ -1565,7 +1565,7 @@ abstract public class ETLWorker implements Runnable {
 
     }
 
-    /** The m batch optimizer. */
+    /** The batch optimizer. */
     private BatchOptimizer mBatchOptimizer = null;
 
     /**
@@ -1634,7 +1634,7 @@ abstract public class ETLWorker implements Runnable {
         return this.totalTimeNano / ETLWorker.nanoToMilli;
     }
 
-    /** The m waiting for. */
+    /** The waiting for. */
     private Object mWaitingFor = null;
 
     /**

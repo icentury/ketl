@@ -181,7 +181,7 @@ public abstract class ETLSplit extends ETLStep {
         this.core = (DefaultSplitCore) newCore;
     }
 
-    /** The m batch manager. */
+    /** The batch manager. */
     protected SplitBatchManager mBatchManager;
 
     /* (non-Javadoc)
@@ -266,16 +266,16 @@ public abstract class ETLSplit extends ETLStep {
         this.mBatchManager = (SplitBatchManager) batchManager;
     }
 
-    /** The m expected input data types. */
+    /** The expected input data types. */
     private Class[] mExpectedInputDataTypes;
     
-    /** The m expected output data types. */
+    /** The expected output data types. */
     private Class[][] mExpectedOutputDataTypes;
     
-    /** The m input record width. */
+    /** The input record width. */
     private int mInputRecordWidth = -1;
     
-    /** The m output record width. */
+    /** The output record width. */
     private int[] mOutputRecordWidth = null;
 
     /**

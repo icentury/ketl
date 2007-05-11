@@ -73,10 +73,10 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
     /** The Constant VALUES. */
     public static final String VALUES = "VALUES";
     
-    /** The m value counter. */
+    /** The value counter. */
     int mValueCounter = 0;
     
-    /** The m values requested. */
+    /** The values requested. */
     int mValuesRequested;
 
     /**
@@ -180,10 +180,10 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
         /** The type. */
         int type;
         
-        /** The m item. */
+        /** The item. */
         Object mItem;
         
-        /** The m increment. */
+        /** The increment. */
         Object mIncrement;
 
         /**

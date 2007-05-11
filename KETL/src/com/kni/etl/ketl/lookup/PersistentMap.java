@@ -30,7 +30,7 @@ import java.util.Map;
  */
 public interface PersistentMap extends Map {
 
-    /** The m value fields. */
+    /** The value fields. */
     String[] mValueFields = null;
 
     /**

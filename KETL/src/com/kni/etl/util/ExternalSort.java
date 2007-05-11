@@ -79,7 +79,7 @@ final public class ExternalSort implements Set {
     /** The root. */
     SortedList root;
     
-    /** The m merge size. */
+    /** The merge size. */
     int mMergeSize = 128;
     
     /** The read buffer size. */
@@ -91,7 +91,7 @@ final public class ExternalSort implements Set {
     /** The write buffer size. */
     int writeBufferSize;
     
-    /** The m distinct. */
+    /** The distinct. */
     boolean mDistinct = false;
 
     /**
@@ -174,7 +174,7 @@ final public class ExternalSort implements Set {
         this.currentPos = 0;
     }
 
-    /** The m last exception. */
+    /** The last exception. */
     Exception mLastException;
 
     /* (non-Javadoc)
@@ -337,7 +337,7 @@ final public class ExternalSort implements Set {
     /** The spool lookup. */
     private HashMap spoolLookup = new HashMap();
 
-    /** The m comparator. */
+    /** The comparator. */
     Comparator mComparator = null;
 
     /**
@@ -416,7 +416,7 @@ final public class ExternalSort implements Set {
         this.currentPos = 0;
     }
 
-    /** The m previous. */
+    /** The previous. */
     Object mPrevious = null;
 
     /**

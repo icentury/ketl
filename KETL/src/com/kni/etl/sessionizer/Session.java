@@ -161,7 +161,7 @@ public class Session implements Cloneable {
     /** The Constant SESSION. */
     public static final int SESSION = 1;
     
-    /** The m last referrer URL page date. */
+    /** The last referrer URL page date. */
     java.util.Date mLastReferrerURLPageDate = null;
 
     /**

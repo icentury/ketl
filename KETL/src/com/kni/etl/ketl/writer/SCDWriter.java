@@ -107,13 +107,13 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
      */
     class Index {
 
-        /** The m columns. */
+        /** The columns. */
         ArrayList mColumns = new ArrayList();
         
-        /** The m name. */
+        /** The name. */
         String mName;
         
-        /** The m non unique. */
+        /** The non unique. */
         boolean mNonUnique;
     }
 
@@ -122,13 +122,13 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
      */
     class IndexColumn {
 
-        /** The m ascending. */
+        /** The ascending. */
         boolean mAscending;
         
-        /** The m column. */
+        /** The column. */
         String mColumn;
         
-        /** The m position. */
+        /** The position. */
         short mPosition;
     }
 
@@ -207,22 +207,22 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     /** The ma other columns. */
     String[] maOtherColumns = null;
     
-    /** The m batch data. */
+    /** The batch data. */
     boolean mBatchData = true;
     
-    /** The m stream changes. */
+    /** The stream changes. */
     boolean mStreamChanges = true;
     
     /** The mc DB connection. */
     private Connection mcDBConnection;
     
-    /** The m DB case. */
+    /** The DB case. */
     int mDBCase = -1;
     
-    /** The m DB type. */
+    /** The DB type. */
     String mDBType = null;
     
-    /** The m dont compound statements. */
+    /** The dont compound statements. */
     boolean mDontCompoundStatements = false;
     
     /** The mi commit size. */
@@ -245,7 +245,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
             mstrTableName, msUpdateColumns, msUpdateTriggers, strDriverClass, strPassword, strPreSQL, strURL,
             strUserName, msInsertSourceColumns;
     
-    /** The m source key specified. */
+    /** The source key specified. */
     private boolean mSourceKeySpecified = false;
     
     /** The ms pre load SQL. */
@@ -257,7 +257,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     /** The jdbc helper. */
     private JDBCItemHelper jdbcHelper;
 
-    /** The m used connections. */
+    /** The used connections. */
     ArrayList mUsedConnections = new ArrayList();
 
     /** The mv column index. */
@@ -269,16 +269,16 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     /** The mi analyze pos. */
     private int miAnalyzePos = -1;
     
-    /** The m effective date column. */
+    /** The effective date column. */
     private String mEffectiveDateColumn;
     
-    /** The m effective data port. */
+    /** The effective data port. */
     private JDBCETLInPort mEffectiveDataPort = null;
     
-    /** The m delta tablename. */
+    /** The delta tablename. */
     private String mDeltaTablename;
     
-    /** The m keys. */
+    /** The keys. */
     private int mKeys = 0;
 
     /**
@@ -315,7 +315,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
         /** The dcd new column. */
         DatabaseColumnDefinition dcdNewColumn;
         
-        /** The m key. */
+        /** The key. */
         private int mKey;
 
         /* (non-Javadoc)
@@ -520,10 +520,10 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
 
     }
 
-    /** The m index enable list. */
+    /** The index enable list. */
     private ArrayList mIndexEnableList = new ArrayList();
     
-    /** The m index disable list. */
+    /** The index disable list. */
     private ArrayList mIndexDisableList = new ArrayList();
 
     /**
@@ -596,7 +596,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     /** The max char length. */
     private int maxCharLength;
     
-    /** The m batch counter. */
+    /** The batch counter. */
     private int mBatchCounter;
     
     /** The fire pre batch. */
@@ -810,7 +810,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
 
     }
 
-    /** The m temp table feed. */
+    /** The temp table feed. */
     static private int mTempTableFeed = 0;
 
     /**
@@ -852,7 +852,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     /** The id quote enabled. */
     private boolean idQuoteEnabled = false;
     
-    /** The m statement seperator. */
+    /** The statement seperator. */
     private String mStatementSeperator;
     
     /** The ms best join. */
@@ -864,16 +864,16 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     /** The ms insert columns. */
     private String msInsertColumns;
     
-    /** The m first SK. */
+    /** The first SK. */
     private String mFirstSK;
     
-    /** The m manage indexes. */
+    /** The manage indexes. */
     private boolean mManageIndexes;
     
-    /** The m surrogate key. */
+    /** The surrogate key. */
     private String mSurrogateKey;
     
-    /** The m expiration date column. */
+    /** The expiration date column. */
     private String mExpirationDateColumn;
 
     /**
@@ -1225,10 +1225,10 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
         return 0;
     }
 
-    /** The m cache persistence ID. */
+    /** The cache persistence ID. */
     private Integer mCachePersistenceID = -1;
 
-    /** The m cache size. */
+    /** The cache size. */
     private int mCacheSize;
 
     /** The cache persistence. */
@@ -1286,7 +1286,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
 
     }
 
-    /** The m lookup. */
+    /** The lookup. */
     private PersistentMap mLookup;
 
     /**
@@ -1478,7 +1478,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
         return res;
     }
 
-    /** The m batch log. */
+    /** The batch log. */
     ArrayList mBatchLog = new ArrayList();
     
     /** The record num batch start. */
@@ -1503,7 +1503,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     /** The mi retry batch. */
     int miRetryBatch = 0;
 
-    /** The m incremental commit. */
+    /** The incremental commit. */
     boolean mIncrementalCommit = true;
 
     /**
@@ -1608,7 +1608,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
 
     }
 
-    /** The m low memory threashold. */
+    /** The low memory threashold. */
     long mLowMemoryThreashold = -1;
 
     /* (non-Javadoc)
@@ -1713,7 +1713,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
         return result;
     }
 
-    /** The m failed batch elements. */
+    /** The failed batch elements. */
     private Set mFailedBatchElements = new HashSet();
 
     /**

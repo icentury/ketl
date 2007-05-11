@@ -151,7 +151,7 @@ public class ExecuteJobWriter extends ETLWriter implements DefaultWriterCore {
         return null;
     }
 
-    /** The m input name map. */
+    /** The input name map. */
     private HashMap mInputNameMap = new HashMap();
 
     /*

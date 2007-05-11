@@ -54,16 +54,16 @@ public abstract class ETLPort {
     /** The mstr name. */
     public String mstrName;
     
-    /** The m object type. */
+    /** The object type. */
     public String mObjectType;
     
-    /** The m data type. */
+    /** The data type. */
     private Class mDataType;
     
-    /** The m used. */
+    /** The used. */
     private boolean mUsed = false;
     
-    /** The m node. */
+    /** The node. */
     Node mNode;
     
     /** The mes src step. */
@@ -378,7 +378,7 @@ public abstract class ETLPort {
         return this.mIndex;
     }
 
-    /** The m index. */
+    /** The index. */
     private int mIndex = -1;
 
     /**

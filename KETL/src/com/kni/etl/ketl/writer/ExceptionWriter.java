@@ -63,7 +63,7 @@ public class ExceptionWriter extends ETLWriter implements DefaultWriterCore {
         }
     }
 
-    /** The m input name map. */
+    /** The input name map. */
     private HashMap mInputNameMap = new HashMap();
 
     /*

@@ -217,7 +217,7 @@ public class KETLJob extends ETLJob {
 
     }
 
-    /** The m lookups. */
+    /** The lookups. */
     private Map mLookups = new HashMap();
 
     /**

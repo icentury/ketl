@@ -41,7 +41,7 @@ final public class DistinctCounter {
     /** The counters. */
     int counters = 2;
     
-    /** The m counters. */
+    /** The counters. */
     Map[] mCounters = new Map[this.counters + 1];
     
     /** The Constant HASHMAP_MAXSIZE. */

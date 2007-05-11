@@ -52,7 +52,7 @@ import com.kni.etl.util.XMLHelper;
  */
 public class NullWriter extends ETLWriter implements DefaultWriterCore {
 
-    /** The m report back. */
+    /** The report back. */
     long mReportBack = 100000;
     
     /** The LOGEVER y_ ATTRIB. */
@@ -61,7 +61,7 @@ public class NullWriter extends ETLWriter implements DefaultWriterCore {
     /** The LO g_ ATTRIB. */
     private String LOG_ATTRIB = "LOG";
     
-    /** The m log. */
+    /** The log. */
     private boolean mLog = true;
 
     /**
@@ -96,7 +96,7 @@ public class NullWriter extends ETLWriter implements DefaultWriterCore {
         return res;
     }
 
-    /** The m shared counter. */
+    /** The shared counter. */
     SharedCounter mSharedCounter;
 
     /* (non-Javadoc)

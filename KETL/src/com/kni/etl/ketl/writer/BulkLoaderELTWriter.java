@@ -52,7 +52,7 @@ abstract public class BulkLoaderELTWriter extends JDBCWriter {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
-    /** The m pipe data. */
+    /** The pipe data. */
     private boolean mPipeData = !System.getProperty("os.name").startsWith("Windows");
 
     /**

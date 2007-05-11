@@ -122,13 +122,13 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
     /** The FILEPATH. */
     private static String FILEPATH = "FILEPATH";
     
-    /** The m linefeed. */
+    /** The linefeed. */
     private String mLinefeed;
     
     /** The mb delimiter at end. */
     private boolean mbDelimiterAtEnd = false;
     
-    /** The m dest field definitions. */
+    /** The dest field definitions. */
     private DestinationFieldDefinition[] mDestFieldDefinitions = null;
     
     /** The mi output buffer size. */
@@ -140,16 +140,16 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
     /** The mi dest field array length. */
     private int miDestFieldArrayLength = -1;
     
-    /** The m char set. */
+    /** The char set. */
     private String mCharSet = null;
     
     /** The ms required tags. */
     String[] msRequiredTags = { NIOFileWriter.FILEPATH };
 
-    /** The m writer list. */
+    /** The writer list. */
     ArrayList mWriterList = new ArrayList();
     
-    /** The m writers. */
+    /** The writers. */
     OutputFile[] mWriters;
     
     /** The ms escape char. */

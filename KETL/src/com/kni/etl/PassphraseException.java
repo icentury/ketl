@@ -34,7 +34,7 @@ public class PassphraseException extends Exception {
     /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 1L;
     
-    /** The m passphrase file path. */
+    /** The passphrase file path. */
     private String mPassphrase, mPassphraseFilePath;
 
     /**

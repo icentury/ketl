@@ -44,22 +44,22 @@ import org.w3c.dom.Node;
  */
 public class ColumnDefinition {
 
-    /** The i SQL data type. */
+    /** The SQL data type. */
     public int iSQLDataType;
     
     /** The str column name. */
     private String strColumnName;
     
-    /** The i precision. */
+    /** The precision. */
     public int iSize, iPrecision = -1;
     
     /** The s type name. */
     public String sTypeName;
     
-    /** The m column properties. */
+    /** The column properties. */
     protected long mColumnProperties = 0;
     
-    /** The m config node. */
+    /** The config node. */
     Node mConfigNode;
 
     /**

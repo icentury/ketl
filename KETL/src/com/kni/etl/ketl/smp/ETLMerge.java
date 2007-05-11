@@ -112,7 +112,7 @@ public abstract class ETLMerge extends ETLStep {
         this.core = (DefaultMergeCore) newCore;
     }
 
-    /** The m batch manager. */
+    /** The batch manager. */
     protected MergeBatchManager mBatchManager;
 
     /**
@@ -307,10 +307,10 @@ public abstract class ETLMerge extends ETLStep {
 
     }
 
-    /** The m expected output data types. */
+    /** The expected output data types. */
     private Class[] mLeftExpectedInputDataTypes, mRightExpectedInputDataTypes, mExpectedOutputDataTypes;
     
-    /** The m output record width. */
+    /** The output record width. */
     private int mLeftInputRecordWidth = -1, mRightInputRecordWidth = -1, mOutputRecordWidth = -1;
 
     /*

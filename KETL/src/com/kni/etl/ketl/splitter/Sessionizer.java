@@ -193,10 +193,10 @@ public class Sessionizer extends ETLSplit {
     /** The mi time out. */
     private int miTimeOut;
     
-    /** The m restart sessions. */
+    /** The restart sessions. */
     private boolean mRestartSessions;
     
-    /** The m store open sessions at end. */
+    /** The store open sessions at end. */
     private boolean mStoreOpenSessionsAtEnd;
     
     /** The mn page definitions. */
@@ -887,10 +887,10 @@ public class Sessionizer extends ETLSplit {
             String.class, String.class, java.util.Date.class, java.util.Date.class, String.class, Boolean.class,
             Short.class, Short.class, String.class, String.class, String.class };
     
-    /** The m analyze pageview. */
+    /** The analyze pageview. */
     private AnalyzePageview mAnalyzePageview;
     
-    /** The m complete session list. */
+    /** The complete session list. */
     private List<Session> mCompleteSessionList;
 
     /** The session. */
@@ -902,7 +902,7 @@ public class Sessionizer extends ETLSplit {
     /** The page holder. */
     Holder currentPageHolder, pageHolder = AnalyzePageview.newHolder();
     
-    /** The m item map. */
+    /** The item map. */
     private int[] mItemMap;
     
     /** The default return type. */

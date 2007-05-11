@@ -30,10 +30,10 @@ package com.kni.etl.sessionizer;
  */
 public class PageViewItemFinderAccelerator {
 
-    /** The I p_ ADDRESS. */
+    /** The p_ ADDRESS. */
     public int IP_ADDRESS = -1;
     
-    /** The I n_ COOKIE. */
+    /** The n_ COOKIE. */
     public int IN_COOKIE = -1;
     
     /** The OU t_ COOKIE. */

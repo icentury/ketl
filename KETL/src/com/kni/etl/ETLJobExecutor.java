@@ -54,7 +54,7 @@ public abstract class ETLJobExecutor extends Thread {
     /** The ll pending queue. */
     protected LinkedList llPendingQueue = null;
     
-    /** The i sleep period. */
+    /** The sleep period. */
     protected int iSleepPeriod = 100;
     
     /** The jes status. */
@@ -212,7 +212,7 @@ public abstract class ETLJobExecutor extends Thread {
      * @param args the args
      * @param pETLJobExecutor the ETL job executor
      * @param pExitCleanly the exit cleanly
-     * @param iLoadID the i load ID
+     * @param iLoadID The load ID
      * 
      * @return the int
      */

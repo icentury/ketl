@@ -44,13 +44,13 @@ import com.kni.etl.stringtools.FastSimpleDateFormat;
  */
 public final class FieldLevelFastInputChannel {
 
-    /** The m temp buffer. */
+    /** The temp buffer. */
     char[] mTempBuffer;
     
     /** The mi stream. */
     private ReadableByteChannel miStream;
     
-    /** The m work buffer. */
+    /** The work buffer. */
     Reader mWorkBuffer;
     
     /** The EOF. */
@@ -513,10 +513,10 @@ public final class FieldLevelFastInputChannel {
     /** The Constant MAXFIELDLENGTH. */
     public static final int MAXFIELDLENGTH = 256;
     
-    /** The m input stream. */
+    /** The input stream. */
     private InputStream mInputStream;
     
-    /** The m G zip stream. */
+    /** The G zip stream. */
     private GZIPInputStream mGZipStream;
 
     /**

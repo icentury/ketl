@@ -109,7 +109,7 @@ public class FTPFileReader extends FileReader {
     /**
      * Gets the FTP filenames.
      * 
-     * @param iParamList the i param list
+     * @param iParamList The param list
      * 
      * @return the FTP filenames
      */

@@ -40,31 +40,31 @@ import com.kni.etl.dbutils.ResourcePool;
  */
 final public class Store {
 
-    /** The m records held. */
+    /** The records held. */
     private long mRecordsHeld = 0;
     
-    /** The m file channel. */
+    /** The file channel. */
     private FileChannel mFileChannel = null;
     
-    /** The m input stream. */
+    /** The input stream. */
     private FileInputStream mInputStream;
     
-    /** The m output stream. */
+    /** The output stream. */
     private FileOutputStream mOutputStream;
     
-    /** The m temp file name. */
+    /** The temp file name. */
     private String mTempFileName;
     
-    /** The m byte output stream. */
+    /** The byte output stream. */
     private OutputStream mByteOutputStream;
     
-    /** The m object output stream. */
+    /** The object output stream. */
     private ObjectOutputStream mObjectOutputStream;
     
-    /** The m byte input stream. */
+    /** The byte input stream. */
     private InputStream mByteInputStream;
     
-    /** The m object input stream. */
+    /** The object input stream. */
     private ObjectInputStream mObjectInputStream;
 
     /**

@@ -69,7 +69,7 @@ import com.kni.util.FileTools;
  */
 public class XMLReader extends ETLReader implements DefaultReaderCore {
 
-    /** The m builder. */
+    /** The builder. */
     private DocumentBuilder mBuilder;
     
     /** The xml handler. */
@@ -135,7 +135,7 @@ public class XMLReader extends ETLReader implements DefaultReaderCore {
 
     public static final String XPATH_ATTRIB = "XPATH";
     
-    /** The m root X path. */
+    /** The root X path. */
     private String mRootXPath;
     
     /** The FORMA t_ STRING. */
@@ -159,7 +159,7 @@ public class XMLReader extends ETLReader implements DefaultReaderCore {
         /** The fetch attribute. */
         boolean fetchAttribute = false;
         
-        /** The m X path exp. */
+        /** The X path exp. */
         XPathExpression mXPathExp;
         
         /** The xpath. */
@@ -174,7 +174,7 @@ public class XMLReader extends ETLReader implements DefaultReaderCore {
         /** The mb X path evaluate field. */
         boolean mbXPathEvaluateField;
         
-        /** The m recursive X path. */
+        /** The recursive X path. */
         String[] mRecursiveXPath;
         
         /** The position. */
@@ -257,7 +257,7 @@ public class XMLReader extends ETLReader implements DefaultReaderCore {
 
     }
 
-    /** The m X path. */
+    /** The X path. */
     private XPathExpression mXPath;
 
     /**
@@ -271,13 +271,13 @@ public class XMLReader extends ETLReader implements DefaultReaderCore {
         /** The datatype. */
         int datatype;
         
-        /** The m X path. */
+        /** The X path. */
         String mXPath;
         
         /** The fetch attribute. */
         boolean fetchAttribute = false;
         
-        /** The m X path expression. */
+        /** The X path expression. */
         XPathExpression mXPathExpression;
         
         /** The position. */

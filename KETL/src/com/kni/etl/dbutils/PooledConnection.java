@@ -42,34 +42,34 @@ public class PooledConnection {
     /** The TIMEOUT. */
     private static long TIMEOUT = 60 * 1000; // 60 seconds
     
-    /** The m connection. */
+    /** The connection. */
     Connection mConnection;
     
-    /** The m in use. */
+    /** The in use. */
     private boolean mInUse = false;
     
-    /** The m allow reuse. */
+    /** The allow reuse. */
     boolean mAllowReuse = true;
     
-    /** The m driver class. */
+    /** The driver class. */
     String mDriverClass;
     
-    /** The m URL. */
+    /** The URL. */
     String mURL;
     
-    /** The m user name. */
+    /** The user name. */
     String mUserName;
     
-    /** The m password. */
+    /** The password. */
     String mPassword;
     
-    /** The m pre SQL. */
+    /** The pre SQL. */
     String mPreSQL;
     
-    /** The m used. */
+    /** The used. */
     int mUsed = 1;
     
-    /** The m last activity. */
+    /** The last activity. */
     java.util.Date mLastActivity = null;
 
     /**

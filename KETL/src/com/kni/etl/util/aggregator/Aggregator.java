@@ -28,7 +28,7 @@ package com.kni.etl.util.aggregator;
  */
 public abstract class Aggregator {
 
-    /** The m output class. */
+    /** The output class. */
     Class mOutputClass;
 
     /**

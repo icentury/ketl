@@ -61,13 +61,13 @@ public class SQLJob extends ETLJob implements DBConnection {
     /** The Constant MAXROWS. */
     static final String MAXROWS = "MAXROWS";
     
-    /** The m max rows. */
+    /** The max rows. */
     int mMaxRows = 10000;
     
     /** The rs result set. */
     protected java.sql.ResultSet rsResultSet = null;
     
-    /** The i update count. */
+    /** The update count. */
     protected int iUpdateCount = -1;
     
     /** The mi database max statements. */
@@ -76,7 +76,7 @@ public class SQLJob extends ETLJob implements DBConnection {
     /** The b auto commit. */
     protected boolean bAutoCommit = false;
     
-    /** The m SQL node. */
+    /** The SQL node. */
     Node mSQLNode;
     
     /** The Constant WRITEBACK_PARAMETER. */

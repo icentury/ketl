@@ -223,7 +223,7 @@ public class Console {
     /** The mdprefix. */
     String mdprefix;
     
-    /** The m previous commands. */
+    /** The previous commands. */
     ArrayList mPreviousCommands = new ArrayList();
     
     /** The n current server. */
@@ -1322,7 +1322,7 @@ public class Console {
         return sb.toString();
     }
 
-    /** The i load ID. */
+    /** The load ID. */
     int iLoadID = (int) System.currentTimeMillis() / 2;
 
     /**

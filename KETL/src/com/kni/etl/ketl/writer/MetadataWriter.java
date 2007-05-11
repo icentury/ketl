@@ -88,13 +88,13 @@ public class MetadataWriter extends ETLWriter implements DefaultWriterCore {
         return null;
     }
 
-    /** The m metadata. */
+    /** The metadata. */
     private Metadata mMetadata;
     
-    /** The m document. */
+    /** The document. */
     private Document mDocument;
     
-    /** The m parameter. */
+    /** The parameter. */
     private Element mParamList, mParameter;
 
     /*
@@ -215,7 +215,7 @@ public class MetadataWriter extends ETLWriter implements DefaultWriterCore {
         return 1;
     }
 
-    /** The m input name map. */
+    /** The input name map. */
     private HashMap mInputNameMap = new HashMap();
 
     /* (non-Javadoc)

@@ -136,7 +136,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
     /** The mc DB connection. */
     private Connection mcDBConnection;
 
-    /** The m col metadata. */
+    /** The col metadata. */
     int mColMetadata[][];
 
     /** The mint fetch size. */
@@ -145,13 +145,13 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
     /** The mrs DB result set. */
     private ResultSet mrsDBResultSet;
 
-    /** The m SQL sample. */
+    /** The SQL sample. */
     String mSQLSample = "";
 
-    /** The m SQL statements. */
+    /** The SQL statements. */
     ArrayList mSQLStatements;
     
-    /** The m stmt. */
+    /** The stmt. */
     private Statement mStmt;
     
     /** The mstr default SQL. */
@@ -163,7 +163,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
     /** The row is valid. */
     private boolean rowIsValid;
     
-    /** The m fetch size. */
+    /** The fetch size. */
     private int mFetchSize;
 
     /**

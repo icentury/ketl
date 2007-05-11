@@ -70,28 +70,28 @@ final public class PGCopyWriter {
     /** The double formatter. */
     private NumberFormat doubleFormatter;
     
-    /** The m columns. */
+    /** The columns. */
     private int mColumns = -1;
     
-    /** The m connection. */
+    /** The connection. */
     private Connection mConnection;
     
-    /** The m datums. */
+    /** The datums. */
     private Object[] mDatums;
     
-    /** The m datum types. */
+    /** The datum types. */
     private Class[] mDatumTypes;
     
     /** The ms load command. */
     private String msLoadCommand = null;
     
-    /** The m writer. */
+    /** The writer. */
     private StringBuilder mWriter = new StringBuilder();
     
     /** The rows in this batch. */
     private int rowsInThisBatch = 0;
     
-    /** The m encoder. */
+    /** The encoder. */
     private Charset mEncoder;
 
     /**
@@ -164,7 +164,7 @@ final public class PGCopyWriter {
     /**
      * Escape.
      * 
-     * @param mString the m string
+     * @param mString The string
      * 
      * @return the string
      * 
@@ -220,10 +220,10 @@ final public class PGCopyWriter {
         return this.sb.toString();
     }
 
-    /** The m buffer. */
+    /** The buffer. */
     private byte[] mBuffer;
     
-    /** The m load len. */
+    /** The load len. */
     private int mLoadLen = 0;
 
     /**

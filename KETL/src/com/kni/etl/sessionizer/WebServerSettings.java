@@ -39,16 +39,16 @@ import com.kni.etl.stringtools.BoyerMooreAlgorithm;
  */
 public class WebServerSettings {
 
-    /** The m ch end markers. */
+    /** The ch end markers. */
     char[][][] mChEndMarkers;
     
-    /** The m ch variable seperators. */
+    /** The ch variable seperators. */
     char[][][] mChVariableSeperators;
     
-    /** The m st end markers. */
+    /** The st end markers. */
     String[][] mStEndMarkers;
     
-    /** The m st variable seperators. */
+    /** The st variable seperators. */
     String[][] mStVariableSeperators;
     
     /** The mb end markers. */

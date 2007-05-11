@@ -48,16 +48,16 @@ public class ResizingArray implements Collection {
     /** The a objects. */
     private Object[] aObjects;
 
-    /** The i max released element. */
+    /** The max released element. */
     private int iMaxReleasedElement = -1;
     
-    /** The i max size. */
+    /** The max size. */
     private int iMaxSize = ResizingArray.DEFAULT_SIZE;
     
-    /** The i used elements. */
+    /** The used elements. */
     private int iUsedElements = 0;
     
-    /** The i next end elements. */
+    /** The next end elements. */
     private int iNextEndElements = 0;
 
     /**

@@ -65,7 +65,7 @@ public class ResourcePool {
     /** The MA x_ RESOURC e_ TYPES. */
     private static int MAX_RESOURCE_TYPES = 2;
     
-    /** The m resources. */
+    /** The resources. */
     private static Object[] mResources = new Object[ResourcePool.MAX_RESOURCE_TYPES];
     
     /** The Constant INUSE_ELEMENT. */
@@ -149,7 +149,7 @@ public class ResourcePool {
      * Log message.
      * 
      * @param oSource the o source
-     * @param iLevel the i level
+     * @param iLevel The level
      * @param strMessage the str message
      */
     public static synchronized void LogMessage(Object oSource, int iLevel, String strMessage) {
@@ -163,8 +163,8 @@ public class ResourcePool {
      * Log message.
      * 
      * @param oSource the o source
-     * @param iErrorCode the i error code
-     * @param iLevel the i level
+     * @param iErrorCode The error code
+     * @param iLevel The level
      * @param strMessage the str message
      * @param strExtendedDetails the str extended details
      * @param bToDB the b to DB
@@ -272,7 +272,7 @@ public class ResourcePool {
     /**
      * Gets the alert level name.
      * 
-     * @param iLevel the i level
+     * @param iLevel The level
      * 
      * @return the alert level name
      */
@@ -620,7 +620,7 @@ public class ResourcePool {
     }
 
     
-    /** The m lookups. */
+    /** The lookups. */
     private static HashMap mLookups;
 
     /**
@@ -635,7 +635,7 @@ public class ResourcePool {
     	return ResourcePool.mLookups;
     }
     
-    /** The m cache index prefix. */
+    /** The cache index prefix. */
     private static String mCacheIndexPrefix = null;
      
     /**

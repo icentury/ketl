@@ -95,7 +95,7 @@ public class JobExecutingTest extends ETLReader implements DefaultReaderCore {
 			return true;
 		}
 
-		/** The m job ID. */
+		/** The job ID. */
 		String mJobID = null;
 
 		/* (non-Javadoc)

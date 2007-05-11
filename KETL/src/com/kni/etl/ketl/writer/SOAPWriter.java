@@ -63,25 +63,25 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
     /** The dumped params. */
     boolean dumpedParams = false;
     
-    /** The m default port. */
+    /** The default port. */
     QName mDefaultPort = null;
     
-    /** The m method. */
+    /** The method. */
     String mMethod;
     
-    /** The m namespace. */
+    /** The namespace. */
     String mNamespace;
     
-    /** The m original hostname verifier. */
+    /** The original hostname verifier. */
     javax.net.ssl.HostnameVerifier mOriginalHostnameVerifier = null;
     
-    /** The m service. */
+    /** The service. */
     Service mService;
     
-    /** The m SOAP type. */
+    /** The SOAP type. */
     int mSOAPType;
     
-    /** The m URL. */
+    /** The URL. */
     URL mURL;
     
     /** The parameter types. */

@@ -62,7 +62,7 @@ public class SourceFieldDefinition {
     /** The Partition field. */
     public boolean PartitionField = false;
     
-    /** The m escape double quotes. */
+    /** The escape double quotes. */
     public boolean mEscapeDoubleQuotes = false;
     
     /** The Format string. */

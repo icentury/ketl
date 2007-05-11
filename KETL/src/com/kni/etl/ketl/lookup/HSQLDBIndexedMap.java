@@ -100,22 +100,22 @@ final public class HSQLDBIndexedMap implements PersistentMap {
     private String keyFlds = "", keyFldsSel = "", keyParms = "", keyObjs = "", dataFlds = "", dataParms = "",
             dataFldsSel = "", dataObjs = "";
 
-    /** The m cache dir. */
+    /** The cache dir. */
     private String mCacheDir = null;
     
-    /** The m values is array. */
+    /** The values is array. */
     private boolean mKeyIsArray, mValuesIsArray;
     
-    /** The m key types. */
+    /** The key types. */
     private Class[] mKeyTypes;
     
-    /** The m name. */
+    /** The name. */
     private String mName;
     
-    /** The m persistance ID. */
+    /** The persistance ID. */
     private Integer mPersistanceID;
     
-    /** The m remove. */
+    /** The remove. */
     private PreparedStatement mSelect, mInsert, mRemove;
 
     /*
@@ -124,10 +124,10 @@ final public class HSQLDBIndexedMap implements PersistentMap {
      * @see com.kni.etl.ketl.lookup.KETLMap#get(java.lang.Object)
      */
 
-    /** The m value fields. */
+    /** The value fields. */
     private String[] mValueFields;
 
-    /** The m value types. */
+    /** The value types. */
     private Class[] mValueTypes;
 
     /** The stmt. */
@@ -136,7 +136,7 @@ final public class HSQLDBIndexedMap implements PersistentMap {
     /** The storage. */
     private Connection storage = null;
     
-    /** The m size. */
+    /** The size. */
     private int mSize;
 
     /* (non-Javadoc)
@@ -211,7 +211,7 @@ final public class HSQLDBIndexedMap implements PersistentMap {
 
     }
 
-    /** The m JDBC item helper. */
+    /** The JDBC item helper. */
     private HSQLDBItemHelper mJDBCItemHelper;
 
     /* (non-Javadoc)

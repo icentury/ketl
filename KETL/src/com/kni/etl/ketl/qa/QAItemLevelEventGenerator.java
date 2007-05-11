@@ -46,7 +46,7 @@ import com.kni.etl.ketl.writer.ETLWriter;
  */
 public abstract class QAItemLevelEventGenerator extends QAEventGenerator {
 
-    /** The m associatet port. */
+    /** The associatet port. */
     protected ETLPort mAssociatetPort = null;
 
     /**

@@ -70,8 +70,8 @@ public class ETLJobManager {
      * ETLJobExecutor constructor comment.
      * 
      * @param strJobExecutorClass the str job executor class
-     * @param iMaxNumThreads the i max num threads
-     * @param iMaxQueueSize the i max queue size
+     * @param iMaxNumThreads The max num threads
+     * @param iMaxQueueSize The max queue size
      */
     public ETLJobManager(String strJobExecutorClass, int iMaxNumThreads, int iMaxQueueSize) {
         super();

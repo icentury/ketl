@@ -449,7 +449,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     /** The ma files. */
     protected ArrayList maFiles = new ArrayList();
     
-    /** The m allow duplicates. */
+    /** The allow duplicates. */
     protected boolean mAllowDuplicates = false;
     
     /** The mb allow invalid last record. */
@@ -458,25 +458,25 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     /** The mc default record delimter. */
     private char mcDefaultRecordDelimter;
     
-    /** The m coding error action. */
+    /** The coding error action. */
     private String mCharacterSet, mCodingErrorAction;
     
-    /** The m current file channel. */
+    /** The current file channel. */
     private ManagedFastInputChannel mCurrentFileChannel = null;
     
-    /** The m delete source. */
+    /** The delete source. */
     private boolean mDeleteSource = false;
     
-    /** The m IO buffer size. */
+    /** The IO buffer size. */
     private int mIOBufferSize;
     
     /** The mi skip lines. */
     private int miSkipLines;
     
-    /** The m max line length. */
+    /** The max line length. */
     private int mMaxLineLength;
     
-    /** The m move source. */
+    /** The move source. */
     private String mMoveSource = null;
     
     /** The mstr default field delimeter. */
@@ -563,10 +563,10 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     /** The oc nm. */
     private String ocNm;
 
-    /** The m buffer length. */
+    /** The buffer length. */
     private int mBufferLength;
 
-    /** The m zipped. */
+    /** The zipped. */
     private boolean mZipped;
     
     /** The CURREN t_ FIL e_ CHANNEL. */

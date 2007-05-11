@@ -133,7 +133,7 @@ public class ETLJobStatus extends ETLStatus {
         return ETLJobStatus.astrStatusMessages;
     }
 
-    /** The m exception. */
+    /** The exception. */
     Throwable mException;
 
     /**

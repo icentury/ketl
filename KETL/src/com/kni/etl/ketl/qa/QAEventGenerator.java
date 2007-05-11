@@ -634,13 +634,13 @@ public abstract class QAEventGenerator extends QA {
         return this.miErrorCode;
     }
 
-    /** The m event to generate. */
+    /** The event to generate. */
     String mEventToGenerate;
     
     /** The mb event fired. */
     boolean mbEventFired = false;
     
-    /** The m comparison values. */
+    /** The comparison values. */
     ArrayList mComparisonValues;
 
     /**

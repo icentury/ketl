@@ -106,10 +106,10 @@ public abstract class ETLWriter extends ETLStep {
         super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
     }
 
-    /** The m expected data types. */
+    /** The expected data types. */
     private Class[] mExpectedDataTypes;
     
-    /** The m record width. */
+    /** The record width. */
     private int mRecordWidth;
     
     /** The core. */
@@ -171,7 +171,7 @@ public abstract class ETLWriter extends ETLStep {
     void setOutputRecordDataTypes(Class[] pClassArray, String pChannel) {
     }
 
-    /** The m batch manager. */
+    /** The batch manager. */
     private WriterBatchManager mBatchManager;
 
     /* (non-Javadoc)

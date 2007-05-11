@@ -197,25 +197,25 @@ final public class CachedIndexedMap implements PersistentMap {
         return 64;
     }
 
-    /** The m cache size. */
+    /** The cache size. */
     private int mCacheSize;
 
-    /** The m field index. */
+    /** The field index. */
     private HashMap mFieldIndex = new HashMap();
 
-    /** The m HWR. */
+    /** The HWR. */
     private HashWrapper mHWR = new HashWrapper(null, true);
     
-    /** The m key is array. */
+    /** The key is array. */
     private boolean mKeyIsArray;
 
-    /** The m LRU. */
+    /** The LRU. */
     private LRU mLRU;
 
-    /** The m parent cache. */
+    /** The parent cache. */
     private PersistentMap mParentCache;
 
-    /** The m value is single. */
+    /** The value is single. */
     private boolean mValueIsSingle;
 
     /*

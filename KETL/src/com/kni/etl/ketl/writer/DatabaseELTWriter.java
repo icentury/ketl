@@ -99,13 +99,13 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
      */
     class Index {
 
-        /** The m columns. */
+        /** The columns. */
         ArrayList mColumns = new ArrayList();
         
-        /** The m name. */
+        /** The name. */
         String mName;
         
-        /** The m non unique. */
+        /** The non unique. */
         boolean mNonUnique;
     }
 
@@ -114,13 +114,13 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
      */
     class IndexColumn {
 
-        /** The m ascending. */
+        /** The ascending. */
         boolean mAscending;
         
-        /** The m column. */
+        /** The column. */
         String mColumn;
         
-        /** The m position. */
+        /** The position. */
         short mPosition;
     }
 
@@ -220,22 +220,22 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     /** The ma other columns. */
     String[] maOtherColumns = null;
     
-    /** The m batch data. */
+    /** The batch data. */
     boolean mBatchData = true;
     
-    /** The m stream changes. */
+    /** The stream changes. */
     boolean mStreamChanges = true;
     
     /** The mc DB connection. */
     protected Connection mcDBConnection;
     
-    /** The m DB case. */
+    /** The DB case. */
     int mDBCase = -1;
     
-    /** The m DB type. */
+    /** The DB type. */
     String mDBType = null;
     
-    /** The m dont compound statements. */
+    /** The dont compound statements. */
     boolean mDontCompoundStatements = false;
     
     /** The mi commit size. */
@@ -253,7 +253,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     /** The mi replace technique. */
     int miReplaceTechnique = DatabaseELTWriter.SWAP_TABLE;
     
-    /** The m primary key specified. */
+    /** The primary key specified. */
     private boolean mPrimaryKeySpecified = false;
     
     /** The ms all columns. */
@@ -268,7 +268,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     /** The ms join. */
     String msJoin;
     
-    /** The m source key specified. */
+    /** The source key specified. */
     private boolean mSourceKeySpecified = false;
     
     /** The ms post batch SQL. */
@@ -301,10 +301,10 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     /** The ms update triggers. */
     String msUpdateTriggers;
 
-    /** The m type. */
+    /** The type. */
     int mType = -1;
 
-    /** The m used connections. */
+    /** The used connections. */
     ArrayList mUsedConnections = new ArrayList();
 
     /** The mv column index. */
@@ -626,10 +626,10 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         sql.add(sqlToExecute);
     }
 
-    /** The m index enable list. */
+    /** The index enable list. */
     private ArrayList mIndexEnableList = new ArrayList();
     
-    /** The m index disable list. */
+    /** The index disable list. */
     private ArrayList mIndexDisableList = new ArrayList();
 
     /**
@@ -908,7 +908,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     /** The max char length. */
     private int maxCharLength;
     
-    /** The m batch counter. */
+    /** The batch counter. */
     protected int mBatchCounter;
     
     /** The fire pre batch. */
@@ -1045,7 +1045,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
     }
 
-    /** The m temp table feed. */
+    /** The temp table feed. */
     static private int mTempTableFeed = 0;
 
     /**
@@ -1087,10 +1087,10 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     /** The id quote enabled. */
     private boolean idQuoteEnabled = false;
     
-    /** The m handle duplicate keys. */
+    /** The handle duplicate keys. */
     protected boolean mHandleDuplicateKeys = false;
     
-    /** The m statement seperator. */
+    /** The statement seperator. */
     private String mStatementSeperator;
     
     /** The ms best join. */
@@ -1105,22 +1105,22 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     /** The mb replace mode. */
     private boolean mbReplaceMode;
     
-    /** The m first SK. */
+    /** The first SK. */
     private String mFirstSK;
     
-    /** The m manage indexes. */
+    /** The manage indexes. */
     private boolean mManageIndexes;
     
-    /** The m hash column. */
+    /** The hash column. */
     private String mHashColumn;
     
-    /** The m hash column definition. */
+    /** The hash column definition. */
     private DatabaseColumnDefinition mHashColumnDefinition;
     
     /** The mi hash fields. */
     private int[] miHashFields;
     
-    /** The m hash compare only. */
+    /** The hash compare only. */
     private boolean mHashCompareOnly;
 
     /**
@@ -1695,7 +1695,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return res;
     }
 
-    /** The m batch log. */
+    /** The batch log. */
     ArrayList mBatchLog = new ArrayList();
     
     /** The record num batch start. */
@@ -1720,7 +1720,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
     /** The mi retry batch. */
     int miRetryBatch = 0;
 
-    /** The m incremental commit. */
+    /** The incremental commit. */
     boolean mIncrementalCommit = true;
 
     /**
@@ -1863,7 +1863,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return result;
     }
 
-    /** The m low memory threashold. */
+    /** The low memory threashold. */
     long mLowMemoryThreashold = -1;
 
     /* (non-Javadoc)
@@ -1969,7 +1969,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
         return result;
     }
 
-    /** The m failed batch elements. */
+    /** The failed batch elements. */
     private Set mFailedBatchElements = new HashSet();
 
     /**

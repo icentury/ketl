@@ -52,7 +52,7 @@ public class RegisteredLookup implements Externalizable {
     /** The persistence. */
     public int persistence;
     
-    /** The m source job execution ID. */
+    /** The source job execution ID. */
     public int mSourceLoadID = -1, mSourceJobExecutionID = -1;
 
     /**

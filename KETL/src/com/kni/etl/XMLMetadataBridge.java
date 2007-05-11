@@ -88,10 +88,10 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     /** The md cache. */
     private static HashMap mdCache = new HashMap();
 
-    /** The m doc builder. */
+    /** The doc builder. */
     private static DocumentBuilder mDocBuilder;
     
-    /** The m lock. */
+    /** The lock. */
     private static Object mLock = new Object();
 
     /** The Constant REQUEST_CANCEL. */
@@ -176,7 +176,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
         return e;
     }
 
-    /** The m default date format. */
+    /** The default date format. */
     private SimpleDateFormat mDefaultDateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss Z");
 
     /**

@@ -74,19 +74,19 @@ public class NetezzaELTWriter extends BulkLoaderELTWriter {
                 this.madcdColumns, jdbcHelper, this.pipeData());
     }
 
-    /** The m OS command. */
+    /** The OS command. */
     private String mOSCommand;
     
-    /** The m target table. */
+    /** The target table. */
     private String mTargetTable;
     
-    /** The m encoding. */
+    /** The encoding. */
     private String mEncoding;
     
-    /** The m hostname. */
+    /** The hostname. */
     private String mHostname;
     
-    /** The m DB name. */
+    /** The DB name. */
     private String mDBName;
 
     /* (non-Javadoc)

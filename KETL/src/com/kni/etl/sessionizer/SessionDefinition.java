@@ -91,8 +91,8 @@ public class SessionDefinition {
     /**
      * Match in valid.
      * 
-     * @param iLastAlgorithmMatchedOn the i last algorithm matched on
-     * @param iAlgorithmUsed the i algorithm used
+     * @param iLastAlgorithmMatchedOn The last algorithm matched on
+     * @param iAlgorithmUsed The algorithm used
      * 
      * @return true, if successful
      */

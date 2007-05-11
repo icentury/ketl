@@ -116,25 +116,25 @@ final public class NetezzaStatementWrapper extends BulkLoaderStatementWrapper {
     /** The FALSE. */
     private final byte[] FALSE = "0".getBytes(this.ENCODER);
 
-    /** The m all cols. */
+    /** The all cols. */
     private int mAllCols;
 
-    /** The m column details. */
+    /** The column details. */
     private DatabaseColumnDefinition[] mColumnDetails;
 
-    /** The m control file. */
+    /** The control file. */
     private String mControlFile;
 
-    /** The m datums. */
+    /** The datums. */
     private byte[][] mDatums;
 
-    /** The m datum true SQL timestamp. */
+    /** The datum true SQL timestamp. */
     private boolean[] mDatumTrueSQLTimestamp;
 
-    /** The m item order map. */
+    /** The item order map. */
     private int[] mItemOrderMap;
 
-    /** The m load statement. */
+    /** The load statement. */
     private String mLoadStatement;
 
     /** The RECOR d_ DELIMITE r_ A s_ BYTES. */
@@ -262,7 +262,7 @@ final public class NetezzaStatementWrapper extends BulkLoaderStatementWrapper {
     /**
      * Escape.
      * 
-     * @param mString the m string
+     * @param mString The string
      * 
      * @return the string
      */

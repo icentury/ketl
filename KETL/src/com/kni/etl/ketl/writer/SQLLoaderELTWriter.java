@@ -71,10 +71,10 @@ public class SQLLoaderELTWriter extends BulkLoaderELTWriter {
                 this.madcdColumns, jdbcHelper, this.pipeData());
     }
 
-    /** The m OS command. */
+    /** The OS command. */
     private String mOSCommand;
     
-    /** The m target table. */
+    /** The target table. */
     private String mTargetTable;
 
     /* (non-Javadoc)

@@ -41,7 +41,7 @@ import java.util.ListIterator;
  */
 final public class SortedList<E> implements List<E> {
 
-    /** The m comparator. */
+    /** The comparator. */
     Comparator mComparator = null;
     // Create a list with an ordered list of items
     /** The sorted list. */

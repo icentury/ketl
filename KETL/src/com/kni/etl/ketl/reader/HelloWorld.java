@@ -69,13 +69,13 @@ public class HelloWorld extends ETLReader implements DefaultReaderCore {
     @Parameter()
     public static final String PHRASE = "PHRASE";
 
-    /** The m value counter. */
+    /** The value counter. */
     private int mValueCounter = 0;
     
-    /** The m values requested. */
+    /** The values requested. */
     private int mValuesRequested;
     
-    /** The m phrase. */
+    /** The phrase. */
     private String mPhrase;
 
     /* (non-Javadoc)

@@ -96,7 +96,7 @@ public class FTPFileFetcher extends ETLReader implements DefaultReaderCore {
         /** The ll pending queue. */
         protected LinkedList llPendingQueue = null;
         
-        /** The i sleep period. */
+        /** The sleep period. */
         protected int iSleepPeriod = 100;
         
         /** The b file downloaded. */
@@ -578,13 +578,13 @@ public class FTPFileFetcher extends ETLReader implements DefaultReaderCore {
     // ArrayList tmpFTPClients = new ArrayList();
     ArrayList ftpThreadPool = null;
     
-    /** The i max parallel connections. */
+    /** The max parallel connections. */
     int iMaxParallelConnections;
 
     /**
      * Gets the filenames for each complete parameter list.
      * 
-     * @param iParamList the i param list
+     * @param iParamList The param list
      * 
      * @return the filenames for each complete parameter list
      */

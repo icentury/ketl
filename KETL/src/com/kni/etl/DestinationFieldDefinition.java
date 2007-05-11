@@ -66,7 +66,7 @@ public class DestinationFieldDefinition {
     /** The b defeault value. */
     private byte[] bDefeaultValue = null;
     
-    /** The m char set. */
+    /** The char set. */
     private String mCharSet = null;
 
     /**

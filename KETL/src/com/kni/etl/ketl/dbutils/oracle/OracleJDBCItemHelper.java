@@ -39,7 +39,7 @@ import com.kni.etl.util.XMLHelper;
  */
 public class OracleJDBCItemHelper extends JDBCItemHelper {
 
-    /** The m array descriptors. */
+    /** The array descriptors. */
     HashMap mArrayDescriptors = new HashMap();
 
     /* (non-Javadoc)

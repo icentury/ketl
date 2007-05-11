@@ -129,7 +129,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         return 0;
     }
 
-    /** The m builder. */
+    /** The builder. */
     private DocumentBuilder mBuilder;
     
     /** The xml handler. */
@@ -203,7 +203,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
     /** The mb X path evaluate nodes. */
     private boolean mbXPathEvaluateNodes = true;
     
-    /** The m root X path. */
+    /** The root X path. */
     private String mRootXPath;
 
     /** The xml src port. */
@@ -292,7 +292,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         /** The fetch attribute. */
         boolean fetchAttribute = false;
         
-        /** The m X path exp. */
+        /** The X path exp. */
         XPathExpression mXPathExp;
         
         /** The xpath. */
@@ -307,13 +307,13 @@ public class XMLToFieldsTransformation extends ETLTransformation {
         /** The mb X path evaluate field. */
         boolean mbXPathEvaluateField;
         
-        /** The m recursive X path. */
+        /** The recursive X path. */
         String[] mRecursiveXPath;
         
         /** The position. */
         ParsePosition position;
         
-        /** The m dump XML. */
+        /** The dump XML. */
         boolean mDumpXML = false;
         
         /** The null IF. */
@@ -606,7 +606,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
     /** The node list. */
     private List nodeList;
     
-    /** The m X path. */
+    /** The X path. */
     private XPathExpression mXPath;
     
     /** The length. */

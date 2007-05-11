@@ -67,7 +67,7 @@ public class ETLInPort extends ETLPort {
         return 0;
     }
 
-    /** The m object name. */
+    /** The object name. */
     private String mObjectName;
     
     /**

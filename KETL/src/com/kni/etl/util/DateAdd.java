@@ -43,7 +43,7 @@ public class DateAdd {
     /** The vals. */
     int[] vals = new int[DateAdd.ABBREV_TYPES.length];
 
-    /** The m work cal. */
+    /** The work cal. */
     Calendar mWorkCal = Calendar.getInstance();
 
     /**

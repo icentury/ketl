@@ -336,31 +336,31 @@ final public class SleepycatIndexedMap implements PersistentMap {
     /** The field index. */
     private HashMap fieldIndex = new HashMap();
     
-    /** The m cache dir. */
+    /** The cache dir. */
     private String mCacheDir = null;
     
-    /** The m key binding. */
+    /** The key binding. */
     private TupleBinding mKeyBinding;
     
-    /** The m key is array. */
+    /** The key is array. */
     private boolean mKeyIsArray;
     
-    /** The m key types. */
+    /** The key types. */
     private Class[] mKeyTypes;
     
-    /** The m name. */
+    /** The name. */
     private String mName;
     
-    /** The m size. */
+    /** The size. */
     private int mSize;
     
-    /** The m value fields. */
+    /** The value fields. */
     private String[] mValueFields;
     
-    /** The m values is array. */
+    /** The values is array. */
     private boolean mValuesIsArray;
     
-    /** The m value types. */
+    /** The value types. */
     private Class[] mValueTypes;
     
     /** The my database. */
@@ -369,10 +369,10 @@ final public class SleepycatIndexedMap implements PersistentMap {
     /** The my db config. */
     private DatabaseConfig myDbConfig;
 	
-	/** The m key length. */
+	/** The key length. */
 	private int mKeyLength;
     
-    /** The m valid cache list. */
+    /** The valid cache list. */
     private static List mValidCacheList;
 
     /**

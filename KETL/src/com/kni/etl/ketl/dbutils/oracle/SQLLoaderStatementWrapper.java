@@ -56,19 +56,19 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
     /** The helper. */
     JDBCItemHelper helper;
     
-    /** The m load statement. */
+    /** The load statement. */
     String mLoadStatement;
     
-    /** The m columns. */
+    /** The columns. */
     int mColumns;
     
-    /** The m column details. */
+    /** The column details. */
     DatabaseColumnDefinition[] mColumnDetails;
     
-    /** The m control file. */
+    /** The control file. */
     private String mControlFile;
     
-    /** The m DB case. */
+    /** The DB case. */
     private int mDBCase;
     
     /** The sql time formatter. */
@@ -80,7 +80,7 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
     /** The sql date formatter. */
     private SimpleDateFormat sqlDateFormatter;
     
-    /** The m datum true SQL timestamp. */
+    /** The datum true SQL timestamp. */
     private boolean[] mDatumTrueSQLTimestamp;
     
     /** The Constant DEL_LENGTH. */
@@ -307,13 +307,13 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
     /** The double formatter. */
     private NumberFormat doubleFormatter;
     
-    /** The m datums. */
+    /** The datums. */
     private byte[][] mDatums;
     
-    /** The m datum pad length. */
+    /** The datum pad length. */
     private int[] mDatumPadLength;
     
-    /** The m datum needs delimiter. */
+    /** The datum needs delimiter. */
     private boolean[] mDatumNeedsDelimiter;
     // private FileOutputStream mTarget = null;
 

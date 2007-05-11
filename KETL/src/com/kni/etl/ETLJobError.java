@@ -33,7 +33,7 @@ import java.util.Date;
 public class ETLJobError {
 
     // Error details
-    /** The i job execution ID. */
+    /** The job execution ID. */
     protected int iJobExecutionID;
     
     /** The s job ID. */

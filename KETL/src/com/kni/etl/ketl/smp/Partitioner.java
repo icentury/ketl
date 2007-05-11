@@ -41,31 +41,31 @@ final public class Partitioner extends ManagedBlockingQueue {
     /** The Constant serialVersionUID. */
     private static final long serialVersionUID = 1L;
     
-    /** The m capacity. */
+    /** The capacity. */
     private int mCapacity;
     
-    /** The m hash order. */
+    /** The hash order. */
     private int[] mHashOrder;
     
-    /** The m out data. */
+    /** The out data. */
     private List[] mOutData;
     
-    /** The m hash length. */
+    /** The hash length. */
     private int mHashLength = 0;
     
-    /** The m partition keys. */
+    /** The partition keys. */
     private Node[] mPartitionKeys;
     
-    /** The m destination queues. */
+    /** The destination queues. */
     private ManagedBlockingQueue[] mDestinationQueues;
     
-    /** The m dest queues. */
+    /** The dest queues. */
     private int mDestQueues = 0;
     
     /** The name. */
     private String name;
     
-    /** The m sorted. */
+    /** The sorted. */
     private boolean mSorted;
 
     /**
@@ -106,7 +106,7 @@ final public class Partitioner extends ManagedBlockingQueue {
         /** The name. */
         private String name;
         
-        /** The m parent partitioner. */
+        /** The parent partitioner. */
         private Partitioner mParentPartitioner;
 
         /**

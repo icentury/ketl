@@ -40,13 +40,13 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ETLStatus {
 
-    /** The i status code. */
+    /** The status code. */
     protected int iStatusCode;
     
     /** The astr status messages. */
     private static java.lang.String[] astrStatusMessages = {};
     
-    /** The i error code. */
+    /** The error code. */
     protected int iErrorCode;
     
     /** The mi server. */
@@ -67,7 +67,7 @@ public class ETLStatus {
     /** The stats node. */
     protected Element statsNode = null;
     
-    /** The m execution date. */
+    /** The execution date. */
     private java.sql.Timestamp mStartDate, mEndDate, mExecutionDate;
 
     /**
@@ -208,7 +208,7 @@ public class ETLStatus {
     /**
      * Insert the method's description here. Creation date: (5/3/2002 1:22:09 PM)
      * 
-     * @param iStatusCode the i status code
+     * @param iStatusCode The status code
      * 
      * @return java.lang.String
      */
@@ -244,7 +244,7 @@ public class ETLStatus {
     /**
      * Sets the status of the object.
      * 
-     * @param iNewStatus the i new status
+     * @param iNewStatus The new status
      * 
      * @return the int
      * 

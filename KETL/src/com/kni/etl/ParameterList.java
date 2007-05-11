@@ -41,7 +41,7 @@ public class ParameterList {
     /** The hm parameter list. */
     protected HashMap hmParameterList = null;
     
-    /** The m path. */
+    /** The path. */
     private String mPath = "";
 
     /**

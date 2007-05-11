@@ -100,7 +100,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
     /** The MA x_ DO v_ SIZE. */
     static private String MAX_DOV_SIZE = "MAXDOVSIZE";
     
-    /** The m max DOV size. */
+    /** The max DOV size. */
     private int mMaxDOVSize = 16;
     
     /** The mstr schema pattern. */
@@ -109,7 +109,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
     /** The mstr table name pattern. */
     String mstrTableNamePattern;
     
-    /** The m table list. */
+    /** The table list. */
     private ArrayList mTableList = null;
 
     /* (non-Javadoc)
@@ -281,25 +281,25 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
      */
     class Table {
 
-        /** The m catalog. */
+        /** The catalog. */
         String mTableName, mSchema, mType, mCatalog;
         
-        /** The m row count. */
+        /** The row count. */
         int mRowCount;
         
         /** The execute. */
         boolean execute;
 
-        /** The m full table address. */
+        /** The full table address. */
         String mFullTableAddress;
         
-        /** The m columns. */
+        /** The columns. */
         ResultSet mColumns;
         
-        /** The m column list. */
+        /** The column list. */
         ArrayList mColumnList = new ArrayList();
         
-        /** The m error message. */
+        /** The error message. */
         ArrayList mErrorMessage = new ArrayList();
         
         /** The completeness. */
@@ -311,38 +311,38 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
      */
     class Column {
 
-        /** The m default value. */
+        /** The default value. */
         String mNullable, mName, mDTypeName, mRemarks, mDefaultValue;
         
-        /** The m col position. */
+        /** The col position. */
         int mDType, mColSize, mDecDigits, mRadixPrec, mCharOctetLength, mColPosition;
         
-        /** The m table. */
+        /** The table. */
         Table mTable;
         
-        /** The m max value. */
+        /** The max value. */
         String mMinValue, mMaxValue;
         
-        /** The m distinct vals. */
+        /** The distinct vals. */
         int mDistinctVals;
         
-        /** The m null values. */
+        /** The null values. */
         int mNullValues;
         
-        /** The m sample. */
+        /** The sample. */
         String mSample;
         
-        /** The m DOV. */
+        /** The DOV. */
         String mDOV;
         
-        /** The m error message. */
+        /** The error message. */
         ArrayList mErrorMessage = new ArrayList();
     }
 
-    /** The m current table. */
+    /** The current table. */
     private Table mCurrentTable = null;
     
-    /** The m DB type. */
+    /** The DB type. */
     private String mDBType;
 
     /**

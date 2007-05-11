@@ -98,7 +98,7 @@ abstract public class BulkLoaderStatementWrapper extends StatementWrapper {
 		return this.mInBuffer.toString();
 	}
 
-	/** The m file open. */
+	/** The file open. */
 	private boolean mFileOpen = false;
 
 	/**
@@ -175,28 +175,28 @@ abstract public class BulkLoaderStatementWrapper extends StatementWrapper {
 
 	}
 
-	/** The m active loader thread. */
+	/** The active loader thread. */
 	private LoaderProcess mActiveLoaderThread = null;
 
-	/** The m buffer. */
+	/** The buffer. */
 	private BufferedOutputStream mBuffer;
 
-	/** The m err buffer. */
+	/** The err buffer. */
 	private StringBuffer mErrBuffer;
 
-	/** The m in buffer. */
+	/** The in buffer. */
 	private StringBuffer mInBuffer;
 
-	/** The m pipe to process. */
+	/** The pipe to process. */
 	private Process mPipeToProcess;
 
 	/** The ms data file. */
 	private String msDataFile;
 
-	/** The m target. */
+	/** The target. */
 	private FileOutputStream mTarget = null;
 
-	/** The m writer. */
+	/** The writer. */
 	protected DataOutputStream mWriter = null;
 
 	/** The pipe supported. */
@@ -357,7 +357,7 @@ abstract public class BulkLoaderStatementWrapper extends StatementWrapper {
 
 	}
 
-	/** The m command executed. */
+	/** The command executed. */
 	private boolean mCommandExecuted = false;
 
 	/**

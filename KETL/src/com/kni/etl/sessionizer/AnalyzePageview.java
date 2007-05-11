@@ -91,13 +91,13 @@ public class AnalyzePageview implements Serializable {
         /** The b cleansed. */
         public boolean bCleansed;
         
-        /** The i cleansed ID. */
+        /** The cleansed ID. */
         public short iCleansedID;
         
-        /** The i page sequence. */
+        /** The page sequence. */
         public short iPageSequence;
         
-        /** The i associated hits. */
+        /** The associated hits. */
         public int iAssociatedHits;
     }
 
@@ -132,7 +132,7 @@ public class AnalyzePageview implements Serializable {
         return holder;
     }
 
-    /** The i bad sessions. */
+    /** The bad sessions. */
     transient IDCounter iBadSessions = new IDCounter();
 
     /**
