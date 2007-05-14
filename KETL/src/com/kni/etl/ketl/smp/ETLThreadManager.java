@@ -45,7 +45,7 @@ import com.kni.etl.util.XMLHelper;
  * The Class ETLThreadManager.
  * 
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- * Generation&gt;Code and Comments
+ *         Generation&gt;Code and Comments
  */
 public class ETLThreadManager {
 
@@ -59,7 +59,7 @@ public class ETLThreadManager {
 
         /** The thread. */
         Thread thread;
-        
+
         /** The step. */
         ETLWorker step;
 
@@ -70,7 +70,7 @@ public class ETLThreadManager {
 
     /** The mkj executor. */
     KETLJobExecutor mkjExecutor;
-    
+
     /** The job thread group. */
     ThreadGroup jobThreadGroup;
 
@@ -104,9 +104,7 @@ public class ETLThreadManager {
      * 
      * @param sourceStep the source step
      * @param name the name
-     * 
      * @return the step
-     * 
      * @throws KETLThreadException the KETL thread exception
      */
     public synchronized ETLWorker getStep(ETLWorker sourceStep, String name) throws KETLThreadException {
@@ -135,7 +133,6 @@ public class ETLThreadManager {
      * Request queue.
      * 
      * @param queueSize the queue size
-     * 
      * @return the managed blocking queue
      */
     public ManagedBlockingQueue requestQueue(int queueSize) {
@@ -161,13 +158,13 @@ public class ETLThreadManager {
 
     /** The previous time. */
     private long startTime, previousTime;
-    
+
     /** The previous writer records. */
     private int previousReaderRecords = 0, previousWriterRecords = 0;
-    
+
     /** The Constant flowTypes. */
     public static final String[] flowTypes = { "FANIN", "FANOUT", "PIPELINE" };
-    
+
     /** The Constant flowTypeMappings. */
     static final int[] flowTypeMappings = { ETLThreadGroup.FANIN, ETLThreadGroup.FANOUT, ETLThreadGroup.PIPELINE };
 
@@ -192,7 +189,7 @@ public class ETLThreadManager {
             try {
                 ((WorkerThread) o).step.initialize(this.mkjExecutor);
             } catch (Throwable e) {
-                if(e instanceof KETLThreadException)
+                if (e instanceof KETLThreadException)
                     throw (KETLThreadException) e;
                 throw new KETLThreadException(e.getMessage(), e);
             }
@@ -217,7 +214,6 @@ public class ETLThreadManager {
      * Monitor.
      * 
      * @param sleepTime the sleep time
-     * 
      * @throws Throwable the throwable
      */
     public void monitor(int sleepTime) throws Throwable {
@@ -232,7 +228,6 @@ public class ETLThreadManager {
      * 
      * @param sleepTime the sleep time
      * @param maxTime the max time
-     * 
      * @throws Throwable the throwable
      */
     public void monitor(int sleepTime, int maxTime) throws Throwable {
@@ -243,24 +238,24 @@ public class ETLThreadManager {
      * Final status.
      * 
      * @param jsJobStatus the js job status
-     * 
      * @return the string
      */
     public String finalStatus(ETLJobStatus jsJobStatus) {
-        int recordWriterCount = 0, recordReaderCount = 0, recordReadErrorCount=0, recordWriteErrorCount=0;
+        int recordWriterCount = 0, recordReaderCount = 0, recordReadErrorCount = 0, recordWriteErrorCount = 0;
         long currentTime = System.currentTimeMillis();
 
         for (WorkerThread o : this.threads) {
-            if ( o.step instanceof ETLReader) {
+            if (o.step instanceof ETLReader) {
                 recordReaderCount += o.step.getRecordsProcessed();
-                recordReadErrorCount +=((ETLStep)o.step).getErrorCount();  
+                recordReadErrorCount += ((ETLStep) o.step).getErrorCount();
             }
             else if (o.step instanceof ETLWriter) {
                 recordWriterCount += o.step.getRecordsProcessed();
-                recordReadErrorCount +=((ETLStep)o.step).getErrorCount();
-            } 
-            
-            jsJobStatus.setStats(o.step.getName(),o.step.partitions,o.step.partitionID,recordReaderCount,recordWriterCount,recordReadErrorCount,recordWriteErrorCount,o.step.getCPUTiming());
+                recordReadErrorCount += ((ETLStep) o.step).getErrorCount();
+            }
+
+            jsJobStatus.setStats(o.step.getName(), o.step.partitions, o.step.partitionID, recordReaderCount,
+                    recordWriterCount, recordReadErrorCount, recordWriteErrorCount, o.step.getCPUTiming());
         }
 
         long allTimeDiff = currentTime - this.startTime;
@@ -269,8 +264,9 @@ public class ETLThreadManager {
         int recordDiff = recordReaderCount - this.previousReaderRecords;
         sb.append("\tOverall Read: " + recordReaderCount / ((allTimeDiff / 1000) + 1) + "\n");
 
-        jsJobStatus.setStats(recordReaderCount,recordWriterCount,recordReadErrorCount,recordWriteErrorCount,allTimeDiff);
-        
+        jsJobStatus.setStats(recordReaderCount, recordWriterCount, recordReadErrorCount, recordWriteErrorCount,
+                allTimeDiff);
+
         sb.append("\tAverage Read: " + recordDiff / ((prevTimeDiff / 1000) + 1) + "\n");
         sb.append("\tTotal Records Read: " + recordReaderCount + "\n");
 
@@ -295,17 +291,15 @@ public class ETLThreadManager {
      * Gets the threading type.
      * 
      * @param config the config
-     * 
      * @return the threading type
-     * 
      * @throws KETLThreadException the KETL thread exception
      */
     public static int getThreadingType(Element config) throws KETLThreadException {
-        int res = Arrays.binarySearch(ETLThreadManager.flowTypes, XMLHelper.getAttributeAsString(config.getAttributes(), "FLOWTYPE",
-                ETLThreadManager.flowTypes[2]));
+        int res = Arrays.binarySearch(ETLThreadManager.flowTypes, XMLHelper.getAttributeAsString(
+                config.getAttributes(), "FLOWTYPE", ETLThreadManager.flowTypes[2]));
         if (res < 0)
-            throw new KETLThreadException("Invalid flow type, valid values are - " + Arrays.toString(ETLThreadManager.flowTypes), Thread
-                    .currentThread());
+            throw new KETLThreadException("Invalid flow type, valid values are - "
+                    + Arrays.toString(ETLThreadManager.flowTypes), Thread.currentThread());
 
         return ETLThreadManager.flowTypeMappings[res];
     }
@@ -314,7 +308,6 @@ public class ETLThreadManager {
      * Gets the stack trace.
      * 
      * @param aThrowable the a throwable
-     * 
      * @return the stack trace
      */
     public static String getStackTrace(Throwable aThrowable) {
@@ -375,8 +368,9 @@ public class ETLThreadManager {
                             sb.append("\t" + x + " - [" + dt.toString() + "]" + msg.replace("\t", "\t\t") + "\n\n");
 
                         if (ResourcePool.getMetadata() != null) {
-                            ResourcePool.getMetadata().recordJobMessage(eJob, (ETLStep) wt.step,
-                                    eJob.getStatus().getErrorCode(),ResourcePool.ERROR_MESSAGE,  msg, extMsg, false, dt);
+                            ResourcePool.getMetadata()
+                                    .recordJobMessage(eJob, (ETLStep) wt.step, eJob.getStatus().getErrorCode(),
+                                            ResourcePool.ERROR_MESSAGE, msg, extMsg, false, dt);
 
                         }
                     }
@@ -409,7 +403,6 @@ public class ETLThreadManager {
      * @param sleepTime the sleep time
      * @param maxTime the max time
      * @param jsJobStatus the js job status
-     * 
      * @throws Throwable the throwable
      */
     public void monitor(int sleepTime, int maxTime, ETLStatus jsJobStatus) throws Throwable {
@@ -423,12 +416,12 @@ public class ETLThreadManager {
             long currentTime = System.currentTimeMillis();
 
             // deal with cancellations
-            if(this.getJobExecutor().getCurrentETLJob().isCancelled()){
-                interruptAllThreads = true;   
-                ResourcePool.LogMessage(this,ResourcePool.WARNING_MESSAGE,"Cancelling job");
+            if (this.getJobExecutor().getCurrentETLJob().isCancelled()) {
+                interruptAllThreads = true;
+                ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Cancelling job");
                 this.getJobExecutor().getCurrentETLJob().cancelSuccessfull(true);
             }
-            
+
             for (Object o : this.threads) {
 
                 // if any thread has failed then force failure for alive threads, they should be failing already but
@@ -552,7 +545,6 @@ public class ETLThreadManager {
      * Count of step threads alive.
      * 
      * @param writer the writer
-     * 
      * @return the int
      */
     public int countOfStepThreadsAlive(ETLStep writer) {
