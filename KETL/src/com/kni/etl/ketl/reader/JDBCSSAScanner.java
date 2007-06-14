@@ -28,6 +28,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -244,6 +246,11 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
                     cTable.mSchema = mrsDBResultSet.getString("TABLE_SCHEM");
                     cTable.mTableName = mrsDBResultSet.getString("TABLE_NAME");
+
+                    if(this.mstrTablesList != null && this.mstrTablesList.contains(cTable.mTableName) == false){
+                        continue;                
+                    }
+             
                     cTable.mType = mrsDBResultSet.getString("TABLE_TYPE");
 
                     cTable.mCatalog = mrsDBResultSet.getString("TABLE_CAT");
@@ -256,6 +263,10 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                                 + cTable.mTableName + this.idQuote;
                     else
                         cTable.mFullTableAddress = this.idQuote + cTable.mTableName + this.idQuote;
+                    
+                    if(this.mstrFilter != null){
+                        cTable.mFullTableAddress = "(select * from " + cTable.mFullTableAddress + " where " + this.mstrFilter + ") drv";
+                    }
                     res.add(cTable);
                 }
             }
@@ -345,6 +356,10 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
     /** The DB type. */
     private String mDBType;
 
+    private Set<String> mstrTablesList;
+
+    private String mstrFilter;
+
     /**
      * Gets the next table.
      * 
@@ -356,6 +371,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
         if (this.mTableList.size() == 0)
             return null;
+        
 
         Table cTable = (Table) this.mTableList.remove(0);
 
@@ -379,6 +395,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
         while (rs.next()) {
             Column col = new Column();
             col.mTable = cTable;
+                       
             col.mName = rs.getString("COLUMN_NAME");
             col.mDType = rs.getInt("DATA_TYPE");
             try {
@@ -597,6 +614,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
     int getRowCount(Table tbl) {
         int iRowCount = -1;
 
+        ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,"Getting row count for " + tbl.mFullTableAddress);
         Statement s = null;
         ResultSet rs = null;
 
@@ -724,7 +742,22 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
         this.mstrSchemaPattern = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "SCHEMA", null);
 
         // Pull the table pattern...
+        this.mstrFilter = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "FILTER", null);
+
+         //      Pull the table pattern...
         this.mstrTableNamePattern = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "TABLE", "%");
+        String  strTablesList = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "TABLES", null);
+        
+        if(strTablesList != null) {
+            String res[] = strTablesList.split(",");
+            
+            if(res != null && res.length>0){
+                this.mstrTablesList = new HashSet<String>();
+                
+                for(String t:res)
+                    this.mstrTablesList.add(t.trim());
+            }
+        }
 
         this.mMaxDOVSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), JDBCSSAScanner.MAX_DOV_SIZE, this.mMaxDOVSize);
 
