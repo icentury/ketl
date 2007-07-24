@@ -87,4 +87,12 @@
 		<env-entry-name>KETLServersFile</env-entry-name>
 		<env-entry-type>java.lang.String</env-entry-type>
 		<env-entry-value>xml\KETLServers.xml</env-entry-value>
-	</env-entry></web-app>
+	</env-entry>
+	
+	<env-entry>
+		<description>KETL Default Metadata Server</description>
+		<env-entry-name>KETLMDServer</env-entry-name>
+		<env-entry-type>java.lang.String</env-entry-type>
+		<env-entry-value>localhost</env-entry-value>
+	</env-entry>
+</web-app>
