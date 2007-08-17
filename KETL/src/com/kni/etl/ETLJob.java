@@ -786,6 +786,7 @@ public class ETLJob {
 
         // Only set the flag if it's a new value...
         if (bCancel != this.bCancelJob) {
+            ResourcePool.LogMessage(this,ResourcePool.INFO_MESSAGE, "Cancelling job " + this.getJobID());
             this.bCancelJob = bCancel;
 
             return true;

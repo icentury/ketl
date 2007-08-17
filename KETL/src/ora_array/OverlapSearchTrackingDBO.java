@@ -159,7 +159,8 @@ public class OverlapSearchTrackingDBO implements SQLData
     stream.writeString(this._queryOriginName);
   }
 
-  public <T> void writeArray(SQLOutput stream,
+  @SuppressWarnings("deprecation")
+public <T> void writeArray(SQLOutput stream,
                              String arrayTypeName,
                              T[] array) throws SQLException
   {

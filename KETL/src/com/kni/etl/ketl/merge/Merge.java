@@ -31,7 +31,6 @@ import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.smp.DefaultMergeCore;
 import com.kni.etl.ketl.smp.ETLMerge;
-import com.kni.etl.ketl.smp.ETLMergeCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 

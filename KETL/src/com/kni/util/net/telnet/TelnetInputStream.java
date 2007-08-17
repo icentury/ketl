@@ -135,6 +135,7 @@ final class TelnetInputStream extends BufferedInputStream implements Runnable
     // TelnetOutputStream writing through the telnet client at same time
     // as a processDo/Will/etc. command invoked from TelnetInputStream
     // tries to write.
+    @SuppressWarnings("unused")
     private int __read() throws IOException
     {
         int ch;

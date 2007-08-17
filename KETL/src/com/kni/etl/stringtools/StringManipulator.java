@@ -38,9 +38,7 @@ public class StringManipulator
     /** The Upper case passed string. */
     private String UpperCasePassedString;
     
-    /** The String array. */
-    private char[] StringArray;
-
+   
     /**
      * StringManipulator constructor comment.
      */

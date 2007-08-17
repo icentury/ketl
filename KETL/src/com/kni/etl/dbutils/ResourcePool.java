@@ -59,29 +59,17 @@ public class ResourcePool {
     /** The CONNECTIONS. */
     private static int CONNECTIONS = 0;
     
-    /** The LOOKU p_ CACHES. */
-    private static int LOOKUP_CACHES = 1;
     
-    /** The MA x_ RESOURC e_ TYPES. */
+    /** The MAX RESOURCE TYPES. */
     private static int MAX_RESOURCE_TYPES = 2;
     
     /** The resources. */
     private static Object[] mResources = new Object[ResourcePool.MAX_RESOURCE_TYPES];
     
-    /** The Constant INUSE_ELEMENT. */
-    private final static int INUSE_ELEMENT = 0;
-    
-    /** The Constant CONNECTION_ELEMENT. */
-    private final static int CONNECTION_ELEMENT = 1;
-    
-    /** The Constant ALLOW_REUSE. */
-    private final static int ALLOW_REUSE = 2;
     
     /** The Constant MAX_CONNECTION_USE. */
     private final static int MAX_CONNECTION_USE = 1;
     
-    /** The Constant MAX_CONNECTION_ARRAY_ELEMENTS. */
-    private final static int MAX_CONNECTION_ARRAY_ELEMENTS = 3;
     
     /** The metadata. */
     private static Metadata metadata = null;
@@ -372,10 +360,10 @@ public class ResourcePool {
     public static synchronized Connection getConnection(String strDriverClass, String strURL, String strUserName,
             String strPassword, String strPrepSQL, boolean bAllowPooling) throws SQLException, ClassNotFoundException {
         // Get hashtable of lookup caches
-        Hashtable aConnections = (Hashtable) ResourcePool.mResources[ResourcePool.CONNECTIONS];
+        Hashtable<Connection, PooledConnection> aConnections = (Hashtable<Connection, PooledConnection>) ResourcePool.mResources[ResourcePool.CONNECTIONS];
 
         if (aConnections == null) {
-            aConnections = new Hashtable();
+            aConnections = new Hashtable<Connection, PooledConnection>();
             ResourcePool.mResources[ResourcePool.CONNECTIONS] = aConnections;
         }
 
@@ -621,14 +609,14 @@ public class ResourcePool {
 
     
     /** The lookups. */
-    private static HashMap mLookups;
+    private static HashMap<String, RegisteredLookup> mLookups;
 
     /**
      * _get lookup.
      * 
      * @return the hash map
      */
-    public  static synchronized HashMap _getLookup() {
+    public  static synchronized HashMap<String, RegisteredLookup> _getLookup() {
     	if(ResourcePool.mLookups == null)
     		ResourcePool.mLookups = ResourcePool.loadLookups();
     	
@@ -643,7 +631,7 @@ public class ResourcePool {
      * 
      * @return the hash map
      */
-    private static synchronized HashMap loadLookups() {
+    private static synchronized HashMap<String, RegisteredLookup> loadLookups() {
 
         
         try {
@@ -668,7 +656,7 @@ public class ResourcePool {
 
                 StringBuffer sb = new StringBuffer();
                 Collection tmp = hm.values();
-                HashMap goodLookups = new HashMap();
+                HashMap<String, RegisteredLookup> goodLookups = new HashMap<String, RegisteredLookup>();
                 int i = 0;
                 for (Object o : tmp) {
                     RegisteredLookup lk = (RegisteredLookup) o;
@@ -690,7 +678,7 @@ public class ResourcePool {
         } catch (Throwable e) {
             e.printStackTrace();
         }
-        return new HashMap();
+        return new HashMap<String, RegisteredLookup>();
     }
 
     /**
@@ -756,7 +744,7 @@ public class ResourcePool {
      * @return the lookup
      */
     public static RegisteredLookup getLookup(String lookupName) {
-        return (RegisteredLookup) ResourcePool._getLookup().get(lookupName);
+        return ResourcePool._getLookup().get(lookupName);
     }
 
     /**
@@ -778,9 +766,9 @@ public class ResourcePool {
      * @param loadId the load id
      */
     public static synchronized void releaseLoadLookups(int loadId) {
-        Collection tmp = ResourcePool._getLookup().values();
+        Collection<RegisteredLookup> tmp = ResourcePool._getLookup().values();
 
-        ArrayList res = new ArrayList();
+        ArrayList<String> res = new ArrayList<String>();
         for (Object o : tmp) {
             RegisteredLookup lk = (RegisteredLookup) o;
             if (lk.getAssociatedLoadID() == loadId) {
@@ -801,7 +789,7 @@ public class ResourcePool {
      * Release all lookups.
      */
     public static synchronized void releaseAllLookups() {
-        Collection tmp = ResourcePool._getLookup().values();
+        Collection<RegisteredLookup> tmp = ResourcePool._getLookup().values();
 
         RegisteredLookup lkLast = null;
         // check cache for random lookups
@@ -835,7 +823,7 @@ public class ResourcePool {
      * @return true, if successful
      */
     public static synchronized boolean releaseLookup(String lookupName) {
-        RegisteredLookup lk = (RegisteredLookup) ResourcePool._getLookup().get(lookupName);
+        RegisteredLookup lk = ResourcePool._getLookup().get(lookupName);
 
         if (lk == null)
             return false;
@@ -856,9 +844,9 @@ public class ResourcePool {
      * 
      * @return the lookups
      */
-    public static ArrayList getLookups(int loadId) {
-        Collection tmp = ResourcePool._getLookup().values();
-        ArrayList res = new ArrayList();
+    public static ArrayList<String> getLookups(int loadId) {
+        Collection<RegisteredLookup> tmp = ResourcePool._getLookup().values();
+        ArrayList<String> res = new ArrayList<String>();
         for (Object o : tmp) {
             RegisteredLookup lk = (RegisteredLookup) o;
             if (lk.getAssociatedLoadID() == loadId) {

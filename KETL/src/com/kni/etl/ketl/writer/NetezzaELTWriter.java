@@ -45,9 +45,7 @@ import com.kni.etl.util.XMLHelper;
  */
 public class NetezzaELTWriter extends BulkLoaderELTWriter {
 
-    /** The Constant HOSTNAME_ATTRIB. */
-    private static final String HOSTNAME_ATTRIB = "HOSTNAME";
-
+    
     /**
      * Instantiates a new netezza ELT writer.
      * 

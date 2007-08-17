@@ -22,7 +22,6 @@
  */
 package com.kni.etl.ketl;
 
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.kni.etl.ketl.exceptions.KETLThreadException;

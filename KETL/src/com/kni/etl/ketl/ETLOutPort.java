@@ -23,7 +23,6 @@
 package com.kni.etl.ketl;
 
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
 
 import com.kni.etl.EngineConstants;
 import com.kni.etl.ketl.exceptions.KETLThreadException;

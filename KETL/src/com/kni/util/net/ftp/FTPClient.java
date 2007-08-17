@@ -245,7 +245,7 @@ public class FTPClient extends FTP
     private int __dataConnectionMode, __dataTimeout;
     private int __passivePort;
     private String __passiveHost;
-    private int __fileType, __fileFormat, __fileStructure, __fileTransferMode;
+    private int __fileType;
     private boolean __remoteVerificationEnabled;
     private FTPFileListParser __fileListParser;
     private long __restartOffset;
@@ -274,9 +274,7 @@ public class FTPClient extends FTP
         this.__passiveHost = null;
         this.__passivePort = -1;
         this.__fileType = FTP.ASCII_FILE_TYPE;
-        this.__fileStructure = FTP.FILE_STRUCTURE;
-        this.__fileFormat = FTP.NON_PRINT_TEXT_FORMAT;
-        this.__fileTransferMode = FTP.STREAM_TRANSFER_MODE;
+       
     }
 
     private String __parsePathname(String reply)
@@ -886,7 +884,6 @@ public class FTPClient extends FTP
         if (FTPReply.isPositiveCompletion(this.type(fileType)))
         {
             this.__fileType = fileType;
-            this.__fileFormat = FTP.NON_PRINT_TEXT_FORMAT;
             return true;
         }
         return false;
@@ -927,8 +924,7 @@ public class FTPClient extends FTP
         if (FTPReply.isPositiveCompletion(this.type(fileType, formatOrByteSize)))
         {
             this.__fileType = fileType;
-            this.__fileFormat = formatOrByteSize;
-            return true;
+             return true;
         }
         return false;
     }
@@ -953,8 +949,7 @@ public class FTPClient extends FTP
     {
         if (FTPReply.isPositiveCompletion(this.stru(structure)))
         {
-            this.__fileStructure = structure;
-            return true;
+           return true;
         }
         return false;
     }
@@ -979,7 +974,6 @@ public class FTPClient extends FTP
     {
         if (FTPReply.isPositiveCompletion(this.mode(mode)))
         {
-            this.__fileTransferMode = mode;
             return true;
         }
         return false;

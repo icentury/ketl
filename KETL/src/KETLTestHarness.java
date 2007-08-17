@@ -51,7 +51,7 @@ public class KETLTestHarness {
         String filename;
         
         /** The depends. */
-        ArrayList depends = new ArrayList();
+        ArrayList<String> depends = new ArrayList<String>();
     }
 
     /**
@@ -74,13 +74,13 @@ public class KETLTestHarness {
         System.out.println("Testing files found in \"" + testDir
                 + "\" this can be changed by setting system property KETLTestDir.");
 
-        ArrayList jobs = new ArrayList();
-        HashSet submittedJobs = new HashSet();
+        ArrayList<TestJob> jobs = new ArrayList<TestJob>();
+        HashSet<String> submittedJobs = new HashSet<String>();
 
         KETLTestHarness.suite(testDir, jobs);
 
         // dependencie consistency check
-        HashSet dependsCheck = new HashSet();
+        HashSet<String> dependsCheck = new HashSet<String>();
         for (Object o : jobs) {
             TestJob tJob = (TestJob) o;
             dependsCheck.add(tJob.id);
@@ -132,7 +132,7 @@ public class KETLTestHarness {
      * @param testDir the test dir
      * @param jobs the jobs
      */
-    public static void suite(String testDir, ArrayList jobs) {
+    public static void suite(String testDir, ArrayList<TestJob> jobs) {
 
         File dir = new File(testDir);
 

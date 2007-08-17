@@ -95,12 +95,12 @@ public class FastSimpleDateFormat extends DateFormat {
     private static final String GMT = "GMT";
     
     /** The Constant GMT_MINUS. */
-    private static final String GMT_MINUS = "GMT-";
+    //private static final String GMT_MINUS = "GMT-";
 
     // For time zones that have no names, use strings GMT+minutes and
     // GMT-minutes. For instance, in France the time zone is GMT+60.
     /** The Constant GMT_PLUS. */
-    private static final String GMT_PLUS = "GMT+";
+    //private static final String GMT_PLUS = "GMT+";
     
     /** The Constant millisPerHour. */
     private static final int millisPerHour = 60 * 60 * 1000;
@@ -123,14 +123,14 @@ public class FastSimpleDateFormat extends DateFormat {
 
     // Map index into pattern character string to DateFormat field number
     /** The Constant PATTERN_INDEX_TO_DATE_FORMAT_FIELD. */
-    private static final int[] PATTERN_INDEX_TO_DATE_FORMAT_FIELD = { DateFormat.ERA_FIELD, DateFormat.YEAR_FIELD,
+    /*private static final int[] PATTERN_INDEX_TO_DATE_FORMAT_FIELD = { DateFormat.ERA_FIELD, DateFormat.YEAR_FIELD,
             DateFormat.MONTH_FIELD, DateFormat.DATE_FIELD, DateFormat.HOUR_OF_DAY1_FIELD,
             DateFormat.HOUR_OF_DAY0_FIELD, DateFormat.MINUTE_FIELD, DateFormat.SECOND_FIELD,
             DateFormat.MILLISECOND_FIELD, DateFormat.DAY_OF_WEEK_FIELD, DateFormat.DAY_OF_YEAR_FIELD,
             DateFormat.DAY_OF_WEEK_IN_MONTH_FIELD, DateFormat.WEEK_OF_YEAR_FIELD, DateFormat.WEEK_OF_MONTH_FIELD,
             DateFormat.AM_PM_FIELD, DateFormat.HOUR1_FIELD, DateFormat.HOUR0_FIELD, DateFormat.TIMEZONE_FIELD,
             DateFormat.TIMEZONE_FIELD, 18, 19, 20 };
-
+     */
     // 19 is for Nanoseconds
     /** The Constant patternChars. */
     static final String patternChars = "GyMdkHmsSEDFwWahKzZTNe";
@@ -1201,6 +1201,7 @@ public class FastSimpleDateFormat extends DateFormat {
      * 
      * @return the string
      */
+    @SuppressWarnings("unused")
     private String zeroPaddingNumber(long value, int minDigits, int maxDigits) {
         this.numberFormat.setMinimumIntegerDigits(minDigits);
         this.numberFormat.setMaximumIntegerDigits(maxDigits);

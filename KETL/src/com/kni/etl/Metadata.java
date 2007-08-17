@@ -133,26 +133,27 @@ public class Metadata {
     private String singleRowPullSyntax;
 
     /** The db types. */
-    private String[] dbTypes = { "PostGreSQL", "Oracle", "MySQL" };
+    private String[] dbTypes = { "PostGreSQL", "Oracle", "MySQL","HSQLDB" };
 
     /** The db use identity column. */
-    private boolean[] dbUseIdentityColumn = { false, false, true };
+    private boolean[] dbUseIdentityColumn = { false, false, true,false };
     
     /** The db time stamp types. */
-    private String[] dbTimeStampTypes = { "CURRENT_TIMESTAMP", "SYSDATE", "CURRENT_TIMESTAMP" };
+    private String[] dbTimeStampTypes = { "CURRENT_TIMESTAMP", "SYSDATE", "CURRENT_TIMESTAMP","CURRENT_TIMESTAMP" };
 
     /** The db sequence syntax. */
-    private String[] dbSequenceSyntax = { "nextval('#')", "#.NEXTVAL", "SELECT LAST_INSERT_ID()" };
+    private String[] dbSequenceSyntax = { "nextval('#')", "#.NEXTVAL", "SELECT LAST_INSERT_ID()", "NEXT VALUE FOR #" };
 
     /** The db increment identity column syntax. */
     private String[] dbIncrementIdentityColumnSyntax = { null, null,
-            "UPDATE mysql_sequence SET id=LAST_INSERT_ID(id+1)" };
+            "UPDATE mysql_sequence SET id=LAST_INSERT_ID(id+1)",null };
     
     /** The db single row pull. */
-    private String[] dbSingleRowPull = { "", " FROM DUAL ", "" };
+    private String[] dbSingleRowPull = { "", " FROM DUAL ", "","" };
+    
 
     /** The load table name. */
-    private String[] mLoadTableName = { null, null, "root_load" };
+    private String[] mLoadTableName = { null, null, "root_load",null };
 
     /** The passphrase. */
     private String mPassphrase;
@@ -5131,7 +5132,6 @@ public class Metadata {
         String pDescription = pSched.getDescription();
         Date pOnceOnlyDate = pSched.getOnceOnlyDate();
         Date pEnableDate = pSched.getEnableDate();
-        Date pDisableDate = pSched.getDisableDate();
         Date pNextRunDate = null;
 
         // TODO add pEnableDate & pDisableDate
@@ -5287,6 +5287,7 @@ public class Metadata {
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
+    @SuppressWarnings("unused")
     private void setJobScheduleDefaults(int pMonth, int pMonthOfYear, int pDay, int pDayOfWeek, int pDayOfMonth,
             int pHour, int pHourOfDay, int pMinute, int pMinuteOfHour, Date pOnceOnlyDate) throws SQLException,
             java.lang.Exception {

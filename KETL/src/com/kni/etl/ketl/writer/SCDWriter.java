@@ -269,9 +269,7 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     /** The mi analyze pos. */
     private int miAnalyzePos = -1;
     
-    /** The effective date column. */
-    private String mEffectiveDateColumn;
-    
+   
     /** The effective data port. */
     private JDBCETLInPort mEffectiveDataPort = null;
     
@@ -864,8 +862,6 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     /** The ms insert columns. */
     private String msInsertColumns;
     
-    /** The first SK. */
-    private String mFirstSK;
     
     /** The manage indexes. */
     private boolean mManageIndexes;
@@ -875,6 +871,9 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     
     /** The expiration date column. */
     private String mExpirationDateColumn;
+
+    @SuppressWarnings("unused")
+    private String mFirstSK;
 
     /**
      * Gets the ID quote.

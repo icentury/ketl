@@ -25,7 +25,6 @@ package com.kni.etl.ketl.smp;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.kni.etl.dbutils.ResourcePool;

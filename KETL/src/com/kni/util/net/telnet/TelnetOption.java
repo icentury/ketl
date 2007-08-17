@@ -153,7 +153,6 @@ public class TelnetOption
 
     public static int EXTENDED_OPTIONS_LIST = 255;
 
-    private static int __FIRST_OPTION = TelnetOption.BINARY;
     private static int __LAST_OPTION = TelnetOption.NEW_ENVIRONMENT_VARIABLES;
 
     private static final String __optionString[] = {

@@ -106,9 +106,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
     /** The Constant REQUEST_PAUSE. */
     private final static String REQUEST_PAUSE = "Pause";
 
-    /** The Constant REQUEST_RESUME. */
-    private final static String REQUEST_RESUME = "Resume";
-
+    
     /** The Constant REQUEST_SKIP. */
     private final static String REQUEST_SKIP = "Skip";
 

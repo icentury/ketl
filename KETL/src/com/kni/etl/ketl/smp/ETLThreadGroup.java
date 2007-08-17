@@ -7,12 +7,10 @@ package com.kni.etl.ketl.smp;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Comparator;
 
 import org.w3c.dom.Node;
 
-import com.kni.etl.ketl.ETLInPort;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
 

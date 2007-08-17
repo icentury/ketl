@@ -42,7 +42,7 @@ import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
 import com.kni.etl.ketl.smp.DefaultSplitCore;
 import com.kni.etl.ketl.smp.ETLSplit;
-import com.kni.etl.ketl.smp.ETLSplitCore;
+
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.sessionizer.AnalyzePageview;
 import com.kni.etl.sessionizer.IDCounter;
@@ -202,8 +202,6 @@ public class Sessionizer extends ETLSplit {
     /** The mn page definitions. */
     private Node mnPageDefinitions;
     
-    /** The mn destinations. */
-    private Node mnDestinations;
     
     /** The mn identifiers. */
     private Node mnIdentifiers;
@@ -640,8 +638,6 @@ public class Sessionizer extends ETLSplit {
         /** The Constant DATATYPE. */
         private static final String DATATYPE = "DATATYPE";
         
-        /** The Constant SOURCE. */
-        private static final String SOURCE = "SOURCE";
         
         /** The mi type. */
         int miType = -1;

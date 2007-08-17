@@ -174,7 +174,7 @@ public class Console {
             "JOB <NAME> {DEFINITION|DELETE|KILL|XMLDEFINITION|RESTART|SKIP|EXPORT <FILENAME>|IMPORT <FILENAME>|DEPENDENCIES|EXECUTE <PROJECTID> {MULTI} {IGNOREDEPENDENCIES}}",
             "RESTART {IMMEDIATE|NORMAL}", "QUIT", "CONNECT <SERVER|LOCALHOST> <USERNAME>", "HELP",
             "PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}", "PAUSE <SERVERID>", "RESUME <SERVERID>",
-            "PROJECT LIST", "SERVER LIST", "RUN {LIST|RESET|<FILENAME>|LOADID <VALUE>}",
+            "PROJECT LIST", "SERVER LIST", "RUN {LIST|RESET|LOOKUPS|<FILENAME>|LOADID <VALUE>}",
             "/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}" };
 
     /** The Constant XMLDEFINITION. */
@@ -224,7 +224,7 @@ public class Console {
     String mdprefix;
     
     /** The previous commands. */
-    ArrayList mPreviousCommands = new ArrayList();
+    ArrayList<String> mPreviousCommands = new ArrayList<String>();
     
     /** The n current server. */
     Node nCurrentServer;
@@ -1255,7 +1255,7 @@ public class Console {
 
                     String file = pCommands[1];
                     try {
-                        file = (String) this.mPreviousCommands.get(Integer.parseInt(pCommands[1]) - 1);
+                        file = this.mPreviousCommands.get(Integer.parseInt(pCommands[1]) - 1);
                     } catch (Exception e) {
                     }
 
