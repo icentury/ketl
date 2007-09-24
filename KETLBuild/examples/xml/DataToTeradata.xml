@@ -1,0 +1,27 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	 
+ 	<PARAMETER_LIST NAME="db">
+		<PARAMETER NAME="USER">test</PARAMETER>
+		<PARAMETER NAME="PASSWORD">test</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:teradata://devmart01</PARAMETER>
+		<PARAMETER NAME="DRIVER">com.ncr.teradata.TeraDriver</PARAMETER>
+    </PARAMETER_LIST>
+	
+       <JOB ID="DataToTD" NAME="DataToTD" PROJECT="TEST" TYPE="KETL">
+            <ACTION PARRALLISM="2" BATCHSIZE="350">
+		 			<STEP TIMING="TRUE" NAME="Data" VALUES="200000000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+						<OUT DATATYPE="INTEGER" NAME="C_INT" />
+						<OUT DATATYPE="DOUBLE" NAME="C_DBL"/>
+					</STEP>
+
+	                <STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.JDBCWriter"  PARAMETER_LIST="db" TABLE="test">
+	                	<PRESQL>
+	                		create table test(C_INT INTEGER,C_DBL BIGINT)
+	                	</PRESQL>
+	                    <IN>Data.*</IN> 
+	                </STEP>
+            </ACTION>
+      </JOB>
+</ETL>

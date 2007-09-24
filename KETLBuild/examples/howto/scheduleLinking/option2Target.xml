@@ -1,0 +1,38 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+	<PARAMETER_LIST NAME="db">
+		<PARAMETER NAME="USER">test</PARAMETER>
+		<PARAMETER NAME="PASSWORD">test</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:xe</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+	</PARAMETER_LIST>
+
+	<JOB ID="other_job1" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="TargetProject" TYPE="SQL">
+		<SQL DEBUG="TRUE">
+			<STATEMENT>select 1 from dual</STATEMENT>
+		</SQL>
+	</JOB>
+	
+	<JOB ID="other_job2a" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="TargetProject" TYPE="SQL">
+		<DEPENDS_ON>other_job1</DEPENDS_ON>
+		<SQL DEBUG="TRUE">
+			<STATEMENT>select 1 from dual</STATEMENT>
+		</SQL>
+	</JOB>
+	
+	<JOB ID="other_job2b" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="TargetProject" TYPE="SQL">
+		<DEPENDS_ON>other_job1</DEPENDS_ON>
+		<SQL DEBUG="TRUE">
+			<STATEMENT>select 1 from dual</STATEMENT>
+		</SQL>
+	</JOB>
+	
+	<JOB ID="rootJobForTargetProject" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="TargetProject" TYPE="SQL">
+		<DEPENDS_ON>other_job2a</DEPENDS_ON>
+		<DEPENDS_ON>other_job2b</DEPENDS_ON>
+		<SQL DEBUG="TRUE">
+			<STATEMENT>select 1 from dual</STATEMENT>
+		</SQL>
+	</JOB>
+	
+</ETL>

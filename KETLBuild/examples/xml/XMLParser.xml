@@ -17,7 +17,7 @@
                    <!-- READ PHASE -->            
                    <!--  Read file record by record -->
                    <STEP NAME="XMLFile" ERRORLIMIT="2" IGNOREINVALIDLASTRECORD="TRUE" CLASS="com.kni.etl.ketl.reader.NIOFileReader" CHARACTERSET="UTF-8" PARAMETER_LIST="testData">
-                         <OUT NAME="STUFF" FIXEDLENGTH="63" DATATYPE="STRING"/>
+                         <OUT NAME="STUFF" FIXEDLENGTH="35" DATATYPE="STRING"/>
                          <OUT NAME="XML" DATATYPE="STRING"/>
                    </STEP>
 
@@ -45,7 +45,7 @@
 				   </STEP>
 				   				   				
                    <!--  Parse field as XML documents and extract fields -->                 
-                   <STEP ERRORLIMIT="10" NAME="XMLDataLeft"  XPATHEVALUATE="FALSE" XPATH="track" CLASS="com.kni.etl.ketl.transformation.XMLToFieldsTransformation">
+                   <STEP ERRORLIMIT="0" NAME="XMLDataLeft"  XPATHEVALUATE="FALSE" XPATH="track" CLASS="com.kni.etl.ketl.transformation.XMLToFieldsTransformation">
                         <IN XMLDATA="TRUE">Emails.XML</IN>     
                         <OUT NAME="TRACKINGCODE" XPATH="trackingCode" DATATYPE="INTEGER"/>                   
                         <OUT NAME="FIRSTOPEN" XPATH="firstOpen" DATATYPE="STRING"/> 

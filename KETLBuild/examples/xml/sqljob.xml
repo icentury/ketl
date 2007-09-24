@@ -1,26 +1,36 @@
 <ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
 
+	<PARAMETER_LIST NAME="db">
+		<PARAMETER NAME="USER">x</PARAMETER>
+		<PARAMETER NAME="PASSWORD">x</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@200.0.4.123:1521:prd2ora</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+	</PARAMETER_LIST>
 
-
-	 
-	<PARAMETER_LIST NAME="destination">
-		<PARAMETER NAME="USER">postgres</PARAMETER>
-		<PARAMETER NAME="PASSWORD">postgres</PARAMETER>
-		<PARAMETER NAME="URL">jdbc:postgresql://localhost/postgres</PARAMETER>
-		<PARAMETER NAME="DRIVER">org.postgresql.Driver</PARAMETER>
-		<PARAMETER NAME="PRESQL">set search_path = 'demo'</PARAMETER>				
-    </PARAMETER_LIST>	 
-
-	<PARAMETER_LIST NAME="defaults">
-		<PARAMETER NAME="DEFAULTPARALLISM">1</PARAMETER>
-    </PARAMETER_LIST>	 
-	
-       <JOB ID="LookupDimBuildPG" PARAMETER_LIST="destination" NAME="LookupDimBuildPG" PROJECT="TEST" TYPE="SQL">
-		<SQL>
-		<STATEMENT>select 1</STATEMENT>
-		<STATEMENT CRITICAL="FALSE">sesdect 1</STATEMENT>
-		<STATEMENT CRITICAL="FALSE">seldct 1</STATEMENT>
-		<STATEMENT>select 1</STATEMENT>
+	<JOB ID="A" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="TEST" TYPE="SQL">
+		<SQL DEBUG="TRUE">
+			<STATEMENT CRITICAL="FALSE">drop table mytable</STATEMENT>
+			<STATEMENT>create table mytable as select 1 as col1 from dual</STATEMENT>
+			<STATEMENT>analyze table mytable estimate statistics</STATEMENT>
 		</SQL>
-      </JOB>
+	</JOB>
+
+	<JOB ID="B" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="TEST" TYPE="SQL">
+		<SQL DEBUG="TRUE">
+			<STATEMENT CRITICAL="FALSE">drop table mytable</STATEMENT>
+			<STATEMENT>create table mytable as select 1 as col1 from dual</STATEMENT>
+			<STATEMENT>analyze table mytable estimate statistics</STATEMENT>
+		</SQL>
+	</JOB>
+
+	<JOB ID="C" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="TEST" TYPE="SQL">
+		<DEPENDS_ON>B</DEPENDS_ON>
+		<DEPENDS_ON>A</DEPENDS_ON>
+		<SQL DEBUG="TRUE">
+			<STATEMENT CRITICAL="FALSE">drop table mytable</STATEMENT>
+			<STATEMENT>create table mytable as select 1 as col1 from dual</STATEMENT>
+			<STATEMENT>analyze table mytable estimate statistics</STATEMENT>
+		</SQL>
+	</JOB>
+	
 </ETL>

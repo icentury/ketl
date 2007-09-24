@@ -1,0 +1,107 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+
+
+	<PARAMETER_LIST NAME="db">
+		<PARAMETER NAME="USER">TEST</PARAMETER>
+		<PARAMETER NAME="PASSWORD">TEST</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:orcl</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+	</PARAMETER_LIST>
+
+	<!--  not sure why you wanted to parameterize the sql statement and the tables names -->
+	<JOB ID="simpleUpdate" PARAMETER_LIST="db" NAME="LookupDimBuildPG" PROJECT="TEST" TYPE="SQL">
+		<SQL>
+			<STATEMENT>UPDATE UTILIZATION_CUBE1 A 
+                        SET STANDARD_HOUR = STANDARD_HOUR 
+                            CASE HOURS 
+                               WHEN NULL THEN 1 
+                               WHEN 0         THEN 1 
+                               ELSE HOURS 
+                            END 
+                         FROM TEMP_HOURS_PROJ1 D 
+                         WHERE D.MONTH = A.MONTH 
+                           AND D.YEAR = A.YEAR 
+                           AND D.EMPLOYEE_CODE = A.EMPLOYEE_CODE)
+			</STATEMENT>
+		</SQL>
+	</JOB>
+			
+	<!--  this is an xml defined job, what do you want to do with the sql results, if you want to write to a table or file then use JDBCWriter or NIOFileWriter -->
+	<JOB ID="OracleJDBCRead"  NAME="JDBCREAD" PROJECT="TEST" TYPE="KETL">
+            <ACTION>
+                  <STEP TIMING="TRUE" NAME="source"  FETCHSIZE="100000" PARAMETER_LIST="db" OUTSYNTAX="INFERRED" CLASS="com.kni.etl.ketl.reader.JDBCReader">
+                         <IN>"SELECT MONTH, YEAR, EMPLOYEE_CODE, EMPLOYEE_NAME, PROJECT_CODE, PROJECT_NAME, BASE_SUB_SBU, BASE_REGION, 
+       STANDARD_HOUR,TOTAL_CHARGEABLE_HOURS, BUSINESS_DEVELOPMENT,PRACTICE_DEVELOPMENT, TRAINING,OTHER, 
+           NVL(BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER,0) AS TOTAL_VANC, 
+           LEAVE,IDLE_HOURS, 
+           NVL(BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS,0) AS TOTAL_NON_CHARGEABLE_HOURS, 
+           NVL(TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS),0) AS TOTAL_HOURS_BOOKED, 
+           0 AS PRODUCTIVITY, 
+           NVL(((BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER)*100) 
+           /DECODE((TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS)),0,1 
+                   ,(TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS))),0) AS VANC_PERCENTAGE, 
+           NVL((BUSINESS_DEVELOPMENT*100) 
+           /DECODE((TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS)),0,1 
+                   ,(TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS))),0) AS BD_PERCENTAGE, 
+           NVL((PRACTICE_DEVELOPMENT*100) 
+           /DECODE((TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS)),0,1 
+                   ,(TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS))),0) AS PD_PERCENTAGE, 
+           NVL((TRAINING*100) 
+           /DECODE((TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS)),0,1 
+                   ,(TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS))),0) AS TRAINING_PERCENTAGE, 
+           NVL((IDLE_HOURS*100) 
+           /DECODE((TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS)),0,1 
+                   ,(TOTAL_CHARGEABLE_HOURS + (BUSINESS_DEVELOPMENT + PRACTICE_DEVELOPMENT + TRAINING + OTHER+LEAVE+IDLE_HOURS))),0) AS IDLE_HOURS_PERCENTAGE, 
+           'N' EXCEPTION_FLAG, 
+           CASE WHEN MONTH &lt; 4 THEN YEAR 
+           ELSE YEAR + 1 
+           END, TRIM(TO_CHAR(TO_DATE(MONTH || '/1/' || '2000', 'MM/DD/YYYY'), 'Month')) 
+           FROM 
+           ( 
+                SELECT 
+                         TO_NUMBER(TO_CHAR(A.TC_DATE,'MM'))                          AS "MONTH", 
+                          TO_NUMBER(TO_CHAR(A.TC_DATE,'YYYY'))                        AS "YEAR", 
+                          NVL(A.EMPLOYEE_CODE,'-99999')                               AS EMPLOYEE_CODE, 
+                          NVL(A.EMPLOYEE_NAME,'N/A')                                  AS EMPLOYEE_NAME, 
+                          NVL(A.PROJECT_CODE,'-99999')                                                                  AS PROJECT_CODE, 
+                          NVL(A.PROJECT_NAME,'N/A')                                                                      AS PROJECT_NAME, 
+                          NVL(B.SUB_SBU_NAME,'N/A')                                   AS BASE_SUB_SBU, 
+                          NVL(B.LOCATION,'N/A')                                       AS BASE_REGION, 
+                        176*NVL(SUM(CASE WHEN CHARGEABLE = 'Y' THEN NVL(HOURS,0) 
+                                               ELSE 0 
+                                      END),0)                                                                                          AS STANDARD_HOUR, 
+                          NVL(SUM(CASE WHEN CHARGEABLE = 'Y' THEN NVL(HOURS,0) 
+                                              ELSE 0 
+                                   END),0)                                                                          AS TOTAL_CHARGEABLE_HOURS, 
+                  NVL(SUM(PWC_NONCHAR_HR(project_name,hours,chargeable,3)),0)   AS BUSINESS_DEVELOPMENT,    -- From PROCEDURE PWC_EMP_DETAILS 
+                             NVL(SUM(PWC_NONCHAR_HR(project_name,hours,chargeable,4)),0)   AS PRACTICE_DEVELOPMENT, 
+                             NVL(SUM(PWC_NONCHAR_HR(project_name,hours,chargeable,5)),0)   AS TRAINING, 
+                              NVL(SUM(PWC_NONCHAR_HR(project_name,hours,chargeable,6)),0)   AS OTHER, 
+                              NVL(SUM(PWC_NONCHAR_HR(project_name,hours,chargeable,1)),0)   AS LEAVE, 
+                              NVL(SUM(PWC_NONCHAR_HR(project_name,hours,chargeable,2)),0)   AS IDLE_HOURS 
+             FROM  TB_TIME_COST_ADV A, 
+                       TB_EMPLOYEE_MASTER B, 
+                 SUB_SBU_MASTER C 
+            WHERE A.EMPLOYEE_CODE = B.EMPLOYEE_CODE 
+              AND   UPPER(TRIM(A.SBU)) = 'TAS' 
+           AND   UPPER(TRIM(A.SUB_SBU)) = UPPER(TRIM(C.SUB_SBU_NAME)) 
+           AND TO_NUMBER(TO_CHAR(A.TC_DATE,'YYYY')) &gt; 2006 
+GROUP BY  TO_CHAR(A.TC_DATE,'MM'), 
+          TO_CHAR(A.TC_DATE,'YYYY'), 
+              A.EMPLOYEE_CODE, 
+              A.EMPLOYEE_NAME, 
+                  A.PROJECT_CODE, 
+                  A.PROJECT_NAME, 
+              B.SUB_SBU_NAME, 
+              B.LOCATION)"</IN>                         
+                   </STEP>
+
+					<!--  not sure what you want to do with the results -->
+                   <STEP TIMING="TRUE" NAME="Dump" LOGEVERY="200000" CLASS="com.kni.etl.ketl.writer.ConsoleWriter">
+                        <IN>source.*</IN>                        
+                  </STEP>
+            </ACTION>
+      </JOB>
+</ETL>

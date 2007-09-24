@@ -1,5 +1,5 @@
 <!--  change demo to actual servername, if not connecting via localhost -->
-<SERVERS DEFAULTSERVER="localhostPG">
+<SERVERS DEFAULTSERVER="localhostOR">
 	<SERVER NAME="localhostPG">
 		<USERNAME>ketlmd</USERNAME>
 		<PASSWORD>ketlmd</PASSWORD>

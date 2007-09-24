@@ -31,7 +31,7 @@
 							<OUT NAME="TOARRAY" FUNCTION="ToArray" MAXELEMENTS="20000" DATATYPE="java.lang.Double" >${double}</OUT>
 							<OUT NAME="SUM" FUNCTION="Sum">${double}</OUT>
 							<OUT NAME="AVG" FUNCTION="Avg">${double}</OUT>
-							<OUT NAME="MAX" FUNCTION="Max">${int2}</OUT>
+							<OUT NAME="MAX" FUNCTION="Max" DATATYPE="INTEGER">${int2}+10000</OUT>
 							<OUT NAME="MIN" FUNCTION="Min">${int2}</OUT>
 							<OUT NAME="COUNT" FUNCTION="Count">${double}</OUT>
 							<OUT NAME="FIRST" FUNCTION="First">${int2}</OUT>
@@ -40,11 +40,11 @@
 							<OUT NAME="COUNTDISTINCT" FUNCTION="CountDistinct">${int2}</OUT>							
 					</STEP>
                 				   
-                   <STEP NAME="Writer"  CLASS="com.kni.etl.ketl.writer.NullWriter">
+                   <STEP NAME="Writer"  CLASS="com.kni.etl.ketl.writer.ConsoleWriter">
+                        <IN>Aggregate.MAX</IN>                        
                         <IN>Aggregate.INT</IN>                        
                         <IN>Aggregate.DOUBLE</IN>                        
                         <IN>Aggregate.SUM</IN>                        
-                        <IN>Aggregate.MAX</IN>                        
                         <IN>Aggregate.MIN</IN>                        
                         <IN>Aggregate.FIRST</IN>                        
                         <IN>Aggregate.LAST</IN>                        

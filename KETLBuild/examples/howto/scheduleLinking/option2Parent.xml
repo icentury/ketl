@@ -1,0 +1,44 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+	<PARAMETER_LIST NAME="db">
+		<PARAMETER NAME="USER">test</PARAMETER>
+		<PARAMETER NAME="PASSWORD">test</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:xe</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+	</PARAMETER_LIST>
+
+	<PARAMETER_LIST NAME="targetMD">
+		<PARAMETER NAME="USER">ketlmd</PARAMETER>
+		<PARAMETER NAME="PASSWORD">ketlmd</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:xe</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+	</PARAMETER_LIST>
+
+	<JOB ID="job1" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="ParentProject" TYPE="SQL">
+		<SQL DEBUG="TRUE">
+			<STATEMENT>select 1 from dual</STATEMENT>
+		</SQL>
+	</JOB>
+	
+	<JOB ID="job2" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="ParentProject" TYPE="SQL">
+		<DEPENDS_ON>job1</DEPENDS_ON>
+		<SQL DEBUG="TRUE">
+			<STATEMENT>select 1 from dual</STATEMENT>
+		</SQL>
+	</JOB>
+	
+	<JOB ID="job3" PARAMETER_LIST="db" NAME="MySQLJob" PROJECT="ParentProject" TYPE="SQL">
+		<DEPENDS_ON>job2</DEPENDS_ON>
+		<SQL DEBUG="TRUE">
+			<STATEMENT>select 1 from dual</STATEMENT>
+		</SQL>
+	</JOB>
+	
+	<JOB ID="rootJobForParentProject" PARAMETER_LIST="targetMD" NAME="MySQLJob" PROJECT="ParentProject" TYPE="SQL">
+		<DEPENDS_ON>job3</DEPENDS_ON>
+		<SQL DEBUG="TRUE">
+			<STATEMENT>UPDATE JOB_SCHEDULE SET NEXT_RUN_DATE = CURRENT_DATE WHERE JOB_ID = 'rootJobForTargetProject'</STATEMENT>
+		</SQL>
+	</JOB>
+	
+</ETL>

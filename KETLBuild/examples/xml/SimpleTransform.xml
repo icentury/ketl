@@ -19,8 +19,10 @@
                    <STEP NAME="GEO" CLASS="com.kni.etl.ketl.transformation.DynamicTransformation" PARAMETER_LIST="testData">
                         <IN>Status.int</IN>                        
                         <IN>Status.string</IN>                        
+                        <IN>Status.timestamp</IN>                        
                         <OUT NAME="newInt" DATATYPE="INTEGER">${int}*1000</OUT>
-                        <OUT NAME="newString" DATATYPE="STRING">${string}+" example"</OUT>
+                        <OUT NAME="dt" DATATYPE="java.util.Date">org.apache.commons.lang.time.DateUtils.truncate(${timestamp},Calendar.DAY_OF_MONTH)</OUT>
+                        <OUT NAME="newString" DATATYPE="STRING">${string}.matches("Hello|f")?"Match":"NoMatch"</OUT>
                   </STEP>
 
                    <STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.ConsoleWriter">
