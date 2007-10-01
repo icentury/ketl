@@ -403,14 +403,16 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                 col.mColSize = rs.getInt("COLUMN_SIZE");
                 col.mDecDigits = rs.getInt("DECIMAL_DIGITS");
                 col.mRadixPrec = rs.getInt("NUM_PREC_RADIX");
+                col.mNullable = rs.getString("IS_NULLABLE");                
                 col.mCharOctetLength = rs.getInt("CHAR_OCTET_LENGTH");
                 col.mColPosition = rs.getInt("ORDINAL_POSITION");
-                col.mDefaultValue = rs.getString("COLUMN_DEF");
                 col.mRemarks = rs.getString("REMARKS");
-                col.mNullable = rs.getString("IS_NULLABLE");
-                cTable.mColumnList.add(col);
+                col.mDefaultValue = rs.getString("COLUMN_DEF");
             } catch (Exception e) {
-                // skip errors in oracle driver
+            	col.mErrorMessage.add(e);
+                System.out.println(e.getMessage());
+            } finally {
+            	cTable.mColumnList.add(col);
             }
             if (cTable.mColumnList.size() > 1)
                 sb.append(',');
