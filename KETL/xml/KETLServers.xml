@@ -1,5 +1,5 @@
 <!--  change demo to actual servername, if not connecting via localhost -->
-<SERVERS DEFAULTSERVER="localhostMySQL">
+<SERVERS DEFAULTSERVER="localhostH2">
 	<SERVER NAME="localhostPG">
 		<USERNAME>ketlmd</USERNAME>
 		<PASSWORD>ketlmd</PASSWORD>
@@ -28,6 +28,16 @@
 		<NETWORKNAME>localhost</NETWORKNAME>
 		<DRIVER>com.mysql.jdbc.Driver</DRIVER>
 		<URL>jdbc:mysql://localhost/ketlmd</URL>
+		<MDPREFIX></MDPREFIX>
+		<PASSPHRASE>ZATXO+7vBD7k9uicS/JOlBtsuscFIA8bpWBHZcHYNrc=</PASSPHRASE>		
+	</SERVER>
+	
+	<SERVER NAME="localhostH2">
+		<USERNAME>ketlmd</USERNAME>
+		<PASSWORD>ketlmd</PASSWORD>
+		<NETWORKNAME>localhost</NETWORKNAME>
+		<DRIVER>org.h2.Driver</DRIVER>
+		<URL>jdbc:h2:tcp://localhost/conf/h2</URL>
 		<MDPREFIX></MDPREFIX>
 		<PASSPHRASE>ZATXO+7vBD7k9uicS/JOlBtsuscFIA8bpWBHZcHYNrc=</PASSPHRASE>		
 	</SERVER>

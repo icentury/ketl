@@ -520,6 +520,11 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                     sb.append(", ");
                 sb.append(rs.getString(1));
                 sb.append(" (" + rs.getInt(2) + ")");
+                
+                // safety code to prevent memory issue
+                if(sb.length()>(64*1024)) {
+                    return sb.toString();
+                }
             }
             return sb.toString();
         } catch (SQLException e) {
@@ -900,7 +905,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                             pResultArray[pos++] = (col.mMinValue);
                         }
                         else if (type.equalsIgnoreCase("DOV")) {
-                            if (col.mDistinctVals <= this.mMaxDOVSize)
+                            if (col.mDistinctVals > 0 && col.mDistinctVals < 256 & col.mDistinctVals <= this.mMaxDOVSize)
                                 try {
                                     pResultArray[pos++] = (this.getDOV(col));
                                 } catch (Exception e) {

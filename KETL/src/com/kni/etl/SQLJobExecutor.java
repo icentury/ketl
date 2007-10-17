@@ -22,6 +22,13 @@
  */
 package com.kni.etl;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -56,14 +63,16 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
         /** The alive. */
         boolean alive = true;
-        
+
         /** The current job. */
-        SQLJob currentJob = null;
-        
+        ETLJob currentJob = null;
+
         /** The stmt. */
         public Statement stmt = null;;
 
-        /* (non-Javadoc)
+        /*
+         * (non-Javadoc)
+         * 
          * @see java.lang.Thread#run()
          */
         @Override
@@ -106,9 +115,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
      * @param stmt the stmt
      * @param curSQL the cur SQL
      * @param debug the debug
-     * 
      * @return the long
-     * 
      * @throws SQLException the SQL exception
      */
     private long wrapExecution(Statement stmt, String curSQL, boolean debug) throws SQLException {
@@ -133,7 +140,6 @@ public class SQLJobExecutor extends ETLJobExecutor {
      * Insert the method's description here. Creation date: (5/4/2002 5:37:52 PM)
      * 
      * @param ejJob the ej job
-     * 
      * @return boolean
      */
     @Override
@@ -217,6 +223,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
                             boolean autoCommit = XMLHelper.getAttributeAsBoolean(n.getAttributes(), SQLJob.AUTOCOMMIT,
                                     true);
+                           
                             if (autoCommit != this.dbConnection.getAutoCommit()) {
                                 this.dbConnection.setAutoCommit(autoCommit);
                             }
@@ -231,7 +238,11 @@ public class SQLJobExecutor extends ETLJobExecutor {
                             boolean critical = XMLHelper.getAttributeAsBoolean(n.getAttributes(), "CRITICAL", true);
                             boolean debug = XMLHelper.getAttributeAsBoolean(n.getAttributes(), "DEBUG", defaultDebug);
 
-                            curSQL = sjJob.resolveParameters(XMLHelper.getTextContent(n));
+                            if ((curSQL = getExternalSourceCode(n))==null)
+                                curSQL = sjJob.resolveParameters(XMLHelper.getTextContent(n));
+                            else 
+                                curSQL = sjJob.resolveParameters(curSQL);
+                            
                             try {
                                 long executionTime = this.wrapExecution(stmt, curSQL, debug);
 
@@ -384,7 +395,6 @@ public class SQLJobExecutor extends ETLJobExecutor {
      * Insert the method's description here. Creation date: (5/8/2002 2:52:39 PM)
      * 
      * @param jJob com.kni.etl.ETLJob
-     * 
      * @return boolean
      */
     @Override

@@ -46,6 +46,7 @@ import java.util.TimeZone;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.h2.jdbc.JdbcSQLException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -122,7 +123,7 @@ public class Metadata {
 
     /** The next load ID syntax. */
     private String nextLoadIDSyntax;
-    
+
     /** The use identity column. */
     private boolean useIdentityColumn;
 
@@ -133,27 +134,32 @@ public class Metadata {
     private String singleRowPullSyntax;
 
     /** The db types. */
-    private String[] dbTypes = { "PostGreSQL", "Oracle", "MySQL","HSQLDB" };
+    private String[] dbTypes = { "PostGreSQL", "Oracle", "MySQL", "HSQLDB", "H2" };
 
     /** The db use identity column. */
-    private boolean[] dbUseIdentityColumn = { false, false, true,false };
-    
+    private boolean[] dbUseIdentityColumn = { false, false, true, false, false };
+
     /** The db time stamp types. */
-    private String[] dbTimeStampTypes = { "CURRENT_TIMESTAMP", "SYSDATE", "CURRENT_TIMESTAMP","CURRENT_TIMESTAMP" };
+    private String[] dbTimeStampTypes = { "CURRENT_TIMESTAMP", "SYSDATE", "CURRENT_TIMESTAMP", "CURRENT_TIMESTAMP",
+            "CURRENT_TIMESTAMP" };
 
     /** The db sequence syntax. */
-    private String[] dbSequenceSyntax = { "nextval('#')", "#.NEXTVAL", "SELECT LAST_INSERT_ID()", "NEXT VALUE FOR #" };
+    private String[] dbSequenceSyntax = { "nextval('#')", "#.NEXTVAL", "SELECT LAST_INSERT_ID()", "NEXT VALUE FOR #",
+            "nextval('#')" };
+
+    /** The db sequence syntax. */
+    private String[] dbSecondsBeforeRetry = { "a.end_date + ((interval '1' second) * seconds_before_retry)", "a.end_date + ((interval '1' second) * seconds_before_retry)", "a.end_date + ((interval '1' second) * seconds_before_retry)","dateadd('SECOND',seconds_before_retry,a.end_date)" ,
+            "dateadd('SECOND',seconds_before_retry,a.end_date)" };
 
     /** The db increment identity column syntax. */
     private String[] dbIncrementIdentityColumnSyntax = { null, null,
-            "UPDATE mysql_sequence SET id=LAST_INSERT_ID(id+1)",null };
-    
+            "UPDATE mysql_sequence SET id=LAST_INSERT_ID(id+1)", null, null };
+
     /** The db single row pull. */
-    private String[] dbSingleRowPull = { "", " FROM DUAL ", "","" };
-    
+    private String[] dbSingleRowPull = { "", " FROM DUAL ", "", "", "" };
 
     /** The load table name. */
-    private String[] mLoadTableName = { null, null, "root_load",null };
+    private String[] mLoadTableName = { null, null, "root_load", null, null };
 
     /** The passphrase. */
     private String mPassphrase;
@@ -178,7 +184,6 @@ public class Metadata {
      * 
      * @param configFile the config file
      * @param ketlpath the ketlpath
-     * 
      * @return the document
      */
     static public Document LoadConfigFile(String ketlpath, String configFile) {
@@ -240,11 +245,12 @@ public class Metadata {
     /** The resolved load table name. */
     private String mResolvedLoadTableName;
 
+    protected String secondsBeforeRetry;
+
     /**
      * Instantiates a new metadata.
      * 
      * @param pEnableEncryption the enable encryption
-     * 
      * @throws Exception the exception
      */
     public Metadata(boolean pEnableEncryption) throws Exception {
@@ -256,7 +262,6 @@ public class Metadata {
      * 
      * @param pEnableEncryption TODO
      * @param pPassphrase the passphrase
-     * 
      * @throws Exception the exception
      */
     public Metadata(boolean pEnableEncryption, String pPassphrase) throws Exception {
@@ -331,9 +336,7 @@ public class Metadata {
      * 
      * @param pStartDate the start date
      * @param pLoadID the load ID
-     * 
      * @return the loads
-     * 
      * @throws Exception the exception
      */
     public ETLLoad[] getLoads(java.util.Date pStartDate, int pLoadID) throws Exception {
@@ -419,11 +422,8 @@ public class Metadata {
      * 
      * @param pStartDate Date - return all rows updated since this date
      * @param pJobName String - the job in question
-     * 
      * @return Returns a list of all loads that contain this job.
-     * 
      * @throws Exception the exception
-     * 
      * @author dnguyen 2006-07-27
      */
     public ETLLoad[] getJobLoads(java.util.Date pStartDate, String pJobName) throws Exception {
@@ -508,11 +508,8 @@ public class Metadata {
      * 
      * @param pStartDate the start date
      * @param pLoadID the load ID
-     * 
      * @return the job execution details for one execution or the entire load
-     * 
      * @throws Exception the exception
-     * 
      * @modified dnguyen 2006-07-27 update getLoadJobs with pExecID to return a single execution status/details
      */
     public ETLJob[] getLoadJobs(java.util.Date pStartDate, int pLoadID) throws Exception {
@@ -534,9 +531,7 @@ public class Metadata {
      * @param pStartDate the start date
      * @param pLoadID the load ID
      * @param pExecID the exec ID
-     * 
      * @return the execution details
-     * 
      * @throws Exception the exception
      */
     public ETLJob[] getExecutionDetails(java.util.Date pStartDate, int pLoadID, int pExecID) throws Exception {
@@ -636,9 +631,7 @@ public class Metadata {
      * 
      * @param pStartDate the start date
      * @param pProjectID the project ID
-     * 
      * @return the project jobs
-     * 
      * @throws Exception the exception
      */
     public ETLJob[] getProjectJobs(java.util.Date pStartDate, int pProjectID) throws Exception {
@@ -701,9 +694,7 @@ public class Metadata {
      * @param pNew_job_id the new_job_id
      * @param pSubject the subject
      * @param pMessage the message
-     * 
      * @return true, if successful
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -865,9 +856,7 @@ public class Metadata {
      * @param pNew_DM_LOAD_ID the new_ D m_ LOA d_ ID
      * @param pAttachment the attachment
      * @param pLevel the level
-     * 
      * @return true, if successful
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -1071,7 +1060,6 @@ public class Metadata {
      * 
      * @param level the level
      * @param msgParts the msg parts
-     * 
      * @return the new HTML email
      */
     private String getNewHTMLEmail(String level, String[] msgParts) {
@@ -1084,7 +1072,6 @@ public class Metadata {
      * 
      * @param field the field
      * @param value the value
-     * 
      * @return the string
      */
     private String writeHTMLRow(String field, String value) {
@@ -1097,7 +1084,6 @@ public class Metadata {
      * 
      * @param msgParts the msg parts
      * @param maxMsgLength the max msg length
-     * 
      * @return the new text email
      */
     private String getNewTextEmail(String[] msgParts, int maxMsgLength) {
@@ -1125,7 +1111,6 @@ public class Metadata {
      * 
      * @param level the level
      * @param msgParts the msg parts
-     * 
      * @return the message as HTML
      */
     private String getMessageAsHTML(String level, String[] msgParts) {
@@ -1151,7 +1136,6 @@ public class Metadata {
      * @param pJobDependencies java.lang.String[][]
      * @param pJobID java.lang.String
      * @param pFinalJobList the final job list
-     * 
      * @return the child jobs
      */
     private static String getChildJobs(String[][] pJobDependencies, String pJobID, ArrayList pFinalJobList) {
@@ -1213,7 +1197,6 @@ public class Metadata {
      * @param pCurrentDate the current date
      * @param pMinute the minute
      * @param pMinuteOfHour the minute of hour
-     * 
      * @return java.sql.Date
      */
     protected static java.util.Date getNextDate(java.util.Date pCurrentDate, int pMonth, int pMonthOfYear, int pDay,
@@ -1313,26 +1296,35 @@ public class Metadata {
      */
     public void closeMetadata() {
         synchronized (this.oLock) {
-            this.columnExists.clear();
-            if (this.metadataConnection == null) {
-                return;
-            }
-
             try {
-                if (this.mIncIdentColStmt != null) {
-                    try {
-                        this.mIncIdentColStmt.close();
-                    } catch (Exception e) {
-                        System.out.println(e);
-                    }
+                this.columnExists.clear();
+                if (this.metadataConnection == null) {
+                    return;
                 }
 
-                this.metadataConnection.rollback();
-                this.metadataConnection.close();
-                this.metadataConnection = null;
-            } catch (SQLException ee) {
-                this.metadataConnection = null;
-                System.out.println(ee);
+                try {
+                    if (this.mIncIdentColStmt != null) {
+                        try {
+                            this.mIncIdentColStmt.close();
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                    }
+
+                    this.metadataConnection.rollback();
+                    this.metadataConnection.close();
+                    this.metadataConnection = null;
+
+                } catch (SQLException ee) {
+                    this.metadataConnection = null;
+                    System.out.println(ee);
+                }
+            } finally {
+
+                if (h2Server != null) {
+                    h2Server.stop();
+                    h2Server = null;
+                }
             }
         }
     }
@@ -1343,9 +1335,7 @@ public class Metadata {
      * @param pIgnoreDependencies boolean
      * @param pProjectID the project ID
      * @param pJobID the job ID
-     * 
      * @return boolean
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -1358,7 +1348,6 @@ public class Metadata {
      * Gets the cluster details.
      * 
      * @return the cluster details
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -1460,9 +1449,7 @@ public class Metadata {
      * @param pAllowMultiple boolean
      * @param pProjectID the project ID
      * @param pJobID the job ID
-     * 
      * @return boolean
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -1670,9 +1657,7 @@ public class Metadata {
      * Gets the job.
      * 
      * @param pJobID the job ID
-     * 
      * @return the job
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -1684,9 +1669,7 @@ public class Metadata {
      * Populate job details.
      * 
      * @param pJobs the jobs
-     * 
      * @return the ETL job[]
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -1816,9 +1799,7 @@ public class Metadata {
      * @param pJobID the job ID
      * @param pLoadID the load ID
      * @param pExecutionID the execution ID
-     * 
      * @return com.kni.etl.ETLJob
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -1936,9 +1917,7 @@ public class Metadata {
      * Gets the job status.
      * 
      * @param pJob the job
-     * 
      * @return the job status
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -1977,9 +1956,7 @@ public class Metadata {
      * Gets the job status by execution id.
      * 
      * @param pLoadID the load ID
-     * 
      * @return the job status by execution id
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -2025,9 +2002,7 @@ public class Metadata {
      * @param pJobID the job ID
      * @param pLoadID the load ID
      * @param pExecutionID the execution ID
-     * 
      * @return the detailed job status
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -2138,9 +2113,7 @@ public class Metadata {
      * Gets the job details.
      * 
      * @param pJobID the job ID
-     * 
      * @return the job details
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -2192,9 +2165,7 @@ public class Metadata {
      * Gets the jobs by status.
      * 
      * @param pStatus the status
-     * 
      * @return the jobs by status
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -2299,9 +2270,7 @@ public class Metadata {
      * Import job.
      * 
      * @param pJob the job
-     * 
      * @return true, if successful
-     * 
      * @throws Exception the exception
      */
     public boolean importJob(Node pJob) throws Exception {
@@ -2601,7 +2570,6 @@ public class Metadata {
      * @param m_jobStmt the m_job stmt
      * @param value the value
      * @param pos the pos
-     * 
      * @throws SQLException the SQL exception
      */
     private void setString(PreparedStatement m_jobStmt, int pos, String value) throws SQLException {
@@ -2617,9 +2585,7 @@ public class Metadata {
      * Import parameter list.
      * 
      * @param pParameterList the parameter list
-     * 
      * @return true, if successful
-     * 
      * @throws Exception the exception
      */
     public boolean importParameterList(Node pParameterList) throws Exception {
@@ -2755,9 +2721,7 @@ public class Metadata {
      * @param iParameterListId The parameter list id
      * @param strParameterName the str parameter name
      * @param strValue the str value
-     * 
      * @return true, if successful
-     * 
      * @throws Exception the exception
      */
     private boolean setParameterValue(int iParameterListId, String strParameterName, String strValue) throws Exception {
@@ -2818,9 +2782,7 @@ public class Metadata {
      * Gets the job dependencies.
      * 
      * @param pJobID the job ID
-     * 
      * @return the job dependencies
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -2887,9 +2849,7 @@ public class Metadata {
      * Delete job.
      * 
      * @param pJobID the job ID
-     * 
      * @return true, if successful
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -2921,9 +2881,7 @@ public class Metadata {
      * Gets the project name.
      * 
      * @param pProjectID the project ID
-     * 
      * @return the project name
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -2963,9 +2921,7 @@ public class Metadata {
      * Gets the project ID.
      * 
      * @param pProjectName the project name
-     * 
      * @return the project ID
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -3005,7 +2961,6 @@ public class Metadata {
      * Gets the projects.
      * 
      * @return the projects
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -3047,7 +3002,6 @@ public class Metadata {
      * Creates the project.
      * 
      * @param mProjectName The project name
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -3080,7 +3034,6 @@ public class Metadata {
      * Creates the parameter list.
      * 
      * @param mPlist The plist
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -3115,9 +3068,7 @@ public class Metadata {
      * 
      * @param pIDName java.lang.String
      * @param idBatchSize the id batch size
-     * 
      * @return double
-     * 
      * @throws Exception the exception
      */
     public long getBatchOfIDValues(String pIDName, long idBatchSize) throws Exception {
@@ -3193,7 +3144,6 @@ public class Metadata {
      * 
      * @param pParameterSetID int
      * @param pStatus the status
-     * 
      * @return java.lang.Object[]
      */
     public PageParserPageDefinition[] getPageParserParameters(int pParameterSetID, ETLStatus pStatus) {
@@ -3337,7 +3287,6 @@ public class Metadata {
      * Gets the parameter list.
      * 
      * @param strParameterListName the str parameter list name
-     * 
      * @return the parameter list
      */
     public Object[][] getParameterList(String strParameterListName) {
@@ -3348,7 +3297,6 @@ public class Metadata {
      * Gets the parameter list.
      * 
      * @param iParameterListID The parameter list ID
-     * 
      * @return the parameter list
      */
     public Object[][] getParameterList(int iParameterListID) {
@@ -3368,7 +3316,6 @@ public class Metadata {
      * 
      * @param strParameterListName the str parameter list name
      * @param iParameterListID The parameter list ID
-     * 
      * @return the parameter list
      */
     public Object[][] getParameterList(String strParameterListName, int iParameterListID) {
@@ -3519,7 +3466,6 @@ public class Metadata {
      * 
      * @param iParameterListID The parameter list ID
      * @param strParameterName the str parameter name
-     * 
      * @return the parameter value
      */
     public String[] getParameterValue(int iParameterListID, String strParameterName) {
@@ -3594,7 +3540,6 @@ public class Metadata {
      * Gets the valid parameter list name.
      * 
      * @param strParameterListName the str parameter list name
-     * 
      * @return the valid parameter list name
      */
     public String[] getValidParameterListName(String strParameterListName) {
@@ -3645,7 +3590,6 @@ public class Metadata {
      * Gets the parameter list name.
      * 
      * @param strParameterID the str parameter ID
-     * 
      * @return the parameter list name
      */
     public String getParameterListName(int strParameterID) {
@@ -3688,7 +3632,6 @@ public class Metadata {
      * Gets the parameter list ID.
      * 
      * @param strParameterID the str parameter ID
-     * 
      * @return the parameter list ID
      */
     public int getParameterListID(String strParameterID) {
@@ -3731,7 +3674,6 @@ public class Metadata {
      * Gets the job type ID.
      * 
      * @param strParameterID the str parameter ID
-     * 
      * @return the job type ID
      */
     public int getJobTypeID(String strParameterID) {
@@ -3774,7 +3716,6 @@ public class Metadata {
      * Gets the job executor class for type ID.
      * 
      * @param pTypeID the type ID
-     * 
      * @return the job executor class for type ID
      */
     public String getJobExecutorClassForTypeID(int pTypeID) {
@@ -3817,9 +3758,7 @@ public class Metadata {
      * Insert the method's description here. Creation date: (5/8/2002 1:20:28 PM)
      * 
      * @param pClassName java.lang.String
-     * 
      * @return java.lang.Object[]
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -3869,7 +3808,6 @@ public class Metadata {
      * @param qa_type the qa_type
      * @param execDate the exec date
      * @param details the details
-     * 
      * @return true, if successful
      */
     public boolean recordQAHistory(String job_id, String step_name, String qa_id, String qa_type, Date execDate,
@@ -3927,9 +3865,7 @@ public class Metadata {
      * @param qa_type the qa_type
      * @param sampleOffSet the sample off set
      * @param sampleSize the sample size
-     * 
      * @return the QA history
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -4037,9 +3973,7 @@ public class Metadata {
      * Insert the method's description here. Creation date: (5/7/2002 11:23:34 PM)
      * 
      * @param pServerID int
-     * 
      * @return java.lang.Object[]
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -4099,7 +4033,6 @@ public class Metadata {
      * 
      * @param pSessionDefinitionID int
      * @param pStatus the status
-     * 
      * @return datasources.SessionDefinition
      */
     public SessionDefinition getSessionDefinition(int pSessionDefinitionID, ETLStatus pStatus) {
@@ -4217,7 +4150,6 @@ public class Metadata {
      * @param pPendingJobs boolean
      * @param pExecutedJobs boolean
      * @param pLoadID int
-     * 
      * @return jobscheduler.EtlJob[]
      */
     public ETLJob[] getStatus(boolean pExecutingJobs, boolean pPendingJobs, boolean pExecutedJobs, int pLoadID) {
@@ -4230,6 +4162,9 @@ public class Metadata {
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
+
+    private static org.h2.tools.Server h2Server;
+
     protected void refreshMetadataConnection() throws SQLException, java.lang.Exception {
         if (this.metadataConnection != null) {
             try {
@@ -4248,9 +4183,34 @@ public class Metadata {
 
         if (this.metadataConnection == null) {
             this.columnExists.clear();
-            Class.forName(this.JDBCDriver);
+            Class cl = Class.forName(this.JDBCDriver);
 
-            this.metadataConnection = DriverManager.getConnection(this.JDBCURL, this.Username, this.Password);
+            try {
+                this.metadataConnection = DriverManager.getConnection(this.JDBCURL, this.Username, this.Password);
+
+            } catch (JdbcSQLException e) {
+                // we are trying to use h2 then start the h2 server if not alive
+                if (h2Server != null)
+                    throw e;
+
+                if (e.getErrorCode() == 90067 && cl.equals(org.h2.Driver.class)) {
+                    
+                    if(!( Thread.currentThread().getName().equals("ETLDaemon"))) {
+                        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.FATAL_MESSAGE,"H2 Server can only be started manually or by a KETL Server");
+                        throw e;
+                    }
+                        
+                    try {
+                        h2Server = org.h2.tools.Server.createTcpServer(new String[0]).start();
+                        this.metadataConnection = DriverManager.getConnection(this.JDBCURL, this.Username,
+                                this.Password);
+                    } catch (JdbcSQLException e1) {
+                        h2Server.stop();
+                        h2Server = null;
+                        throw e1;
+                    }
+                }
+            }
 
             this.metadataConnection.setAutoCommit(false);
 
@@ -4259,6 +4219,11 @@ public class Metadata {
 
             DatabaseMetaData mdDB = this.metadataConnection.getMetaData();
 
+            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
+                    "Metadata connection established to a " + mdDB.getDatabaseProductName() + " Version: "
+                    + mdDB.getDatabaseMajorVersion() + "." + mdDB.getDatabaseMinorVersion() + " Database, using Driver Version: "
+                    + mdDB.getDriverMajorVersion() + "." + mdDB.getDriverMinorVersion()
+                            + " as '" + mdDB.getUserName() + "'.");
             boolean ansi92 = mdDB.supportsANSI92EntryLevelSQL();
             boolean outerJoins = mdDB.supportsLimitedOuterJoins();
 
@@ -4273,6 +4238,7 @@ public class Metadata {
                     this.currentTimeStampSyntax = this.dbTimeStampTypes[dbType];
                     this.nextLoadIDSyntax = this.dbSequenceSyntax[dbType].replaceAll("#", "LOAD_ID");
                     this.useIdentityColumn = this.dbUseIdentityColumn[dbType];
+                    this.secondsBeforeRetry = this.dbSecondsBeforeRetry[dbType];
 
                     this.nextServerIDSyntax = this.dbSequenceSyntax[dbType].replaceAll("#", "SERVER_ID");
                     this.singleRowPullSyntax = this.dbSingleRowPull[dbType];
@@ -4337,9 +4303,7 @@ public class Metadata {
      * 
      * @param pTablename the tablename
      * @param pColumn the column
-     * 
      * @return true, if successful
-     * 
      * @throws Exception the exception
      */
     protected boolean columnExists(String pTablename, String pColumn) throws Exception {
@@ -4376,7 +4340,6 @@ public class Metadata {
      * Insert the method's description here. Creation date: (5/1/2002 7:29:49 PM)
      * 
      * @param pServerName java.lang.String
-     * 
      * @return int
      */
     public int registerServer(String pServerName) {
@@ -4714,7 +4677,6 @@ public class Metadata {
      * 
      * @param pIDName java.lang.String
      * @param pValue the value
-     * 
      * @return double
      */
     public void setMaxIDValue(String pIDName, double pValue) {
@@ -4754,7 +4716,6 @@ public class Metadata {
      * @param pJDBCURL the JDBCURL
      * @param pJDBCDriver the JDBC driver
      * @param pMDPrefix the MD prefix
-     * 
      * @throws Exception the exception
      */
     public void setRepository(String pUserName, String pPassword, String pJDBCURL, String pJDBCDriver, String pMDPrefix)
@@ -4816,15 +4777,13 @@ public class Metadata {
     }
 
     /** The d start time. */
-    public java.util.Date dStartTime = null;
+    private java.sql.Timestamp dStartTime = null;
 
     /**
      * Insert the method's description here. Creation date: (5/1/2002 7:56:40 PM)
      * 
      * @param pServerID int
-     * 
      * @return boolean
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -4858,7 +4817,7 @@ public class Metadata {
                 String sd = m_rs.getString(1);
 
                 if (this.dStartTime == null) {
-                    this.dStartTime = new java.util.Date(td.getTime());
+                    this.dStartTime = new java.sql.Timestamp(td.getTime());
                 }
 
                 if (m_rs.wasNull() == true) {
@@ -4879,7 +4838,7 @@ public class Metadata {
                 else if (sd.equalsIgnoreCase("Y")) { // must set flag back to
                     // null //$NON-NLS-1$
                     stmt2.setInt(1, ETLServerStatus.SERVER_SHUTDOWN);
-                    stmt2.setNull(2, java.sql.Types.DATE);
+                    stmt2.setNull(2, java.sql.Types.TIMESTAMP);
                     stmt2.setTimestamp(3, td);
                     stmt2.setInt(4, pServerID);
 
@@ -4888,7 +4847,7 @@ public class Metadata {
                 else if (sd.equalsIgnoreCase("K")) { // must set flag back to
                     // null //$NON-NLS-1$
                     stmt2.setInt(1, ETLServerStatus.SERVER_KILLED);
-                    stmt2.setNull(2, java.sql.Types.DATE);
+                    stmt2.setNull(2, java.sql.Types.TIMESTAMP);
                     stmt2.setTimestamp(3, td);
                     stmt2.setInt(4, pServerID);
                     returnStatus = ETLServerStatus.SERVER_KILLED;
@@ -4920,9 +4879,7 @@ public class Metadata {
      * 
      * @param pServerName the server name
      * @param bImmediate the b immediate
-     * 
      * @return boolean
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -4964,9 +4921,7 @@ public class Metadata {
      * 
      * @param pServerID int
      * @param bImmediate the b immediate
-     * 
      * @return boolean
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -5008,9 +4963,7 @@ public class Metadata {
      * 
      * @param pServerName the server name
      * @param bState the b state
-     * 
      * @return boolean
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -5049,9 +5002,7 @@ public class Metadata {
      * 
      * @param pServerID int
      * @param bState the b state
-     * 
      * @return boolean
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -5101,12 +5052,9 @@ public class Metadata {
      * 
      * @param pJobID the job ID
      * @param pSched the sched
-     * 
      * @return Returns a new schedule id or -1 if failed.
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
-     * 
      * @author dnguyen 2006-07-27
      */
     public int scheduleJob(String pJobID, ETLJobSchedule pSched) throws SQLException, java.lang.Exception {
@@ -5283,7 +5231,6 @@ public class Metadata {
      * @param pMinute the minute
      * @param pMinuteOfHour the minute of hour
      * @param pOnceOnlyDate the once only date
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */
@@ -5377,11 +5324,8 @@ public class Metadata {
      * @param pExecID int - returns all errors with this execution id
      * @param maxRows int - cap the number of rows to return; -1 is unlimited.
      * @param pLastModified the last modified
-     * 
      * @return Returns a list of error objects.
-     * 
      * @throws Exception the exception
-     * 
      * @author dnguyen 2006-07-27
      */
     public ETLJobError[] getExecutionErrors(java.util.Date pLastModified, int pExecID, int maxRows) throws Exception {
@@ -5450,7 +5394,6 @@ public class Metadata {
      * Gets the current DB time stamp.
      * 
      * @return the current DB time stamp
-     * 
      * @throws Exception the exception
      */
     public Date getCurrentDBTimeStamp() throws Exception {
@@ -5478,9 +5421,7 @@ public class Metadata {
      * Delete load.
      * 
      * @param pLoadIDs the load I ds
-     * 
      * @return true, if successful
-     * 
      * @throws SQLException the SQL exception
      * @throws Exception the exception
      */

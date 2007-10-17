@@ -53,6 +53,8 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ETLJob {
 
+    public static final String EXTERNAL_SOURCE = "EXTSOURCE";
+
     /** The js status. */
     transient protected ETLJobStatus jsStatus;
     

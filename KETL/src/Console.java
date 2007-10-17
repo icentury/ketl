@@ -64,50 +64,50 @@ public class Console {
 
     /** The Constant CANCEL_JOB. */
     static final int CANCEL_JOB = 12;
-    
+
     /** The Constant CONNECT. */
     static final int CONNECT = 6;
-    
+
     /** The Constant DEFINITION. */
     static final int DEFINITION = 1;
-    
+
     /** The Constant DELETE. */
     static final int DELETE = 8;
-    
+
     /** The Constant DEPENDENCIES. */
     static final int DEPENDENCIES = 2;
-    
+
     /** The Constant EXECUTE. */
     static final int EXECUTE = 3;
-    
+
     /** The Constant EXECUTEDIRECT. */
     static final int EXECUTEDIRECT = 11;
-    
+
     /** The Constant EXPORT. */
     static final int EXPORT = 7;
-    
+
     /** The Constant HELP. */
     static final int HELP = 7;
-    
+
     /** The Constant IGNOREDEPENDENCIES. */
     static final int IGNOREDEPENDENCIES = 4;
-    
+
     /** The Constant IMPORT. */
     static final int IMPORT = 6;
-    
+
     /** The Constant JOB. */
     static final int JOB = 3;
-    
+
     /** The Constant JOBDETAIL_TYPES. */
     static final String[] JOBDETAIL_TYPES = { "XMLDEFINITION", "DEFINITION", "DEPENDENCIES", "EXECUTE",
             "IGNOREDEPENDENCIES", "MULTI", "IMPORT", "EXPORT", "DELETE", "RESTART", "SKIP", "EXECUTEDIRECT", "CANCEL" };
-    
+
     /** The Constant LIST. */
     static final int LIST = 0;
-    
+
     /** The Constant MULTI. */
     static final int MULTI = 5;
-    
+
     /** The Constant PARAMETERLIST. */
     static final int PARAMETERLIST = 8;
 
@@ -119,16 +119,16 @@ public class Console {
 
     /** The Constant QUIT. */
     static final int QUIT = 5;
-    
+
     /** The Constant RESET. */
     static final int RESET = 1;
-    
+
     /** The Constant LOOKUPS. */
     static final int LOOKUPS = 2;
-    
+
     /** The Constant RESTART. */
     static final int RESTART = 4;
-    
+
     /** The Constant LOADID. */
     static final int LOADID = 3;
 
@@ -137,13 +137,13 @@ public class Console {
 
     /** The Constant RESUME. */
     static final int RESUME = 10;
-    
+
     /** The Constant RUN. */
     static final int RUN = 13;
-    
+
     /** The Constant LAST. */
     static final int LAST = 14;
-    
+
     /** The Constant RUN_TYPES. */
     static final String[] RUN_TYPES = { "LIST", "RESET", "LOOKUPS", "LOADID" };
 
@@ -152,17 +152,20 @@ public class Console {
 
     /** The Constant SHUTDOWN. */
     static final int SHUTDOWN = 0;
-    
+
     /** The Constant SKIP. */
     static final int SKIP = 10;
-    
+
     /** The Constant STARTUP. */
     static final int STARTUP = 1;
-    
+
     /** The Constant STATUS. */
     static final int STATUS = 2;
 
-    /** The KETL Console allows for remote management of the KETL server Supported commands STATUS SHUTDOWN {IMMEDIATE|NORMAL} STARTUP JOB <NAME> {DEFINITION|XMLDEFINITION|DEPENDENCIES} RESTART {IMMEDIAITE|NORMAL} QUIT. */
+    /**
+     * The KETL Console allows for remote management of the KETL server Supported commands STATUS SHUTDOWN
+     * {IMMEDIATE|NORMAL} STARTUP JOB <NAME> {DEFINITION|XMLDEFINITION|DEPENDENCIES} RESTART {IMMEDIAITE|NORMAL} QUIT.
+     */
     static final String[] strCommands = { "SHUTDOWN", "STARTUP", "STATUS", "JOB", "RESTART", "QUIT", "CONNECT", "HELP",
             "PARAMETERLIST", "PAUSE", "RESUME", "PROJECT", "SERVER", "RUN", "/" };
 
@@ -206,26 +209,27 @@ public class Console {
         console.run(args);
 
         ResourcePool.releaseAllLookups();
+
     }
 
     /** The driver. */
     String driver;
-    
+
     /** The input stream reader. */
     InputStreamReader inputStreamReader = new InputStreamReader(System.in);
-    
+
     /** The k job exec. */
     ETLJobExecutor kJobExec = new KETLJobExecutor();
-    
+
     /** The md. */
     Metadata md = null;
-    
+
     /** The mdprefix. */
     String mdprefix;
-    
+
     /** The previous commands. */
     ArrayList<String> mPreviousCommands = new ArrayList<String>();
-    
+
     /** The n current server. */
     Node nCurrentServer;
 
@@ -272,9 +276,7 @@ public class Console {
      * Connect to server.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws IOException Signals that an I/O exception has occurred.
      */
     private String connectToServer(String[] pCommands) throws IOException {
@@ -371,7 +373,6 @@ public class Console {
      * Help.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
      */
     String help(String[] pCommands) {
@@ -391,9 +392,7 @@ public class Console {
      * Import jobs.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String importJobs(String[] pCommands) throws Exception {
@@ -439,9 +438,7 @@ public class Console {
      * Import parameters.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String importParameters(String[] pCommands) throws Exception {
@@ -497,9 +494,7 @@ public class Console {
      * Job details.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String jobDetails(String[] pCommands) throws Exception {
@@ -784,7 +779,6 @@ public class Console {
      * 
      * @param pJobs the jobs
      * @param pTableHeader the table header
-     * 
      * @return the string
      */
     String jobStatusTable(Object[][] pJobs, String pTableHeader) {
@@ -825,9 +819,7 @@ public class Console {
      * Parameter list.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String parameterList(String[] pCommands) throws Exception {
@@ -865,7 +857,6 @@ public class Console {
      * Gets the XML parameterlist definition.
      * 
      * @param pListMatchString the list match string
-     * 
      * @return the XML parameterlist definition
      */
     private String getXMLParameterlistDefinition(String pListMatchString) {
@@ -914,9 +905,7 @@ public class Console {
      * Pause.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String pause(String[] pCommands) throws Exception {
@@ -944,9 +933,7 @@ public class Console {
      * Project.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String project(String[] pCommands) throws Exception {
@@ -970,7 +957,6 @@ public class Console {
      * 
      * @param pCommand the command
      * @param pCommandList the command list
-     * 
      * @return the int
      */
     private int resolveCommand(String pCommand, String[] pCommandList) {
@@ -987,9 +973,7 @@ public class Console {
      * Restart.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String restart(String[] pCommands) throws Exception {
@@ -1005,9 +989,7 @@ public class Console {
      * Resume.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String resume(String[] pCommands) throws Exception {
@@ -1037,158 +1019,163 @@ public class Console {
      * @param args the args
      */
     void run(String[] args) {
-        String configFile = Metadata.CONFIG_FILE;
+        try {
+            String configFile = Metadata.CONFIG_FILE;
 
-        if ((args != null) && (args.length > 0)) {
-            configFile = args[0];
-        }
+            if ((args != null) && (args.length > 0)) {
+                configFile = args[0];
+            }
 
-        // EngineConstants.getSystemXML();
-        this.xmlConfig = Metadata.LoadConfigFile(null, configFile);
+            // EngineConstants.getSystemXML();
+            this.xmlConfig = Metadata.LoadConfigFile(null, configFile);
 
-        System.out.println(Console.displayVersionInfo());
+            System.out.println(Console.displayVersionInfo());
 
-        String[] quickCommand = null;
-        int command = 0;
+            String[] quickCommand = null;
+            int command = 0;
 
-        if (args.length > 1) {
-            quickCommand = args[1].split(";");
-        }
+            if (args.length > 1) {
+                quickCommand = args[1].split(";");
+            }
 
-        // Pass each command
-        boolean hasRequestedQuit = false;
-        String line = null, last = null;
-        int repeat = 0;
-        long wait = 2000;
+            // Pass each command
+            boolean hasRequestedQuit = false;
+            String line = null, last = null;
+            int repeat = 0;
+            long wait = 2000;
 
-        while (!hasRequestedQuit) {
-            try {
-                if (quickCommand == null) {
-                    System.out.print("->");
-                    if (repeat-- > 0) {
-                        Thread.sleep(wait);
-                        line = last;
-                    }
-                    else
-                        line = this.stdin.readLine();
+            while (!hasRequestedQuit) {
+                try {
+                    if (quickCommand == null) {
+                        System.out.print("->");
+                        if (repeat-- > 0) {
+                            Thread.sleep(wait);
+                            line = last;
+                        }
+                        else
+                            line = this.stdin.readLine();
 
-                    if (last != null && line != null && line.startsWith("/")) {
-                        String[] commands = ArgumentParserUtil.splitQuoteAware(line);
-                        line = last;
-                        if (commands.length > 1) {
-                            repeat = Integer.parseInt(commands[1]);
-                            if (repeat < 1 || repeat > 25) {
-                                throw new Exception("Repeat value must be between 1 and 25");
+                        if (last != null && line != null && line.startsWith("/")) {
+                            String[] commands = ArgumentParserUtil.splitQuoteAware(line);
+                            line = last;
+                            if (commands.length > 1) {
+                                repeat = Integer.parseInt(commands[1]);
+                                if (repeat < 1 || repeat > 25) {
+                                    throw new Exception("Repeat value must be between 1 and 25");
+                                }
+                            }
+
+                            if (commands.length > 2) {
+                                wait = Integer.parseInt(commands[2]) * 1000;
+                                if (wait < 1000 || wait > 60000) {
+                                    throw new Exception("Wait value must be between 1 and 60 seconds");
+                                }
                             }
                         }
-
-                        if (commands.length > 2) {
-                            wait = Integer.parseInt(commands[2]) * 1000;
-                            if (wait < 1000 || wait > 60000) {
-                                throw new Exception("Wait value must be between 1 and 60 seconds");
-                            }
-                        }
-                    }
-                    else
-                        last = line;
-                }
-                else {
-                    if (command < quickCommand.length) {
-                        line = quickCommand[command++];
+                        else
+                            last = line;
                     }
                     else {
-                        line = Console.strCommands[Console.QUIT];
-                    }
-                }
-
-                if (line != null) {
-                    String[] commands = ArgumentParserUtil.splitQuoteAware(line);
-
-                    if ((commands != null) && (commands.length > 0)) {
-                        String res = "";
-
-                        switch (this.resolveCommand(commands[0], Console.strCommands)) {
-                        case SHUTDOWN:
-                            res = this.shutdown(commands);
-
-                            break;
-
-                        case RESTART:
-                            res = this.restart(commands);
-
-                            break;
-
-                        case STARTUP:
-                            res = this.startup(commands);
-
-                            break;
-                        case PROJECT:
-                            res = this.project(commands);
-
-                            break;
-
-                        case JOB:
-                            res = this.jobDetails(commands);
-
-                            break;
-
-                        case PARAMETERLIST:
-                            res = this.parameterList(commands);
-
-                            break;
-                        case RUN:
-                            res = this.runJob(commands);
-
-                            break;
-
-                        case CONNECT:
-                            res = this.connectToServer(commands);
-
-                            break;
-
-                        case HELP:
-                            res = this.help(commands);
-
-                            break;
-                        case SERVER:
-                            res = this.server(commands);
-
-                            break;
-
-                        case QUIT:
-                            hasRequestedQuit = true;
-
-                            return;
-
-                        case STATUS:
-                            res = this.status(commands);
-
-                            break;
-
-                        case PAUSE:
-                            res = this.pause(commands);
-
-                            break;
-
-                        case RESUME:
-                            res = this.resume(commands);
-
-                            break;
-
-                        default:
-                            res = this.unknownCommand(commands[0]);
-
-                            break;
+                        if (command < quickCommand.length) {
+                            line = quickCommand[command++];
                         }
-
-                        System.out.println(res);
+                        else {
+                            line = Console.strCommands[Console.QUIT];
+                        }
                     }
+
+                    if (line != null) {
+                        String[] commands = ArgumentParserUtil.splitQuoteAware(line);
+
+                        if ((commands != null) && (commands.length > 0)) {
+                            String res = "";
+
+                            switch (this.resolveCommand(commands[0], Console.strCommands)) {
+                            case SHUTDOWN:
+                                res = this.shutdown(commands);
+
+                                break;
+
+                            case RESTART:
+                                res = this.restart(commands);
+
+                                break;
+
+                            case STARTUP:
+                                res = this.startup(commands);
+
+                                break;
+                            case PROJECT:
+                                res = this.project(commands);
+
+                                break;
+
+                            case JOB:
+                                res = this.jobDetails(commands);
+
+                                break;
+
+                            case PARAMETERLIST:
+                                res = this.parameterList(commands);
+
+                                break;
+                            case RUN:
+                                res = this.runJob(commands);
+
+                                break;
+
+                            case CONNECT:
+                                res = this.connectToServer(commands);
+
+                                break;
+
+                            case HELP:
+                                res = this.help(commands);
+
+                                break;
+                            case SERVER:
+                                res = this.server(commands);
+
+                                break;
+
+                            case QUIT:
+                                hasRequestedQuit = true;
+
+                                return;
+
+                            case STATUS:
+                                res = this.status(commands);
+
+                                break;
+
+                            case PAUSE:
+                                res = this.pause(commands);
+
+                                break;
+
+                            case RESUME:
+                                res = this.resume(commands);
+
+                                break;
+
+                            default:
+                                res = this.unknownCommand(commands[0]);
+
+                                break;
+                            }
+
+                            System.out.println(res);
+                        }
+                    }
+                } catch (Exception ex) {
+                    ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Error:"
+                            + (ex.getCause() != null && ex instanceof RuntimeException ? ex.getCause().toString() : ex
+                                    .toString()));
                 }
-            } catch (Exception ex) {
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Error:"
-                        + (ex.getCause() != null && ex instanceof RuntimeException ? ex.getCause().toString() : ex
-                                .toString()));
             }
+        } finally {
+            if (this.md != null)
+                this.md.closeMetadata();
         }
 
     }
@@ -1197,7 +1184,6 @@ public class Console {
      * Run job.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
      */
     private String runJob(String[] pCommands) {
@@ -1329,9 +1315,7 @@ public class Console {
      * Server.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String server(String[] pCommands) throws Exception {
@@ -1353,9 +1337,7 @@ public class Console {
      * Shutdown.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String shutdown(String[] pCommands) throws Exception {
@@ -1420,9 +1402,7 @@ public class Console {
      * Startup.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String startup(String[] pCommands) throws Exception {
@@ -1497,9 +1477,7 @@ public class Console {
      * Status.
      * 
      * @param pCommands the commands
-     * 
      * @return the string
-     * 
      * @throws Exception the exception
      */
     private String status(String[] pCommands) throws Exception {
@@ -1510,6 +1488,8 @@ public class Console {
                 StringBuffer sb = new StringBuffer();
 
                 if (pCommands.length == 3 && pCommands[2].equalsIgnoreCase("ALL")) {
+                    sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.WAITING_FOR_CHILDREN),
+                            "Waiting for Children"));
                     sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.REJECTED), "Rejected"));
                     sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.CANCELLED), "Cancelled"));
                     sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.QUEUED_FOR_EXECUTION),
@@ -1558,7 +1538,6 @@ public class Console {
      * Syntax error.
      * 
      * @param pCommand the command
-     * 
      * @return the string
      */
     private String syntaxError(int pCommand) {
@@ -1569,14 +1548,15 @@ public class Console {
      * Unknown command.
      * 
      * @param pCommand the command
-     * 
      * @return the string
      */
     private String unknownCommand(String pCommand) {
         return ("Error unknown command: " + pCommand);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Object#toString()
      */
     @Override

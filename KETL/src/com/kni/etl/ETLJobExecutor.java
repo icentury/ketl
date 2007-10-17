@@ -22,8 +22,14 @@
  */
 package com.kni.etl;
 
+import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -50,28 +56,28 @@ public abstract class ETLJobExecutor extends Thread {
 
     /** The b shutdown. */
     protected boolean bShutdown = false;
-    
+
     /** The ll pending queue. */
     protected LinkedList llPendingQueue = null;
-    
+
     /** The sleep period. */
     protected int iSleepPeriod = 100;
-    
+
     /** The jes status. */
     protected ETLJobExecutorStatus jesStatus = new ETLJobExecutorStatus();
-    
+
     /** The dmf factory. */
     protected DocumentBuilderFactory dmfFactory;
-    
+
     /** The aes override parameters. */
     protected ArrayList aesOverrideParameters = null;
-    
+
     /** The aes ignore Q as. */
     protected String[] aesIgnoreQAs = null;
-    
+
     /** The ms XML override. */
     protected String msXMLOverride = "";
-    
+
     /** The mb command line. */
     protected boolean mbCommandLine = true;
 
@@ -90,6 +96,31 @@ public abstract class ETLJobExecutor extends Thread {
      */
     public ETLJobExecutor(Runnable target) {
         super(target);
+    }
+
+    static protected String getExternalSourceCode(Node n) throws MalformedURLException, IOException {
+
+        String src = XMLHelper.getAttributeAsString(n.getAttributes(), ETLJob.EXTERNAL_SOURCE, null);
+
+        if (src == null)
+            return null;
+
+        StringBuffer sb = new StringBuffer(1024);
+        URL url = new URL(src);
+        InputStream stream = url.openConnection().getInputStream();
+        InputStreamReader streamReader = new InputStreamReader(stream);
+        BufferedReader reader = new BufferedReader(streamReader);
+
+        char[] chars = new char[512];
+        int len;
+        while ((len = reader.read(chars)) != -1) {
+            sb.append(chars, 0, len);
+        }
+
+        streamReader.close();
+        reader.close();
+        return sb.toString();
+
     }
 
     /**
@@ -146,7 +177,6 @@ public abstract class ETLJobExecutor extends Thread {
      * Insert the method's description here. Creation date: (5/3/2002 6:49:24 PM)
      * 
      * @param jCurrentJob the j current job
-     * 
      * @return boolean
      */
     protected abstract boolean executeJob(ETLJob jCurrentJob);
@@ -175,7 +205,6 @@ public abstract class ETLJobExecutor extends Thread {
      * @param code the code
      * @param e the e
      * @param pExitCleanly the exit cleanly
-     * 
      * @return the int
      */
     private static int exit(int code, Throwable e, boolean pExitCleanly) {
@@ -213,7 +242,6 @@ public abstract class ETLJobExecutor extends Thread {
      * @param pETLJobExecutor the ETL job executor
      * @param pExitCleanly the exit cleanly
      * @param iLoadID The load ID
-     * 
      * @return the int
      */
     public static int _execute(String[] args, ETLJobExecutor pETLJobExecutor, boolean pExitCleanly, int iLoadID) {
@@ -485,9 +513,7 @@ public abstract class ETLJobExecutor extends Thread {
      * 
      * @param xmlConfig the xml config
      * @param pServerName the server name
-     * 
      * @return the metadata
-     * 
      * @throws Exception the exception
      */
     static private Metadata connectToServer(Document xmlConfig, String pServerName) throws Exception {
@@ -658,7 +684,6 @@ public abstract class ETLJobExecutor extends Thread {
      * Insert the method's description here. Creation date: (5/8/2002 2:49:24 PM)
      * 
      * @param jJob the j job
-     * 
      * @return boolean
      */
     public abstract boolean supportsJobType(ETLJob jJob);
@@ -667,7 +692,6 @@ public abstract class ETLJobExecutor extends Thread {
      * Gets the new job.
      * 
      * @return the new job
-     * 
      * @throws Exception the exception
      */
     protected abstract ETLJob getNewJob() throws Exception;

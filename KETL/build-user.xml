@@ -80,6 +80,4 @@
     </target>
 
 
-<target name="help">
-    <echo message="Please run: $ ant -v -projecthelp"/>
-</target>
+

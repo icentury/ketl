@@ -121,19 +121,20 @@ public class OSJob extends ETLJob {
 
             if ((nl == null) || (nl.getLength() == 0)) {
                 this.getStatus().setErrorCode(2); // BRIAN: NEED TO SET UP KETL JOB ERROR CODES
-                this.getStatus().setErrorMessage("Error reading job XML: no SQL specified.");
+                this.getStatus().setErrorMessage("Error reading job XML: no Command specified.");
 
                 return null;
             }
 
             if (nl.getLength() > 1) {
                 this.getStatus().setErrorCode(2); // BRIAN: NEED TO SET UP KETL JOB ERROR CODES
-                this.getStatus().setErrorMessage("Error reading job XML: more than 1 SQL top node specified.");
+                this.getStatus().setErrorMessage("Error reading job XML: more than 1 Command top node specified.");
 
                 return null;
             }
 
-            cmd = XMLHelper.getTextContent(nl.item(0));
+            if ((cmd = ETLJobExecutor.getExternalSourceCode(nl.item(0)))==null)
+                cmd = XMLHelper.getTextContent(nl.item(0));            
         }
 
         String[] strParms = EngineConstants.getParametersFromText(cmd);
