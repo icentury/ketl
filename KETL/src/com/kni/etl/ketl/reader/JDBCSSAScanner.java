@@ -29,6 +29,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.w3c.dom.Element;
@@ -123,6 +124,10 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
         return new SSAOutPort(this, srcStep);
     }
 
+    private boolean execCompleteness = false;
+    private boolean execDov = false;
+    private boolean execDistinct = false;
+
     /**
      * The Class SSAOutPort.
      */
@@ -163,6 +168,14 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                     type = "INTEGER";
                 }
                 ((Element) xmlConfig).setAttribute("DATATYPE", type);
+
+                if (type.equalsIgnoreCase("TABLE_COMPLETENESS"))
+                    execCompleteness = true;
+                if (type.equalsIgnoreCase("DOV"))
+                    execDov = true;
+                if (type.equalsIgnoreCase("DISTINCT_VALUES"))
+                    execDistinct = true;
+
             }
 
             return super.initialize(xmlConfig);
@@ -212,9 +225,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
             return null;
         }
 
-        if (this.openConnection(this.getParameterValue(0, DBConnection.DRIVER_ATTRIB), this.getParameterValue(0,
-                DBConnection.URL_ATTRIB), this.getParameterValue(0, DBConnection.USER_ATTRIB), this.getParameterValue(
-                0, DBConnection.PASSWORD_ATTRIB)) == null) {
+        if (this.refreshConnection() == false) {
             ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not establish database connection");
 
             return null;
@@ -305,7 +316,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
         String mTableName, mSchema, mType, mCatalog;
 
         /** The row count. */
-        int mRowCount;
+        int mRowCount = -1;
 
         /** The execute. */
         boolean execute;
@@ -317,10 +328,10 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
         ResultSet mColumns;
 
         /** The column list. */
-        ArrayList mColumnList = new ArrayList();
+        List<Column> mColumnList = new ArrayList();
 
         /** The error message. */
-        ArrayList mErrorMessage = new ArrayList();
+        List mErrorMessage = new ArrayList();
 
         /** The completeness. */
         public String completeness;
@@ -344,10 +355,10 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
         String mMinValue, mMaxValue;
 
         /** The distinct vals. */
-        int mDistinctVals;
+        int mDistinctVals = -1;
 
         /** The null values. */
-        int mNullValues;
+        int mNullValues = -1;
 
         /** The sample. */
         String mSample;
@@ -369,6 +380,14 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
     private String mstrFilter;
 
+    private String driver;
+
+    private String url;
+
+    private String user;
+
+    private String pwd;
+
     /**
      * Gets the next table.
      * 
@@ -385,8 +404,9 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
         if (cTable.execute == false)
             return this.getNextTable();
 
+        this.setWaiting("Executing row count on " + cTable.mFullTableAddress);
         cTable.mRowCount = this.getRowCount(cTable);
-
+        this.setWaiting(null);
         ResultSet rs = null;
         try {
             rs = this.mcDBConnection.getMetaData().getColumns(cTable.mCatalog, cTable.mSchema, cTable.mTableName, "%");
@@ -395,8 +415,6 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                     + cTable.mFullTableAddress + ", cause " + e.getMessage());
             return this.getNextTable();
         }
-        String mColSQL = this.getStepTemplate(this.mDBType, "COLUMNSTATS", true);
-        String mColLOBSQL = this.getStepTemplate(this.mDBType, "COLUMNLOBSTATS", true);
 
         StringBuilder sb = new StringBuilder();
         while (rs.next()) {
@@ -424,22 +442,6 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
             if (cTable.mColumnList.size() > 1)
                 sb.append(',');
 
-            switch (col.mDType) {
-            case java.sql.Types.CLOB:
-            case java.sql.Types.BLOB:
-            case java.sql.Types.LONGVARBINARY:
-            case java.sql.Types.LONGVARCHAR:
-            case java.sql.Types.JAVA_OBJECT:
-            case java.sql.Types.OTHER:
-            case java.sql.Types.REF:
-                sb.append(EngineConstants
-                        .replaceParameterV2(mColLOBSQL, "COL", this.idQuote + col.mName + this.idQuote));
-                break;
-
-            default:
-                sb.append(EngineConstants.replaceParameterV2(mColSQL, "COL", this.idQuote + col.mName + this.idQuote));
-            }
-
         }
 
         rs.close();
@@ -450,24 +452,47 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
             return this.getNextTable();
         }
 
-        cTable.completeness = this.getCompleteness(cTable);
+        if (this.execCompleteness)
+            cTable.completeness = this.getCompleteness(cTable);
 
-        String query = this.getStepTemplate(this.mDBType, "COLUMNQUERY", true);
+        String mColSQL = this.getStepTemplate(this.mDBType, "COLUMNSTATS", true);
+        String mColLOBSQL = this.getStepTemplate(this.mDBType, "COLUMNLOBSTATS", true);
 
-        query = EngineConstants.replaceParameterV2(query, "TABLE", cTable.mFullTableAddress);
-        query = EngineConstants.replaceParameterV2(query, "COL", sb.toString());
+        for (Column col : cTable.mColumnList) {
+            String query = this.getStepTemplate(this.mDBType, "COLUMNQUERY", true);
 
-        Statement s = null;
+            String colStr;
 
-        try {
-            s = this.mcDBConnection.createStatement();
+            switch (col.mDType) {
+            case java.sql.Types.CLOB:
+            case java.sql.Types.BLOB:
+            case java.sql.Types.LONGVARBINARY:
+            case java.sql.Types.LONGVARCHAR:
+            case java.sql.Types.JAVA_OBJECT:
+            case java.sql.Types.OTHER:
+            case java.sql.Types.REF:
+                colStr = EngineConstants.replaceParameterV2(mColLOBSQL, "COL", this.idQuote + col.mName + this.idQuote);
+                break;
 
-            rs = s.executeQuery(query);
+            default:
+                colStr = EngineConstants.replaceParameterV2(mColSQL, "COL", this.idQuote + col.mName + this.idQuote);
+            }
 
-            if (rs.next()) {
-                int pos = 1;
-                for (int i = 0; i < cTable.mColumnList.size(); i++) {
-                    Column col = (Column) cTable.mColumnList.get(i);
+            query = EngineConstants.replaceParameterV2(query, "TABLE", cTable.mFullTableAddress);
+            query = EngineConstants.replaceParameterV2(query, "COL", colStr);
+
+            Statement s = null;
+
+            try {
+                s = this.mcDBConnection.createStatement();
+
+                this.setWaiting("column count on " + cTable.mFullTableAddress
+                        + "." + col.mName);
+                
+                rs = s.executeQuery(query);
+
+                if (rs.next()) {
+                    int pos = 1;
                     col.mMinValue = rs.getString(pos++);
                     col.mMaxValue = rs.getString(pos++);
                     col.mDistinctVals = rs.getInt(pos++);
@@ -475,27 +500,44 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                         col.mDistinctVals = -1;
                     col.mNullValues = rs.getInt(pos++);
                 }
-            }
 
-            rs.close();
-        } catch (SQLException e) {
-            cTable.mErrorMessage.add("Unable to retrieve column info for table '" + cTable.mFullTableAddress + "': "
-                    + e.toString());
-            try {
-                this.mcDBConnection.rollback();
-            } catch (Exception e1) {
-
-            }
-        } finally {
-            if (s != null) {
-                try {
-                    s.close();
-                } catch (SQLException x) {
+            } catch (SQLException e) {
+                cTable.mErrorMessage.add("Unable to retrieve column info for table '" + cTable.mFullTableAddress
+                        + "' and column: " + col.mName);
+                col.mErrorMessage.add(e.getMessage());
+                this.refreshConnection();
+            } finally {
+                this.setWaiting(null);
+                if (rs != null) {
+                    try {
+                        rs.close();
+                    } catch (SQLException x) {
+                        this.refreshConnection();
+                    }
+                }
+                if (s != null) {
+                    try {
+                        s.close();
+                    } catch (SQLException x) {
+                        this.refreshConnection();
+                    }
                 }
             }
         }
-
         return cTable;
+    }
+
+    private boolean refreshConnection() {
+        if (this.mcDBConnection != null) {
+            ResourcePool.releaseConnection(this.mcDBConnection);
+            this.mcDBConnection = null;
+        }
+
+        if (this.openConnection() == null) {
+            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not establish database connection");
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -507,6 +549,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
      */
     private String getDOV(Column col) throws Exception {
 
+        
         String sql = this.getStepTemplate(this.mDBType, "DOV", true);
 
         sql = EngineConstants.replaceParameterV2(sql, "COL", this.idQuote + col.mName + this.idQuote);
@@ -516,6 +559,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
         ResultSet rs = null;
 
         try {
+            this.setWaiting("Getting DOV for " + col.mTable + "." + col.mName);
             s = this.mcDBConnection.createStatement();
 
             rs = s.executeQuery(sql);
@@ -541,6 +585,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
             } catch (Exception e1) {
             }
         } finally {
+            this.setWaiting(null);
             if (rs != null) {
                 try {
                     rs.close();
@@ -769,6 +814,13 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
             }
         }
 
+        
+        this.driver = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
+        this.url = this.getParameterValue(0,
+                DBConnection.URL_ATTRIB);
+        this.user = this.getParameterValue(0, DBConnection.USER_ATTRIB);
+        this.pwd = this.getParameterValue(
+                0, DBConnection.PASSWORD_ATTRIB);
         this.mMaxDOVSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), JDBCSSAScanner.MAX_DOV_SIZE,
                 this.mMaxDOVSize);
 
@@ -785,14 +837,14 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
      * @param strPassword the str password
      * @return the connection
      */
-    public Connection openConnection(String strDriverClass, String strURL, String strUserName, String strPassword) {
+    public Connection openConnection() {
         try {
-            this.mcDBConnection = ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword, null,
+            this.mcDBConnection = ResourcePool.getConnection(driver, url, user, pwd, null,
                     true);
 
             return this.mcDBConnection;
         } catch (Exception e) {
-            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to connect to host '" + strURL + "': "
+            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to connect to host '" + url + "': "
                     + e.toString());
 
             this.mcDBConnection = null;
