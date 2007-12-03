@@ -13,7 +13,7 @@ CLASSPATH=$KETLDIR
 
 . $KETLDIR/conf/Extra.Libraries
 . $KETLDIR/conf/Extra.Config
-
+rm -rf /tmp/job
 echo "Starting..."
 nohup $JAVA_HOME/bin/java  $JAVA_OPTS \
       -Dlog4j.configuration=file:$KETLDIR/conf/KETL.log.properties \
