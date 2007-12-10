@@ -1,14 +1,36 @@
-<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
 
-	<JOB ID="SQLWRBACK" PARAMETER_LIST="myMetadataDB" NAME="SQL Writeback" PROJECT="TEST" TYPE="SQL">
+<!--
+	<PARAMETER_LIST NAME="ExTarget">
+		<PARAMETER NAME="USER">snen</PARAMETER>
+		<PARAMETER NAME="PASSWORD">snen</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@200.0.4.123:1521:prd2ora</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+		<PARAMETER NAME="DUMMY"  PARAMETER_LIST="ExShared" />
+	</PARAMETER_LIST>
+
+	<PARAMETER_LIST NAME="ExSource">
+		<PARAMETER NAME="USER">snen</PARAMETER>
+		<PARAMETER NAME="PASSWORD">snen</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@200.0.4.123:1521:prd2ora</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+	</PARAMETER_LIST>
+-->
+	<JOB ID="SQLWRBACK" PARAMETER_LIST="DMSource" NAME="SQL Writeback" PROJECT="TEST" TYPE="SQL">
 		<SQL DEBUG="TRUE">
-			<STATEMENT PARAMETER_LIST="myMetadataDB" WRITEBACK_PARAMETER="SQLWRBACK">select current_timestamp from dual</STATEMENT>
+			<STATEMENT PARAMETER_LIST="ExShared" WRITEBACK_PARAMETER="SQLWRBACK">
+				select current_timestamp from dual
+			</STATEMENT>
+			<STATEMENT PARAMETER_LIST="ExShared" WRITEBACK_PARAMETER="SQLTIME">
+				select current_timestamp from dual
+			</STATEMENT>
 		</SQL>
 	</JOB>
-	
-	<JOB ID="SQLWRBACKUSE" PARAMETER_LIST="myMetadataDB" NAME="SQL Writeback" PROJECT="TEST" TYPE="SQL">
+
+	<JOB ID="SQLWRBACKUSE" PARAMETER_LIST="DMTarget" NAME="SQL Writeback" PROJECT="TEST" TYPE="SQL">
 		<SQL DEBUG="TRUE">
-			<STATEMENT >select '${SQLWRBACK}' from dual</STATEMENT>
+			<STATEMENT>select '${SQLWRBACK}','${SQLTIME}' from dual</STATEMENT>
 		</SQL>
 	</JOB>
 
