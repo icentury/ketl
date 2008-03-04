@@ -268,6 +268,9 @@ public class ETLThreadGroup {
                 return null;
         }
 
+        if(partitionKeys == null || partitionKeys.length == 0)
+            return null;
+        
         int[] indexCheck = new int[partitionKeys.length];
         java.util.Arrays.fill(indexCheck, -1);
         for (int x = 0; x < partitionKeys.length; x++) {

@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Date;
 
@@ -609,12 +610,17 @@ abstract public class BulkLoaderStatementWrapper extends StatementWrapper {
 				this.setNull(parameterIndex, java.sql.Types.BOOLEAN);
 			else
 				this.setBoolean(parameterIndex, (Boolean) pDataItem);
+		} else if (pClass == BigDecimal.class ) {
+            if (pDataItem == null)
+                this.setNull(parameterIndex, java.sql.Types.NUMERIC);
+            else
+                this.setBigDecimal(parameterIndex,(BigDecimal) pDataItem);
 		} else if (pClass == Character.class || pClass == char.class) {
-			if (pDataItem == null)
-				this.setNull(parameterIndex, java.sql.Types.BOOLEAN);
-			else
-				this.setString(parameterIndex, pDataItem.toString());
-		} else if (pClass == Byte[].class || pClass == byte[].class) {
+            if (pDataItem == null)
+                this.setNull(parameterIndex, java.sql.Types.BOOLEAN);
+            else
+                this.setString(parameterIndex, pDataItem.toString());
+        } else if (pClass == Byte[].class || pClass == byte[].class) {
 			if (pDataItem == null)
 				this.setNull(parameterIndex, java.sql.Types.BLOB);
 			else
@@ -625,7 +631,9 @@ abstract public class BulkLoaderStatementWrapper extends StatementWrapper {
 
 	}
 
-	/**
+	abstract public void setBigDecimal(int parameterIndex, BigDecimal dataItem) throws SQLException ;
+
+    /**
 	 * Sets the short.
 	 * 
 	 * @param pos the pos

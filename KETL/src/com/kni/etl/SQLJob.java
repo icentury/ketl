@@ -37,6 +37,7 @@ import org.xml.sax.InputSource;
 
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.DBConnection;
+import com.kni.etl.util.XMLHelper;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -402,6 +403,9 @@ public class SQLJob extends ETLJob implements DBConnection {
             }
 
             this.mSQLNode = nl.item(0);
+            
+            this.setNotificationMode(XMLHelper.getAttributeAsString(this.mSQLNode.getAttributes(),"EMAILSTATUS",null));
+            
         } catch (org.xml.sax.SAXParseException e) {
             this.mSQLNode = null;
         } catch (Exception e) {

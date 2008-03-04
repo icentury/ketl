@@ -72,7 +72,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
     /** The Constant CLASS_ATTRIB. */
     public static final String CLASS_ATTRIB = "CLASS";
-    
+
     /** The Constant STEP_TAG. */
     public static final String STEP_TAG = "STEP";
 
@@ -80,7 +80,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * Check for non assigned channels.
      * 
      * @param steps the steps
-     * 
      * @throws KETLThreadException the KETL thread exception
      */
     private static void checkForNonAssignedChannels(Object[] steps) throws KETLThreadException {
@@ -99,7 +98,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * 
      * @param node the node
      * @param list the list
-     * 
      * @return the required parameters from valid node
      */
     static private ArrayList getRequiredParametersFromValidNode(Node node, ArrayList list) {
@@ -177,9 +175,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * Compile job.
      * 
      * @param job the job
-     * 
      * @return the ETL thread manager
-     * 
      * @throws ParserConfigurationException the parser configuration exception
      * @throws SQLException the SQL exception
      * @throws Exception the exception
@@ -319,9 +315,11 @@ public class KETLJobExecutor extends ETLJobExecutor {
                     }
                     else // if writer or normal transform then map straight through with single source
                     {
-                        currentStep.setThreadGroup(ETLThreadGroup.newInstance(sourceStep.getThreadGroup(ETLWorker
-                                .getChannel((Element) currentStep.getConfig(), ETLWorker.DEFAULT)), ETLThreadManager
-                                .getThreadingType((Element) currentStep.getConfig()), currentStep, partitions, this.em));
+                        currentStep
+                                .setThreadGroup(ETLThreadGroup.newInstance(sourceStep.getThreadGroup(ETLWorker
+                                        .getChannel((Element) currentStep.getConfig(), ETLWorker.DEFAULT)),
+                                        ETLThreadManager.getThreadingType((Element) currentStep.getConfig()),
+                                        currentStep, partitions, this.em));
                         readySources.put(currentStep.getName(), currentStep);
                     }
                 }
@@ -349,7 +347,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * Insert the method's description here. Creation date: (5/4/2002 5:37:52 PM)
      * 
      * @param ejJob the ej job
-     * 
      * @return boolean
      */
     @Override
@@ -488,6 +485,8 @@ public class KETLJobExecutor extends ETLJobExecutor {
             try {
                 try {
                     this.em = this.compileJob((Element) xmlDOM.getElementsByTagName("ACTION").item(0));
+                    this.ejCurrentJob.setNotificationMode(XMLHelper.getAttributeAsString(xmlDOM.getElementsByTagName(
+                            "ACTION").item(0).getAttributes(), "EMAILSTATUS", null));
                 } catch (java.lang.reflect.InvocationTargetException e) {
                     throw (Exception) e.getCause();
                 }
@@ -568,7 +567,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
             return true;
         } finally {
-            try{
+            try {
                 this.closeSteps();
             } finally {
                 // clear job reference as job done, and new job can be excepted
@@ -582,7 +581,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * Dump exception cause.
      * 
      * @param pException the exception
-     * 
      * @return the string
      */
     String dumpExceptionCause(Throwable pException) {
@@ -630,7 +628,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * 
      * @param node the node
      * @param hm the hm
-     * 
      * @return the parameter lists used
      */
     private HashMap getParameterListsUsed(Node node, HashMap hm) {
@@ -655,7 +652,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * @param xmlNode the xml node
      * @param pParentParameterListName the parent parameter list name
      * @param pParameterLists the parameter lists
-     * 
      * @return true, if successful
      */
     boolean inheritReferencedXML(Document xmlDOM, Node xmlNode, String pParentParameterListName,
@@ -829,7 +825,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * 
      * @param xmlNode the xml node
      * @param pParameterListNames the parameter list names
-     * 
      * @return true, if successful
      */
     protected boolean replaceParameters(Node xmlNode, ArrayList pParameterListNames) {
@@ -955,7 +950,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * Insert the method's description here. Creation date: (5/8/2002 2:52:39 PM)
      * 
      * @param jJob com.kni.etl.ETLJob
-     * 
      * @return boolean
      */
     @Override
@@ -964,7 +958,9 @@ public class KETLJobExecutor extends ETLJobExecutor {
         return (jJob instanceof KETLJob);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see java.lang.Thread#toString()
      */
     @Override
@@ -996,7 +992,6 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * 
      * @param name the name
      * @param collection the collection
-     * 
      * @throws KETLThreadException the KETL thread exception
      */
     private void registerQACollection(String name, QACollection collection) throws KETLThreadException {
@@ -1013,9 +1008,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * @param name the name
      * @param step the step
      * @param xmlConfig the xml config
-     * 
      * @return the QA collection
-     * 
      * @throws KETLThreadException the KETL thread exception
      */
     QACollection getQACollection(String name, ETLStep step, Node xmlConfig) throws KETLThreadException {

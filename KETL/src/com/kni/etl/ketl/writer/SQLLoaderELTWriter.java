@@ -67,8 +67,9 @@ public class SQLLoaderELTWriter extends BulkLoaderELTWriter {
     StatementWrapper prepareStatementWrapper(Connection Connection, String loadStatement, JDBCItemHelper jdbcHelper)
             throws SQLException {
 
+        boolean enableRounding = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(),"ENABLEROUNDING",false);
         return SQLLoaderStatementWrapper.prepareStatement(Connection, this.mTargetTable, loadStatement,
-                this.madcdColumns, jdbcHelper, this.pipeData());
+                this.madcdColumns, jdbcHelper, this.pipeData(),enableRounding);
     }
 
     /** The OS command. */
@@ -90,7 +91,7 @@ public class SQLLoaderELTWriter extends BulkLoaderELTWriter {
         this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "CONNECTIONSTRING", this
                 .getParameterValue(0, SQLLoaderELTWriter.CONNECTIONSTRING_ATTRIB));
         this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "BINDSIZE", "BINDSIZE="
-                + Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "BINDSIZE", 1000)));
+                + Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "BINDSIZE", 50000)));
 
         if (parallel)
             this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "ROWS", "");

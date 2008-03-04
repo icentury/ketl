@@ -116,9 +116,10 @@ public class OSJob extends ETLJob {
 
             builder = dmfFactory.newDocumentBuilder();
             xmlDOM = builder.parse(new InputSource(new StringReader((String) this.getAction(true))));
-
+            
             NodeList nl = xmlDOM.getElementsByTagName("OSJOB");
 
+            
             if ((nl == null) || (nl.getLength() == 0)) {
                 this.getStatus().setErrorCode(2); // BRIAN: NEED TO SET UP KETL JOB ERROR CODES
                 this.getStatus().setErrorMessage("Error reading job XML: no Command specified.");
@@ -133,6 +134,7 @@ public class OSJob extends ETLJob {
                 return null;
             }
 
+            this.setNotificationMode(XMLHelper.getAttributeAsString(nl.item(0).getAttributes(),"EMAILSTATUS",null));
             if ((cmd = ETLJobExecutor.getExternalSourceCode(nl.item(0)))==null)
                 cmd = XMLHelper.getTextContent(nl.item(0));            
         }
@@ -155,6 +157,8 @@ public class OSJob extends ETLJob {
 
         return cmd;
     }
+
+  
 
     /**
      * Insert the method's description here. Creation date: (5/7/2002 2:46:46 PM)

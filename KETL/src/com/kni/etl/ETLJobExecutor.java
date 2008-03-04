@@ -245,12 +245,6 @@ public abstract class ETLJobExecutor extends Thread {
      * @return the int
      */
     public static int _execute(String[] args, ETLJobExecutor pETLJobExecutor, boolean pExitCleanly, int iLoadID) {
-        long lStartTime;
-        long lEndTime;
-
-        // declare metadata object
-        Metadata md = null;
-
         // declare XML filename
         String fileName = null;
 
@@ -300,22 +294,6 @@ public abstract class ETLJobExecutor extends Thread {
             return ETLJobExecutor.exit(com.kni.etl.EngineConstants.WRONG_ARGUMENT_EXIT_CODE, null, pExitCleanly);
         }
 
-        // metadata object isn't set and login information found then connect to metadata
-
-        try {
-            Document doc;
-            if (ResourcePool.getMetadata() == null) {
-                if ((doc = Metadata.LoadConfigFile(null, Metadata.CONFIG_FILE)) != null) {
-                    md = ETLJobExecutor.connectToServer(doc, server);
-                    ResourcePool.setMetadata(md);
-                }
-            }
-        } catch (Exception e1) {
-            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-                    "Metadata not available, check KETLServers.xml - " + e1.getMessage() + ", ");
-            ResourcePool.setMetadata(null);
-        }
-
         // Read XML from file and set as action...
         StringBuffer sb = new StringBuffer();
 
@@ -333,6 +311,38 @@ public abstract class ETLJobExecutor extends Thread {
         }
 
         String strJobXML = sb.toString();
+
+        return internalExecute(pETLJobExecutor, pExitCleanly, iLoadID, jobName, jobID, overrideParameters, ignoreQAs,
+                server, strJobXML);
+    }
+
+    public int execute(ETLJobExecutor pETLJobExecutor, int iLoadID, String jobName, String jobID, String server,
+            String strJobXML) {
+        return internalExecute(pETLJobExecutor, true, iLoadID, jobName, jobID, new ArrayList(), null, server, strJobXML);
+    }
+
+    private static int internalExecute(ETLJobExecutor pETLJobExecutor, boolean pExitCleanly, int iLoadID,
+            String jobName, String jobID, ArrayList overrideParameters, String[] ignoreQAs, String server,
+            String strJobXML) {
+        // metadata object isn't set and login information found then connect to metadata
+        long lStartTime;
+        long lEndTime;
+        // declare metadata object
+        Metadata md = null;
+
+        try {
+            Document doc;
+            if (ResourcePool.getMetadata() == null) {
+                if ((doc = Metadata.LoadConfigFile(null, Metadata.CONFIG_FILE)) != null) {
+                    md = ETLJobExecutor.connectToServer(doc, server);
+                    ResourcePool.setMetadata(md);
+                }
+            }
+        } catch (Exception e1) {
+            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+                    "Metadata not available, check KETLServers.xml - " + e1.getMessage() + ", ");
+            ResourcePool.setMetadata(null);
+        }
 
         DocumentBuilder builder = null;
         Document xmlDOM = null;

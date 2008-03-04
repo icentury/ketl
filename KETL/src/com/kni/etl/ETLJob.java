@@ -57,72 +57,77 @@ public class ETLJob {
 
     /** The js status. */
     transient protected ETLJobStatus jsStatus;
-    
+
     /** The b cancel job. */
     protected boolean bCancelJob = false;
-    
+
     /** The load ID. */
     protected int iLoadID;
-    
+
     /** The s job ID. */
     protected String sJobID;
-    
+
     /** The job execution ID. */
     protected int iJobExecutionID;
-    
+
     /** The str action. */
     protected java.lang.String strAction;
-    
+
     /** The mo action. */
     transient protected Object moAction;
-    
+
     /** The tag level parameter list cache. */
     HashMap mTagLevelParameterListCache = null;
-    
+
     /** The md creation date. */
     protected java.util.Date mdCreationDate = new java.util.Date();
-    
+
     /** The Seconds before retry. */
     private int SecondsBeforeRetry = 0;
-    
+
     /** The ms global parameter list name. */
     private String msGlobalParameterListName = null;
-    
+
     /** The mi global parameter list ID. */
     private int miGlobalParameterListID = -1;
-    
+
     /** The Retry attempts. */
     private int RetryAttempts = 0;
-    
+
     /** The Max retries. */
     private int MaxRetries = 0;
-    
+
     /** The Job type ID. */
     private int JobTypeID = -1;
-    
+
     /** The Project ID. */
     private int ProjectID = -1;
-    
+
     /** The Job type name. */
     private String JobTypeName;
-    
+
     /** The Name. */
     private String Name = "";
-    
+
     /** The Description. */
     private String Description = "";
-    
+
     /** The job definition. */
     String jobDefinition = null;
-    
+
     /** The Disable alerting. */
     boolean DisableAlerting = false;
+
+    public enum NotificationMode {
+        JOB, LOAD
+    };
+
+    private NotificationMode notificationMode = null;
 
     /**
      * Write object.
      * 
      * @param s the s
-     * 
      * @throws IOException Signals that an I/O exception has occurred.
      */
     private void writeObject(ObjectOutputStream s) throws IOException {
@@ -130,11 +135,29 @@ public class ETLJob {
         s.writeObject(this.moAction.toString());
     }
 
+    public void setNotificationMode(NotificationMode arg0) {
+        notificationMode = arg0;
+    }
+
+    public NotificationMode getNotificationMode() {
+        return notificationMode;
+    }
+
+    public void setNotificationMode(String arg0) {
+        if (arg0 == null)
+            this.notificationMode = null;
+
+        for (NotificationMode nm : NotificationMode.values()) {
+            if (nm.name().equalsIgnoreCase(arg0))
+                this.setNotificationMode(nm);
+        }
+
+    }
+
     /**
      * Read object.
      * 
      * @param s the s
-     * 
      * @throws IOException Signals that an I/O exception has occurred.
      */
     private void readObject(ObjectInputStream s) throws IOException {
@@ -183,7 +206,6 @@ public class ETLJob {
      * Gets the parameter lists.
      * 
      * @param pParameterListName the parameter list name
-     * 
      * @return the parameter lists
      */
     public ArrayList getParameterLists(String pParameterListName) {
@@ -230,7 +252,6 @@ public class ETLJob {
      * Gets the XML job definition.
      * 
      * @param rootNode the root node
-     * 
      * @return the XML job definition
      */
     public String getXMLJobDefinition(Element rootNode) {
@@ -266,9 +287,7 @@ public class ETLJob {
      * Gets the job as XML element.
      * 
      * @param storeRootNode the store root node
-     * 
      * @return the job as XML element
-     * 
      * @throws ParserConfigurationException the parser configuration exception
      * @throws SQLException the SQL exception
      * @throws Exception the exception
@@ -346,7 +365,6 @@ public class ETLJob {
      * Sets the child nodes.
      * 
      * @param pParentNode the parent node
-     * 
      * @return the node
      */
     protected Node setChildNodes(Node pParentNode) {
@@ -371,7 +389,6 @@ public class ETLJob {
      * Gets the depedencies.
      * 
      * @return the depedencies
-     * 
      * @throws Exception the exception
      */
     public String getDepedencies() throws Exception {
@@ -418,7 +435,6 @@ public class ETLJob {
      * Gets the job definition.
      * 
      * @return the job definition
-     * 
      * @throws Exception the exception
      */
     public String getJobDefinition() throws Exception {
@@ -531,7 +547,6 @@ public class ETLJob {
      * Instantiates a new ETL job.
      * 
      * @param pjsStatus the pjs status
-     * 
      * @throws Exception the exception
      */
     public ETLJob(ETLJobStatus pjsStatus) throws Exception {
@@ -559,7 +574,6 @@ public class ETLJob {
      * Insert the method's description here. Creation date: (5/8/2002 3:32:26 PM)
      * 
      * @param resolveConstants TODO
-     * 
      * @return java.lang.String
      */
     public Object getAction(boolean resolveConstants) {
@@ -580,7 +594,6 @@ public class ETLJob {
      * Gets the internal constants.
      * 
      * @param strAction the str action
-     * 
      * @return the internal constants
      */
     public String getInternalConstants(String strAction) {
@@ -661,7 +674,6 @@ public class ETLJob {
      * parameters. To obtain these, you must retrieve the sub parameter list. Creation date: (5/8/2002 4:31:46 PM)
      * 
      * @param oName the o name
-     * 
      * @return java.lang.Object
      */
     public Object getGlobalParameter(Object oName) {
@@ -763,7 +775,6 @@ public class ETLJob {
      * Insert the method's description here. Creation date: (5/8/2002 3:32:26 PM)
      * 
      * @param oAction the o action
-     * 
      * @throws Exception TODO
      */
     public void setAction(Object oAction) throws Exception {
@@ -777,7 +788,6 @@ public class ETLJob {
      * requested, or if in invalid status)
      * 
      * @param bCancel the b cancel
-     * 
      * @return true, if set cancel job
      */
     public boolean setCancelJob(boolean bCancel) {
@@ -788,7 +798,7 @@ public class ETLJob {
 
         // Only set the flag if it's a new value...
         if (bCancel != this.bCancelJob) {
-            ResourcePool.LogMessage(this,ResourcePool.INFO_MESSAGE, "Cancelling job " + this.getJobID());
+            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Cancelling job " + this.getJobID());
             this.bCancelJob = bCancel;
 
             return true;
@@ -987,7 +997,6 @@ public class ETLJob {
      * @param parameterListName the parameter list name
      * @param parameterName the parameter name
      * @param defaultValue the default value
-     * 
      * @return the parameter value
      */
     public String getParameterValue(String parameterListName, String parameterName, String defaultValue) {
@@ -1025,22 +1034,22 @@ public class ETLJob {
 
     /** The counters. */
     private HashMap mCounters = new HashMap();
-    
+
     /** The logs. */
     private HashMap mLogs = new HashMap();
-    
+
     /** The logger failed. */
     private boolean mLoggerFailed = false;
-    
+
     /** The mo dump. */
     private OutputStream moDump;
-    
+
     /** The dump file. */
     private String mDumpFile;
-    
+
     /** The mo dump buffer. */
     private BufferedOutputStream moDumpBuffer;
-    
+
     /** The dump writer. */
     private PrintWriter mDumpWriter;
 
@@ -1048,7 +1057,6 @@ public class ETLJob {
      * Gets the error counter.
      * 
      * @param name2 the name2
-     * 
      * @return the error counter
      */
     final public synchronized SharedCounter getErrorCounter(String name2) {
@@ -1060,7 +1068,6 @@ public class ETLJob {
      * 
      * @param pName the name
      * @param pClass the class
-     * 
      * @return the counter
      */
     final public synchronized SharedCounter getCounter(String pName, Class pClass) {
@@ -1086,7 +1093,6 @@ public class ETLJob {
      * Gets the counter.
      * 
      * @param name2 the name2
-     * 
      * @return the counter
      */
     final public SharedCounter getCounter(String name2) {
@@ -1157,7 +1163,6 @@ public class ETLJob {
      * Gets the dump file.
      * 
      * @return the dump file
-     * 
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public String getDumpFile() throws IOException {
@@ -1219,7 +1224,6 @@ public class ETLJob {
      * Gets the log.
      * 
      * @param name2 the name2
-     * 
      * @return the log
      */
     final public synchronized ArrayList getLog(String name2) {

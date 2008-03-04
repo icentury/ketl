@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -52,37 +54,39 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     /** The con. */
     Connection con;
-    
+
     /** The helper. */
     JDBCItemHelper helper;
-    
+
     /** The load statement. */
     String mLoadStatement;
-    
+
     /** The columns. */
     int mColumns;
-    
+
     /** The column details. */
     DatabaseColumnDefinition[] mColumnDetails;
-    
+
     /** The control file. */
     private String mControlFile;
-    
+
     /** The DB case. */
     private int mDBCase;
-    
+
     /** The sql time formatter. */
     private SimpleDateFormat sqlTimeFormatter;
-    
+
     /** The sql timestamp formatter. */
     private SimpleDateFormat sqlTimestampFormatter;
-    
+
     /** The sql date formatter. */
     private SimpleDateFormat sqlDateFormatter;
-    
+
     /** The datum true SQL timestamp. */
     private boolean[] mDatumTrueSQLTimestamp;
-    
+
+    private boolean enableRounding;
+
     /** The Constant DEL_LENGTH. */
     private static final int DEL_LENGTH = "|".getBytes().length;
 
@@ -95,13 +99,13 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
      * @param madcdColumns the madcd columns
      * @param helper the helper
      * @param pipe the pipe
-     * 
+     * @param enableRounding
      * @throws IOException Signals that an I/O exception has occurred.
      * @throws SQLException the SQL exception
      */
     public SQLLoaderStatementWrapper(Connection connection, String pTableName, String loadStatement,
-            DatabaseColumnDefinition[] madcdColumns, JDBCItemHelper helper, boolean pipe) throws IOException,
-            SQLException {
+            DatabaseColumnDefinition[] madcdColumns, JDBCItemHelper helper, boolean pipe, boolean enableRounding)
+            throws IOException, SQLException {
         super(pipe);
         this.con = connection;
         this.helper = helper;
@@ -118,6 +122,7 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.sqlDateFormatter = new SimpleDateFormat(this.dateTimeFormat);
         this.doubleFormatter = new DecimalFormat();
         this.doubleFormatter.setGroupingUsed(false);
+        this.enableRounding = enableRounding;
 
         DatabaseMetaData md = this.con.getMetaData();
 
@@ -171,6 +176,13 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
                 cols.append("VARCHARC(" + this.mDatumPadLength[i] + "," + this.mColumnDetails[i].iSize + ")");
                 this.recordLenSize += this.mColumnDetails[i].iSize + this.mDatumPadLength[i];
+            }
+            else if (pClass == BigDecimal.class) {
+                if (this.mColumnDetails[i].iPrecision > 0)
+                    cols.append("DOUBLE NULLIF NC" + i + "=X'0', NC" + i + " FILLER BYTEINT");
+                else
+                    cols.append("INTEGER(8) NULLIF NC" + i + "=X'0', NC" + i + " FILLER BYTEINT");
+                this.recordLenSize += 9;
             }
             else if (pClass == java.util.Date.class) {
                 this.mDatumNeedsDelimiter[i] = i < this.mColumns - 1 ? true : false;
@@ -243,7 +255,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, this.mLoadStatement);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#close()
      */
     @Override
@@ -263,15 +277,16 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
      * @param madcdColumns the madcd columns
      * @param helper the helper
      * @param pipe the pipe
-     * 
+     * @param enableRounding
      * @return the statement wrapper
-     * 
      * @throws SQLException the SQL exception
      */
     public static StatementWrapper prepareStatement(Connection mcDBConnection, String pTableName, String loadStatement,
-            DatabaseColumnDefinition[] madcdColumns, JDBCItemHelper helper, boolean pipe) throws SQLException {
+            DatabaseColumnDefinition[] madcdColumns, JDBCItemHelper helper, boolean pipe, boolean enableRounding)
+            throws SQLException {
         try {
-            return new SQLLoaderStatementWrapper(mcDBConnection, pTableName, loadStatement, madcdColumns, helper, pipe);
+            return new SQLLoaderStatementWrapper(mcDBConnection, pTableName, loadStatement, madcdColumns, helper, pipe,
+                    enableRounding);
         } catch (IOException e) {
             throw new SQLException(e.toString());
         }
@@ -279,60 +294,62 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     /** The Constant mDelimiter. */
     private final static String mDelimiter = "|";
-    
+
     /** The Constant mNull. */
     private final static byte[] mNull = "".getBytes();
-    
+
     /** The date formatter. */
     private DateFormat dateFormatter;
-    
+
     /** The date time format. */
     private String dateTimeFormat = "yyyyMMddHHmmss";
-    
+
     /** The sql time format. */
     private String sqlTimeFormat = "HHmmss";
-    
+
     /** The sql timestamp format. */
     private String sqlTimestampFormat = "yyyyMMddHHmmss";
 
     /** The ORACL e_ DAT e_ FORMAT. */
     public String ORACLE_DATE_FORMAT = "YYYYMMDDHH24MISS";
-    
+
     /** The ORACL e_ TIM e_ FORMAT. */
     public String ORACLE_TIME_FORMAT = "HH24MISS";
-    
+
     /** The ORACL e_ TIMESTAM p_ FORMAT. */
     public String ORACLE_TIMESTAMP_FORMAT = "YYYYMMDDHH24MISSFF9";
-    
+
     /** The double formatter. */
     private NumberFormat doubleFormatter;
-    
+
     /** The datums. */
     private byte[][] mDatums;
-    
+
     /** The datum pad length. */
     private int[] mDatumPadLength;
-    
+
     /** The datum needs delimiter. */
     private boolean[] mDatumNeedsDelimiter;
     // private FileOutputStream mTarget = null;
 
     /** The Constant EX_SUCC. */
     private static final int EX_SUCC = 0;
-    
+
     /** The Constant EX_WARN. */
     private static final int EX_WARN = 2;
-    
+
     /** The record len size. */
     private int recordLen = 0, recordLenSize = 7;
 
     /** The Constant TRUE. */
     private final static byte[] TRUE = "1".getBytes();
-    
+
     /** The Constant FALSE. */
     private final static byte[] FALSE = "0".getBytes();
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setBoolean(int, boolean)
      */
     @Override
@@ -340,7 +357,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, arg0 ? SQLLoaderStatementWrapper.TRUE : SQLLoaderStatementWrapper.FALSE);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setByteArrayValue(int, byte[])
      */
     @Override
@@ -356,7 +375,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, z);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setFloat(int, java.lang.Float)
      */
     @Override
@@ -364,7 +385,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, SQLLoaderStatementWrapper.packF4(arg0));
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setInt(int, java.lang.Integer)
      */
     @Override
@@ -372,7 +395,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, SQLLoaderStatementWrapper.pack4(arg0));
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setLong(int, java.lang.Long)
      */
     @Override
@@ -380,7 +405,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, SQLLoaderStatementWrapper.pack8(arg0));
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setShort(int, java.lang.Short)
      */
     @Override
@@ -388,7 +415,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, SQLLoaderStatementWrapper.pack2(arg0));
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setDouble(int, java.lang.Double)
      */
     @Override
@@ -396,7 +425,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, SQLLoaderStatementWrapper.packF8(arg0));
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setNull(int, int)
      */
     @Override
@@ -415,7 +446,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setObject(int, byte[])
      */
     @Override
@@ -426,7 +459,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setString(int, java.lang.String)
      */
     @Override
@@ -437,7 +472,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
 
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setTimestamp(int, java.util.Date)
      */
     @Override
@@ -445,7 +482,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, this.dateFormatter.format(arg0).getBytes());
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setSQLDate(int, java.sql.Date)
      */
     @Override
@@ -454,7 +493,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, this.sqlDateFormatter.format(arg0).getBytes());
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setSQLTimestamp(int, java.sql.Timestamp)
      */
     @Override
@@ -490,7 +531,6 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
      * Pack2.
      * 
      * @param val the val
-     * 
      * @return the byte[]
      */
     public static byte[] pack2(Short val) {
@@ -503,7 +543,6 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
      * Pack4.
      * 
      * @param val the val
-     * 
      * @return the byte[]
      */
     public static byte[] pack4(Integer val) {
@@ -516,7 +555,6 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
      * Pack8.
      * 
      * @param val the val
-     * 
      * @return the byte[]
      */
     public static byte[] pack8(Long val) {
@@ -530,7 +568,6 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
      * Pack f4.
      * 
      * @param val the val
-     * 
      * @return the byte[]
      */
     public static byte[] packF4(Float val) {
@@ -541,7 +578,6 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
      * Pack f8.
      * 
      * @param val the val
-     * 
      * @return the byte[]
      */
     public static byte[] packF8(Double val) {
@@ -557,9 +593,7 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
      * @param word the word
      * @param len the len
      * @param padChar the pad char
-     * 
      * @return the string
-     * 
      * @throws Error the error
      */
     private String pad(String word, int len, char padChar) throws Error {
@@ -582,7 +616,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         return this.tmpPadBuffer.toString();
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setSQLTime(int, java.sql.Time)
      */
     @Override
@@ -590,7 +626,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         this.setObject(pos, this.sqlTimeFormatter.format(arg0).getBytes());
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#handleLoaderStatus(int, java.lang.Thread)
      */
     @Override
@@ -619,7 +657,9 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#writeRecord()
      */
     @Override
@@ -636,11 +676,30 @@ final public class SQLLoaderStatementWrapper extends BulkLoaderStatementWrapper 
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     * 
      * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#getLoadStatement()
      */
     @Override
     protected String getLoadStatement() {
         return this.mLoadStatement;
+    }
+
+    @Override
+    public void setBigDecimal(int pos, BigDecimal arg0) {
+        if (this.mColumnDetails[pos - 1].iPrecision > 0) {
+            this.setObject(pos, SQLLoaderStatementWrapper.packF8(arg0.doubleValue()));
+        }
+        else {
+            try {
+                this.setObject(pos, SQLLoaderStatementWrapper.pack8(enableRounding ? arg0.longValue() : arg0
+                        .longValueExact()));
+            } catch (ArithmeticException e) {
+                throw new ArithmeticException(
+                        "Value to be loaded cannot be rounded without data loss, set ENABLEROUNDING=\"TRUE\" to allow this. Column: "
+                                + this.mColumnDetails[pos - 1].toString() + ", Value:" + arg0.toPlainString());
+            }
+        }
     }
 }

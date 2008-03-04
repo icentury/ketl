@@ -148,8 +148,10 @@ public class Metadata {
             "nextval('#')" };
 
     /** The db sequence syntax. */
-    private String[] dbSecondsBeforeRetry = { "a.end_date + ((interval '1' second) * seconds_before_retry)", "a.end_date + ((interval '1' second) * seconds_before_retry)", "a.end_date + ((interval '1' second) * seconds_before_retry)","dateadd('SECOND',seconds_before_retry,a.end_date)" ,
-            "dateadd('SECOND',seconds_before_retry,a.end_date)" };
+    private String[] dbSecondsBeforeRetry = { "a.end_date + ((interval '1' second) * seconds_before_retry)",
+            "a.end_date + ((interval '1' second) * seconds_before_retry)",
+            "a.end_date + ((interval '1' second) * seconds_before_retry)",
+            "dateadd('SECOND',seconds_before_retry,a.end_date)", "dateadd('SECOND',seconds_before_retry,a.end_date)" };
 
     /** The db increment identity column syntax. */
     private String[] dbIncrementIdentityColumnSyntax = { null, null,
@@ -4194,12 +4196,13 @@ public class Metadata {
                     throw e;
 
                 if (e.getErrorCode() == 90067 && cl.equals(org.h2.Driver.class)) {
-                    
-                    if(!( Thread.currentThread().getName().equals("ETLDaemon"))) {
-                        ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.FATAL_MESSAGE,"H2 Server can only be started manually or by a KETL Server");
+
+                    if (!(Thread.currentThread().getName().equals("ETLDaemon"))) {
+                        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.FATAL_MESSAGE,
+                                "H2 Server can only be started manually or by a KETL Server");
                         throw e;
                     }
-                        
+
                     try {
                         h2Server = org.h2.tools.Server.createTcpServer(new String[0]).start();
                         this.metadataConnection = DriverManager.getConnection(this.JDBCURL, this.Username,
@@ -4221,9 +4224,9 @@ public class Metadata {
 
             ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
                     "Metadata connection established to a " + mdDB.getDatabaseProductName() + " Version: "
-                    + mdDB.getDatabaseMajorVersion() + "." + mdDB.getDatabaseMinorVersion() + " Database, using Driver Version: "
-                    + mdDB.getDriverMajorVersion() + "." + mdDB.getDriverMinorVersion()
-                            + " as '" + mdDB.getUserName() + "'.");
+                            + mdDB.getDatabaseMajorVersion() + "." + mdDB.getDatabaseMinorVersion()
+                            + " Database, using Driver Version: " + mdDB.getDriverMajorVersion() + "."
+                            + mdDB.getDriverMinorVersion() + " as '" + mdDB.getUserName() + "'.");
             boolean ansi92 = mdDB.supportsANSI92EntryLevelSQL();
             boolean outerJoins = mdDB.supportsLimitedOuterJoins();
 
@@ -4659,6 +4662,13 @@ public class Metadata {
                                     .getDumpFile(), ResourcePool.ERROR_MESSAGE);
                         }
                     }
+                }
+                else if (pETLJob.getNotificationMode() != null) {
+                    this.sendAlertEmail(pETLJob.getJobID(),
+                            new Integer(pETLJob.getStatus().getStatusCode()).toString(), pETLJob.getStatus()
+                                    .getStatusMessage(), pETLJob.getStatus().getExtendedMessage(),
+                            new java.util.Date(), pETLJob.getJobExecutionID(), pETLJob.getDumpFile(),
+                            ResourcePool.INFO_MESSAGE);
                 }
 
                 if (m_stmt != null) {

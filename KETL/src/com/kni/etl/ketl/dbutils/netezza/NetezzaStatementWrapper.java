@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -380,6 +381,21 @@ final public class NetezzaStatementWrapper extends BulkLoaderStatementWrapper {
         } catch (Exception e) {
             throw new SQLException(e.getMessage());
         }
+    }
+
+    
+
+    /* (non-Javadoc)
+     * @see com.kni.etl.dbutils.BulkLoaderStatementWrapper#setDouble(int, java.lang.Double)
+     */
+    @Override
+    public void setBigDecimal(int pos, BigDecimal arg0) throws SQLException {
+        try{
+            this.setObject(pos, arg0.toPlainString().getBytes(this.ENCODER));
+        } catch (Exception e) {
+            throw new SQLException(e.getMessage());
+        }
+       
     }
 
     /* (non-Javadoc)
