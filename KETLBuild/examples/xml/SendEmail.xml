@@ -1,0 +1,35 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+	<PARAMETER_LIST NAME="TestDB">
+		<PARAMETER NAME="USER">test</PARAMETER>
+		<PARAMETER NAME="PASSWORD">test</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@200.0.4.123:1521:prd2ora</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+	</PARAMETER_LIST>
+
+
+	<JOB ID="SimpleEmailTest" NAME="SimpleEmail" PROJECT="TEST" TYPE="KETL">
+		<ACTION>
+			<!-- READ PHASE -->
+			<!--  Read file record by record -->
+			<STEP NAME="Data" CLASS="com.kni.etl.ketl.reader.JDBCReader" PARAMETER_LIST="TestDB">
+				<IN>"SELECT COUNT(*) FROM ALL_TABLES"</IN>
+				<OUT DATATYPE="INTEGER" NAME="FACT_TABLE_SIZE" />
+			</STEP>
+
+
+			<!--  filter out record  -->
+			<STEP NAME="SendEmail" CLASS="com.kni.etl.ketl.transformation.DynamicTransformation">
+				<IN NAME="FACT_TABLE_SIZE">Data.FACT_TABLE_SIZE</IN>
+				<OUT NAME="EMAILSENT" DATATYPE="BOOLEAN">sendEmail("Success","Data Loaded: " + ${FACT_TABLE_SIZE})</OUT>
+			</STEP>
+
+
+			<!--  Trash job, as all transformations need an endpoint  -->
+			<STEP NAME="SendToLoad" CLASS="com.kni.etl.ketl.writer.ConsoleWriter">
+				<IN>SendEmail.*</IN>
+			</STEP>
+		</ACTION>
+	</JOB>
+</ETL>
