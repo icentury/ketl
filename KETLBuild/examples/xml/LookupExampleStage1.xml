@@ -4,28 +4,28 @@
 
 
 
-	<JOB ID="LookupTest2"  NAME="CSVWithEscapesAndQuotes" PROJECT="TEST" TYPE="KETL">
+	<JOB ID="LookupTest2" NAME="CSVWithEscapesAndQuotes" PROJECT="TEST" TYPE="KETL">
 		<ACTION>
-			
-				<!--  read comma seperated file -->
-				<STEP NAME="Reader" VALUES="600000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
-						<OUT DATATYPE="INTEGER" NAME="LATEST_KAS_ID" />
-						<OUT DATATYPE="DOUBLE" NAME="ORG_UNIT_ID"/>
-						<OUT DATATYPE="DOUBLE" NAME="ORG_DC_ID"/>
-						<OUT DATATYPE="LONG" NAME="CLIENT_ID"/>
-						<OUT DATATYPE="LONG" NAME="KNOWN_ACCT_SIG_ID"/>
-					</STEP>
+
+			<!--  read comma seperated file -->
+			<STEP NAME="Reader" VALUES="10000000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="LATEST_KAS_ID" />
+				<OUT DATATYPE="DOUBLE" NAME="ORG_UNIT_ID" />
+				<OUT DATATYPE="DOUBLE" NAME="ORG_DC_ID" />
+				<OUT DATATYPE="LONG" NAME="CLIENT_ID" />
+				<OUT DATATYPE="LONG" NAME="KNOWN_ACCT_SIG_ID" />
+			</STEP>
 
 
-				<STEP NAME="Accounts" PERSISTENCE="LOAD" CLASS="com.kni.etl.ketl.writer.LookupWriter">
-					<IN VALUE="4">Reader.LATEST_KAS_ID</IN>
-					<IN VALUE="3">Reader.ORG_UNIT_ID</IN>
-					<IN VALUE="2">Reader.ORG_DC_ID</IN>
-					<IN VALUE="1">Reader.CLIENT_ID</IN>
-					<IN KEY="1">Reader.KNOWN_ACCT_SIG_ID</IN>
-				</STEP>
+			<STEP NAME="Accounts" PERSISTENCE="LOAD" CLASS="com.kni.etl.ketl.writer.LookupWriter">
+				<IN VALUE="4">Reader.LATEST_KAS_ID</IN>
+				<IN VALUE="3">Reader.ORG_UNIT_ID</IN>
+				<IN VALUE="2">Reader.ORG_DC_ID</IN>
+				<IN VALUE="1">Reader.CLIENT_ID</IN>
+				<IN KEY="1">Reader.KNOWN_ACCT_SIG_ID</IN>
+			</STEP>
 
-			
+
 
 		</ACTION>
 	</JOB>

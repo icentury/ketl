@@ -8,7 +8,7 @@
 	<classpathentry kind="lib" path="lib/hsqldb.jar"/>
 	<classpathentry kind="lib" path="lib/jaxrpc.jar"/>
 	<classpathentry kind="lib" path="lib/junit.jar"/>
-	<classpathentry kind="lib" path="lib/KETL.jar" sourcepath="/KETL/src"/>
+	<classpathentry kind="lib" path="lib/KETL.jar" sourcepath="C:/development/LiveCode/workspace/KETL/src"/>
 	<classpathentry kind="lib" path="lib/KETLGeoIP.jar"/>
 	<classpathentry kind="lib" path="lib/KETLOracleExt.jar"/>
 	<classpathentry kind="lib" path="lib/KETLPostGreExt.jar"/>
@@ -22,10 +22,10 @@
 	<classpathentry kind="lib" path="lib/KETLGPLExtensions.jar" sourcepath="/KETLGPL"/>
 	<classpathentry kind="lib" path="lib/commons-discovery-0.2.jar"/>
 	<classpathentry kind="lib" path="lib/wsdl4j-1.5.1.jar"/>
-	<classpathentry kind="lib" path="lib/je-3.2.13.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JDBC Drivers"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.5.0_11/lib/tools.jar"/>
 	<classpathentry kind="lib" path="lib/h2.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang-2.3.jar"/>
+	<classpathentry kind="lib" path="lib/je-3.2.74.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

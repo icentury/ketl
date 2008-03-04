@@ -1,0 +1,50 @@
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	<PARAMETER_LIST NAME="testData">
+		<PARAMETER NAME="ROOT" PARAMETER_LIST="search*" />
+	</PARAMETER_LIST>
+
+	<PARAMETER_LIST NAME="search1">
+		<PARAMETER NAME="SEARCHPATH">xml/Tests/Data/CSV.txt</PARAMETER>
+	</PARAMETER_LIST>
+
+	<PARAMETER_LIST NAME="search2">
+		<PARAMETER NAME="SEARCHPATH">xml/Tests/Data/CSV.txt</PARAMETER>
+	</PARAMETER_LIST>
+
+
+	<PARAMETER_LIST NAME="destination">
+		<PARAMETER NAME="USER">TEST</PARAMETER>
+		<PARAMETER NAME="PASSWORD">TEST</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@200.0.4.123:1521:prd2ora</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+		<PARAMETER NAME="CONNECTIONSTRING">prd2ora</PARAMETER>
+	</PARAMETER_LIST>
+
+
+	<JOB ID="SQLLoader" PARRALLISM="1" NAME="SQLLoader" PROJECT="TEST" TYPE="KETL">
+		<ACTION>
+			<STEP TIMING="TRUE" NAME="Reader" VALUES="10000000" CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="DOUBLE" NAME="DBL1" />
+			</STEP>
+
+			<STEP NAME="Data" CLASS="com.kni.etl.ketl.transformation.FilterTransformation">
+				<IN NAME="DBL1">Reader.DBL1</IN>
+				<OUT NAME="DBL1">${DBL1}</OUT>
+				<OUT NAME="DBL2" DATATYPE="java.math.BigDecimal">new java.math.BigDecimal(${DBL1}+0.123456)</OUT>
+				<OUT NAME="DBL3" DATATYPE="java.math.BigDecimal">new java.math.BigDecimal(${DBL1})</OUT>
+			</STEP>
+
+			<STEP NAME="Target" PARALLEL="FALSE" COMMITSIZE="100000" ENABLEROUNDING="TRUE" CLASS="com.kni.etl.ketl.writer.SQLLoaderELTWriter" PARAMETER_LIST="destination"
+				TABLE="DUMP">
+				<PRESQL CRITICAL="FALSE">DROP TABLE DUMP</PRESQL>
+				<PRESQL>CREATE TABLE DUMP(DBL1 NUMERIC,DBL2 NUMERIC(22,3), DBL3 NUMERIC)</PRESQL>
+				<IN NAME="DBL1">Data.DBL1</IN>
+				<IN NAME="DBL2">Data.DBL2</IN>
+				<IN NAME="DBL3">Data.DBL3</IN>
+			</STEP>
+		</ACTION>
+	</JOB>
+</ETL>
