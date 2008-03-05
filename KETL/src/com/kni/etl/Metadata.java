@@ -984,13 +984,13 @@ public class Metadata {
                             if (toAddress != null) {
                                 String[] parts = toAddress.split("@");
                                 if (parts.length > 2) {
-                                    if (parts[2] != null && parts[2].equals("HTML"))
-                                        plainTxt = false;
+                                    if (parts[2] != null && !parts[2].equals("HTML"))
+                                        plainTxt = true;
 
                                     toAddress = parts[0] + "@" + parts[1];
                                 }
                                 else
-                                    plainTxt = true;
+                                    plainTxt = false;
                             }
 
                             if (plainTxt) {
@@ -4541,7 +4541,7 @@ public class Metadata {
 
                     if (bSendEmail) {
                         this.sendAlertEmail(job_id, Integer.toString(iErrorCode), strMessage, strExtendedDetails,
-                                new java.util.Date(), executionID, pETLJob.getDumpFile(), iLevel);
+                                new java.util.Date(), executionID,pETLJob==null?null:pETLJob.getDumpFile(), iLevel);
                     }
 
                     if (m_stmt != null) {
@@ -4663,12 +4663,15 @@ public class Metadata {
                         }
                     }
                 }
-                else if (pETLJob.getNotificationMode() != null) {
+                else if (pETLJob.getStatus().getStatusCode() == ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL
+                        && pETLJob.getNotificationMode() != null) {
                     this.sendAlertEmail(pETLJob.getJobID(),
                             new Integer(pETLJob.getStatus().getStatusCode()).toString(), pETLJob.getStatus()
                                     .getStatusMessage(), pETLJob.getStatus().getExtendedMessage(),
                             new java.util.Date(), pETLJob.getJobExecutionID(), pETLJob.getDumpFile(),
                             ResourcePool.INFO_MESSAGE);
+                    // notification sent
+                    pETLJob.notificationSent();
                 }
 
                 if (m_stmt != null) {

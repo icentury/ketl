@@ -1254,4 +1254,8 @@ public class ETLJob {
         return false;
     }
 
+    public void notificationSent() {
+        this.notificationMode = null;        
+    }
+
 }
