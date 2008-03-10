@@ -619,7 +619,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * @see com.kni.etl.ETLJobExecutor#getNewJob()
      */
     @Override
-    protected ETLJob getNewJob() throws Exception {
+	public ETLJob getNewJob() throws Exception {
         return new KETLJob();
     }
 

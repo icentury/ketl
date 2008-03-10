@@ -135,6 +135,8 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
         return System.currentTimeMillis() - start;
     }
+    
+    private SQLJob sjJob;
 
     /**
      * Insert the method's description here. Creation date: (5/4/2002 5:37:52 PM)
@@ -147,7 +149,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
         this.monitor = new SQLJobMonitor();
         try {
             this.monitor.start();
-            SQLJob sjJob;
+            
             ETLStatus jsJobStatus;
             String curSQL = null;
 
@@ -372,6 +374,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
                 return false;
             }
         } finally {
+        	this.sjJob = null;
             this.monitor.currentJob = null;
             this.monitor.stmt = null;
             this.monitor.alive = false;
@@ -424,7 +427,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
      * @see com.kni.etl.ETLJobExecutor#getNewJob()
      */
     @Override
-    protected ETLJob getNewJob() throws Exception {
+	public ETLJob getNewJob() throws Exception {
         return new SQLJob();
     }
 
@@ -436,4 +439,9 @@ public class SQLJobExecutor extends ETLJobExecutor {
     public static void main(String[] args) {
         ETLJobExecutor.execute(args, new SQLJobExecutor(), true);
     }
+
+	@Override
+	public ETLJob getCurrentETLJob() {
+		return this.sjJob;
+	}
 }

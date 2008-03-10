@@ -36,6 +36,7 @@ public class OSJobExecutor extends ETLJobExecutor {
 
     /** The monitor. */
     private OSJobMonitor monitor;
+	private OSJob ojJob;
 
     /**
      * The Class OSJobMonitor.
@@ -89,7 +90,6 @@ public class OSJobExecutor extends ETLJobExecutor {
      */
     @Override
     protected boolean executeJob(ETLJob jCurrentJob) {
-        OSJob ojJob;
         boolean bSuccess = true;
         this.monitor = new OSJobMonitor();
         try {
@@ -105,7 +105,7 @@ public class OSJobExecutor extends ETLJobExecutor {
                 return false;
             }
 
-            ojJob = (OSJob) jCurrentJob;
+            this.ojJob = (OSJob) jCurrentJob;
             jsJobStatus = ojJob.getStatus();
 
             // Create a File object to define the working directory (if specified)...
@@ -183,6 +183,7 @@ public class OSJobExecutor extends ETLJobExecutor {
             }
         } finally {
             this.monitor.alive = false;
+            this.ojJob = null;
         }
 
         return bSuccess;
@@ -228,7 +229,7 @@ public class OSJobExecutor extends ETLJobExecutor {
      * @see com.kni.etl.ETLJobExecutor#getNewJob()
      */
     @Override
-    protected ETLJob getNewJob() throws Exception {
+	public ETLJob getNewJob() throws Exception {
         // TODO Auto-generated method stub
         return new OSJob();
     }
@@ -241,4 +242,9 @@ public class OSJobExecutor extends ETLJobExecutor {
     public static void main(String[] args) {
         ETLJobExecutor.execute(args, new OSJobExecutor(), true);
     }
+
+	@Override
+	public ETLJob getCurrentETLJob() {
+		return this.ojJob;
+	}
 }
