@@ -50,7 +50,6 @@ public class JDBCItemHelper {
      * @param pDataItem the data item
      * @param maxCharLength the max char length
      * @param pXMLConfig the XML config
-     * 
      * @throws SQLException the SQL exception
      */
     public void setParameterFromClass(PreparedStatement pPreparedStatement, int parameterIndex, Class pClass,
@@ -179,6 +178,9 @@ public class JDBCItemHelper {
 
     }
 
+    private StringBuffer sbuf;
+    private char[] cbuf;
+
     /**
      * Gets the object from result set.
      * 
@@ -186,9 +188,7 @@ public class JDBCItemHelper {
      * @param columnIndex the column index
      * @param pClass the class
      * @param maxCharLength the max char length
-     * 
      * @return the object from result set
-     * 
      * @throws SQLException the SQL exception
      * @throws IOException Signals that an I/O exception has occurred.
      */
@@ -219,15 +219,21 @@ public class JDBCItemHelper {
 
             result = pRS.getString(columnIndex);
 
-            if (maxCharLength > 0 && result != null && ((String) result).length() == maxCharLength) {
-                Reader charStream = pRS.getCharacterStream(columnIndex);
+            if (maxCharLength > 0 && result != null && ((String) result).length() >= maxCharLength) {
 
-                StringBuilder sb = new StringBuilder();
-                int c;
-                while ((c = charStream.read()) != -1) {
-                    sb.append((char) c);
+                // init buffer
+                if (cbuf == null) {
+                    sbuf = new StringBuffer();
+                    cbuf = new char[maxCharLength];
                 }
-                result = sb.toString();
+
+                Reader charStream = pRS.getCharacterStream(columnIndex);
+                sbuf.setLength(0);
+                int c;
+                while ((c = charStream.read(cbuf, 0, maxCharLength)) != -1) {
+                    sbuf.append(cbuf, 0, c);
+                }
+                result = sbuf.toString();
                 charStream.close();
             }
         }
@@ -259,7 +265,7 @@ public class JDBCItemHelper {
             result = pRS.getBlob(columnIndex);
         }
         else if (pClass == java.sql.Array.class) {
-            result = pRS.getArray(columnIndex);            
+            result = pRS.getArray(columnIndex);
         }
         else {
             result = pRS.getObject(columnIndex);
@@ -283,7 +289,6 @@ public class JDBCItemHelper {
      * @param pLength the length
      * @param pPrecision the precision
      * @param pScale the scale
-     * 
      * @return the java type
      */
     public String getJavaType(int pSQLType, int pLength, int pPrecision, int pScale) {
@@ -293,7 +298,7 @@ public class JDBCItemHelper {
             return Long.class.getCanonicalName();
         case java.sql.Types.BINARY:
         case java.sql.Types.BLOB:
-                return Byte[].class.getCanonicalName();
+            return Byte[].class.getCanonicalName();
         case java.sql.Types.BIT:
             return Integer.class.getCanonicalName();
         case java.sql.Types.CHAR:
@@ -340,7 +345,7 @@ public class JDBCItemHelper {
             return Byte[].class.getCanonicalName();
         case java.sql.Types.CLOB:
         case java.sql.Types.VARCHAR:
-                return String.class.getCanonicalName();
+            return String.class.getCanonicalName();
         case java.sql.Types.BOOLEAN:
             return Boolean.class.getCanonicalName();
         case java.sql.Types.ARRAY:

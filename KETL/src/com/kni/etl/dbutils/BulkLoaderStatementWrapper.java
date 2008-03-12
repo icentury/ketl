@@ -424,7 +424,9 @@ abstract public class BulkLoaderStatementWrapper extends StatementWrapper {
 			if (e instanceof SQLException)
 				throw (SQLException) e;
 
-			throw new SQLException(e.toString());
+			SQLException se = new SQLException(e.toString());
+			se.setStackTrace(e.getStackTrace());
+			throw se;
 		}
 		return res;
 	}

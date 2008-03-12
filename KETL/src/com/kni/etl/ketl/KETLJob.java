@@ -49,190 +49,220 @@ import com.kni.etl.ketl.smp.ETLCore;
  */
 public class KETLJob extends ETLJob {
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ETLJob#getJobChildNodes()
-     */
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ETLJob#getJobChildNodes()
+	 */
 
-    /**
-     * SQLJob constructor comment.
-     * 
-     * @throws Exception the exception
-     */
-    public KETLJob() throws Exception {
-        super();
-    }
+	private boolean paused = false;
 
-    /**
-     * Insert the method's description here. Creation date: (5/9/2002 2:28:24 PM)
-     */
-    @Override
-    public void cleanup() {
-        super.cleanup();
-    }
+	public boolean isPaused() {
+		return paused;
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ETLJob#setChildNodes(org.w3c.dom.Node)
-     */
-    @Override
-    protected Node setChildNodes(Node pParentNode) {
-        // turn file into readable nodes
-        DocumentBuilder builder = null;
-        Document xmlConfig;
-        Node e = null;
+	public void pauseJob() {
+		this.paused = true;
+	}
 
-        try {
-            DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
-            builder = dmf.newDocumentBuilder();
+	public void resumeJob() {
+		this.paused = false;
+	}
 
-            Object action = this.getAction(false);
+	/**
+	 * SQLJob constructor comment.
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	public KETLJob() throws Exception {
+		super();
+	}
 
-            if (action == null) {
-                action = "<ACTION/>";
-                ResourcePool.LogMessage("ERROR: XML Job " + this.getJobID() + " has no XML defined for its action.");
-            }
+	/**
+	 * Insert the method's description here. Creation date: (5/9/2002 2:28:24
+	 * PM)
+	 */
+	@Override
+	public void cleanup() {
+		super.cleanup();
+	}
 
-            xmlConfig = builder.parse(new InputSource(new StringReader(action.toString())));
-            e = pParentNode.getOwnerDocument().importNode(xmlConfig.getFirstChild(), true);
-            pParentNode.appendChild(e);
-        } catch (org.xml.sax.SAXException e2) {
-            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,"Parsing XML document, " + e2.toString());
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ETLJob#setChildNodes(org.w3c.dom.Node)
+	 */
+	@Override
+	protected Node setChildNodes(Node pParentNode) {
+		// turn file into readable nodes
+		DocumentBuilder builder = null;
+		Document xmlConfig;
+		Node e = null;
 
-            System.exit(EngineConstants.INVALID_XML_EXIT_CODE);
-        } catch (Exception e1) {
-            ResourcePool.LogException(e1, this);
+		try {
+			DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
+			builder = dmf.newDocumentBuilder();
 
-            System.exit(EngineConstants.OTHER_ERROR_EXIT_CODE);
-        }
+			Object action = this.getAction(false);
 
-        return e;
-    }
+			if (action == null) {
+				action = "<ACTION/>";
+				ResourcePool.LogMessage("ERROR: XML Job " + this.getJobID() + " has no XML defined for its action.");
+			}
 
-    /**
-     * Insert the method's description here. Creation date: (5/9/2002 12:06:44 PM)
-     * 
-     * @throws Throwable the throwable
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        // It's good practice to call the superclass's finalize() method,
-        // even if you know there is not one currently defined...
-        super.finalize();
-    }
+			xmlConfig = builder.parse(new InputSource(new StringReader(action.toString())));
+			e = pParentNode.getOwnerDocument().importNode(xmlConfig.getFirstChild(), true);
+			pParentNode.appendChild(e);
+		} catch (org.xml.sax.SAXException e2) {
+			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Parsing XML document, "
+					+ e2.toString());
 
-    /**
-     * Gets the shared lookup.
-     * 
-     * @param pLookupName the lookup name
-     * @param owner the owner
-     * 
-     * @return the shared lookup
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     * @throws InterruptedException the interrupted exception
-     */
-    final public Map getSharedLookup(String pLookupName, Object owner) throws KETLThreadException, InterruptedException {
-        RegisteredLookup res = (RegisteredLookup) this.mLookups.get(pLookupName);
+			System.exit(EngineConstants.INVALID_XML_EXIT_CODE);
+		} catch (Exception e1) {
+			ResourcePool.LogException(e1, this);
 
-        if (res == null)
-            res = ResourcePool.getLookup(pLookupName);
+			System.exit(EngineConstants.OTHER_ERROR_EXIT_CODE);
+		}
 
-        if (res != null && res.writers > 0) {
-            do {
-                if (owner instanceof ETLCore) {
-                    ((ETLCore) owner).getOwner().setWaiting("Lookup " + pLookupName);
-                }
-                Thread.sleep(500);
+		return e;
+	}
 
-            } while (res.writers > 0);
+	/**
+	 * Insert the method's description here. Creation date: (5/9/2002 12:06:44
+	 * PM)
+	 * 
+	 * @throws Throwable
+	 *             the throwable
+	 */
+	@Override
+	protected void finalize() throws Throwable {
+		// It's good practice to call the superclass's finalize() method,
+		// even if you know there is not one currently defined...
+		super.finalize();
+	}
 
-            if (owner instanceof ETLCore) {
-                ((ETLCore) owner).getOwner().setWaiting(null);
-            }
+	/**
+	 * Gets the shared lookup.
+	 * 
+	 * @param pLookupName
+	 *            the lookup name
+	 * @param owner
+	 *            the owner
+	 * 
+	 * @return the shared lookup
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 * @throws InterruptedException
+	 *             the interrupted exception
+	 */
+	final public Map getSharedLookup(String pLookupName, Object owner) throws KETLThreadException, InterruptedException {
+		RegisteredLookup res = (RegisteredLookup) this.mLookups.get(pLookupName);
 
-        }
-        else if (res == null)
-            throw new KETLThreadException("Lookup " + pLookupName + " does not exist", this);
+		if (res == null)
+			res = ResourcePool.getLookup(pLookupName);
 
-        return res.lookup;
-    }
+		if (res != null && res.writers > 0) {
+			do {
+				if (owner instanceof ETLCore) {
+					((ETLCore) owner).getOwner().setWaiting("Lookup " + pLookupName);
+				}
+				Thread.sleep(500);
 
-    /**
-     * Register lookup write lock.
-     * 
-     * @param name the name
-     * @param lookupImpl the lookup impl
-     * @param pPersistence the persistence
-     * 
-     * @return the persistent map
-     */
-    final public synchronized PersistentMap registerLookupWriteLock(String name, LookupCreatorImpl lookupImpl,
-            int pPersistence) {
-        RegisteredLookup res = (RegisteredLookup) this.mLookups.get(name);
+			} while (res.writers > 0);
 
-        if(res == null && pPersistence != EngineConstants.JOB_PERSISTENCE)
-        {    res = ResourcePool.getLookup(name);
-             this.mLookups.put(name, res);
-        }
-        
-        if (res == null) {
-            
-            res = new RegisteredLookup();
-            res.name = name;
-            res.lookup = lookupImpl.getLookup();
-            res.writers++;
-            res.persistence = pPersistence;
-            res.mSourceLoadID = this.iLoadID;
-            res.mSourceJobExecutionID = this.iJobExecutionID;
+			if (owner instanceof ETLCore) {
+				((ETLCore) owner).getOwner().setWaiting(null);
+			}
 
-            this.mLookups.put(name, res);
+		} else if (res == null)
+			throw new KETLThreadException("Lookup " + pLookupName + " does not exist", this);
 
-            if (res.persistence != EngineConstants.JOB_PERSISTENCE) {
-                ResourcePool.registerLookup(res);
-                
-            }
-        }
-        else
-            res.writers++;
+		return res.lookup;
+	}
 
-        return res.lookup;
-    }
+	/**
+	 * Register lookup write lock.
+	 * 
+	 * @param name
+	 *            the name
+	 * @param lookupImpl
+	 *            the lookup impl
+	 * @param pPersistence
+	 *            the persistence
+	 * 
+	 * @return the persistent map
+	 */
+	final public synchronized PersistentMap registerLookupWriteLock(String name, LookupCreatorImpl lookupImpl,
+			int pPersistence) {
+		RegisteredLookup res = (RegisteredLookup) this.mLookups.get(name);
 
-    /**
-     * Release lookup write lock.
-     * 
-     * @param name the name
-     * @param lookupImpl the lookup impl
-     */
-    final public synchronized void releaseLookupWriteLock(String name, LookupCreatorImpl lookupImpl) {
-        RegisteredLookup res = (RegisteredLookup) this.mLookups.get(name);
+		if (res == null && pPersistence != EngineConstants.JOB_PERSISTENCE) {
+			res = ResourcePool.getLookup(name);
+			this.mLookups.put(name, res);
+		}
 
-        if(res == null) return;
-        
-        if (res.writers == 1){
-            res.lookup = lookupImpl.swichToReadOnlyMode();
-        }
-        res.writers--;
+		if (res == null) {
 
-    }
+			res = new RegisteredLookup();
+			res.name = name;
+			res.lookup = lookupImpl.getLookup();
+			res.writers++;
+			res.persistence = pPersistence;
+			res.mSourceLoadID = this.iLoadID;
+			res.mSourceJobExecutionID = this.iJobExecutionID;
 
-    /** The lookups. */
-    private Map mLookups = new HashMap();
+			this.mLookups.put(name, res);
 
-    /**
-     * Delete lookup.
-     * 
-     * @param name the name
-     */
-    public synchronized void deleteLookup(String name) {
-        RegisteredLookup res = (RegisteredLookup) this.mLookups.get(name);
+			if (res.persistence != EngineConstants.JOB_PERSISTENCE) {
+				ResourcePool.registerLookup(res);
 
-        if (res == null)
-            return;
-        res.delete();
+			}
+		} else
+			res.writers++;
 
-        this.mLookups.remove(name);
+		return res.lookup;
+	}
 
-    }
+	/**
+	 * Release lookup write lock.
+	 * 
+	 * @param name
+	 *            the name
+	 * @param lookupImpl
+	 *            the lookup impl
+	 */
+	final public synchronized void releaseLookupWriteLock(String name, LookupCreatorImpl lookupImpl) {
+		RegisteredLookup res = (RegisteredLookup) this.mLookups.get(name);
+
+		if (res == null)
+			return;
+
+		if (res.writers == 1) {
+			res.lookup = lookupImpl.swichToReadOnlyMode();
+		}
+		res.writers--;
+
+	}
+
+	/** The lookups. */
+	private Map mLookups = new HashMap();
+
+	/**
+	 * Delete lookup.
+	 * 
+	 * @param name
+	 *            the name
+	 */
+	public synchronized void deleteLookup(String name) {
+		RegisteredLookup res = (RegisteredLookup) this.mLookups.get(name);
+
+		if (res == null)
+			return;
+		res.delete();
+
+		this.mLookups.remove(name);
+
+	}
 }

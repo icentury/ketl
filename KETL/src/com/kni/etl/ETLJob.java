@@ -562,6 +562,14 @@ public class ETLJob {
     public boolean cancelJob() {
         return this.setCancelJob(true);
     }
+    
+    public void pauseJob(){
+    	
+    }
+    
+    public void resumeJob() {
+    	
+    }
 
     /**
      * To be used by jobs that have connections to close, etc. Creation date: (5/9/2002 2:27:36 PM)
@@ -1250,7 +1258,7 @@ public class ETLJob {
      * 
      * @return true, if is paused
      */
-    final public boolean isPaused() {
+    public boolean isPaused() {
         return false;
     }
 
