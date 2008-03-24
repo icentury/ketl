@@ -402,8 +402,9 @@ public class SQLJobExecutor extends ETLJobExecutor {
      */
     @Override
     public boolean supportsJobType(ETLJob jJob) {
+    	
         // Only accept SQL jobs...
-        return (jJob instanceof SQLJob);
+        return this.isValidType(jJob) && (jJob instanceof SQLJob);
     }
 
     /**

@@ -955,7 +955,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
     @Override
     public boolean supportsJobType(ETLJob jJob) {
         // Only accept KETL jobs...
-        return (jJob instanceof KETLJob);
+        return this.isValidType(jJob) && (jJob instanceof KETLJob);
     }
 
     /*

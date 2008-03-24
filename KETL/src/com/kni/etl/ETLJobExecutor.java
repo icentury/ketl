@@ -32,6 +32,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Queue;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -58,7 +59,7 @@ public abstract class ETLJobExecutor extends Thread {
 	protected boolean bShutdown = false;
 
 	/** The ll pending queue. */
-	protected LinkedList llPendingQueue = null;
+	protected Queue llPendingQueue = null;
 
 	/** The sleep period. */
 	protected int iSleepPeriod = 100;
@@ -80,6 +81,8 @@ public abstract class ETLJobExecutor extends Thread {
 
 	/** The mb command line. */
 	protected boolean mbCommandLine = true;
+
+	private String msType;
 
 	/**
 	 * ETLJobExecutorThread constructor comment.
@@ -384,8 +387,7 @@ public abstract class ETLJobExecutor extends Thread {
 
 					ETLJobExecutor je = pETLJobExecutor;
 
-					if(je.supportsJobType(eJob))
-					{
+					if (je.supportsJobType(eJob)) {
 						return ETLJobExecutor.exit(com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
 								pExitCleanly);
 					}
@@ -607,6 +609,16 @@ public abstract class ETLJobExecutor extends Thread {
 	 */
 	protected abstract boolean initialize();
 
+	private String getLabel() {
+		if (this.llPendingQueue.size() > 0)
+			return this.msType + this.llPendingQueue.toString();
+		ETLJob job;
+		if ((job = this.getCurrentETLJob()) != null)
+			return this.msType + "[" + job.toString() + "]";
+
+		return this.msType;
+	}
+
 	/**
 	 * Loops on the job queue, taking each job and running with it. Creation
 	 * date: (5/3/2002 5:43:04 PM)
@@ -620,7 +632,7 @@ public abstract class ETLJobExecutor extends Thread {
 
 		String orginalName = this.getName();
 
-		this.setName(orginalName + "(" + this.getClass().getName() + ") - Starting");
+		this.setName(orginalName + "(" + this.getLabel() + ") - Starting");
 
 		// Run any initialization code that the subclasses will need...
 		if (this.initialize() == false) {
@@ -630,19 +642,13 @@ public abstract class ETLJobExecutor extends Thread {
 		}
 
 		while (this.bShutdown == false) {
-			this.setName(orginalName + "(" + this.getClass().getName() + ") - Ready");
+			this.setName(orginalName + "(" + this.getLabel() + ") - Ready");
 			// We're ready to get the next job, so set our status to READY...
 			if (this.jesStatus.getStatusCode() != ETLJobExecutorStatus.READY) {
 				this.jesStatus.setStatusCode(ETLJobExecutorStatus.READY);
 			}
 
-			jCurrentJob = null;
-
-			synchronized (this.llPendingQueue) {
-				if (this.llPendingQueue.size() > 0) {
-					jCurrentJob = (ETLJob) this.llPendingQueue.removeLast();
-				}
-			}
+			jCurrentJob = (ETLJob) this.llPendingQueue.poll();
 
 			// If there was no job for us, sleep for a bit and check again...
 			if (jCurrentJob == null) {
@@ -662,13 +668,13 @@ public abstract class ETLJobExecutor extends Thread {
 
 			// We've got a job, so set our executor's status to WORKING...
 			this.jesStatus.setStatusCode(ETLJobExecutorStatus.WORKING);
-			this.setName(this.getName() + "(" + this.getClass().getName() + ") - Executing");
+			this.setName(this.getName() + "(" + this.getLabel() + ") - Executing");
 			// Make sure that this job wasn't cancelled while it was in the
 			// queue...
 			if (jCurrentJob.isCancelled()) {
 				// Set the status and drop the job...
 				jCurrentJob.getStatus().setStatusCode(ETLJobStatus.PENDING_CLOSURE_CANCELLED);
-				this.setName(orginalName + "(" + this.getClass().getName() + ") - Cancelled");
+				this.setName(orginalName + "(" + this.getLabel() + ") - Cancelled");
 				continue;
 			}
 
@@ -704,11 +710,11 @@ public abstract class ETLJobExecutor extends Thread {
 	 * Insert the method's description here. Creation date: (5/4/2002 8:01:20
 	 * PM)
 	 * 
-	 * @param llQueue
+	 * @param queue
 	 *            the ll queue
 	 */
-	public void setPendingQueue(LinkedList llQueue) {
-		this.llPendingQueue = llQueue;
+	public void setPendingQueue(Queue queue) {
+		this.llPendingQueue = queue;
 	}
 
 	/**
@@ -760,6 +766,14 @@ public abstract class ETLJobExecutor extends Thread {
 	 */
 	protected boolean terminate() {
 		return true;
+	}
+
+	public void setType(String msType) {
+		this.msType = msType;
+	}
+
+	protected boolean isValidType(ETLJob job) {
+		return this.msType == null || this.msType.equals(job.getJobTypeName());
 	}
 
 }

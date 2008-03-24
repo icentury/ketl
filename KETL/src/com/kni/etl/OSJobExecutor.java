@@ -228,7 +228,7 @@ public class OSJobExecutor extends ETLJobExecutor {
 	@Override
 	public boolean supportsJobType(ETLJob jJob) {
 		// Only accept OS jobs...
-		return (jJob instanceof OSJob);
+		return this.isValidType(jJob) &&(jJob instanceof OSJob);
 	}
 
 	/**

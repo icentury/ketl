@@ -252,11 +252,7 @@ public class ETLStatus {
      * Creation date: (5/3/2002 12:31:11 PM)
      */
     public synchronized int setStatusCode(int iNewStatus) {
-        // Verify it's a valid status
-
-        // ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.DEBUG_MESSAGE, "setStatusCode: status code ID=" +
-        // iNewStatus + ", previous status code ID = " + this.iStatusCode);
-
+        // Verify it's a valid status       
         if (this.isValidStatusCode(iNewStatus)) {
             this.iStatusCode = iNewStatus;
         }

@@ -75,7 +75,7 @@ public class KETLTestWrapper extends TestCase {
         try {
 
             ETLJobExecutor cur = null;
-            if (this.type.equals("KETL")) {
+            if (this.type.startsWith("KETL")) {
                 cur = new KETLJobExecutor();
             }
             else if (this.type.equals("SQL")) {

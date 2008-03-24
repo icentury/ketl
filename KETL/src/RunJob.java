@@ -110,7 +110,7 @@ public class RunJob {
 
             String type = XMLHelper.getAttributeAsString(nd.getAttributes(), "TYPE", null);
             ETLJobExecutor cur = null;
-            if (type.equals("KETL")) {
+            if (type.startsWith("KETL")) {
                 cur = kJobExec;
             }
             else if (type.equals("SQL")) {
