@@ -15,7 +15,14 @@
     </target>
 
 
-    <target name="build" depends="init">
+	<target name="preBuild" depends="init">
+		<ant inheritAll="false" antfile="../KETL/build.xml" />
+		<echo message="Core" />
+		<ant inheritAll="false" antfile="../KETLGPL/build.xml"/>
+		<echo message="Core" />
+	</target>
+
+    <target name="build" depends="preBuild">
         <echo message="${ant.project.name}: ${ant.file}"/>
     </target>
 </project>

@@ -1,0 +1,169 @@
+<?xml-stylesheet type="text/xsl" href="F:\Development\XML\JobLoader\job_parameter_values.xsl"?>
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+
+
+	<JOB ID="POOL1" NAME="SEQGEN" PROJECT="JOBPOOL" TYPE="KETLHOURLY">
+		<ACTION BATCHSIZE="400">
+			<STEP TIMING="TRUE"  NAME="Reader" VALUES="10000000"
+				CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL2" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL3" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL4" />
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+
+		</ACTION>
+	</JOB>
+	<JOB ID="POOL2" NAME="SEQGEN" PROJECT="JOBPOOL" TYPE="KETLHOURLY">
+		<ACTION BATCHSIZE="400">
+			<STEP TIMING="TRUE"  NAME="Reader" VALUES="10000000"
+				CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL2" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL3" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL4" />
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+
+		</ACTION>
+	</JOB>
+	<JOB ID="POOL3" NAME="SEQGEN" PROJECT="JOBPOOL" TYPE="KETL">
+		<ACTION BATCHSIZE="400">
+			<STEP TIMING="TRUE"  NAME="Reader" VALUES="20000000"
+				CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL2" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL3" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL4" />
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+
+		</ACTION>
+	</JOB>
+	<JOB ID="POOL4" NAME="SEQGEN" PROJECT="JOBPOOL" TYPE="KETL">
+		<ACTION BATCHSIZE="400">
+			<STEP TIMING="TRUE"  NAME="Reader" VALUES="20000000"
+				CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL2" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL3" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL4" />
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+
+		</ACTION>
+	</JOB>
+
+	<JOB ID="POOL5" NAME="SEQGEN" PROJECT="JOBPOOL" TYPE="KETL">
+		<ACTION BATCHSIZE="400">
+			<STEP TIMING="TRUE"  NAME="Reader" VALUES="20000000"
+				CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL2" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL3" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL4" />
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+
+		</ACTION>
+	</JOB>
+
+	<JOB ID="POOL6" NAME="SEQGEN" PROJECT="JOBPOOL" TYPE="KETL">
+		<ACTION BATCHSIZE="400">
+			<STEP TIMING="TRUE"  NAME="Reader" VALUES="20000000"
+				CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL2" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL3" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL4" />
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+
+		</ACTION>
+	</JOB>
+
+	<JOB ID="POOL7" NAME="SEQGEN" PROJECT="JOBPOOL" TYPE="KETL">
+		<ACTION BATCHSIZE="400">
+			<STEP TIMING="TRUE"  NAME="Reader" VALUES="20000000"
+				CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL2" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL3" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL4" />
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+
+		</ACTION>
+	</JOB>
+
+	<JOB ID="POOL8" NAME="SEQGEN" PROJECT="JOBPOOL" TYPE="KETLHOURLY">
+		<ACTION BATCHSIZE="400">
+			<STEP TIMING="TRUE"  NAME="Reader" VALUES="10000000"
+				CLASS="com.kni.etl.ketl.reader.SequenceGenerator">
+				<OUT DATATYPE="INTEGER" NAME="INT" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL1" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL2" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL3" />
+				<OUT DATATYPE="DOUBLE" NAME="DBL4" />
+			</STEP>
+
+
+			<STEP NAME="Writer" LOGEVERY="5000000" CLASS="com.kni.etl.ketl.writer.NullWriter">
+				<IN>Reader.*</IN>
+			</STEP>
+
+		</ACTION>
+	</JOB>
+
+	<JOB ID="POOLROOT" NAME="Job Pool Root" PROJECT="JOBPOOL" TYPE="EMPTYJOB">
+		<DEPENDS_ON>POOL1</DEPENDS_ON>
+		<DEPENDS_ON>POOL2</DEPENDS_ON>
+		<DEPENDS_ON>POOL3</DEPENDS_ON>
+		<DEPENDS_ON>POOL4</DEPENDS_ON>
+		<DEPENDS_ON>POOL5</DEPENDS_ON>
+		<DEPENDS_ON>POOL6</DEPENDS_ON>
+		<DEPENDS_ON>POOL7</DEPENDS_ON>
+		<DEPENDS_ON>POOL8</DEPENDS_ON>
+		<EMPTY />
+	</JOB>
+
+</ETL>
