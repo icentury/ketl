@@ -1008,7 +1008,8 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
         Object res = this.mLookup.get(this.skData, null);
 
-        ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "getSurrogateKey:In->"
+        if(this.debug())
+        	ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "getSurrogateKey:In->"
                 + java.util.Arrays.toString(this.skData) + ", Out->" + res);
 
         return (Integer) res;

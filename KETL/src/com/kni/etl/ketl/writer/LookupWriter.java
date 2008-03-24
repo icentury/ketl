@@ -279,7 +279,7 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
         try {
             this.putKeyArrayDataArray(o);
         } catch (Error e) {
-            throw new KETLWriteException(e.getMessage());
+            throw new KETLWriteException(e);
         }
 
         return 1;

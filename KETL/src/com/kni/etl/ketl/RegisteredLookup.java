@@ -85,7 +85,7 @@ public class RegisteredLookup implements Externalizable {
      */
     @Override
     public String toString() {
-        return this.name + " Size: " + this.lookup.size() + " Other: " + this.lookup.toString();
+        return this.name + "\n\tSize: " + this.lookup.size() + this.lookup.toString();
     }
 
     /** The corrupt. */

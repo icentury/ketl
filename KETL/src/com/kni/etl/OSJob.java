@@ -52,6 +52,8 @@ public class OSJob extends ETLJob {
     /** The mi exit value. */
     protected int miExitValue = 0;
 
+	private boolean debug = false;
+
     /**
      * OSJob constructor comment.
      * 
@@ -99,6 +101,10 @@ public class OSJob extends ETLJob {
         this.setWorkingDirectory(strWorkingDirectory);
     }
 
+    
+    public boolean isDebug() {
+    	return debug;
+    }
     /**
      * Insert the method's description here. Creation date: (5/7/2002 2:35:08 PM)
      * 
@@ -118,7 +124,7 @@ public class OSJob extends ETLJob {
             xmlDOM = builder.parse(new InputSource(new StringReader((String) this.getAction(true))));
             
             NodeList nl = xmlDOM.getElementsByTagName("OSJOB");
-
+            
             
             if ((nl == null) || (nl.getLength() == 0)) {
                 this.getStatus().setErrorCode(2); // BRIAN: NEED TO SET UP KETL JOB ERROR CODES
@@ -133,6 +139,9 @@ public class OSJob extends ETLJob {
 
                 return null;
             }
+            
+            debug  = XMLHelper.getAttributeAsBoolean(nl.item(0).getAttributes(), "DEBUG", false);
+
 
             this.setNotificationMode(XMLHelper.getAttributeAsString(nl.item(0).getAttributes(),"EMAILSTATUS",null));
             if ((cmd = ETLJobExecutor.getExternalSourceCode(nl.item(0)))==null)

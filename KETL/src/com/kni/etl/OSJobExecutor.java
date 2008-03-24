@@ -24,6 +24,8 @@ package com.kni.etl;
 
 import java.io.File;
 import java.io.InputStream;
+
+import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.InputStreamHandler;
 
 // TODO: Auto-generated Javadoc
@@ -34,214 +36,234 @@ import com.kni.etl.util.InputStreamHandler;
  */
 public class OSJobExecutor extends ETLJobExecutor {
 
-    /** The monitor. */
-    private OSJobMonitor monitor;
+	/** The monitor. */
+	private OSJobMonitor monitor;
+
 	private OSJob ojJob;
 
-    /**
-     * The Class OSJobMonitor.
-     */
-    private class OSJobMonitor extends Thread {
+	/**
+	 * The Class OSJobMonitor.
+	 */
+	private class OSJobMonitor extends Thread {
 
-        /** The alive. */
-        boolean alive = true;
-        
-        /** The current job. */
-        OSJob currentJob = null;
-        
-        /** The process. */
-        public Process process = null;;
+		/** The alive. */
+		boolean alive = true;
 
-        /* (non-Javadoc)
-         * @see java.lang.Thread#run()
-         */
-        @Override
-        public void run() {
-            try {
-                while (this.alive) {
+		/** The current job. */
+		OSJob currentJob = null;
 
-                    if (this.process != null && this.currentJob != null && this.currentJob.isCancelled()) {
-                        this.process.destroy();
-                        this.currentJob.cancelSuccessfull(true);
-                    }
-                    Thread.sleep(500);
-                }
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        }
+		/** The process. */
+		public Process process = null;;
 
-    }
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see java.lang.Thread#run()
+		 */
+		@Override
+		public void run() {
+			try {
+				while (this.alive) {
 
-    /**
-     * Insert the method's description here. Creation date: (5/7/2002 2:54:55 PM)
-     */
-    public OSJobExecutor() {
-        super();
-    }
+					if (this.process != null && this.currentJob != null && this.currentJob.isCancelled()) {
+						this.process.destroy();
+						this.currentJob.cancelSuccessfull(true);
+					}
+					Thread.sleep(500);
+				}
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 
-    /**
-     * Insert the method's description here. Creation date: (5/7/2002 2:26:26 PM)
-     * 
-     * @param jCurrentJob the j current job
-     * 
-     * @return boolean
-     */
-    @Override
-    protected boolean executeJob(ETLJob jCurrentJob) {
-        boolean bSuccess = true;
-        this.monitor = new OSJobMonitor();
-        try {
-            this.monitor.start();
+	}
 
-            ETLStatus jsJobStatus;
-            String strWorkingDirectory;
-            Process pProcess = null;
-            File fWorkingDirectory = null;
-            long start = (System.currentTimeMillis() - 1);
-            // Only accept OS jobs...
-            if ((jCurrentJob instanceof OSJob) == false) {
-                return false;
-            }
+	/**
+	 * Insert the method's description here. Creation date: (5/7/2002 2:54:55
+	 * PM)
+	 */
+	public OSJobExecutor() {
+		super();
+	}
 
-            this.ojJob = (OSJob) jCurrentJob;
-            jsJobStatus = ojJob.getStatus();
+	/**
+	 * Insert the method's description here. Creation date: (5/7/2002 2:26:26
+	 * PM)
+	 * 
+	 * @param jCurrentJob
+	 *            the j current job
+	 * 
+	 * @return boolean
+	 */
+	@Override
+	protected boolean executeJob(ETLJob jCurrentJob) {
+		boolean bSuccess = true;
+		this.monitor = new OSJobMonitor();
+		try {
+			this.monitor.start();
 
-            // Create a File object to define the working directory (if specified)...
-            if ((strWorkingDirectory = ojJob.getWorkingDirectory()) != null) {
-                // Java 1.4 way - We can't use this because Nick is a girl and wants to stick to 1.2...
-                fWorkingDirectory = new File(strWorkingDirectory);
-            }
+			ETLStatus jsJobStatus;
+			String strWorkingDirectory;
+			Process pProcess = null;
+			File fWorkingDirectory = null;
+			long start = (System.currentTimeMillis() - 1);
+			// Only accept OS jobs...
+			if ((jCurrentJob instanceof OSJob) == false) {
+				return false;
+			}
 
-            try {
-                String osName = System.getProperty("os.name");
-                String strExecStmt;
+			this.ojJob = (OSJob) jCurrentJob;
+			jsJobStatus = ojJob.getStatus();
 
-                if (osName.startsWith("Windows")) {
-                    strExecStmt = "cmd.exe /c " + ojJob.getCommandLine();
-                }
-                else // assume some UNIX/Linux system
-                {
-                    // strExecStmt = "/bin/sh -c " + ojJob.getCommandLine(); // this is only for script files!
-                    strExecStmt = ojJob.getCommandLine();
-                }
+			// Create a File object to define the working directory (if
+			// specified)...
+			if ((strWorkingDirectory = ojJob.getWorkingDirectory()) != null) {
+				// Java 1.4 way - We can't use this because Nick is a girl and
+				// wants to stick to 1.2...
+				fWorkingDirectory = new File(strWorkingDirectory);
+			}
 
-                if (fWorkingDirectory != null) {
-                    pProcess = Runtime.getRuntime().exec(strExecStmt, null, fWorkingDirectory);
-                }
-                else {
-                    pProcess = Runtime.getRuntime().exec(strExecStmt);
-                }
+			try {
+				String osName = System.getProperty("os.name");
+				String strExecStmt;
 
-                this.monitor.process = pProcess;
-            } catch (Exception e) {
-                jsJobStatus.setErrorCode(1); // BRIAN: NEED TO SET UP OS JOB ERROR CODES
-                jsJobStatus.setErrorMessage("Error running exec(): " + e.getMessage());
+				if (osName.startsWith("Windows")) {
+					strExecStmt = "cmd.exe /c " + ojJob.getCommandLine();
+				} else // assume some UNIX/Linux system
+				{
+					// strExecStmt = "/bin/sh -c " + ojJob.getCommandLine(); //
+					// this is only for script files!
+					strExecStmt = ojJob.getCommandLine();
+				}
 
-                return false;
-            }
+				if (ojJob.isDebug())
+					ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Executing os command: " + strExecStmt);
 
-            // Wait for the process to finish and return the exit code.
-            // BRIAN: we should probably do a periodic call to exitStatus() and catch the exception until the
-            // process is done. This way, we can terminate the process during a shutdown.
-            try {
-                StringBuffer inBuffer = new StringBuffer();
-                InputStream inStream = pProcess.getInputStream();
-                new InputStreamHandler(inBuffer, inStream);
+				if (fWorkingDirectory != null) {
+					pProcess = Runtime.getRuntime().exec(strExecStmt, null, fWorkingDirectory);
+				} else {
+					pProcess = Runtime.getRuntime().exec(strExecStmt);
+				}
 
-                StringBuffer errBuffer = new StringBuffer();
-                InputStream errStream = pProcess.getErrorStream();
-                new InputStreamHandler(errBuffer, errStream);
+				this.monitor.process = pProcess;
+			} catch (Exception e) {
+				jsJobStatus.setErrorCode(1); // BRIAN: NEED TO SET UP OS JOB
+												// ERROR CODES
+				jsJobStatus.setErrorMessage("Error running exec(): " + e.getMessage());
 
-                int iReturnValue = pProcess.waitFor();
+				return false;
+			}
 
-                if (inBuffer.length() > 0) {
-                    jsJobStatus.setExtendedMessage(inBuffer.toString());
-                }
+			// Wait for the process to finish and return the exit code.
+			// BRIAN: we should probably do a periodic call to exitStatus() and
+			// catch the exception until the
+			// process is done. This way, we can terminate the process during a
+			// shutdown.
+			try {
+				StringBuffer inBuffer = new StringBuffer();
+				InputStream inStream = pProcess.getInputStream();
+				new InputStreamHandler(inBuffer, inStream);
 
-                jsJobStatus.setErrorCode(iReturnValue); // Set the return value as the error code
+				StringBuffer errBuffer = new StringBuffer();
+				InputStream errStream = pProcess.getErrorStream();
+				new InputStreamHandler(errBuffer, errStream);
 
-                if (iReturnValue != 0) {
-                    jsJobStatus.setErrorMessage("STDERROR:" + errBuffer.toString());
-                    jsJobStatus.setExtendedMessage("STDOUT:" + inBuffer.toString());
+				int iReturnValue = pProcess.waitFor();
 
-                    if (iReturnValue == ETLJobStatus.CRITICAL_FAILURE_ERROR_CODE) {
-                        jsJobStatus.setErrorMessage("Server has been paused\n" + jsJobStatus.getErrorMessage());
+				if (inBuffer.length() > 0) {
+					jsJobStatus.setExtendedMessage(inBuffer.toString());
+				}
 
-                        jsJobStatus.setStatusCode(ETLJobStatus.CRITICAL_FAILURE_PAUSE_LOAD);
-                    }
+				jsJobStatus.setErrorCode(iReturnValue); // Set the return value
+														// as the error code
 
-                    bSuccess = false;
-                }
-                else
-                    jsJobStatus.setStats(-1, System.currentTimeMillis() - start);
-            } catch (Exception e) {
-                jsJobStatus.setErrorCode(2); // BRIAN: NEED TO SET UP OS JOB ERROR CODES
-                jsJobStatus.setErrorMessage("Error in process: " + e.getMessage());
-                return false;
-            }
-        } finally {
-            this.monitor.alive = false;
-            this.ojJob = null;
-        }
+				if (iReturnValue != 0) {
+					jsJobStatus.setErrorMessage("STDERROR:" + errBuffer.toString());
+					jsJobStatus.setExtendedMessage("STDOUT:" + inBuffer.toString());
 
-        return bSuccess;
-    }
+					if (iReturnValue == ETLJobStatus.CRITICAL_FAILURE_ERROR_CODE) {
+						jsJobStatus.setErrorMessage("Server has been paused\n" + jsJobStatus.getErrorMessage());
 
-    /**
-     * Insert the method's description here. Creation date: (5/7/2002 2:26:26 PM)
-     * 
-     * @return true, if initialize
-     */
-    @Override
-    protected boolean initialize() {
-        return true;
-    }
+						jsJobStatus.setStatusCode(ETLJobStatus.CRITICAL_FAILURE_PAUSE_LOAD);
+					}
 
-    /**
-     * Insert the method's description here. Creation date: (5/8/2002 2:50:03 PM)
-     * 
-     * @param jJob the j job
-     * 
-     * @return boolean
-     */
-    @Override
-    public boolean supportsJobType(ETLJob jJob) {
-        // Only accept OS jobs...
-        return (jJob instanceof OSJob);
-    }
+					bSuccess = false;
+				} else
+					jsJobStatus.setStats(-1, System.currentTimeMillis() - start);
+			} catch (Exception e) {
+				jsJobStatus.setErrorCode(2); // BRIAN: NEED TO SET UP OS JOB
+												// ERROR CODES
+				jsJobStatus.setErrorMessage("Error in process: " + e.getMessage());
+				return false;
+			}
+		} finally {
+			this.monitor.alive = false;
+			this.ojJob = null;
+		}
 
-    /**
-     * Insert the method's description here. Creation date: (5/7/2002 2:26:26 PM)
-     * 
-     * @return true, if terminate
-     */
-    @Override
-    protected boolean terminate() {
-        // No need to do anything here until we're asyncronously running executables with a polling mechanism...
-        return true;
-    }
+		return bSuccess;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ETLJobExecutor#getNewJob()
-     */
-    @Override
+	/**
+	 * Insert the method's description here. Creation date: (5/7/2002 2:26:26
+	 * PM)
+	 * 
+	 * @return true, if initialize
+	 */
+	@Override
+	protected boolean initialize() {
+		return true;
+	}
+
+	/**
+	 * Insert the method's description here. Creation date: (5/8/2002 2:50:03
+	 * PM)
+	 * 
+	 * @param jJob
+	 *            the j job
+	 * 
+	 * @return boolean
+	 */
+	@Override
+	public boolean supportsJobType(ETLJob jJob) {
+		// Only accept OS jobs...
+		return (jJob instanceof OSJob);
+	}
+
+	/**
+	 * Insert the method's description here. Creation date: (5/7/2002 2:26:26
+	 * PM)
+	 * 
+	 * @return true, if terminate
+	 */
+	@Override
+	protected boolean terminate() {
+		// No need to do anything here until we're asyncronously running
+		// executables with a polling mechanism...
+		return true;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ETLJobExecutor#getNewJob()
+	 */
+	@Override
 	public ETLJob getNewJob() throws Exception {
-        // TODO Auto-generated method stub
-        return new OSJob();
-    }
+		// TODO Auto-generated method stub
+		return new OSJob();
+	}
 
-    /**
-     * The main method.
-     * 
-     * @param args the arguments
-     */
-    public static void main(String[] args) {
-        ETLJobExecutor.execute(args, new OSJobExecutor(), true);
-    }
+	/**
+	 * The main method.
+	 * 
+	 * @param args
+	 *            the arguments
+	 */
+	public static void main(String[] args) {
+		ETLJobExecutor.execute(args, new OSJobExecutor(), true);
+	}
 
 	@Override
 	public ETLJob getCurrentETLJob() {
