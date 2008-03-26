@@ -387,7 +387,7 @@ public abstract class ETLJobExecutor extends Thread {
 
 					ETLJobExecutor je = pETLJobExecutor;
 
-					if (je.supportsJobType(eJob)) {
+					if (!je.supportsJobType(eJob)) {
 						return ETLJobExecutor.exit(com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
 								pExitCleanly);
 					}
