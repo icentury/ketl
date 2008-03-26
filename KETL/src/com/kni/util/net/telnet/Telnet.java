@@ -351,7 +351,7 @@ class Telnet extends SocketClient
     throws IOException
     {
         if (Telnet.debug)
-            System.err.println("DO: " + TelnetOption.getOption(option));
+            System.err.println("[" + new java.util.Date() + "] DO: " + TelnetOption.getOption(option));
         this._output_.write(Telnet._COMMAND_DO);
         this._output_.write(option);
     }
@@ -371,7 +371,7 @@ class Telnet extends SocketClient
     throws IOException
     {
         if (Telnet.debug)
-            System.err.println("DONT: " + TelnetOption.getOption(option));
+            System.err.println("[" + new java.util.Date() + "] DONT: " + TelnetOption.getOption(option));
         this._output_.write(Telnet._COMMAND_DONT);
         this._output_.write(option);
     }
@@ -392,7 +392,7 @@ class Telnet extends SocketClient
     throws IOException
     {
         if (Telnet.debug)
-            System.err.println("WILL: " + TelnetOption.getOption(option));
+            System.err.println("[" + new java.util.Date() + "] WILL: " + TelnetOption.getOption(option));
         this._output_.write(Telnet._COMMAND_WILL);
         this._output_.write(option);
     }
@@ -412,7 +412,7 @@ class Telnet extends SocketClient
     throws IOException
     {
         if (Telnet.debug)
-            System.err.println("WONT: " + TelnetOption.getOption(option));
+            System.err.println("[" + new java.util.Date() + "] WONT: " + TelnetOption.getOption(option));
         this._output_.write(Telnet._COMMAND_WONT);
         this._output_.write(option);
     }

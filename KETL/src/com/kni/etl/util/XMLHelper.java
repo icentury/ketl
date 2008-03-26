@@ -212,7 +212,7 @@ public class XMLHelper {
                 t.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
                 t.transform(new DOMSource(document.getDocumentElement()), strResult);
             } catch (Exception e) {
-                System.err.println("XML.toString(Document): " + e);
+                ResourcePool.logException(e);
             }
             result = strResult.getWriter().toString();
         }

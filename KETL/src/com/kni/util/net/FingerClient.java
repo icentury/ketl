@@ -77,7 +77,7 @@ import java.io.InputStreamReader;
  *      System.out.println(finger.query("foobar", false));
  *      finger.disconnect();
  *    } catch(IOException e) {
- *      System.err.println("Error I/O exception: " + e.getMessage());
+ *      System.err.println("[" + new java.util.Date() + "] Error I/O exception: " + e.getMessage());
  *      return;
  *    }
  * </pre>

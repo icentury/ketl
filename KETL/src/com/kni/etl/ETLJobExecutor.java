@@ -335,7 +335,7 @@ public abstract class ETLJobExecutor extends Thread {
 				sb.append((char) c);
 			}
 		} catch (Exception e) {
-			System.out.println("Error reading file '" + args[0] + "': " + e.getMessage());
+			ResourcePool.logMessage("Error reading file '" + args[0] + "': " + e.getMessage());
 
 			return ETLJobExecutor.exit(com.kni.etl.EngineConstants.READXML_ERROR_EXIT_CODE, e, pExitCleanly);
 		}
@@ -371,7 +371,7 @@ public abstract class ETLJobExecutor extends Thread {
 			NodeList nlq = xmlDOM.getElementsByTagName("QA");
 
 			if ((nl.getLength() > 1) && (jobName != null)) {
-				System.out.println("ERROR: JOB_NAME argument not applicable to XML file with multiple jobs");
+				ResourcePool.logMessage("ERROR: JOB_NAME argument not applicable to XML file with multiple jobs");
 
 				return ETLJobExecutor.exit(com.kni.etl.EngineConstants.MULTIJOB_JOB_OVERRIDE_ERROR_EXIT_CODE, null,
 						pExitCleanly);
@@ -435,7 +435,7 @@ public abstract class ETLJobExecutor extends Thread {
 						if (str != null) {
 							if (str.length == 2) {
 								if ((str[0] == null) || (str[1] == null)) {
-									System.out.println("ERROR: Badly formed parameter override ParameterName=" + str[0]
+									ResourcePool.logMessage("ERROR: Badly formed parameter override ParameterName=" + str[0]
 											+ ", ParameterValue=" + str[1]);
 									return ETLJobExecutor.exit(
 											com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
@@ -445,7 +445,7 @@ public abstract class ETLJobExecutor extends Thread {
 
 							if (str.length == 3) {
 								if ((str[0] == null) || (str[1] == null) || (str[2] == null)) {
-									System.out.println("ERROR: Badly formed parameter override ParameterListName = "
+									ResourcePool.logMessage("ERROR: Badly formed parameter override ParameterListName = "
 											+ str[0] + " ParameterName=" + str[1] + ", ParameterValue=" + str[2]);
 									return ETLJobExecutor.exit(
 											com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,

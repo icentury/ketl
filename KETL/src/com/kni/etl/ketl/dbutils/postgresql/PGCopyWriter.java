@@ -37,6 +37,8 @@ import java.util.Date;
 
 import org.postgresql.copy.CopyManager;
 
+import com.kni.etl.dbutils.ResourcePool;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class PGCopyWriter.
@@ -191,7 +193,7 @@ final public class PGCopyWriter {
 
             switch (c) {
             case 0:
-                System.out.println("Removing null in string: " + mString);
+                ResourcePool.logMessage("Removing null in string: " + mString);
                 break;
             case '\f':
                 this.sb.append("\\f");

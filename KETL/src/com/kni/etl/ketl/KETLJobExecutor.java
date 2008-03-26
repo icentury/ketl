@@ -365,7 +365,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
             Document xmlDOM = null;
 
             if (this.ejCurrentJob != null) {
-                System.out.println("Error: Cannot executeJob whilst job executing, job should of not been submitted");
+                ResourcePool.logMessage("Error: Cannot executeJob whilst job executing, job should of not been submitted");
 
                 return false;
             }

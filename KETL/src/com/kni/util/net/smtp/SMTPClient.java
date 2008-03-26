@@ -85,7 +85,7 @@ import com.kni.util.net.io.DotTerminatedMessageWriter;
  *
  *      if(!SMTPReply.isPositiveCompletion(reply)) {
  *        client.disconnect();
- *        System.err.println("SMTP server refused connection.");
+ *        System.err.println("[" + new java.util.Date() + "] SMTP server refused connection.");
  *        System.exit(1);
  *      }
  *
@@ -99,7 +99,7 @@ import com.kni.util.net.io.DotTerminatedMessageWriter;
  *          // do nothing
  *        }
  *      }
- *      System.err.println("Could not connect to server.");
+ *      System.err.println("[" + new java.util.Date() + "] Could not connect to server.");
  *      e.printStackTrace();
  *      System.exit(1);
  *    }

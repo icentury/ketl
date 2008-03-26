@@ -776,7 +776,7 @@ public class Metadata {
 				try {
 					client.connect(sMailHost);
 				} catch (com.kni.util.net.smtp.SMTPConnectionClosedException e) {
-					System.err.println("SMTP server refused connection.");
+					System.err.println("[" + new java.util.Date() + "] SMTP server refused connection.");
 
 					return false;
 				}
@@ -788,7 +788,7 @@ public class Metadata {
 
 				if (!SMTPReply.isPositiveCompletion(reply)) {
 					client.disconnect();
-					System.err.println("SMTP server refused connection.");
+					System.err.println("[" + new java.util.Date() + "] SMTP server refused connection.");
 
 					return false;
 				}
@@ -955,7 +955,7 @@ public class Metadata {
 				try {
 					client.connect(sMailHost);
 				} catch (com.kni.util.net.smtp.SMTPConnectionClosedException e) {
-					System.err.println("SMTP server refused connection.");
+					System.err.println("[" + new java.util.Date() + "] SMTP server refused connection.");
 
 					return false;
 				}
@@ -967,7 +967,7 @@ public class Metadata {
 
 				if (!SMTPReply.isPositiveCompletion(reply)) {
 					client.disconnect();
-					System.err.println("SMTP server refused connection.");
+					System.err.println("[" + new java.util.Date() + "] SMTP server refused connection.");
 
 					return false;
 				}
@@ -1362,7 +1362,7 @@ public class Metadata {
 						try {
 							this.mIncIdentColStmt.close();
 						} catch (Exception e) {
-							System.out.println(e);
+							ResourcePool.LogMessage(e);
 						}
 					}
 
@@ -1372,7 +1372,7 @@ public class Metadata {
 
 				} catch (SQLException ee) {
 					this.metadataConnection = null;
-					System.out.println(ee);
+					ResourcePool.logMessage(ee);
 				}
 			} finally {
 
@@ -1846,7 +1846,7 @@ public class Metadata {
 						// }
 
 					} catch (Exception e) {
-						System.out.println("Error creating job: " + e.getMessage());
+						ResourcePool.logMessage("Error creating job: " + e.getMessage());
 						e.printStackTrace();
 
 						return null;
@@ -1888,7 +1888,7 @@ public class Metadata {
 		ResultSet m_rs = null;
 		int iParameterListID = 0;
 
-		System.out.println(pJobID);
+		ResourcePool.logMessage(pJobID);
 
 		synchronized (this.oLock) {
 			// Make metadata connection alive.
@@ -1962,7 +1962,7 @@ public class Metadata {
 						newETLJob.setGlobalParameterListID(iParameterListID);
 					}
 				} catch (Exception e) {
-					System.out.println("Error creating job: " + e.getMessage());
+					ResourcePool.logMessage("Error creating job: " + e.getMessage());
 					e.printStackTrace();
 
 					return null;
@@ -2102,7 +2102,7 @@ public class Metadata {
 		ResultSet m_rs = null;
 		int iParameterListID = 0;
 
-		System.out.println(pJobID);
+		ResourcePool.logMessage(pJobID);
 
 		synchronized (this.oLock) {
 			// Make metadata connection alive.
@@ -2176,7 +2176,7 @@ public class Metadata {
 						newETLJob.setGlobalParameterListID(iParameterListID);
 					}
 				} catch (Exception e) {
-					System.out.println("Error creating job: " + e.getMessage());
+					ResourcePool.logMessage("Error creating job: " + e.getMessage());
 					e.printStackTrace();
 
 					return null;
@@ -2227,7 +2227,7 @@ public class Metadata {
 				try {
 					jobsToFetch.add(m_rs.getString(1));
 				} catch (Exception e) {
-					System.out.println("Error creating job: " + e.getMessage());
+					ResourcePool.logMessage("Error creating job: " + e.getMessage());
 
 					return null;
 				}
@@ -2294,7 +2294,7 @@ public class Metadata {
 					s[5] = m_rs.getString(6);
 					jobsToFetch.add(s);
 				} catch (Exception e) {
-					System.out.println("Error creating job: " + e.getMessage());
+					ResourcePool.logMessage("Error creating job: " + e.getMessage());
 
 					return null;
 				}
@@ -2329,7 +2329,7 @@ public class Metadata {
 					s[5] = m_rs.getString(5);
 					jobsToFetch.add(s);
 				} catch (Exception e) {
-					System.out.println("Error creating job: " + e.getMessage());
+					ResourcePool.logMessage("Error creating job: " + e.getMessage());
 
 					return null;
 				}
@@ -2908,7 +2908,7 @@ public class Metadata {
 
 					jobsToFetch.add(res);
 				} catch (Exception e) {
-					System.out.println("Error creating job: " + e.getMessage());
+					ResourcePool.logMessage("Error creating job: " + e.getMessage());
 
 					return null;
 				}
@@ -3374,7 +3374,7 @@ public class Metadata {
 					pStatus.setErrorCode(ee.getErrorCode());
 					pStatus.setErrorMessage("getPageParserParameterDefinition: " + ee);
 				} else {
-					System.err.println("getPageParserParameterDefinition: " + ee);
+					System.err.println("[" + new java.util.Date() + "] getPageParserParameterDefinition: " + ee);
 				}
 
 				return (null);
@@ -3382,7 +3382,7 @@ public class Metadata {
 				if (pStatus != null) {
 					pStatus.setErrorMessage("getPageParserParameterDefinition: " + ee);
 				} else {
-					System.err.println("getPageParserParameterDefinition: " + ee);
+					System.err.println("[" + new java.util.Date() + "] getPageParserParameterDefinition: " + ee);
 				}
 
 				return (null);
@@ -4267,7 +4267,7 @@ public class Metadata {
 					pStatus.setErrorCode(ee.getErrorCode());
 					pStatus.setErrorMessage("SessionDefinition:" + ee);
 				} else {
-					System.err.println("getFlatFileSourceDefinition: " + ee);
+					System.err.println("[" + new java.util.Date() + "] getFlatFileSourceDefinition: " + ee);
 				}
 
 				return (null);
@@ -4275,7 +4275,7 @@ public class Metadata {
 				if (pStatus != null) {
 					pStatus.setErrorMessage("SessionDefinition:" + ee);
 				} else {
-					System.err.println("getFlatFileSourceDefinition: " + ee);
+					System.err.println("[" + new java.util.Date() + "] getFlatFileSourceDefinition: " + ee);
 				}
 
 				return (null);
@@ -4317,12 +4317,12 @@ public class Metadata {
 		if (this.metadataConnection != null) {
 			try {
 				if (ResourcePool.testConnection(this.metadataConnection) == false) {
-					System.err.println("checkConnection connection closed for reason unknown");
+					System.err.println("[" + new java.util.Date() + "] checkConnection connection closed for reason unknown");
 					this.metadataConnection = null;
 				}
 			} catch (Exception ee) {
-				System.err.println("checkConnection Exception: " + ee);
-				System.err.println("checkConnection SQLException: Server will attempt to reconnect");
+				System.err.println("[" + new java.util.Date() + "] checkConnection Exception: " + ee);
+				System.err.println("[" + new java.util.Date() + "] checkConnection SQLException: Server will attempt to reconnect");
 
 				this.metadataConnection = null;
 				// testConnectionStmt = null;
@@ -4598,9 +4598,9 @@ public class Metadata {
 					m_stmt.close();
 				}
 			} catch (SQLException e) {
-				System.out.println("Error registering server: error:" + e + "(" + sql + ")");
+				ResourcePool.logMessage("Error registering server: error:" + e + "(" + sql + ")");
 			} catch (Exception e) {
-				System.out.println("Error registering server: error:" + e);
+				ResourcePool.logMessage("Error registering server: error:" + e);
 			}
 		}
 
@@ -4685,7 +4685,7 @@ public class Metadata {
 					String msg = strMessage;
 
 					if (msg != null && msg.length() > 800) {
-						System.err.println("Error to long, trimming stored message. Full message: " + msg);
+						System.err.println("[" + new java.util.Date() + "] Error to long, trimming stored message. Full message: " + msg);
 						msg = msg.substring(0, 800);
 					}
 
@@ -4716,10 +4716,10 @@ public class Metadata {
 					}
 				}
 			} catch (SQLException e) {
-				System.out.println("Error setting status: error:" + e.toString() + "(" + sql + ")");
+				ResourcePool.logMessage("Error writing history:" + e.toString() + "(" + sql + ")");
 				e.printStackTrace();
 			} catch (Exception e) {
-				System.out.println("Error setting status: error:" + e.toString());
+				ResourcePool.logMessage("Error writing history:" + e.toString());
 				e.printStackTrace();
 			}
 		}
@@ -4810,7 +4810,7 @@ public class Metadata {
 					String msg = pETLJob.getStatus().getErrorMessage() + "\n" + pETLJob.getStatus().getStatusMessage();
 
 					if (msg != null && msg.length() > 800) {
-						System.err.println("Error to long, trimming stored message. Full message: " + msg);
+						System.err.println("[" + new java.util.Date() + "] Error to long, trimming stored message. Full message: " + msg);
 						msg = msg.substring(0, 800);
 					}
 					m_stmt.setString(1, pETLJob.getJobID());
@@ -4847,9 +4847,9 @@ public class Metadata {
 					m_stmt.close();
 				}
 			} catch (SQLException e) {
-				System.out.println("Error setting status: error:" + e + "(" + sql + ")");
+				ResourcePool.logMessage("Error setting status: error:" + e + "(" + sql + ")");
 			} catch (Exception e) {
-				System.out.println("Error setting status: error:" + e);
+				ResourcePool.logMessage("Error setting status: error:" + e);
 			}
 		}
 	}
@@ -4886,9 +4886,9 @@ public class Metadata {
 					m_stmt.close();
 				}
 			} catch (SQLException e) {
-				System.out.println("Error getting maxID for" + pIDName + ": error:" + e + "(" + sql + ")");
+				ResourcePool.logMessage("Error getting maxID for" + pIDName + ": error:" + e + "(" + sql + ")");
 			} catch (Exception e) {
-				System.out.println("Error getting maxID for" + pIDName + ": error:" + e);
+				ResourcePool.logMessage("Error getting maxID for" + pIDName + ": error:" + e);
 			}
 		}
 	}

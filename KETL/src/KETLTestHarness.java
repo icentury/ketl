@@ -95,7 +95,7 @@ public class KETLTestHarness {
                 boolean in = true;
                 for (int i = 0; i < tJob.depends.size(); i++) {
                     if (dependsCheck.contains(tJob.depends.get(i)) == false) {
-                        System.err.println("Job \"" + tJob.id + "\" depends on job \"" + tJob.depends.get(i)
+                        System.err.println("[" + new java.util.Date() + "] Job \"" + tJob.id + "\" depends on job \"" + tJob.depends.get(i)
                                 + "\" which does not exist in the set of jobs being tested");
                         tJob.depends.remove(i);
                     }
@@ -178,7 +178,7 @@ public class KETLTestHarness {
                         jobs.add(job);
                     }
                 } catch (Exception e) {
-                    System.err.println("Skipping file " + element + ", Error:" + e.getMessage());
+                    System.err.println("[" + new java.util.Date() + "] Skipping file " + element + ", Error:" + e.getMessage());
                 }
             }
         }

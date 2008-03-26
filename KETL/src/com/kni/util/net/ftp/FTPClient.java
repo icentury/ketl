@@ -98,7 +98,7 @@ import com.kni.util.net.io.Util;
  *
  *      if(!FTPReply.isPositiveCompletion(reply)) {
  *        ftp.disconnect();
- *        System.err.println("FTP server refused connection.");
+ *        System.err.println("[" + new java.util.Date() + "] FTP server refused connection.");
  *        System.exit(1);
  *      }
  *    } catch(IOException e) {
@@ -109,7 +109,7 @@ import com.kni.util.net.io.Util;
  *          // do nothing
  *        }
  *      }
- *      System.err.println("Could not connect to server.");
+ *      System.err.println("[" + new java.util.Date() + "] Could not connect to server.");
  *      e.printStackTrace();
  *      System.exit(1);
  *    }
@@ -1130,7 +1130,7 @@ public class FTPClient extends FTP
      *     output.close();
      *     ftp.logout();
      *     ftp.disconnect();
-     *     System.err.println("File transfer failed.");
+     *     System.err.println("[" + new java.util.Date() + "] File transfer failed.");
      *     System.exit(1);
      * }
      * Util.copyStream(input, output);
@@ -1140,7 +1140,7 @@ public class FTPClient extends FTP
      * if(!ftp.completePendingCommand()) {
      *     ftp.logout();
      *     ftp.disconnect();
-     *     System.err.println("File transfer failed.");
+     *     System.err.println("[" + new java.util.Date() + "] File transfer failed.");
      *     System.exit(1);
      * }
      * </pre>

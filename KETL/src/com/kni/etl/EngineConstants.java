@@ -495,7 +495,7 @@ public class EngineConstants {
                     try {
                         NumberFormatter.convertToBytes(tmp);
                     } catch (Exception e2) {
-                        System.err.println("Default in memory cache size invalid: " + tmp + ", defaulting to 64k");
+                        ResourcePool.logError("Default in memory cache size invalid: " + tmp + ", defaulting to 64k");
                         tmp = "64k";
                     }
                     EngineConstants.DEFAULTCACHESIZE = tmp;
@@ -581,7 +581,7 @@ public class EngineConstants {
                             System.err
                                     .println("Cannot initialize as bad record directory, as it is currently a file and not a directory: "
                                             + f.getAbsolutePath());
-                            System.err.println("Please move this file or rename it: " + f.getAbsolutePath());
+                            ResourcePool.logError("Please move this file or rename it: " + f.getAbsolutePath());
                         }
                     } catch (Exception e1) {
 
@@ -600,10 +600,9 @@ public class EngineConstants {
                             f.mkdir();
                         }
                         else if (f.exists() && f.isDirectory() == false) {
-                            System.err
-                                    .println("Cannot initialize cache record directory, as it is currently a file and not a directory: "
+                        	ResourcePool.logError("Cannot initialize cache record directory, as it is currently a file and not a directory: "
                                             + f.getAbsolutePath());
-                            System.err.println("Please move this file or rename it: " + f.getAbsolutePath());
+                            ResourcePool.logError("Please move this file or rename it: " + f.getAbsolutePath());
                         }
                     } catch (Exception e1) {
 

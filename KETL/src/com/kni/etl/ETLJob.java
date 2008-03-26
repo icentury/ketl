@@ -1120,8 +1120,8 @@ public class ETLJob {
                 this.moDump = null;
             } catch (IOException e) {
                 this.mLoggerFailed = true;
-                System.err.println("Job logging failed: " + e.toString());
-                e.printStackTrace();
+                ResourcePool.logError("Job logging failed: " + e.toString());
+                ResourcePool.logException(e);
             }
         }
     }
@@ -1161,8 +1161,8 @@ public class ETLJob {
                             + this.mDumpFile);
             } catch (IOException e) {
                 this.mLoggerFailed = true;
-                System.err.println("Job logging failed: " + e.toString());
-                e.printStackTrace();
+                ResourcePool.logError("Job logging failed: " + e.toString());
+                ResourcePool.logException(e);
             }
         }
     }
@@ -1202,8 +1202,8 @@ public class ETLJob {
 
         } catch (IOException e) {
             this.mLoggerFailed = true;
-            System.err.println("Job logging failed: " + e.toString());
-            e.printStackTrace();
+            ResourcePool.logError("Job logging failed: " + e.toString());
+            ResourcePool.logException(e);
         }
 
     }

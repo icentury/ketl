@@ -276,7 +276,7 @@ public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConn
             class MyHostnameVerifier implements javax.net.ssl.HostnameVerifier {
 
                 public boolean verify(String arg0, SSLSession arg1) {
-                    System.out.println("Warning: URL Host: " + arg0 + " vs. " + arg1.getPeerHost());
+                    ResourcePool.logMessage("Warning: URL Host: " + arg0 + " vs. " + arg1.getPeerHost());
                     return true;
                 }
 

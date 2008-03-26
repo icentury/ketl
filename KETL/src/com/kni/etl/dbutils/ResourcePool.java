@@ -94,7 +94,19 @@ public class ResourcePool {
 	 *            the str message
 	 */
 	public static synchronized void LogMessage(String strMessage) {
-		ResourcePool.LogMessage(Thread.currentThread().getName(), strMessage);
+		ResourcePool.LogMessage(Thread.currentThread().getName(),ResourcePool.INFO_MESSAGE, strMessage);
+	}
+
+	public static synchronized void LogMessage(Exception e) {
+		ResourcePool.LogException(e, Thread.currentThread());
+	}
+
+	public static synchronized void logMessage(String strMessage) {
+		ResourcePool.LogMessage(Thread.currentThread().getName(),ResourcePool.INFO_MESSAGE, strMessage);
+	}
+
+	public static synchronized void logMessage(Exception e) {
+		ResourcePool.LogException(e, Thread.currentThread());
 	}
 
 	/** The Constant DEFAULT_ERROR_CODE. */
@@ -349,7 +361,7 @@ public class ResourcePool {
 
 		if ((es != null && es.showException()) || es == null) {
 			if (pException instanceof ForcedException)
-				System.err.println(pException.getMessage());
+				System.err.println(new java.util.Date() + pException.getMessage());
 			else
 				pException.printStackTrace();
 		}
@@ -610,9 +622,11 @@ public class ResourcePool {
 					+ f.getAbsolutePath());
 			f.mkdir();
 		} else if (f.exists() && f.isDirectory() == false) {
-			System.err.println("Cannot initialize as logging directory is currently a file and not a directory: "
+			System.err.println("[" + new java.util.Date()
+					+ "] Cannot initialize as logging directory is currently a file and not a directory: "
 					+ f.getAbsolutePath());
-			System.err.println("Please move this file or rename it: " + f.getAbsolutePath());
+			System.err.println("[" + new java.util.Date() + "] Please move this file or rename it: "
+					+ f.getAbsolutePath());
 		}
 
 		try {
@@ -720,7 +734,8 @@ public class ResourcePool {
 		if (ResourcePool.mCacheIndexPrefix == null) {
 			ResourcePool.mCacheIndexPrefix = Thread.currentThread().getName().contains("Executor") ? "Daemon"
 					: "Console";
-			System.err.println("Defaulting cache prefix to " + ResourcePool.mCacheIndexPrefix);
+			System.err.println("[" + new java.util.Date() + "] Defaulting cache prefix to "
+					+ ResourcePool.mCacheIndexPrefix);
 		}
 
 		return ResourcePool.mCacheIndexPrefix;
@@ -890,5 +905,19 @@ public class ResourcePool {
 		}
 
 		return res;
+	}
+
+	public static void logException(Exception e) {
+		if (ResourcePool.logger != null)
+			ResourcePool.logger.error(e.getMessage(), e);
+		else
+			e.printStackTrace();
+	}
+
+	public static void logError(String msg) {
+		if (ResourcePool.logger != null)
+			ResourcePool.logger.error(msg);
+		else
+			System.err.println(msg);
 	}
 }

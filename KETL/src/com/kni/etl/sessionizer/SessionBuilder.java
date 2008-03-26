@@ -293,7 +293,7 @@ public class SessionBuilder implements Serializable {
                                                     this.itemMap[position]),
                                             this.ActiveSessionDefinition.SessionIdentifiers[pos].CaseSensitive);
                                 } catch (Exception e) {
-                                    System.out.println("AnalyzeHit getVariableByName:" + e.getMessage() + ", Record "
+                                    ResourcePool.logMessage("AnalyzeHit getVariableByName:" + e.getMessage() + ", Record "
                                             + java.util.Arrays.toString(holder.pageView));
 
                                 }

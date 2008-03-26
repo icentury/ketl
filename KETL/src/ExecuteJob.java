@@ -238,7 +238,7 @@ class ExecuteJob {
         try {
             pID = Integer.parseInt(projectID);
         } catch (Exception e) {
-            System.out.println("Invalid project id");
+            ResourcePool.LogMessage("Invalid project id");
 
             return;
         }
@@ -247,24 +247,24 @@ class ExecuteJob {
             com.kni.etl.ETLJob[] e = md.getJobDetails(jobID);
 
             if (e == null || e.length == 0) {
-                System.err.println("Job " + jobID + " not found in metadata.");
+                System.err.println("[" + new java.util.Date() + "] Job " + jobID + " not found in metadata.");
                 System.exit(-1);
             }
             if (md.executeJob(pID, jobID, ignoreDeps, allowMult)) {
-                System.out.println("Job submitted to server for direct execution.");
+                ResourcePool.logMessage("Job submitted to server for direct execution.");
             }
             else {
-                System.out.println("Warning Job not submitted to server for execution.");
+                ResourcePool.logMessage("Warning Job not submitted to server for execution.");
 
                 md.closeMetadata();
 
                 System.exit(1);
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            ResourcePool.logMessage(e);
             md.closeMetadata();
         } catch (Exception e) {
-            System.out.println(e);
+            ResourcePool.logMessage(e);
         }
 
         md.closeMetadata();

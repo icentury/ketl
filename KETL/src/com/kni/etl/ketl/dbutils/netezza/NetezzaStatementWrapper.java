@@ -288,7 +288,7 @@ final public class NetezzaStatementWrapper extends BulkLoaderStatementWrapper {
 
             switch (c) {
             case 0:
-                System.out.println("Removing null in string: " + mString);
+                ResourcePool.logMessage("Removing null in string: " + mString);
                 break;
             case '\f':
                 this.sb.append("\\f");

@@ -435,7 +435,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
                 col.mDefaultValue = rs.getString("COLUMN_DEF");
             } catch (Exception e) {
                 col.mErrorMessage.add(e);
-                System.out.println(e.getMessage());
+                ResourcePool.logMessage(e.getMessage());
             } finally {
                 cTable.mColumnList.add(col);
             }
