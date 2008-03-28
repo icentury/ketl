@@ -2,15 +2,6 @@
 # +--------------------------+
 # | SETUP JAVA ENVIRONMENT   |
 # +--------------------------+
-
-
-pgmdir=`dirname \`command which $0\``
-loaderRoot=`dirname $pgmdir`
-loaderJars=`echo $KETLDIR/lib/*.jar | tr ' ' ':'`
-
-
-
-. $KETLDIR/conf/Extra.Libraries
 . $KETLDIR/conf/Extra.Config
 CLASSPATH=$KETL_DIR
 
@@ -18,6 +9,6 @@ CURRENT_DIR=`pwd`
 cd $KETLDIR
 
 $JAVA_HOME/bin/java $JAVA_OPTS \
-      -classpath "$loaderJars":"$ketlextralibs" \
+      -classpath $KETLDIR/lib/KETL.jar \
       com.kni.etl.SQLJobExecutor FILE=$CURRENT_DIR/$1
 cd $CURRENT_DIR
