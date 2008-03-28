@@ -1,4 +1,2 @@
-########### Add extra jars to ketlextralibs
-ketlextralibs=$JAVA_HOME/lib/tools.jar
-
-export ketlextralibs 
+########### Add extra jars to ketlextralibs seperated by ; <semi-colon>
+ketlextralibs=
