@@ -102,25 +102,31 @@ Install Steps
    The root directory of the KETL code tree (KETLDIR):
 
 	export KETLDIR=/usr/local/KETL  # (Bourne shell or ksh) or
-        setenv KETLDIR /usr/local/KETL  # (csh or tcsh )
+    setenv KETLDIR /usr/local/KETL  # (csh or tcsh )
+    set KETLDIR=c:\KETLDIR          #(Windows)
 
    Default search path ($path or PATH )to include the KETL binaries
    and control scripts
 
         PATH=$PATH:$KETLDIR/bin         # (Bourne shell or ksh) or
         set path=($path $KETLDIR/bin)   # (csh or tcsh)
+        set PATH=%PATH%:%PATH%;"%KETLDIR%\bin"
 
-2. Create an the initial metadata repository in relational database:
+2. Run ketl_ctl to start the ketl console, this will allow you to run jobs in the foreground
+
+3. Create an the initial metadata repository in relational database:
 
    i.  Login as an existing user with create user priv's
    ii. Run the SQL script $KETL/setup/KETL_MD_Schema_PG.ddl or KETL_MD_Schema_Oracle.ddl
 
-3. Modify the $KETLDIR/xml/KETLServers.xml file to have the machine name of the server which
+4. Modify the $KETLDIR/xml/KETLServers.xml file to have the machine name of the server which
    will run the KETL program if it is not the localhost.
 
-4. Modify $KETLDIR/conf/Extra.Libraries to include the paths of the appropiate thin client 
+5. Modify $KETLDIR/conf/Extra.Libraries to include the paths of the appropiate thin client 
    drivers, if not postgreSQL
 
-5. Run quickstart and check the logs in $KETLDIR/log for any errors.
+
+6. Run ketl_start and check the logs in $KETLDIR/log for any errors.
+
 
 
