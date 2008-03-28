@@ -209,7 +209,7 @@ public class Console {
 			ketldir = ".";
 		}
 
-		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.libraries"),
+		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.Libraries"),
 				"ketlextralibs", ";");
 		ResourcePool.setCacheIndexPrefix("Console");
 		// create console object
