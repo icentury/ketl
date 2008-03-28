@@ -4,21 +4,17 @@
 # +--------------------------+
 
 
-pgmdir=`dirname \`command which $0\``
-loaderRoot=`dirname $pgmdir`
-loaderJars=`echo $KETLDIR/lib/*.jar | tr ' ' ':'`
 
 CURRENT_DIR=`pwd`
 cd $KETLDIR
 CLASSPATH=$KETLDIR
 
-. $KETLDIR/conf/Extra.Libraries
 . $KETLDIR/conf/Extra.Config
 
 echo "Starting..."
 nohup $JAVA_HOME/bin/java  $JAVA_OPTS \
       -Dlog4j.configuration=file:$KETLDIR/conf/KETL.log.properties \
-      -classpath "$loaderJars":"$ketlextralibs" \
+      -classpath $KETLDIR/lib/KETL.jar \
       ETLDaemon & 
 sleep 2
 mv nohup.out $KETLDIR/log/KETL.log 

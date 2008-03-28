@@ -24,6 +24,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 
+import com.kni.etl.dbutils.ResourcePool;
+import com.kni.util.ExternalJarLoader;
+
 // TODO: Auto-generated Javadoc
 /*
  * Created on Apr 7, 2005 To change the template for this generated file go to Window&gt;Preferences&gt;Java&gt;Code
@@ -40,6 +43,15 @@ public class KETLBootStrap {
      * @param args the args
      */
     public static void main(String[] args) {
+    	String ketldir = System.getenv("KETLDIR");
+		if (ketldir == null) {
+			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.WARNING_MESSAGE,"KETLDIR not set, defaulting to working dir");
+			ketldir = ".";
+		}
+
+		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.Libraries"),
+				"ketlextralibs", ";");
+		
         // Start up a KETL server in the background
         if ((args.length == 3) && args[2].equalsIgnoreCase("FOREGROUND")) {
             KETLBootStrap.startProcess(args[1], args[0], false);

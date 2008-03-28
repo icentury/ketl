@@ -27,6 +27,7 @@ import java.io.InputStream;
 
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.InputStreamHandler;
+import com.kni.util.ExternalJarLoader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -262,6 +263,15 @@ public class OSJobExecutor extends ETLJobExecutor {
 	 *            the arguments
 	 */
 	public static void main(String[] args) {
+		String ketldir = System.getenv("KETLDIR");
+		if (ketldir == null) {
+			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.WARNING_MESSAGE,"KETLDIR not set, defaulting to working dir");
+			ketldir = ".";
+		}
+
+		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.Libraries"),
+				"ketlextralibs", ";");
+		
 		ETLJobExecutor.execute(args, new OSJobExecutor(), true);
 	}
 

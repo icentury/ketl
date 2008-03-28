@@ -20,9 +20,12 @@
  *  San Francisco CA 94105
  *  http://www.kineticnetworks.com
  */
+import java.io.File;
+
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.kernel.KETLKernel;
 import com.kni.etl.ketl.kernel.KernelFactory;
+import com.kni.util.ExternalJarLoader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -41,6 +44,15 @@ class ETLDaemon {
      * @throws IllegalAccessException the illegal access exception
      */
     public static void main(java.lang.String[] args) throws InstantiationException, IllegalAccessException {
+    	String ketldir = System.getenv("KETLDIR");
+		if (ketldir == null) {
+			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.WARNING_MESSAGE,"KETLDIR not set, defaulting to working dir");
+			ketldir = ".";
+		}
+
+		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.Libraries"),
+				"ketlextralibs", ";");
+		
         ResourcePool.setCacheIndexPrefix("Daemon");
         KETLKernel ke = KernelFactory.getNewKernel();
         ke.run(args);

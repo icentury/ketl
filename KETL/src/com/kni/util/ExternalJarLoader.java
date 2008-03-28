@@ -94,10 +94,6 @@ public class ExternalJarLoader {
 		return jarFiles;
 	}
 
-	public static void main(String[] args) {
-		// loadJars();
-		// testAClass();
-	}
 
 	/**
 	 * 

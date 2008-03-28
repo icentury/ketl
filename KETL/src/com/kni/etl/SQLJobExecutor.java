@@ -23,6 +23,7 @@
 package com.kni.etl;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -46,6 +47,7 @@ import org.w3c.dom.NodeList;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.util.XMLHelper;
+import com.kni.util.ExternalJarLoader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -438,6 +440,15 @@ public class SQLJobExecutor extends ETLJobExecutor {
      * @param args the arguments
      */
     public static void main(String[] args) {
+    	String ketldir = System.getenv("KETLDIR");
+		if (ketldir == null) {
+			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.WARNING_MESSAGE,"KETLDIR not set, defaulting to working dir");
+			ketldir = ".";
+		}
+
+		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.Libraries"),
+				"ketlextralibs", ";");
+		
         ETLJobExecutor.execute(args, new SQLJobExecutor(), true);
     }
 

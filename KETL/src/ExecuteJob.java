@@ -20,6 +20,7 @@
  *  San Francisco CA 94105
  *  http://www.kineticnetworks.com
  */
+import java.io.File;
 import java.sql.SQLException;
 import java.util.StringTokenizer;
 
@@ -29,6 +30,7 @@ import org.w3c.dom.Node;
 import com.kni.etl.Metadata;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.XMLHelper;
+import com.kni.util.ExternalJarLoader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -164,6 +166,15 @@ class ExecuteJob {
      */
     public static void main(java.lang.String[] args) {
 
+    	String ketldir = System.getenv("KETLDIR");
+		if (ketldir == null) {
+			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.WARNING_MESSAGE,"KETLDIR not set, defaulting to working dir");
+			ketldir = ".";
+		}
+
+		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.Libraries"),
+				"ketlextralibs", ";");
+		
         // String mdServer = null;
         String jobID = null;
 

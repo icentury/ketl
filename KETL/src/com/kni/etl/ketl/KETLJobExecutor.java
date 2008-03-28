@@ -22,6 +22,7 @@
  */
 package com.kni.etl.ketl;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.StringReader;
 import java.sql.SQLException;
@@ -63,6 +64,7 @@ import com.kni.etl.ketl.smp.ETLWorker;
 import com.kni.etl.ketl.smp.ETLWriter;
 import com.kni.etl.ketl.smp.Step;
 import com.kni.etl.util.XMLHelper;
+import com.kni.util.ExternalJarLoader;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -154,6 +156,15 @@ public class KETLJobExecutor extends ETLJobExecutor {
      * @param args the arguments
      */
     public static void main(String[] args) {
+    	String ketldir = System.getenv("KETLDIR");
+		if (ketldir == null) {
+			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.WARNING_MESSAGE,"KETLDIR not set, defaulting to working dir");
+			ketldir = ".";
+		}
+
+		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.Libraries"),
+				"ketlextralibs", ";");
+		
         ETLJobExecutor.execute(args, new KETLJobExecutor(), true);
     }
 
