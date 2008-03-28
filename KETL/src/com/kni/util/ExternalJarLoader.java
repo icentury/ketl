@@ -42,7 +42,7 @@ public class ExternalJarLoader {
 			Method method = urlClassLoaderClass.getDeclaredMethod("addURL",
 					parameters);
 			method.setAccessible(true);
-			method.invoke(urlClassLoader, u);
+			method.invoke(urlClassLoader,(Object[]) u);
 			for (URL url : u) {
 				logger.fine("Added to classpath: " + url.getFile());
 			}

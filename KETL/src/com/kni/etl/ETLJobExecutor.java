@@ -488,12 +488,24 @@ public abstract class ETLJobExecutor extends Thread {
 					}
 
 					lStartTime = System.currentTimeMillis();
-					je.executeJob(kj);
+					kj.getStatus().setStatusCode(ETLJobStatus.EXECUTING);
+					boolean bSuccess = je.executeJob(kj);
 					lEndTime = System.currentTimeMillis();
 
 					try {
 						kj.cleanup();
 					} catch (Exception e) {
+					}
+					
+					if (kj.getStatus().getStatusCode() == ETLJobStatus.EXECUTING
+							|| kj.getStatus().getStatusCode() == ETLJobStatus.ATTEMPT_CANCEL) {
+						if (kj.isCancelSuccessfull()) {
+							kj.getStatus().setStatusCode(ETLJobStatus.CANCELLED);
+						} else if (bSuccess) {
+							kj.getStatus().setStatusCode(ETLJobStatus.SUCCESSFUL);
+						} else {
+							kj.getStatus().setStatusCode(ETLJobStatus.FAILED);
+						}
 					}
 
 					if (kj.getStatus().getErrorCode() != 0) {
