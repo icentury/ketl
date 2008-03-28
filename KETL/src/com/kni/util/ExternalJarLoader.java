@@ -3,24 +3,24 @@
 package com.kni.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.logging.Logger;
+
+import com.kni.etl.dbutils.ResourcePool;
 
 /**
  * @author Srinivas Jaini
  * @version Mar 27, 2008
  */
 public class ExternalJarLoader {
-	private static final Logger logger = Logger
-			.getLogger(ExternalJarLoader.class.getName());
+
 	private static final Class[] parameters = new Class[] { URL.class };
 
 	public static void addFile(String s) throws IOException {
@@ -34,32 +34,28 @@ public class ExternalJarLoader {
 
 	public static void addURL(URL... u) throws IOException {
 
-		URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader
-				.getSystemClassLoader();
+		URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
 		Class urlClassLoaderClass = URLClassLoader.class;
 
 		try {
-			Method method = urlClassLoaderClass.getDeclaredMethod("addURL",
-					parameters);
+			Method method = urlClassLoaderClass.getDeclaredMethod("addURL", parameters);
 			method.setAccessible(true);
-			method.invoke(urlClassLoader,(Object[]) u);
+			method.invoke(urlClassLoader, (Object[]) u);
 			for (URL url : u) {
-				logger.fine("Added to classpath: " + url.getFile());
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "Added to classpath: "
+						+ url.getFile());
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
-			throw new IOException(
-					"Error, could not add URL to system classloader");
+			throw new IOException("Error, could not add URL to system classloader");
 		}
 
 	}
 
-	public static URL[] readExtraLibrariesFromPropertyFile(String fileName,
-			String propertyName, String separator) {
+	public static URL[] readExtraLibrariesFromPropertyFile(File propertyFile, String propertyName, String separator) {
 		Properties properties = new Properties();
 		try {
-			properties.load(ExternalJarLoader.class.getClassLoader()
-					.getResourceAsStream(fileName));
+			properties.load(new FileInputStream(propertyFile));
 			String filePath = properties.getProperty(propertyName);
 			String[] paths = filePath.split(separator);
 			List<URL> urls = new ArrayList<URL>();
@@ -75,7 +71,7 @@ public class ExternalJarLoader {
 			}
 			return urls.toArray(new URL[urls.size()]);
 		} catch (IOException e) {
-			logger.severe(e.getMessage());
+			ResourcePool.logException(e);
 			throw new RuntimeException("Couldnot load jar files into classpath");
 		}
 
@@ -106,17 +102,13 @@ public class ExternalJarLoader {
 	/**
 	 * 
 	 */
-	public static void loadJars(String fileName, String propertyName,
-			String separator) {
+	public static void loadJars(File file, String propertyName, String separator) {
 		try {
 			loadToolsJarFromJavaHome();
 			loadJarsFromLibDirectory();
-			addJarFilesToClassPath(readExtraLibrariesFromPropertyFile(fileName,
-					propertyName, separator));
-		} catch (MalformedURLException e) {
-			logger.severe(e.getMessage());
-		} catch (IOException e) {
-			logger.severe(e.getMessage());
+			addJarFilesToClassPath(readExtraLibrariesFromPropertyFile(file, propertyName, separator));
+		} catch (Exception e) {
+			ResourcePool.logException(e);
 		}
 	}
 
@@ -131,16 +123,15 @@ public class ExternalJarLoader {
 	}
 
 	private static void loadToolsJarFromJavaHome() throws IOException {
-		File javaHome = new File(System.getProperty("java.home")
-				+ File.separator + "lib" + File.separator + "tools.jar");
-		logger.fine("loading... tools.jar");
+		File javaHome = new File(System.getProperty("java.home") + File.separator + "lib" + File.separator
+				+ "tools.jar");
+		ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "loading... tools.jar");
 		addJarFilesToClassPath(javaHome.toURL());
 
 	}
 
 	private static void loadJarsFromLibDirectory() throws IOException {
-		File ketlHome = new File(System.getProperty("user.dir")
-				+ File.separator + "lib" + File.separator);
+		File ketlHome = new File(System.getProperty("user.dir") + File.separator + "lib" + File.separator);
 		List<URL> urls = new ArrayList<URL>();
 		for (File jarFile : fetchJarFiles(ketlHome)) {
 			urls.add(jarFile.toURL());
@@ -156,9 +147,10 @@ public class ExternalJarLoader {
 		final String classNameWithPath = "net.sf.ehcache.util.PropertyUtil";
 		try {
 			Class otherClass = Class.forName(classNameWithPath);
-			logger.fine(otherClass.getName() + " found.");
+			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, otherClass.getName()
+					+ " found.");
 		} catch (ClassNotFoundException e) {
-			logger.severe(e.getMessage());
+			ResourcePool.logException(e);
 		}
 	}
 

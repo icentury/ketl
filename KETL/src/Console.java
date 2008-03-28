@@ -22,6 +22,7 @@
  */
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -100,9 +101,8 @@ public class Console {
 	static final int JOB = 3;
 
 	/** The Constant JOBDETAIL_TYPES. */
-	static final String[] JOBDETAIL_TYPES = { "XMLDEFINITION", "DEFINITION",
-			"DEPENDENCIES", "EXECUTE", "IGNOREDEPENDENCIES", "MULTI", "IMPORT",
-			"EXPORT", "DELETE", "RESTART", "SKIP", "EXECUTEDIRECT", "CANCEL" };
+	static final String[] JOBDETAIL_TYPES = { "XMLDEFINITION", "DEFINITION", "DEPENDENCIES", "EXECUTE",
+			"IGNOREDEPENDENCIES", "MULTI", "IMPORT", "EXPORT", "DELETE", "RESTART", "SKIP", "EXECUTEDIRECT", "CANCEL" };
 
 	/** The Constant LIST. */
 	static final int LIST = 0;
@@ -169,9 +169,8 @@ public class Console {
 	 * Supported commands STATUS SHUTDOWN {IMMEDIATE|NORMAL} STARTUP JOB <NAME>
 	 * {DEFINITION|XMLDEFINITION|DEPENDENCIES} RESTART {IMMEDIAITE|NORMAL} QUIT.
 	 */
-	static final String[] strCommands = { "SHUTDOWN", "STARTUP", "STATUS",
-			"JOB", "RESTART", "QUIT", "CONNECT", "HELP", "PARAMETERLIST",
-			"PAUSE", "RESUME", "PROJECT", "SERVER", "RUN", "/" };
+	static final String[] strCommands = { "SHUTDOWN", "STARTUP", "STATUS", "JOB", "RESTART", "QUIT", "CONNECT", "HELP",
+			"PARAMETERLIST", "PAUSE", "RESUME", "PROJECT", "SERVER", "RUN", "/" };
 
 	/** The Constant strSyntax. */
 	static final String[] strSyntax = {
@@ -179,12 +178,9 @@ public class Console {
 			"STARTUP",
 			"STATUS {CLUSTER|JOBS}",
 			"JOB <NAME> {DEFINITION|DELETE|KILL|XMLDEFINITION|RESTART|SKIP|EXPORT <FILENAME>|IMPORT <FILENAME>|DEPENDENCIES|EXECUTE <PROJECTID> {MULTI} {IGNOREDEPENDENCIES}}",
-			"RESTART {IMMEDIATE|NORMAL}", "QUIT",
-			"CONNECT <SERVER|LOCALHOST> <USERNAME>", "HELP",
-			"PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}",
-			"PAUSE <SERVERID>", "RESUME <SERVERID>", "PROJECT LIST",
-			"SERVER LIST",
-			"RUN {LIST|RESET|LOOKUPS|<FILENAME>|LOADID <VALUE>}",
+			"RESTART {IMMEDIATE|NORMAL}", "QUIT", "CONNECT <SERVER|LOCALHOST> <USERNAME>", "HELP",
+			"PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}", "PAUSE <SERVERID>", "RESUME <SERVERID>",
+			"PROJECT LIST", "SERVER LIST", "RUN {LIST|RESET|LOOKUPS|<FILENAME>|LOADID <VALUE>}",
 			"/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}" };
 
 	/** The Constant XMLDEFINITION. */
@@ -207,7 +203,14 @@ public class Console {
 	 *            the args
 	 */
 	public static void main(String[] args) {
-		ExternalJarLoader.loadJars("Extra.libraries", "ketlextralibs", ";");
+		String ketldir = System.getenv("KETLDIR");
+		if (ketldir == null) {
+			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.WARNING_MESSAGE,"KETLDIR not set, defaulting to working dir");
+			ketldir = ".";
+		}
+
+		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.libraries"),
+				"ketlextralibs", ";");
 		ResourcePool.setCacheIndexPrefix("Console");
 		// create console object
 		Console console = new Console();
@@ -307,15 +310,12 @@ public class Console {
 			this.servername = pCommands[1];
 		} else if (pCommands.length == 1) // use default server
 		{
-			Node n = XMLHelper.findElementByName(this.xmlConfig, "SERVERS",
-					null, null);
+			Node n = XMLHelper.findElementByName(this.xmlConfig, "SERVERS", null, null);
 			if (n == null) {
-				ResourcePool
-						.LogMessage("KETLServers.xml is missing the root node SERVERS, please review file");
+				ResourcePool.LogMessage("KETLServers.xml is missing the root node SERVERS, please review file");
 				System.exit(-1);
 			}
-			this.servername = XMLHelper.getAttributeAsString(n.getAttributes(),
-					"DEFAULTSERVER", "");
+			this.servername = XMLHelper.getAttributeAsString(n.getAttributes(), "DEFAULTSERVER", "");
 		}
 
 		if (this.servername.equalsIgnoreCase("LOCALHOST")) {
@@ -324,25 +324,22 @@ public class Console {
 				this.servername = thisIp.getHostName();
 
 				// try for localhost
-				this.nCurrentServer = XMLHelper.findElementByName(
-						this.xmlConfig, "SERVER", "NAME", "localhost");
+				this.nCurrentServer = XMLHelper.findElementByName(this.xmlConfig, "SERVER", "NAME", "localhost");
 
 				if (this.nCurrentServer == null) {
-					this.nCurrentServer = XMLHelper.findElementByName(
-							this.xmlConfig, "SERVER", "NAME", "LOCALHOST");
+					this.nCurrentServer = XMLHelper.findElementByName(this.xmlConfig, "SERVER", "NAME", "LOCALHOST");
 				}
 
 				// try for explicit name
 				if (this.nCurrentServer == null) {
-					this.nCurrentServer = XMLHelper.findElementByName(
-							this.xmlConfig, "SERVER", "NAME", this.servername);
+					this.nCurrentServer = XMLHelper
+							.findElementByName(this.xmlConfig, "SERVER", "NAME", this.servername);
 				}
 			} catch (UnknownHostException e) {
 				return "Connection failure: Could not get system hostname please supply servername";
 			}
 		} else {
-			this.nCurrentServer = XMLHelper.findElementByName(this.xmlConfig,
-					"SERVER", "NAME", this.servername);
+			this.nCurrentServer = XMLHelper.findElementByName(this.xmlConfig, "SERVER", "NAME", this.servername);
 		}
 
 		if (this.nCurrentServer == null) {
@@ -355,20 +352,14 @@ public class Console {
 			this.password = this.stdin.readLine();
 			this.username = pCommands[2];
 		} else {
-			this.username = XMLHelper.getChildNodeValueAsString(
-					this.nCurrentServer, "USERNAME", null, null, null);
-			this.password = XMLHelper.getChildNodeValueAsString(
-					this.nCurrentServer, "PASSWORD", null, null, null);
+			this.username = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "USERNAME", null, null, null);
+			this.password = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "PASSWORD", null, null, null);
 		}
 
-		this.url = XMLHelper.getChildNodeValueAsString(this.nCurrentServer,
-				"URL", null, null, null);
-		this.driver = XMLHelper.getChildNodeValueAsString(this.nCurrentServer,
-				"DRIVER", null, null, null);
-		this.mdprefix = XMLHelper.getChildNodeValueAsString(
-				this.nCurrentServer, "MDPREFIX", null, null, null);
-		String passphrase = XMLHelper.getChildNodeValueAsString(
-				this.nCurrentServer, "PASSPHRASE", null, null, null);
+		this.url = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "URL", null, null, null);
+		this.driver = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "DRIVER", null, null, null);
+		this.mdprefix = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "MDPREFIX", null, null, null);
+		String passphrase = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "PASSPHRASE", null, null, null);
 
 		// metadata object isn't set and login information found then connect to
 		// metadata
@@ -376,10 +367,8 @@ public class Console {
 
 			try {
 				Metadata mds = new Metadata(true, passphrase);
-				mds.setRepository(this.username, this.password, this.url,
-						this.driver, this.mdprefix);
-				this.servername = XMLHelper.getAttributeAsString(
-						this.nCurrentServer.getAttributes(), "NAME",
+				mds.setRepository(this.username, this.password, this.url, this.driver, this.mdprefix);
+				this.servername = XMLHelper.getAttributeAsString(this.nCurrentServer.getAttributes(), "NAME",
 						this.servername);
 				ResourcePool.setMetadata(mds);
 				this.md = ResourcePool.getMetadata();
@@ -430,19 +419,16 @@ public class Console {
 		for (String element : files) {
 
 			Document jobNodes = null;
-			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
-					"Reading file " + element);
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Reading file " + element);
 
 			// turn file into readable nodes
 			DocumentBuilder builder = null;
 
 			// Build a DOM out of the XML string...
 			try {
-				DocumentBuilderFactory dmf = DocumentBuilderFactory
-						.newInstance();
+				DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
 				builder = dmf.newDocumentBuilder();
-				jobNodes = builder.parse(new InputSource(
-						new FileReader(element)));
+				jobNodes = builder.parse(new InputSource(new FileReader(element)));
 
 				NodeList nl = jobNodes.getElementsByTagName("JOB");
 
@@ -451,8 +437,7 @@ public class Console {
 					this.md.importJob(job);
 				}
 			} catch (org.xml.sax.SAXException e) {
-				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE,
-						"Parsing XML document, " + e.toString());
+				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Parsing XML document, " + e.toString());
 
 				System.exit(EngineConstants.INVALID_XML_EXIT_CODE);
 			} catch (Exception e) {
@@ -482,8 +467,7 @@ public class Console {
 			Document jobNodes = null;
 			FileReader inputFileReader = null;
 
-			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
-					"Reading file " + element);
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Reading file " + element);
 			inputFileReader = new FileReader(element);
 			int c;
 
@@ -496,17 +480,14 @@ public class Console {
 
 			// Build a DOM out of the XML string...
 			try {
-				DocumentBuilderFactory dmf = DocumentBuilderFactory
-						.newInstance();
+				DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
 				builder = dmf.newDocumentBuilder();
-				jobNodes = builder.parse(new InputSource(new StringReader(sb
-						.toString())));
+				jobNodes = builder.parse(new InputSource(new StringReader(sb.toString())));
 
 				NodeList nl = jobNodes.getElementsByTagName("PARAMETER_LIST");
 
-				ResourcePool
-						.LogMessage(this, ResourcePool.INFO_MESSAGE,
-								"WARNING: Any duplicate parameters will be given the last value found");
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
+						"WARNING: Any duplicate parameters will be given the last value found");
 
 				for (int i = 0; i < nl.getLength(); i++) {
 					Node parameterList = nl.item(i);
@@ -514,8 +495,7 @@ public class Console {
 					this.md.importParameterList(parameterList);
 				}
 			} catch (org.xml.sax.SAXException e) {
-				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE,
-						"Parsing XML document, " + e.toString());
+				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Parsing XML document, " + e.toString());
 
 				System.exit(EngineConstants.INVALID_XML_EXIT_CODE);
 			} catch (Exception e) {
@@ -553,22 +533,17 @@ public class Console {
 			 */
 			else if (pCommands.length > 1) {
 				try {
-					ETLJob[] jobs = this.md.getJobDetails(pCommands[1]
-							.replaceAll("\\*", "%"));
+					ETLJob[] jobs = this.md.getJobDetails(pCommands[1].replaceAll("\\*", "%"));
 
 					int jobDetailType = Console.DEFINITION;
 
 					if (pCommands.length > 2) {
-						jobDetailType = this.resolveCommand(pCommands[2],
-								Console.JOBDETAIL_TYPES);
+						jobDetailType = this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES);
 					}
 
-					if ((jobDetailType == Console.XMLDEFINITION)
-							|| (jobDetailType == Console.EXPORT)) {
-						sb
-								.append("<?xml version=\"1.0\"?>\n<ETL VERSION=\""
-										+ this.md.getMetadataVersion()
-										+ "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
+					if ((jobDetailType == Console.XMLDEFINITION) || (jobDetailType == Console.EXPORT)) {
+						sb.append("<?xml version=\"1.0\"?>\n<ETL VERSION=\"" + this.md.getMetadataVersion()
+								+ "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
 					}
 
 					if ((jobDetailType == Console.DELETE)) {
@@ -588,8 +563,7 @@ public class Console {
 						// resolve output type
 						switch (jobDetailType) {
 						case XMLDEFINITION:
-							sb.append("\n\n<!--- Job: " + eJob.getJobID()
-									+ "-->\n");
+							sb.append("\n\n<!--- Job: " + eJob.getJobID() + "-->\n");
 							sb.append(eJob.getXMLJobDefinition());
 
 							break;
@@ -597,15 +571,12 @@ public class Console {
 						case EXPORT:
 
 							if (pCommands.length < 4) {
-								ResourcePool.LogMessage(this,
-										ResourcePool.INFO_MESSAGE,
-										"ERROR: No export file given");
+								ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "ERROR: No export file given");
 
 								return this.syntaxError(Console.JOB);
 							}
 
-							sb.append("\n\n<!--- Job: " + eJob.getJobID()
-									+ "-->\n");
+							sb.append("\n\n<!--- Job: " + eJob.getJobID() + "-->\n");
 							sbJobList.append("  " + eJob.getJobID() + "\n");
 							sb.append(eJob.getXMLJobDefinition());
 
@@ -630,25 +601,19 @@ public class Console {
 									choice = this.stdin.readLine();
 								} else if ((eJob.getStatus().getStatusCode() != ETLJobStatus.FAILED)
 										&& (eJob.getStatus().getStatusCode() != ETLJobStatus.PENDING_CLOSURE_FAILED)) {
-									System.out
-											.print("Job "
-													+ eJob.getJobID()
-													+ " has not failed do you really want to restart it Y(Yes), N(No): ");
+									System.out.print("Job " + eJob.getJobID()
+											+ " has not failed do you really want to restart it Y(Yes), N(No): ");
 									choice = this.stdin.readLine();
 								}
 
 								if (choice.equalsIgnoreCase("Y")) {
-									eJob.getStatus().setStatusCode(
-											ETLJobStatus.READY_TO_RUN);
+									eJob.getStatus().setStatusCode(ETLJobStatus.READY_TO_RUN);
 									this.md.setJobStatus(eJob);
-									sb.append("Job: " + eJob.getJobID()
-											+ " restarted");
+									sb.append("Job: " + eJob.getJobID() + " restarted");
 								}
 							} else {
-								sb
-										.append("Job: "
-												+ eJob.getJobID()
-												+ " can not be restarted as it is running or not in the current run list");
+								sb.append("Job: " + eJob.getJobID()
+										+ " can not be restarted as it is running or not in the current run list");
 							}
 
 							break;
@@ -661,21 +626,15 @@ public class Console {
 									&& (eJob.getStatus().getStatusCode() != ETLJobStatus.SCHEDULED)) {
 								if ((eJob.getStatus().getStatusCode() != ETLJobStatus.PENDING_CLOSURE_FAILED)
 										&& (eJob.getStatus().getStatusCode() != ETLJobStatus.FAILED)) {
-									System.out
-											.print("Job "
-													+ eJob.getJobID()
-													+ " has not failed do you really want to cancel it Y(Yes), N(No): ");
+									System.out.print("Job " + eJob.getJobID()
+											+ " has not failed do you really want to cancel it Y(Yes), N(No): ");
 									choice = this.stdin.readLine();
 								}
 
 								if (choice.equalsIgnoreCase("Y")) {
-									eJob
-											.getStatus()
-											.setStatusCode(
-													ETLJobStatus.PENDING_CLOSURE_CANCELLED);
+									eJob.getStatus().setStatusCode(ETLJobStatus.PENDING_CLOSURE_CANCELLED);
 									this.md.setJobStatus(eJob);
-									sb.append("Job: " + eJob.getJobID()
-											+ " cancelled");
+									sb.append("Job: " + eJob.getJobID() + " cancelled");
 								}
 							} else {
 								sb
@@ -691,20 +650,12 @@ public class Console {
 
 							if ((eJob.getStatus().getStatusCode() != ETLJobStatus.EXECUTING)
 									&& (eJob.getStatus().getStatusCode() != ETLJobStatus.SCHEDULED)) {
-								eJob
-										.getStatus()
-										.setStatusCode(
-												ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL);
+								eJob.getStatus().setStatusCode(ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL);
 								this.md.setJobStatus(eJob);
-								sb
-										.append("Job: "
-												+ eJob.getJobID()
-												+ " skipped, it will appear as successful");
+								sb.append("Job: " + eJob.getJobID() + " skipped, it will appear as successful");
 							} else {
-								sb
-										.append("Job: "
-												+ eJob.getJobID()
-												+ " can not be skipped as it is running or not in the current run list");
+								sb.append("Job: " + eJob.getJobID()
+										+ " can not be skipped as it is running or not in the current run list");
 							}
 
 							break;
@@ -721,10 +672,8 @@ public class Console {
 
 							while (opt != null) {
 								if (deleteAll == false) {
-									System.out
-											.print("Delete job "
-													+ eJob.getJobID()
-													+ " Y(Yes), N(No), S(Skip all other jobs), A(Yes for All): ");
+									System.out.print("Delete job " + eJob.getJobID()
+											+ " Y(Yes), N(No), S(Skip all other jobs), A(Yes for All): ");
 									opt = this.stdin.readLine();
 								} else {
 									opt = "Y";
@@ -733,27 +682,23 @@ public class Console {
 								switch (opt.toUpperCase().charAt(0)) {
 								case 'Y':
 									this.md.deleteJob(eJob.getJobID());
-									ResourcePool.LogMessage(this,
-											ResourcePool.INFO_MESSAGE,
-											"Deleted job: " + eJob.getJobID());
+									ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Deleted job: "
+											+ eJob.getJobID());
 									opt = null;
 
 									break;
 
 								case 'N':
-									ResourcePool.LogMessage(this,
-											ResourcePool.INFO_MESSAGE,
-											"Not deleting job: "
-													+ eJob.getJobID());
+									ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Not deleting job: "
+											+ eJob.getJobID());
 									opt = null;
 
 									break;
 
 								case 'A':
 									this.md.deleteJob(eJob.getJobID());
-									ResourcePool.LogMessage(this,
-											ResourcePool.INFO_MESSAGE,
-											"Deleted job: " + eJob.getJobID());
+									ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Deleted job: "
+											+ eJob.getJobID());
 									opt = null;
 									deleteAll = true;
 
@@ -787,22 +732,18 @@ public class Console {
 							}
 
 							if (pCommands.length > 4) {
-								opt1 = this.resolveCommand(pCommands[4],
-										Console.JOBDETAIL_TYPES);
+								opt1 = this.resolveCommand(pCommands[4], Console.JOBDETAIL_TYPES);
 							}
 
 							if (pCommands.length > 5) {
-								opt2 = this.resolveCommand(pCommands[5],
-										Console.JOBDETAIL_TYPES);
+								opt2 = this.resolveCommand(pCommands[5], Console.JOBDETAIL_TYPES);
 							}
 
-							if ((opt1 == Console.IGNOREDEPENDENCIES)
-									|| (opt2 == Console.IGNOREDEPENDENCIES)) {
+							if ((opt1 == Console.IGNOREDEPENDENCIES) || (opt2 == Console.IGNOREDEPENDENCIES)) {
 								ignoreDeps = true;
 							}
 
-							if ((opt1 == Console.MULTI)
-									|| (opt2 == Console.MULTI)) {
+							if ((opt1 == Console.MULTI) || (opt2 == Console.MULTI)) {
 								allowMult = true;
 							}
 
@@ -811,18 +752,13 @@ public class Console {
 							try {
 								pID = Integer.parseInt(pCommands[3]);
 
-								if (this.md.executeJob(pID, pCommands[1],
-										ignoreDeps, allowMult)) {
-									sb
-											.append("Job submitted to server for direct execution.\n");
+								if (this.md.executeJob(pID, pCommands[1], ignoreDeps, allowMult)) {
+									sb.append("Job submitted to server for direct execution.\n");
 								} else {
-									sb
-											.append("Warning Job not submitted to server for execution.\n");
+									sb.append("Warning Job not submitted to server for execution.\n");
 								}
 							} catch (Exception e) {
-								ResourcePool.LogMessage(this,
-										ResourcePool.INFO_MESSAGE,
-										"Invalid project id\n");
+								ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Invalid project id\n");
 								sb.append("Job not submitted");
 							}
 
@@ -830,14 +766,12 @@ public class Console {
 						}
 					}
 
-					if ((jobDetailType == Console.XMLDEFINITION)
-							|| (jobDetailType == Console.EXPORT)) {
+					if ((jobDetailType == Console.XMLDEFINITION) || (jobDetailType == Console.EXPORT)) {
 						sb.append("\n</ETL>");
 					}
 
 					if (jobDetailType == Console.EXPORT) {
-						BufferedWriter out = new BufferedWriter(
-								new java.io.FileWriter(pCommands[3]));
+						BufferedWriter out = new BufferedWriter(new java.io.FileWriter(pCommands[3]));
 						out.write(sb.toString());
 						out.close();
 						sb = sbJobList.append("Done.");
@@ -910,27 +844,22 @@ public class Console {
 		if (this.connected()) {
 			// if its an export then load from file
 			if ((pCommands.length > 2)
-					&& (this.resolveCommand(pCommands[2],
-							Console.JOBDETAIL_TYPES) == Console.IMPORT)) {
+					&& (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.IMPORT)) {
 				return this.importParameters(pCommands);
 			} else if ((pCommands.length > 2)
-					&& (this.resolveCommand(pCommands[2],
-							Console.JOBDETAIL_TYPES) == Console.DEFINITION)) {
+					&& (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.DEFINITION)) {
 
 				return this.getXMLParameterlistDefinition(pCommands[1]);
 
 			} else if ((pCommands.length > 2)
-					&& (this.resolveCommand(pCommands[2],
-							Console.JOBDETAIL_TYPES) == Console.EXPORT)) {
+					&& (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.EXPORT)) {
 				if (pCommands.length < 4) {
-					ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
-							"ERROR: No export file given");
+					ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "ERROR: No export file given");
 
 					return this.syntaxError(Console.PARAMETERLIST);
 				}
 
-				BufferedWriter out = new BufferedWriter(new java.io.FileWriter(
-						pCommands[3]));
+				BufferedWriter out = new BufferedWriter(new java.io.FileWriter(pCommands[3]));
 				out.write(this.getXMLParameterlistDefinition(pCommands[1]));
 				out.close();
 			}
@@ -949,13 +878,10 @@ public class Console {
 	private String getXMLParameterlistDefinition(String pListMatchString) {
 		StringBuffer sb = new StringBuffer();
 
-		String[] pLists = this.md.getValidParameterListName(pListMatchString
-				.replaceAll("\\*", "%"));
+		String[] pLists = this.md.getValidParameterListName(pListMatchString.replaceAll("\\*", "%"));
 
-		sb
-				.append("<?xml version=\"1.0\"?>\n<ETL VERSION=\""
-						+ this.md.getMetadataVersion()
-						+ "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n");
+		sb.append("<?xml version=\"1.0\"?>\n<ETL VERSION=\"" + this.md.getMetadataVersion()
+				+ "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n");
 
 		if (pLists != null) {
 			for (String element : pLists) {
@@ -963,8 +889,7 @@ public class Console {
 
 				Object[][] pList = this.md.getParameterList(element);
 
-				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
-						"Fetching: " + element);
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Fetching: " + element);
 
 				if (pList != null) {
 					for (Object[] element0 : pList) {
@@ -972,19 +897,14 @@ public class Console {
 						String val = "/>\n";
 
 						if (element0[Metadata.SUB_PARAMETER_LIST_NAME] != null) {
-							sub = " PARAMETER_LIST=\""
-									+ element0[Metadata.SUB_PARAMETER_LIST_NAME]
-									+ "\" ";
+							sub = " PARAMETER_LIST=\"" + element0[Metadata.SUB_PARAMETER_LIST_NAME] + "\" ";
 						}
 
 						if (element0[Metadata.PARAMETER_VALUE] != null) {
-							val = " >" + element0[Metadata.PARAMETER_VALUE]
-									+ "</PARAMETER>\n";
+							val = " >" + element0[Metadata.PARAMETER_VALUE] + "</PARAMETER>\n";
 						}
 
-						sb.append("     <PARAMETER NAME=\""
-								+ element0[Metadata.PARAMETER_NAME] + "\""
-								+ sub + val);
+						sb.append("     <PARAMETER NAME=\"" + element0[Metadata.PARAMETER_NAME] + "\"" + sub + val);
 					}
 				}
 
@@ -1019,8 +939,7 @@ public class Console {
 				return "Server ID not a valid number = " + pCommands[1];
 			}
 			if (this.md.pauseServer(i, true)) {
-				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
-						"Request to pause server made");
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Request to pause server made");
 				return this.server(new String[] { "SERVER", "LIST" });
 			}
 		}
@@ -1038,8 +957,7 @@ public class Console {
 	 *             the exception
 	 */
 	private String project(String[] pCommands) throws Exception {
-		StringBuffer sb = new StringBuffer(
-				"Project(s)\nID\tDescription\n--\t-----------\n");
+		StringBuffer sb = new StringBuffer("Project(s)\nID\tDescription\n--\t-----------\n");
 		if (this.connected()) {
 			Object[] result = this.md.getProjects();
 			for (Object element : result) {
@@ -1113,8 +1031,7 @@ public class Console {
 				return "Server ID not a valid number = " + pCommands[1];
 			}
 			if (this.md.pauseServer(i, false)) {
-				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
-						"Request to resume server made");
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Request to resume server made");
 				return this.server(new String[] { "SERVER", "LIST" });
 			}
 		}
@@ -1164,24 +1081,20 @@ public class Console {
 						} else
 							line = this.stdin.readLine();
 
-						if (last != null && line != null
-								&& line.startsWith("/")) {
-							String[] commands = ArgumentParserUtil
-									.splitQuoteAware(line);
+						if (last != null && line != null && line.startsWith("/")) {
+							String[] commands = ArgumentParserUtil.splitQuoteAware(line);
 							line = last;
 							if (commands.length > 1) {
 								repeat = Integer.parseInt(commands[1]);
 								if (repeat < 1 || repeat > 25) {
-									throw new Exception(
-											"Repeat value must be between 1 and 25");
+									throw new Exception("Repeat value must be between 1 and 25");
 								}
 							}
 
 							if (commands.length > 2) {
 								wait = Integer.parseInt(commands[2]) * 1000;
 								if (wait < 1000 || wait > 60000) {
-									throw new Exception(
-											"Wait value must be between 1 and 60 seconds");
+									throw new Exception("Wait value must be between 1 and 60 seconds");
 								}
 							}
 						} else
@@ -1195,14 +1108,12 @@ public class Console {
 					}
 
 					if (line != null) {
-						String[] commands = ArgumentParserUtil
-								.splitQuoteAware(line);
+						String[] commands = ArgumentParserUtil.splitQuoteAware(line);
 
 						if ((commands != null) && (commands.length > 0)) {
 							String res = "";
 
-							switch (this.resolveCommand(commands[0],
-									Console.strCommands)) {
+							switch (this.resolveCommand(commands[0], Console.strCommands)) {
 							case SHUTDOWN:
 								res = this.shutdown(commands);
 
@@ -1280,15 +1191,9 @@ public class Console {
 						}
 					}
 				} catch (Exception ex) {
-					ResourcePool
-							.LogMessage(
-									this,
-									ResourcePool.ERROR_MESSAGE,
-									"Error:"
-											+ (ex.getCause() != null
-													&& ex instanceof RuntimeException ? ex
-													.getCause().toString()
-													: ex.toString()));
+					ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Error:"
+							+ (ex.getCause() != null && ex instanceof RuntimeException ? ex.getCause().toString() : ex
+									.toString()));
 				}
 			}
 		} finally {
@@ -1313,8 +1218,7 @@ public class Console {
 			int jobDetailType = Console.DEFINITION;
 
 			if (pCommands.length > 1) {
-				jobDetailType = this.resolveCommand(pCommands[1],
-						Console.RUN_TYPES);
+				jobDetailType = this.resolveCommand(pCommands[1], Console.RUN_TYPES);
 			} else {
 				return this.syntaxError(Console.RUN);
 			}
@@ -1345,8 +1249,7 @@ public class Console {
 
 			case LIST:
 				for (int i = 0; i < this.mPreviousCommands.size(); i++)
-					sb.append("" + (i + 1) + ".\t"
-							+ this.mPreviousCommands.get(i) + "\n");
+					sb.append("" + (i + 1) + ".\t" + this.mPreviousCommands.get(i) + "\n");
 				return sb.toString();
 			case LOOKUPS:
 				System.gc();
@@ -1360,16 +1263,14 @@ public class Console {
 
 					String file = pCommands[1];
 					try {
-						file = this.mPreviousCommands.get(Integer
-								.parseInt(pCommands[1]) - 1);
+						file = this.mPreviousCommands.get(Integer.parseInt(pCommands[1]) - 1);
 					} catch (Exception e) {
 					}
 
 					this.mPreviousCommands.remove(file);
 					this.mPreviousCommands.add(0, file);
 
-					ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
-							"Executing file " + file);
+					ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Executing file " + file);
 					Document doc;
 					try {
 						doc = XMLHelper.readXMLFromFile(file);
@@ -1385,13 +1286,11 @@ public class Console {
 					for (int i = 0; i < nl.getLength(); i++) {
 						Node nd = nl.item(i);
 
-						String jobID = XMLHelper.getAttributeAsString(nd
-								.getAttributes(), "ID", null);
+						String jobID = XMLHelper.getAttributeAsString(nd.getAttributes(), "ID", null);
 						if (jobID == null)
 							return "Job does not contain an ID attribute, aborting..";
 
-						String type = XMLHelper.getAttributeAsString(nd
-								.getAttributes(), "TYPE", null);
+						String type = XMLHelper.getAttributeAsString(nd.getAttributes(), "TYPE", null);
 						ETLJobExecutor cur = null;
 						if (type.startsWith("KETL")) {
 							cur = this.kJobExec;
@@ -1403,18 +1302,14 @@ public class Console {
 							throw new RuntimeException(
 									"The XMLSessionizer job type is no longer supported, please migrate to KETL job with Sessionizer step");
 						} else if (type.equals("EMPTYJOB")) {
-							ResourcePool.LogMessage(this,
-									ResourcePool.INFO_MESSAGE,
-									"Skipping empty job " + jobID);
+							ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Skipping empty job " + jobID);
 						}
 
 						if (cur == null)
-							ResourcePool.LogMessage(this,
-									ResourcePool.INFO_MESSAGE,
-									"Unknown job type, skipping job " + jobID);
+							ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Unknown job type, skipping job "
+									+ jobID);
 						else
-							ETLJobExecutor._execute(new String[] {
-									"LOADID=" + this.iLoadID, "FILE=" + file,
+							ETLJobExecutor._execute(new String[] { "LOADID=" + this.iLoadID, "FILE=" + file,
 									"JOBID=" + jobID }, cur, false, 0);
 
 					}
@@ -1488,9 +1383,8 @@ public class Console {
 			}
 
 			if (this.md.shutdownServer(i, kill)) {
-				ResourcePool
-						.LogMessage(this, ResourcePool.INFO_MESSAGE,
-								"Request to shutdown server made, waiting for confirmation");
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
+						"Request to shutdown server made, waiting for confirmation");
 
 				KETLCluster kc = this.md.getClusterDetails();
 				int cnt = 0;
@@ -1511,8 +1405,7 @@ public class Console {
 					ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
 							"Server has not yet shutdown, check status");
 				} else {
-					ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
-							"Server shutdown");
+					ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Server shutdown");
 				}
 
 				return "";
@@ -1540,9 +1433,7 @@ public class Console {
 
 			if (kc.isServerAlive(this.servername)) {
 				ResourcePool
-						.LogMessage(
-								this,
-								ResourcePool.INFO_MESSAGE,
+						.LogMessage(this, ResourcePool.INFO_MESSAGE,
 								"WARNING: Server is registered and current status is alive\nIf a server has crashed then forcing startup might be ok");
 
 				System.out.print("Force startup Y/N: ");
@@ -1556,15 +1447,14 @@ public class Console {
 
 			// server can be started up remotely
 			// unix nohup java -cp KETL.jar;ojdbc14.jar
-			String remoteStart = XMLHelper.getChildNodeValueAsString(
-					this.nCurrentServer, "REMOTESTART", null, null, null);
+			String remoteStart = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "REMOTESTART", null, null,
+					null);
 
 			if (remoteStart == null) {
 				return "No remote start tag defined in server xml";
 			}
 
-			String[] params = EngineConstants
-					.getParametersFromText(remoteStart);
+			String[] params = EngineConstants.getParametersFromText(remoteStart);
 
 			if ((params != null) && (params.length > 0)) {
 				String pwd = null;
@@ -1574,35 +1464,29 @@ public class Console {
 					String paramName = element;
 
 					if (paramName.equalsIgnoreCase("NETWORKNAME")) {
-						res = XMLHelper.getChildNodeValueAsString(
-								this.nCurrentServer, "NETWORKNAME", null, null,
-								null);
+						res = XMLHelper.getChildNodeValueAsString(this.nCurrentServer, "NETWORKNAME", null, null, null);
 
 						if (res == null) {
 							return "No network name tag defined in server xml";
 						}
 
-						remoteStart = EngineConstants.replaceParameter(
-								remoteStart, paramName, res);
+						remoteStart = EngineConstants.replaceParameter(remoteStart, paramName, res);
 					} else if (element.equalsIgnoreCase("USERNAME")) {
 						System.out.print("Enter username to start server: ");
 						res = this.stdin.readLine();
 
-						remoteStart = EngineConstants.replaceParameter(
-								remoteStart, paramName, res);
+						remoteStart = EngineConstants.replaceParameter(remoteStart, paramName, res);
 
 						System.out.print("Enter password for username: ");
 						pwd = this.stdin.readLine();
 
-						remoteStart = EngineConstants.replaceParameter(
-								remoteStart, "PASSWORD", pwd);
+						remoteStart = EngineConstants.replaceParameter(remoteStart, "PASSWORD", pwd);
 					}
 				}
 			}
 
-			KETLBootStrap.startProcess(null, remoteStart + " " + this.username
-					+ " " + this.password + " " + this.url + " " + this.driver,
-					false);
+			KETLBootStrap.startProcess(null, remoteStart + " " + this.username + " " + this.password + " " + this.url
+					+ " " + this.driver, false);
 
 			return "Started";
 		}
@@ -1626,53 +1510,25 @@ public class Console {
 				// list all running jobs, start time, server
 				StringBuffer sb = new StringBuffer();
 
-				if (pCommands.length == 3
-						&& pCommands[2].equalsIgnoreCase("ALL")) {
-					sb
-							.append(this
-									.jobStatusTable(
-											this.md
-													.getJobsByStatus(ETLJobStatus.WAITING_FOR_CHILDREN),
-											"Waiting for Children"));
-					sb.append(this
-							.jobStatusTable(this.md
-									.getJobsByStatus(ETLJobStatus.REJECTED),
-									"Rejected"));
-					sb.append(this.jobStatusTable(this.md
-							.getJobsByStatus(ETLJobStatus.CANCELLED),
-							"Cancelled"));
-					sb
-							.append(this
-									.jobStatusTable(
-											this.md
-													.getJobsByStatus(ETLJobStatus.QUEUED_FOR_EXECUTION),
-											"Queued For Execution"));
-					sb
-							.append(this
-									.jobStatusTable(
-											this.md
-													.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_CANCELLED),
-											"Just Cancelled"));
-					sb
-							.append(this
-									.jobStatusTable(
-											this.md
-													.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL),
-											"Just Finished"));
+				if (pCommands.length == 3 && pCommands[2].equalsIgnoreCase("ALL")) {
+					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.WAITING_FOR_CHILDREN),
+							"Waiting for Children"));
+					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.REJECTED), "Rejected"));
+					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.CANCELLED), "Cancelled"));
+					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.QUEUED_FOR_EXECUTION),
+							"Queued For Execution"));
+					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_CANCELLED),
+							"Just Cancelled"));
+					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL),
+							"Just Finished"));
 				}
 
-				sb.append(this.jobStatusTable(this.md
-						.getJobsByStatus(ETLJobStatus.EXECUTING), "Executing"));
-				sb.append(this.jobStatusTable(this.md
-						.getJobsByStatus(ETLJobStatus.FAILED), "Failed"));
-				sb.append(this.jobStatusTable(this.md
-						.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_FAILED),
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.EXECUTING), "Executing"));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.FAILED), "Failed"));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_FAILED),
 						"Just Failed"));
-				sb.append(this.jobStatusTable(this.md
-						.getJobsByStatus(ETLJobStatus.PAUSED), "Paused"));
-				sb.append(this.jobStatusTable(this.md
-						.getJobsByStatus(ETLJobStatus.READY_TO_RUN),
-						"Ready To Run"));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PAUSED), "Paused"));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.READY_TO_RUN), "Ready To Run"));
 
 				return sb.toString();
 			}
@@ -1717,8 +1573,7 @@ public class Console {
 	 * @return the string
 	 */
 	private String syntaxError(int pCommand) {
-		return "Syntax Error: Wrong syntax for " + pCommand + "\n"
-				+ Console.strSyntax[pCommand];
+		return "Syntax Error: Wrong syntax for " + pCommand + "\n" + Console.strSyntax[pCommand];
 	}
 
 	/**
