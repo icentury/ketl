@@ -4,7 +4,6 @@
 # +--------------------------+
 
 
-
 CURRENT_DIR=`pwd`
 cd $KETLDIR
 CLASSPATH=$KETLDIR
