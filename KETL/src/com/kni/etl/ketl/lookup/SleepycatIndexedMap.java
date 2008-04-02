@@ -642,7 +642,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	 * @return the cache directory
 	 */
 	private String getCacheDirectory() {
-		File fDir = new File(this.mCacheDir + File.separator + "KETL." + "cache");
+		File fDir = new File(this.mCacheDir + File.separator + "KETL." + ResourcePool.getCacheIndexPrefix() + ".cache");
 
 		if (fDir.exists() && fDir.isDirectory())
 			return fDir.getAbsolutePath();
