@@ -13,7 +13,7 @@ CLASSPATH=$KETLDIR
 echo "Starting..."
 nohup $JAVA_HOME/bin/java  $JAVA_OPTS \
       -Dlog4j.configuration=file:$KETLDIR/conf/KETL.log.properties \
-      -classpath $KETLDIR/lib/KETL.jar \
+      -classpath $JAVA_HOME/lib/tools.jar:$KETLDIR/lib/KETL.jar \
       ETLDaemon & 
 sleep 2
 mv nohup.out $KETLDIR/log/KETL.log 
