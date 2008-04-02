@@ -12,7 +12,7 @@ CLASSPATH=$KETL_DIR
 
 $JAVA_HOME/bin/java $JAVA_OPTS \
       -Dlog4j.configuration=file:$KETLDIR/conf/Console.log.properties \
-      -classpath $KETLDIR/lib/KETL.jar \
+      -classpath $JAVA_HOME/lib/tools.jar:$KETLDIR/lib/KETL.jar \
       Console
 cd $CURRENT_DIR
 
