@@ -825,8 +825,10 @@ public class ResourcePool {
 				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Deleting load " + loadId
 						+ " lookup " + lk.getName());
 				lk.delete();
-			}
-			res.add(lk.getName());
+				
+				res.add(lk.getName());
+			} 
+			
 		}
 
 		for (Object o : res)

@@ -31,6 +31,7 @@ import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
 import com.kni.etl.ketl.smp.DefaultWriterCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
+import com.kni.etl.util.XMLHelper;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -52,72 +53,108 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
  */
 public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 
-    /**
-     * Instantiates a new console writer.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public ConsoleWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	private enum Type {
+		NORMAL, FULL
+	};
 
-    /** The list headers. */
-    private boolean listHeaders = true;
-    
-    /** The osw. */
-    private OutputStreamWriter osw = new OutputStreamWriter(System.out);
-    
-    /** The pw. */
-    private PrintWriter pw = new PrintWriter(this.osw, true);
+	private Type type = Type.NORMAL;
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
-     */
-    public int putNextRecord(Object[] o, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
+	/**
+	 * Instantiates a new console writer.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public ConsoleWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
+			throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-        if (this.listHeaders) {
-            for (int i = 0; i < this.mInPorts.length; i++) {
-                if (i > 0)
-                    this.pw.print(';');
-                this.pw.print(this.mInPorts[i].mstrName + "(" + this.mInPorts[i].getPortClass().getCanonicalName()
-                        + ")");
-            }
-            this.pw.println();
-            this.listHeaders = false;
-        }
-        for (int i = 0; i < this.mInPorts.length; i++) {
-            if (i > 0)
-                this.pw.print(';');
+	/** The list headers. */
+	private boolean listHeaders = true;
 
-            Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : o[this.mInPorts[i]
-                    .getSourcePortIndex()];
+	/** The osw. */
+	private OutputStreamWriter osw = new OutputStreamWriter(System.out);
 
-            if (data == null)
-                this.pw.print("[NULL]");
-            else if (this.mInPorts[i].isArray()) {
-                Object[] ar = (Object[]) data;
-                this.pw.print(java.util.Arrays.toString(ar));
-            }
-            else
-                this.pw.print(data);
+	/** The pw. */
+	private PrintWriter pw = new PrintWriter(this.osw, true);
 
-        }
-        this.pw.println();
-        return 1;
-    }
+	private int recordCount = 1;
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
-     */
-    @Override
-    protected void close(boolean success) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+	 */
+	public int putNextRecord(Object[] o, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 
-    }
+		if (type == Type.NORMAL) {
+			if (this.listHeaders) {
+				for (int i = 0; i < this.mInPorts.length; i++) {
+					if (i > 0)
+						this.pw.print(';');
+					this.pw.print(this.mInPorts[i].mstrName + "(" + this.mInPorts[i].getPortClass().getCanonicalName()
+							+ ")");
+				}
+				this.pw.println();
+				this.listHeaders = false;
+			}
+			for (int i = 0; i < this.mInPorts.length; i++) {
+				if (i > 0)
+					this.pw.print(';');
+
+				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : o[this.mInPorts[i]
+						.getSourcePortIndex()];
+
+				if (data == null)
+					this.pw.print("[NULL]");
+				else if (this.mInPorts[i].isArray()) {
+					Object[] ar = (Object[]) data;
+					this.pw.print(java.util.Arrays.toString(ar));
+				} else
+					this.pw.print(data);
+
+			}
+			this.pw.println();
+		} else if (type == Type.FULL) {
+			this.pw.println(this.getName() + " - Record: " + this.recordCount++);
+			for (int i = 0; i < this.mInPorts.length; i++) {
+				try {
+					this.pw.println("\t" + this.mInPorts[i].getPortName() + ": "
+							+ o[this.mInPorts[i].getSourcePortIndex()]);
+				} catch (KETLThreadException e) {
+					throw new KETLWriteException(e);
+				}
+			}
+		}
+		return 1;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success) {
+
+	}
+
+	@Override
+	protected int initialize(Node xmlConfig) throws KETLThreadException {
+		int res = super.initialize(xmlConfig);
+
+		this.type = Type.valueOf(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "TYPE", "NORMAL"));
+		return res;
+	}
 
 }

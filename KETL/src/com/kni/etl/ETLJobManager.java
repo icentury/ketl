@@ -23,8 +23,6 @@
 package com.kni.etl;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import com.kni.etl.dbutils.ResourcePool;
@@ -75,23 +73,23 @@ public class ETLJobManager {
 		this.mjmsStatus = new ETLJobManagerStatus();
 		this.mstrJobExecutorClass = strJobExecutorClass;
 		this.cjeExecutorThreads = new ArrayList(iMaxNumThreads);
-		if(iMaxQueueSize<1)
+		if (iMaxQueueSize < 1)
 			iMaxQueueSize = 1;
-		
+
 		this.mllPendingQueue = new LinkedBlockingQueue(iMaxQueueSize);
 		this.miMaxNumThreads = iMaxNumThreads;
 		this.miMaxQueueSize = iMaxQueueSize;
 		this.msType = type;
 
 		this.mjmsStatus.setStatusCode(ETLJobManagerStatus.INITIALIZING); // We'll
-																			// set
-																			// this
-																			// to
-																			// READY
-																			// once
-																			// we
-																			// have
-																			// a
+		// set
+		// this
+		// to
+		// READY
+		// once
+		// we
+		// have
+		// a
 		// thread
 		// available
 
@@ -101,8 +99,7 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/3/2002 4:59:38
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/3/2002 4:59:38 PM)
 	 * 
 	 * @param ejJob
 	 *            the ej job
@@ -119,11 +116,9 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Runs through the threads to see if they are still running... Creation
-	 * date: (5/7/2002 10:30:20 AM)
+	 * Runs through the threads to see if they are still running... Creation date: (5/7/2002 10:30:20 AM)
 	 * 
-	 * @return number of running threads (should be same as size of collection
-	 *         after we're done checking)
+	 * @return number of running threads (should be same as size of collection after we're done checking)
 	 */
 	protected int[] checkExecutorThreads() {
 		int[] aiStatusCounts = null;
@@ -164,11 +159,9 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Runs through the threads to see if they are still running... Creation
-	 * date: (5/7/2002 10:30:20 AM)
+	 * Runs through the threads to see if they are still running... Creation date: (5/7/2002 10:30:20 AM)
 	 * 
-	 * @return number of running threads (should be same as size of collection
-	 *         after we're done checking)
+	 * @return number of running threads (should be same as size of collection after we're done checking)
 	 */
 	public void kill() {
 		// Check if each thread is still alive and kill it if it is...
@@ -183,8 +176,7 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/3/2002 3:01:31
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/3/2002 3:01:31 PM)
 	 * 
 	 * @return int
 	 */
@@ -193,8 +185,7 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/7/2002 9:35:25
-	 * AM)
+	 * Insert the method's description here. Creation date: (5/7/2002 9:35:25 AM)
 	 * 
 	 * @return int
 	 */
@@ -204,8 +195,7 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * This function runs through the thread collection and checks status.
-	 * Creation date: (5/7/2002 9:36:38 AM)
+	 * This function runs through the thread collection and checks status. Creation date: (5/7/2002 9:36:38 AM)
 	 * 
 	 * @return int
 	 */
@@ -220,22 +210,20 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/8/2002 5:43:10
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/8/2002 5:43:10 PM)
 	 * 
 	 * @return the job executor class name
 	 */
 	public String getJobExecutorClassName() {
 		return this.mstrJobExecutorClass;
 	}
-	
+
 	public String getJobType() {
 		return this.msType;
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/8/2002 6:02:15
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/8/2002 6:02:15 PM)
 	 * 
 	 * @return int
 	 */
@@ -244,8 +232,7 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/7/2002 9:39:00
-	 * AM)
+	 * Insert the method's description here. Creation date: (5/7/2002 9:39:00 AM)
 	 * 
 	 * @return int
 	 */
@@ -254,8 +241,7 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Return a live count of the number of threads currently running...
-	 * Creation date: (5/8/2002 5:44:44 PM)
+	 * Return a live count of the number of threads currently running... Creation date: (5/8/2002 5:44:44 PM)
 	 * 
 	 * @return int
 	 */
@@ -267,9 +253,8 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Do not keep a reference to this status object if you are not running the
-	 * manager in a different thread... ...you will need to run updateStatus()
-	 * to refresh the status. Creation date: (5/2/2002 1:47:48 PM)
+	 * Do not keep a reference to this status object if you are not running the manager in a different thread... ...you
+	 * will need to run updateStatus() to refresh the status. Creation date: (5/2/2002 1:47:48 PM)
 	 * 
 	 * @return int
 	 */
@@ -280,8 +265,8 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Note that this will not affect jobs currently in the queue. It is meant
-	 * to create a new limit. Creation date: (5/7/2002 9:39:00 AM)
+	 * Note that this will not affect jobs currently in the queue. It is meant to create a new limit. Creation date:
+	 * (5/7/2002 9:39:00 AM)
 	 * 
 	 * @param newMaxQueueSize
 	 *            int
@@ -291,8 +276,7 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/9/2002 10:09:11
-	 * AM)
+	 * Insert the method's description here. Creation date: (5/9/2002 10:09:11 AM)
 	 * 
 	 * @return boolean
 	 */
@@ -327,8 +311,7 @@ public class ETLJobManager {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/4/2002 8:06:24
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/4/2002 8:06:24 PM)
 	 * 
 	 * @return the number of threads started
 	 */
@@ -354,15 +337,14 @@ public class ETLJobManager {
 			jeExecutorThread.setPendingQueue(this.mllPendingQueue);
 			jeExecutorThread.start();
 			this.cjeExecutorThreads.add(jeExecutorThread); // Add the thread to
-															// our collection
+			// our collection
 		}
 
 		return this.cjeExecutorThreads.size(); // Number of active threads
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/3/2002 2:58:47
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/3/2002 2:58:47 PM)
 	 * 
 	 * @param ejNewJob
 	 *            the ej new job
@@ -370,10 +352,10 @@ public class ETLJobManager {
 	 * @return boolean
 	 */
 	public boolean submitJob(ETLJob ejNewJob) {
-		
-		if(this.mllPendingQueue.remainingCapacity()==0)
+
+		if (this.mllPendingQueue.remainingCapacity() == 0)
 			return false;
-		
+
 		// Don't accept jobs if we're in a bad state...
 		switch (this.getStatus().getStatusCode()) {
 		case ETLJobManagerStatus.ERROR:
@@ -417,11 +399,11 @@ public class ETLJobManager {
 		// Derived stats...
 		int iTotalCapacity; // = iMaxJobsInQueue + iNumThreads
 		int iSubmittedJobs; // = iNumJobsInQueue + number of threads in WORKING
-							// state
+		// state
 		int iAvailableCapacity; // = (iMaxJobsInQueue - iNumJobsInQueue) +
-								// number of threads in READY state
+		// number of threads in READY state
 		int iImmediateCapacity; // = number of threads in READY state -
-								// iNumJobsInQueue
+		// iNumJobsInQueue
 
 		synchronized (this.mllPendingQueue) {
 			// Get all of our current thread statuses...

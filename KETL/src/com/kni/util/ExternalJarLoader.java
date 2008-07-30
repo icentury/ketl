@@ -94,7 +94,6 @@ public class ExternalJarLoader {
 		return jarFiles;
 	}
 
-
 	/**
 	 * 
 	 */
@@ -134,20 +133,6 @@ public class ExternalJarLoader {
 		}
 		addJarFilesToClassPath((urls.toArray(new URL[urls.size()])));
 
-	}
-
-	/**
-	 * 
-	 */
-	private static void testAClass() {
-		final String classNameWithPath = "net.sf.ehcache.util.PropertyUtil";
-		try {
-			Class otherClass = Class.forName(classNameWithPath);
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, otherClass.getName()
-					+ " found.");
-		} catch (ClassNotFoundException e) {
-			ResourcePool.logException(e);
-		}
 	}
 
 	private static File[] fetchJarFiles(File file) {

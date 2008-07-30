@@ -31,10 +31,8 @@ import java.io.StringReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Queue;
 
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
@@ -190,8 +188,7 @@ public abstract class ETLJobExecutor extends Thread {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/3/2002 6:49:24
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/3/2002 6:49:24 PM)
 	 * 
 	 * @param jCurrentJob
 	 *            the j current job
@@ -200,8 +197,7 @@ public abstract class ETLJobExecutor extends Thread {
 	protected abstract boolean executeJob(ETLJob jCurrentJob);
 
 	/**
-	 * Insert the method's description here. Creation date: (5/4/2002 5:34:09
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/4/2002 5:34:09 PM)
 	 * 
 	 * @return int
 	 */
@@ -210,8 +206,7 @@ public abstract class ETLJobExecutor extends Thread {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/7/2002 11:23:02
-	 * AM)
+	 * Insert the method's description here. Creation date: (5/7/2002 11:23:02 AM)
 	 * 
 	 * @return com.kni.etl.ETLJobExecutorStatus
 	 */
@@ -435,8 +430,8 @@ public abstract class ETLJobExecutor extends Thread {
 						if (str != null) {
 							if (str.length == 2) {
 								if ((str[0] == null) || (str[1] == null)) {
-									ResourcePool.logMessage("ERROR: Badly formed parameter override ParameterName=" + str[0]
-											+ ", ParameterValue=" + str[1]);
+									ResourcePool.logMessage("ERROR: Badly formed parameter override ParameterName="
+											+ str[0] + ", ParameterValue=" + str[1]);
 									return ETLJobExecutor.exit(
 											com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
 											pExitCleanly);
@@ -445,8 +440,10 @@ public abstract class ETLJobExecutor extends Thread {
 
 							if (str.length == 3) {
 								if ((str[0] == null) || (str[1] == null) || (str[2] == null)) {
-									ResourcePool.logMessage("ERROR: Badly formed parameter override ParameterListName = "
-											+ str[0] + " ParameterName=" + str[1] + ", ParameterValue=" + str[2]);
+									ResourcePool
+											.logMessage("ERROR: Badly formed parameter override ParameterListName = "
+													+ str[0] + " ParameterName=" + str[1] + ", ParameterValue="
+													+ str[2]);
 									return ETLJobExecutor.exit(
 											com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
 											pExitCleanly);
@@ -496,7 +493,7 @@ public abstract class ETLJobExecutor extends Thread {
 						kj.cleanup();
 					} catch (Exception e) {
 					}
-					
+
 					if (kj.getStatus().getStatusCode() == ETLJobStatus.EXECUTING
 							|| kj.getStatus().getStatusCode() == ETLJobStatus.ATTEMPT_CANCEL) {
 						if (kj.isCancelSuccessfull()) {
@@ -614,8 +611,7 @@ public abstract class ETLJobExecutor extends Thread {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/7/2002 11:52:15
-	 * AM)
+	 * Insert the method's description here. Creation date: (5/7/2002 11:52:15 AM)
 	 * 
 	 * @return true, if initialize
 	 */
@@ -632,8 +628,7 @@ public abstract class ETLJobExecutor extends Thread {
 	}
 
 	/**
-	 * Loops on the job queue, taking each job and running with it. Creation
-	 * date: (5/3/2002 5:43:04 PM)
+	 * Loops on the job queue, taking each job and running with it. Creation date: (5/3/2002 5:43:04 PM)
 	 */
 	@Override
 	public void run() {
@@ -719,8 +714,7 @@ public abstract class ETLJobExecutor extends Thread {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/4/2002 8:01:20
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/4/2002 8:01:20 PM)
 	 * 
 	 * @param queue
 	 *            the ll queue
@@ -730,8 +724,7 @@ public abstract class ETLJobExecutor extends Thread {
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/4/2002 5:34:09
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/4/2002 5:34:09 PM)
 	 * 
 	 * @param newSleepPeriod
 	 *            int
@@ -741,19 +734,16 @@ public abstract class ETLJobExecutor extends Thread {
 	}
 
 	/**
-	 * This is the publicly accessible function to set the "shutdown" flag for
-	 * the thread. It will no longer process any new jobs, but finish what it's
-	 * working on. It will then call the internal terminate() function to close
-	 * down anything it needs to. BRIAN: should we make this final? Creation
-	 * date: (5/3/2002 6:50:09 PM)
+	 * This is the publicly accessible function to set the "shutdown" flag for the thread. It will no longer process any
+	 * new jobs, but finish what it's working on. It will then call the internal terminate() function to close down
+	 * anything it needs to. BRIAN: should we make this final? Creation date: (5/3/2002 6:50:09 PM)
 	 */
 	public void shutdown() {
 		this.bShutdown = true;
 	}
 
 	/**
-	 * Insert the method's description here. Creation date: (5/8/2002 2:49:24
-	 * PM)
+	 * Insert the method's description here. Creation date: (5/8/2002 2:49:24 PM)
 	 * 
 	 * @param jJob
 	 *            the j job
@@ -771,8 +761,7 @@ public abstract class ETLJobExecutor extends Thread {
 	public abstract ETLJob getNewJob() throws Exception;
 
 	/**
-	 * Insert the method's description here. Creation date: (5/7/2002 11:52:41
-	 * AM)
+	 * Insert the method's description here. Creation date: (5/7/2002 11:52:41 AM)
 	 * 
 	 * @return true, if terminate
 	 */

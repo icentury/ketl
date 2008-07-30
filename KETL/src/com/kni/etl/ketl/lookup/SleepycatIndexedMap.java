@@ -42,15 +42,6 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.stringtools.NumberFormatter;
 import com.kni.util.Bytes;
-import com.sleepycat.bind.tuple.BigIntegerBinding;
-import com.sleepycat.bind.tuple.BooleanBinding;
-import com.sleepycat.bind.tuple.DoubleBinding;
-import com.sleepycat.bind.tuple.FloatBinding;
-import com.sleepycat.bind.tuple.IntegerBinding;
-import com.sleepycat.bind.tuple.LongBinding;
-import com.sleepycat.bind.tuple.ShortBinding;
-import com.sleepycat.bind.tuple.StringBinding;
-import com.sleepycat.bind.tuple.TupleBinding;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;
@@ -326,9 +317,6 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	/** The commit count. */
 	private int commitCount = 0;
 
-	/** The count. */
-	private int count = 0;
-
 	/** The data db. */
 	private String dataDb;
 
@@ -337,9 +325,6 @@ final public class SleepycatIndexedMap implements PersistentMap {
 
 	/** The cache dir. */
 	private String mCacheDir = null;
-
-	/** The key binding. */
-	private TupleBinding mKeyBinding;
 
 	/** The key is array. */
 	private boolean mKeyIsArray;
@@ -409,14 +394,11 @@ final public class SleepycatIndexedMap implements PersistentMap {
 		this.mValueFields = pValueFields;
 		this.mKeyLength = this.mKeyTypes.length;
 		/*
-		 * if (this.mKeyIsArray == false) { Class cl = pKeyTypes[0]; if (cl ==
-		 * BigInteger.class) this.mKeyBinding = new BigIntegerBinding(); if (cl ==
-		 * Boolean.class) this.mKeyBinding = new BooleanBinding(); if (cl ==
-		 * Double.class) this.mKeyBinding = new DoubleBinding(); if (cl ==
-		 * Float.class) this.mKeyBinding = new FloatBinding(); if (cl ==
-		 * Integer.class) this.mKeyBinding = new IntegerBinding(); if (cl ==
-		 * Long.class) this.mKeyBinding = new LongBinding(); if (cl ==
-		 * Short.class) this.mKeyBinding = new ShortBinding(); if (cl ==
+		 * if (this.mKeyIsArray == false) { Class cl = pKeyTypes[0]; if (cl == BigInteger.class) this.mKeyBinding = new
+		 * BigIntegerBinding(); if (cl == Boolean.class) this.mKeyBinding = new BooleanBinding(); if (cl ==
+		 * Double.class) this.mKeyBinding = new DoubleBinding(); if (cl == Float.class) this.mKeyBinding = new
+		 * FloatBinding(); if (cl == Integer.class) this.mKeyBinding = new IntegerBinding(); if (cl == Long.class)
+		 * this.mKeyBinding = new LongBinding(); if (cl == Short.class) this.mKeyBinding = new ShortBinding(); if (cl ==
 		 * String.class) this.mKeyBinding = new StringBinding(); }
 		 */
 		this.mValuesIsArray = pValueTypes.length == 1 ? false : true;
@@ -608,8 +590,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.lookup.PersistentMap#get(java.lang.Object,
-	 *      java.lang.String)
+	 * @see com.kni.etl.ketl.lookup.PersistentMap#get(java.lang.Object, java.lang.String)
 	 */
 	public Object get(Object pkey, String pField) {
 
@@ -966,8 +947,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.lookup.PersistentMap#put(java.lang.Object,
-	 *      java.lang.Object)
+	 * @see com.kni.etl.ketl.lookup.PersistentMap#put(java.lang.Object, java.lang.Object)
 	 */
 	public Object put(Object pkey, Object pValue) {
 
