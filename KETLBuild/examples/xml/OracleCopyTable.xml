@@ -1,0 +1,30 @@
+<?xml-stylesheet type="text/xsl" href="F:\Development\XML\JobLoader\job_parameter_values.xsl"?>
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+	<PARAMETER_LIST NAME="SourceDB">
+		<PARAMETER NAME="USER">TEST</PARAMETER>
+		<PARAMETER NAME="PASSWORD">TEST</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:orcl</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+		<PARAMETER NAME="SQL">select * from widetest</PARAMETER>
+	</PARAMETER_LIST>
+
+	<PARAMETER_LIST NAME="DestinationDB">
+		<PARAMETER NAME="USER">TEST</PARAMETER>
+		<PARAMETER NAME="PASSWORD">TEST</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@localhost:1521:orcl</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>			
+	</PARAMETER_LIST>
+
+
+	<JOB ID="LOAD_WIDE_TABLE" PROJECT="TEST" TYPE="KETL">
+		<ACTION PARRALLISM="2">
+			<STEP BATCHSIZE="100" PARRALLISM="1" NAME="Source" CLASS="com.kni.etl.ketl.reader.JDBCReader"  FETCHSIZE="100" OUTSYNTAX="INFERRED"  PARAMETER_LIST="SourceDB"/>
+			<STEP COMMITSIZE="5000" NAME="Target" FLOWTYPE="FANOUT" CLASS="com.kni.etl.ketl.writer.NullWriter" TYPE="BULK" PARAMETER_LIST="DestinationDB" TABLE="widetest_tgt">
+				<PRESQL>truncate table widetest_tgt reuse storage</PRESQL>
+				<IN>Source.*</IN>
+			</STEP>
+		</ACTION>
+	</JOB>
+
+</ETL>
