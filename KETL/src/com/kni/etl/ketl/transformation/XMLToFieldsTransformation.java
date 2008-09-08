@@ -69,7 +69,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
 	public interface XMLNodeListCreator {
 
-		NodeList getNodeList(Document doc);
+		List getNodes(Document doc, List nodeList);
 
 	}
 
@@ -682,8 +682,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
 				this.doc = this.mBuilder.parse(new InputSource(new StringReader(string)));
 				if (customHandler != null) {
-					this.nodeList = XMLToFieldsTransformation.convertToList(customHandler.getNodeList(this.doc),
-							this.nodeList);
+					this.nodeList = customHandler.getNodes(this.doc, this.nodeList);
 				} else if (this.mbXPathEvaluateNodes) {
 					if (this.xmlHandler == null)
 						this.nodeList = XMLToFieldsTransformation.convertToList((NodeList) this.mXPath.evaluate(
