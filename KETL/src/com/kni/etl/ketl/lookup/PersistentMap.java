@@ -30,102 +30,109 @@ import java.util.Map;
  */
 public interface PersistentMap extends Map {
 
-    /** The value fields. */
-    String[] mValueFields = null;
+	/** The value fields. */
+	String[] mValueFields = null;
 
-    /**
-     * Get.
-     * 
-     * @param key the key
-     * @param pField the field
-     * 
-     * @return the object
-     */
-    public abstract Object get(Object key, String pField);
+	/**
+	 * Get.
+	 * 
+	 * @param key
+	 *            the key
+	 * @param pField
+	 *            the field
+	 * 
+	 * @return the object
+	 */
+	public abstract Object get(Object key, String pField);
 
-    /* (non-Javadoc)
-     * @see java.util.Map#put(java.lang.Object, java.lang.Object)
-     */
-    public abstract Object put(Object key, Object value);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.Map#put(java.lang.Object, java.lang.Object)
+	 */
+	public abstract Object put(Object key, Object value);
 
-    /**
-     * Gets the storage class.
-     * 
-     * @return the storage class
-     */
-    public abstract Class getStorageClass();
+	/**
+	 * Gets the storage class.
+	 * 
+	 * @return the storage class
+	 */
+	public abstract Class getStorageClass();
 
-    /**
-     * Delete.
-     */
-    public abstract void delete();
+	/**
+	 * Delete.
+	 */
+	public abstract void delete();
 
-    /**
-     * Switch to read only mode.
-     */
-    public abstract void switchToReadOnlyMode();
+	/**
+	 * Switch to read only mode.
+	 */
+	public abstract void switchToReadOnlyMode();
 
-    /**
-     * Gets the item.
-     * 
-     * @param pkey the pkey
-     * 
-     * @return the item
-     * 
-     * @throws Exception the exception
-     */
-    public abstract Object getItem(Object pkey) throws Exception;
+	/**
+	 * Gets the item.
+	 * 
+	 * @param pkey
+	 *            the pkey
+	 * 
+	 * @return the item
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	public abstract Object getItem(Object pkey) throws Exception;
 
-    /**
-     * Commit.
-     * 
-     * @param force the force
-     */
-    public abstract void commit(boolean force);
+	/**
+	 * Commit.
+	 * 
+	 * @param force
+	 *            the force
+	 */
+	public abstract void commit(boolean force);
 
-    /**
-     * Gets the value fields.
-     * 
-     * @return the value fields
-     */
-    public abstract String[] getValueFields();
+	/**
+	 * Gets the value fields.
+	 * 
+	 * @return the value fields
+	 */
+	public abstract String[] getValueFields();
 
-    /**
-     * Gets the value types.
-     * 
-     * @return the value types
-     */
-    public abstract Class[] getValueTypes();
+	/**
+	 * Gets the value types.
+	 * 
+	 * @return the value types
+	 */
+	public abstract Class[] getValueTypes();
 
-    /**
-     * Gets the key types.
-     * 
-     * @return the key types
-     */
-    public abstract Class[] getKeyTypes();
+	/**
+	 * Gets the key types.
+	 * 
+	 * @return the key types
+	 */
+	public abstract Class[] getKeyTypes();
 
-    /**
-     * Gets the cache size.
-     * 
-     * @return the cache size
-     */
-    public abstract int getCacheSize();
+	/**
+	 * Gets the cache size.
+	 * 
+	 * @return the cache size
+	 */
+	public abstract int getCacheSize();
 
-    /**
-     * Gets the name.
-     * 
-     * @return the name
-     */
-    public abstract String getName();
+	/**
+	 * Gets the name.
+	 * 
+	 * @return the name
+	 */
+	public abstract String getName();
 
-    /**
-     * Close.
-     */
-    public abstract void close();
+	/**
+	 * Close.
+	 */
+	public abstract void close();
 
-    /**
-     * Close cache environment.
-     */
-    public abstract void closeCacheEnvironment();
+	/**
+	 * Close cache environment.
+	 */
+	public abstract void closeCacheEnvironment();
 
 }
