@@ -39,6 +39,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
@@ -69,7 +70,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 
 	public interface XMLNodeListCreator {
 
-		List getNodes(Document doc, List nodeList);
+		List<Document> getNodes(Document doc);
 
 	}
 
@@ -565,7 +566,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 					else
 						result = XMLHelper.getChildNodeValueAsString(cur, port.xpath, null, null, null);
 				} else {
-					Node node = port.mRecursiveXPath[0].equals("") ? this.doc : cur;
+					Node node = port.mRecursiveXPath[0].equals("") ? cur.getOwnerDocument() : cur;
 					int len = port.fetchAttribute ? port.mRecursiveXPath.length - 1 : port.mRecursiveXPath.length;
 
 					for (int x = 0; x < len; x++) {
@@ -645,9 +646,6 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 	/** The current XML string. */
 	private String currentXMLString;
 
-	/** The doc. */
-	private Document doc;
-
 	/** The current node. */
 	private Node currentNode;
 
@@ -680,18 +678,15 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 				if (string == null)
 					return false;
 
-				this.doc = this.mBuilder.parse(new InputSource(new StringReader(string)));
+				Document doc = this.mBuilder.parse(new InputSource(new StringReader(string)));
 				if (customHandler != null) {
-					this.nodeList = customHandler.getNodes(this.doc, this.nodeList);
-				} else if (this.mbXPathEvaluateNodes) {
-					if (this.xmlHandler == null)
-						this.nodeList = XMLToFieldsTransformation.convertToList((NodeList) this.mXPath.evaluate(
-								this.doc, XPathConstants.NODESET), this.nodeList);
-					else
-						this.nodeList = this.xmlHandler.evaluateXPath(this.mXPath, this.doc, this.nodeList);
+					List<Document> docList = customHandler.getNodes(doc);
+					this.nodeList.clear();
+					for (Document document : docList) {
+						findNodes(document, false);
+					}
 				} else {
-					this.nodeList = XMLToFieldsTransformation.convertToList(this.doc
-							.getElementsByTagName(this.mRootXPath), this.nodeList);
+					findNodes(doc, true);
 				}
 
 				this.length = this.nodeList.size();
@@ -713,6 +708,19 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 		}
 	}
 
+	private void findNodes(Document doc, boolean clear) throws XPathExpressionException {
+		if (this.mbXPathEvaluateNodes) {
+			if (this.xmlHandler == null)
+				this.nodeList = XMLToFieldsTransformation.convertToList((NodeList) this.mXPath.evaluate(doc,
+						XPathConstants.NODESET), this.nodeList, clear);
+			else
+				this.nodeList = this.xmlHandler.evaluateXPath(this.mXPath, doc, this.nodeList);
+		} else {
+			this.nodeList = XMLToFieldsTransformation.convertToList(doc.getElementsByTagName(this.mRootXPath),
+					this.nodeList, clear);
+		}
+	}
+
 	/**
 	 * Convert to list.
 	 * 
@@ -720,14 +728,15 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 	 *            the list
 	 * @param oldList
 	 *            the old list
+	 * @param clear
 	 * 
 	 * @return the list
 	 */
-	private static List convertToList(NodeList list, List oldList) {
+	private static List convertToList(NodeList list, List oldList, boolean clear) {
 
 		if (oldList == null)
 			oldList = new ArrayList(list == null ? 0 : list.getLength());
-		else {
+		else if (clear) {
 			oldList.clear();
 		}
 
