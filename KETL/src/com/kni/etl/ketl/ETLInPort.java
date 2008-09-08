@@ -33,165 +33,175 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ETLInPort extends ETLPort {
 
-    /**
-     * Instantiates a new ETL in port.
-     * 
-     * @param esOwningStep the es owning step
-     * @param esSrcStep the es src step
-     */
-    public ETLInPort(ETLStep esOwningStep, ETLStep esSrcStep) {
-        super(esOwningStep, esSrcStep);
-    }
+	/**
+	 * Instantiates a new ETL in port.
+	 * 
+	 * @param esOwningStep
+	 *            the es owning step
+	 * @param esSrcStep
+	 *            the es src step
+	 */
+	public ETLInPort(ETLStep esOwningStep, ETLStep esSrcStep) {
+		super(esOwningStep, esSrcStep);
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
-     */
-    @Override
-    public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
-        int res = super.initialize(xmlConfig);
-        if(res != 0)
-            return res;
-        
-        String sort = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "SORT", null);
-        
-        if(sort == null)
-            this.setSort(ETLInPort.NO_SORT);
-        else if(sort.equalsIgnoreCase("ASC"))
-            this.setSort(ETLInPort.ASC);
-        else if(sort.equalsIgnoreCase("DESC"))
-            this.setSort(ETLInPort.DESC);
-        else
-            throw new KETLThreadException("Invalid sort value: " + sort, this);
-               
-        return 0;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
+	 */
+	@Override
+	public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
+		int res = super.initialize(xmlConfig);
+		if (res != 0)
+			return res;
 
-    /** The object name. */
-    private String mObjectName;
-    
-    /**
-     * Sets the code generation reference object.
-     * 
-     * @param obj the new code generation reference object
-     */
-    public void setCodeGenerationReferenceObject(String obj) {
-        this.mObjectName = obj;
-    }
-    
+		String sort = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "SORT", null);
 
-    /**
-     * Gets the source port index.
-     * 
-     * @return the source port index
-     */
-    final public int getSourcePortIndex() {
-        return this.src.getPortIndex();
-    }
-    
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.ETLPort#getPortName()
-     */
-    @Override
-    public String getPortName() throws KETLThreadException {
-        if (this.mstrName != null)
-            return this.mstrName;
+		if (sort == null)
+			this.setSort(ETLInPort.NO_SORT);
+		else if (sort.equalsIgnoreCase("ASC"))
+			this.setSort(ETLInPort.ASC);
+		else if (sort.equalsIgnoreCase("DESC"))
+			this.setSort(ETLInPort.DESC);
+		else
+			throw new KETLThreadException("Invalid sort value: " + sort, this);
 
-        String channel, port;
+		return 0;
+	}
 
-        this.mstrName = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), ETLPort.NAME_ATTRIB, null);
+	/** The object name. */
+	private String mObjectName;
 
-        if (this.isConstant() == false) {
-            if (this.src == null) {
-                String txt = XMLHelper.getTextContent(this.getXMLConfig());
-                txt = txt.trim();
+	/**
+	 * Sets the code generation reference object.
+	 * 
+	 * @param obj
+	 *            the new code generation reference object
+	 */
+	public void setCodeGenerationReferenceObject(String obj) {
+		this.mObjectName = obj;
+	}
 
-                String[] sources = txt.split("\\.");
+	/**
+	 * Gets the source port index.
+	 * 
+	 * @return the source port index
+	 */
+	final public int getSourcePortIndex() {
+		return this.src.getPortIndex();
+	}
 
-                if (sources == null || sources.length == 1 || sources.length > 3)
-                    throw new KETLThreadException("IN port definition invalid: \"" + txt + "\"", this);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.ETLPort#getPortName()
+	 */
+	@Override
+	public String getPortName() throws KETLThreadException {
+		if (this.mstrName != null)
+			return this.mstrName;
 
-                channel = sources.length == 3 ? sources[1] : "DEFAULT";
-                port = sources.length == 3 ? sources[2] : sources[1];
-                this.src = this.mesSrcStep.setOutUsed(channel, port);
-            }
+		String channel, port;
 
-            if (this.mstrName == null) {
-                (this.getXMLConfig()).setAttribute("NAME", this.src.mstrName);
-                this.mstrName = this.src.mstrName;
-            }
-        } 
-        
-        if (this.mstrName == null)
-            throw new KETLThreadException("In port must have a name, check step " + this.mesStep.getName() + ", XML: "
-                    + XMLHelper.outputXML(this.getXMLConfig()), this);
-        
-        return this.mstrName;
-    }
+		this.mstrName = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), ETLPort.NAME_ATTRIB, null);
 
-    
-    /** The Constant NO_SORT. */
-    final public static int NO_SORT = 0;    
-    
-    /** The Constant ASC. */
-    final public static int ASC = 1;
-    
-    /** The Constant DESC. */
-    final public static int DESC = 2;
-   
-    /** The src. */
-    ETLOutPort src;
-    
-    /** The sort. */
-    private int sort = ETLInPort.NO_SORT;
+		if (this.isConstant() == false) {
+			if (this.src == null) {
+				String txt = XMLHelper.getTextContent(this.getXMLConfig());
+				txt = txt.trim();
 
-    /**
-     * Sets the source port.
-     * 
-     * @param srcPort the new source port
-     */
-    public void setSourcePort(ETLOutPort srcPort) {
-        this.src = srcPort;
-    }
+				String[] sources = txt.split("\\.");
 
-    
-    /**
-     * Generate reference.
-     * 
-     * @return the string
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public String generateReference() throws KETLThreadException {
-        if(this.isConstant())
-            return "const_" + this.mstrName;
-        
-        return "((" + this.getPortClass().getCanonicalName() + ")" + this.mObjectName + "[" + this.mesStep.getUsedPortIndex(this) + "])";
-    }
+				if (sources == null || sources.length == 1 || sources.length > 3)
+					throw new KETLThreadException("IN port definition invalid: \"" + txt + "\"", this);
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.ETLPort#getCodeGenerationReferenceObject()
-     */
-    @Override
-    public String getCodeGenerationReferenceObject() {
-        return this.mObjectName;
-    }
+				channel = sources.length == 3 ? sources[1] : "DEFAULT";
+				port = sources.length == 3 ? sources[2] : sources[1];
+				this.src = this.mesSrcStep.setOutUsed(channel, port);
+			}
 
-    /**
-     * Sets the sort.
-     * 
-     * @param sort the new sort
-     */
-    public void setSort(int sort) {
-        this.sort = sort;
-    }
+			if (this.mstrName == null) {
+				(this.getXMLConfig()).setAttribute("NAME", this.src.mstrName);
+				this.mstrName = this.src.mstrName;
+			}
+		}
 
-    /**
-     * Gets the sort.
-     * 
-     * @return the sort
-     */
-    public int getSort() {
-        return this.sort;
-    }
+		if (this.mstrName == null)
+			throw new KETLThreadException("In port must have a name, check step " + this.mesStep.getName() + ", XML: "
+					+ XMLHelper.outputXML(this.getXMLConfig()), this);
+
+		return this.mstrName;
+	}
+
+	/** The Constant NO_SORT. */
+	final public static int NO_SORT = 0;
+
+	/** The Constant ASC. */
+	final public static int ASC = 1;
+
+	/** The Constant DESC. */
+	final public static int DESC = 2;
+
+	/** The src. */
+	ETLOutPort src;
+
+	/** The sort. */
+	private int sort = ETLInPort.NO_SORT;
+
+	/**
+	 * Sets the source port.
+	 * 
+	 * @param srcPort
+	 *            the new source port
+	 */
+	public void setSourcePort(ETLOutPort srcPort) {
+		this.src = srcPort;
+	}
+
+	/**
+	 * Generate reference.
+	 * 
+	 * @return the string
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public String generateReference() throws KETLThreadException {
+		if (this.isConstant())
+			return "const_" + this.mstrName;
+
+		return "((" + this.getPortClass().getCanonicalName() + ")" + this.mObjectName + "["
+				+ this.mesStep.getUsedPortIndex(this) + "])";
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.ETLPort#getCodeGenerationReferenceObject()
+	 */
+	@Override
+	public String getCodeGenerationReferenceObject() {
+		return this.mObjectName;
+	}
+
+	/**
+	 * Sets the sort.
+	 * 
+	 * @param sort
+	 *            the new sort
+	 */
+	public void setSort(int sort) {
+		this.sort = sort;
+	}
+
+	/**
+	 * Gets the sort.
+	 * 
+	 * @return the sort
+	 */
+	public int getSort() {
+		return this.sort;
+	}
 
 }
