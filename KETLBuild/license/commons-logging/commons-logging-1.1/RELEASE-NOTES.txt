@@ -16,7 +16,7 @@
 
 -->
 
-$Id: RELEASE-NOTES.txt,v 1.1 2006/12/13 07:36:28 nwakefield Exp $
+$Id: RELEASE-NOTES.txt,v 1.1 2006/12/13 07:06:48 nwakefield Exp $
 
                            Commons Logging Package
                                 Version 1.1.0
