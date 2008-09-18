@@ -650,7 +650,7 @@ public class XMLToFieldsTransformation extends ETLTransformation {
 	private Node currentNode;
 
 	/** The node list. */
-	private List nodeList;
+	private List nodeList=new ArrayList();
 
 	/** The X path. */
 	private XPathExpression mXPath;

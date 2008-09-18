@@ -1597,7 +1597,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 		while (indexRs.next()) {
 			String idxName = indexRs.getString(6);
 
-			if (idxName == null || idxName.equalsIgnoreCase(string) == false)
+			if (idxName != null && idxName.equalsIgnoreCase(string) == false)
 				indexList.add(idxName);
 		}
 
@@ -2085,7 +2085,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
 		if (this.isLastThreadToEnterCompletePhase()) {
 			this.setWaiting("indexes to rebuild");
-			StatementManager.executeStatements(this.mIndexDisableList.toArray(), this.mcDBConnection,
+			StatementManager.executeStatements(this.mIndexEnableList.toArray(), this.mcDBConnection,
 					this.mStatementSeperator, StatementManager.END, this, false);
 		}
 		StatementManager.executeStatements(this, this, "POSTSQL", StatementManager.END);

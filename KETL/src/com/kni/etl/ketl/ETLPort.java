@@ -351,8 +351,10 @@ public abstract class ETLPort {
 
 		if (content == null
 				|| content.trim().length() == 0
-				|| (content.trim().startsWith(com.kni.etl.EngineConstants.VARIABLE_PARAMETER_START) && content.trim()
-						.endsWith(com.kni.etl.EngineConstants.VARIABLE_PARAMETER_END)))
+				)
+			return null;
+		else if ((content.trim().startsWith(com.kni.etl.EngineConstants.VARIABLE_PARAMETER_START) && content.trim()
+						.endsWith(com.kni.etl.EngineConstants.VARIABLE_PARAMETER_END)) && EngineConstants.getParametersFromText(content).length==1)			
 			return null;
 
 		return content;
