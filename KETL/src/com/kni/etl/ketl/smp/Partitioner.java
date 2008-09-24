@@ -290,7 +290,6 @@ final public class Partitioner extends ManagedBlockingQueue {
 				else
 					h = 31 * h + data[pos].hashCode();
 			}
-			int x = Math.abs(h % this.mDestQueues);
 			this.mOutData[Math.abs(h % this.mDestQueues)].add(data);
 		}
 

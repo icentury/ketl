@@ -35,131 +35,137 @@ import java.text.SimpleDateFormat;
  */
 public class DestinationFieldDefinition {
 
-    /** The Max length. */
-    public int MaxLength = -1;
-    
-    /** The Fixed width. */
-    public boolean FixedWidth = false;
-    
-    /** The Delimiter. */
-    public String Delimiter;
-    
-    /** The Format string. */
-    public String FormatString = null;
-    
-    /** The Default value. */
-    public String DefaultValue;
-    
-    /** The Append line feed. */
-    public boolean AppendLineFeed = false;
+	/** The Max length. */
+	public int MaxLength = -1;
 
-    // cached members
-    /** The s simple date formatter. */
-    private SimpleDateFormat sSimpleDateFormatter = null;
-    
-    /** The s decimal formatter. */
-    private DecimalFormat sDecimalFormatter = null;
-    
-    /** The b delimiter. */
-    private byte[] bDelimiter = null;
-    
-    /** The b defeault value. */
-    private byte[] bDefeaultValue = null;
-    
-    /** The char set. */
-    private String mCharSet = null;
+	/** The Fixed width. */
+	public boolean FixedWidth = false;
 
-    /**
-     * SourceFieldDefinition constructor comment.
-     * 
-     * @param pCharSet TODO
-     */
-    public DestinationFieldDefinition(String pCharSet) {
-        super();
-        this.mCharSet = pCharSet;
-    }
+	/** The Delimiter. */
+	public String Delimiter;
 
-    /**
-     * Gets the delimiter as bytes.
-     * 
-     * @return the delimiter as bytes
-     * 
-     * @throws UnsupportedEncodingException the unsupported encoding exception
-     */
-    public byte[] getDelimiterAsBytes() throws UnsupportedEncodingException {
-        if ((this.bDelimiter == null) && (this.Delimiter != null)) {
-            this.bDelimiter = this.mCharSet == null ? this.Delimiter.getBytes() : this.Delimiter
-                    .getBytes(this.mCharSet);
-        }
+	/** The Format string. */
+	public String FormatString = null;
 
-        return this.bDelimiter;
-    }
+	/** The Default value. */
+	public String DefaultValue;
 
-    /**
-     * Gets the default value as bytes.
-     * 
-     * @return the default value as bytes
-     * 
-     * @throws UnsupportedEncodingException the unsupported encoding exception
-     */
-    public byte[] getDefaultValueAsBytes() throws UnsupportedEncodingException {
-        if ((this.bDefeaultValue == null) && (this.DefaultValue != null)) {
-            this.bDefeaultValue = this.mCharSet == null ? this.DefaultValue.getBytes() : this.DefaultValue
-                    .getBytes(this.mCharSet);
-        }
+	/** The Append line feed. */
+	public boolean AppendLineFeed = false;
 
-        return this.bDefeaultValue;
-    }
+	// cached members
+	/** The s simple date formatter. */
+	private SimpleDateFormat sSimpleDateFormatter = null;
 
-    /**
-     * Gets the simple date format.
-     * 
-     * @return the simple date format
-     */
-    public SimpleDateFormat getSimpleDateFormat() {
-        if (this.sSimpleDateFormatter == null) {
-            this.sSimpleDateFormatter = new SimpleDateFormat();
-        }
+	/** The s decimal formatter. */
+	private DecimalFormat sDecimalFormatter = null;
 
-        if (this.FormatString != null) {
-            this.sSimpleDateFormatter.applyPattern(this.FormatString);
-        }
+	/** The b delimiter. */
+	private byte[] bDelimiter = null;
 
-        return (this.sSimpleDateFormatter);
-    }
+	/** The b defeault value. */
+	private byte[] bDefeaultValue = null;
 
-    /**
-     * Gets the decimal format.
-     * 
-     * @return the decimal format
-     */
-    public DecimalFormat getDecimalFormat() {
-        if (this.sDecimalFormatter == null) {
-            this.sDecimalFormatter = new DecimalFormat();
-        }
+	/** The char set. */
+	private String mCharSet = null;
 
-        if (this.FormatString != null) {
-            this.sDecimalFormatter.applyPattern(this.FormatString);
-        }
+	public String alwaysEscape = null;
 
-        return (this.sDecimalFormatter);
-    }
+	/**
+	 * SourceFieldDefinition constructor comment.
+	 * 
+	 * @param pCharSet
+	 *            TODO
+	 */
+	public DestinationFieldDefinition(String pCharSet) {
+		super();
+		this.mCharSet = pCharSet;
+	}
 
-    /**
-     * Gets the format.
-     * 
-     * @param cl the cl
-     * 
-     * @return the format
-     */
-    public Format getFormat(Class cl) {
-        if (Number.class.isAssignableFrom(cl))
-            return this.getDecimalFormat();
+	/**
+	 * Gets the delimiter as bytes.
+	 * 
+	 * @return the delimiter as bytes
+	 * 
+	 * @throws UnsupportedEncodingException
+	 *             the unsupported encoding exception
+	 */
+	public byte[] getDelimiterAsBytes() throws UnsupportedEncodingException {
+		if ((this.bDelimiter == null) && (this.Delimiter != null)) {
+			this.bDelimiter = this.mCharSet == null ? this.Delimiter.getBytes() : this.Delimiter
+					.getBytes(this.mCharSet);
+		}
 
-        if (java.util.Date.class.isAssignableFrom(cl))
-            return this.getSimpleDateFormat();
+		return this.bDelimiter;
+	}
 
-        return null;
+	/**
+	 * Gets the default value as bytes.
+	 * 
+	 * @return the default value as bytes
+	 * 
+	 * @throws UnsupportedEncodingException
+	 *             the unsupported encoding exception
+	 */
+	public byte[] getDefaultValueAsBytes() throws UnsupportedEncodingException {
+		if ((this.bDefeaultValue == null) && (this.DefaultValue != null)) {
+			this.bDefeaultValue = this.mCharSet == null ? this.DefaultValue.getBytes() : this.DefaultValue
+					.getBytes(this.mCharSet);
+		}
 
-    }
+		return this.bDefeaultValue;
+	}
+
+	/**
+	 * Gets the simple date format.
+	 * 
+	 * @return the simple date format
+	 */
+	public SimpleDateFormat getSimpleDateFormat() {
+		if (this.sSimpleDateFormatter == null) {
+			this.sSimpleDateFormatter = new SimpleDateFormat();
+		}
+
+		if (this.FormatString != null) {
+			this.sSimpleDateFormatter.applyPattern(this.FormatString);
+		}
+
+		return (this.sSimpleDateFormatter);
+	}
+
+	/**
+	 * Gets the decimal format.
+	 * 
+	 * @return the decimal format
+	 */
+	public DecimalFormat getDecimalFormat() {
+		if (this.sDecimalFormatter == null) {
+			this.sDecimalFormatter = new DecimalFormat();
+		}
+
+		if (this.FormatString != null) {
+			this.sDecimalFormatter.applyPattern(this.FormatString);
+		}
+
+		return (this.sDecimalFormatter);
+	}
+
+	/**
+	 * Gets the format.
+	 * 
+	 * @param cl
+	 *            the cl
+	 * 
+	 * @return the format
+	 */
+	public Format getFormat(Class cl) {
+		if (Number.class.isAssignableFrom(cl))
+			return this.getDecimalFormat();
+
+		if (java.util.Date.class.isAssignableFrom(cl))
+			return this.getSimpleDateFormat();
+
+		return null;
+
+	}
 }
