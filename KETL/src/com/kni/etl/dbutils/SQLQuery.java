@@ -22,13 +22,19 @@
  */
 package com.kni.etl.dbutils;
 
+import com.kni.etl.EngineConstants;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class SQLQuery.
  */
 public class SQLQuery {
     
-    /** The sql. */
+    private static final String THIS_GET_PARTITION_ID = "this.getPartitionID()";
+
+	private static final String THIS_GET_PARTITIONS = "this.getPartitions()";
+
+	/** The sql. */
     String sql;
     
     /** The parameter list. */
@@ -49,9 +55,17 @@ public class SQLQuery {
         this.sql = sql;
         this.execute = pExecute;
         this.parameterList = parameterList;
+        sql.replace(THIS_GET_PARTITIONS,Integer.toString(1)).replace(THIS_GET_PARTITION_ID,Integer.toString(1));
     }
     
-    /**
+    public SQLQuery(String sql, int parameterList, boolean pExecute, int partitions,
+			int partitionID) {
+    	this.execute = pExecute;
+        this.parameterList = parameterList;        
+        this.sql = sql.replace(THIS_GET_PARTITIONS,Integer.toString(partitions)).replace(THIS_GET_PARTITION_ID,Integer.toString(partitionID));    	        
+	}
+
+	/**
      * Execute query.
      * 
      * @return true, if successful
@@ -71,11 +85,14 @@ public class SQLQuery {
     
     /**
      * Gets the SQL.
+     * @param partition 
+     * @param partitions 
      * 
      * @return the SQL
      */
     public String getSQL() {
-        return this.sql;
+    	// special functions
+    	return sql;
     }    
     
     /**
@@ -86,4 +103,8 @@ public class SQLQuery {
     public void setSQL(String arg0){
         this.sql = arg0;
     }
+
+	public static boolean containPartitionCode(String sql) {
+		return sql.contains(THIS_GET_PARTITIONS) && sql.contains(THIS_GET_PARTITION_ID);		
+	}
 }

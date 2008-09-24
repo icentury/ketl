@@ -29,6 +29,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -155,7 +156,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	String mSQLSample = "";
 
 	/** The SQL statements. */
-	ArrayList mSQLStatements;
+	List<SQLQuery> mSQLStatements;
 
 	/** The stmt. */
 	private Statement mStmt;
@@ -171,7 +172,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 
 	/** The fetch size. */
 	private int mFetchSize;
-
+	
 	/**
 	 * Instantiates a new JDBC reader.
 	 * 
@@ -514,8 +515,8 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	private ArrayList getSQLStatementArray() throws KETLThreadException {
-		this.mSQLStatements = new ArrayList();
+	private List<SQLQuery> getSQLStatementArray() throws KETLThreadException {
+		this.mSQLStatements = new ArrayList<SQLQuery>();
 
 		Node[] nodes = XMLHelper.getElementsByName(this.getXMLConfig(), "IN", "*", "*");
 
@@ -528,9 +529,21 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 						sql = sql.substring(1, sql.length() - 1);
 					}
 
-					if (sql.length() > 0)
-						this.mSQLStatements.add(new SQLQuery(sql, 0,
-								this.mSQLStatements.size() % this.partitions == this.partitionID));
+					
+					
+					if (sql.length() > 0){
+						if(SQLQuery.containPartitionCode(sql))
+							for(int i=0;i<this.partitions;i++){
+								if(i == this.partitionID){
+								this.mSQLStatements.add(new SQLQuery(sql, 0,
+										true,this.partitions,this.partitionID));
+								}
+							}						
+						else
+							this.mSQLStatements.add(new SQLQuery(sql, 0,
+									this.mSQLStatements.size() % this.partitions == this.partitionID));
+							
+					}
 				}
 			}
 		}
@@ -538,9 +551,17 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		for (int i = 0; i < this.maParameters.size(); i++) {
 			String sql = this.getParameterValue(i, ETLStep.SQL_ATTRIB);
 
-			if (sql != null) {
-				this.mSQLStatements.add(new SQLQuery(null, i,
-						this.mSQLStatements.size() % this.partitions == this.partitionID));
+			if (sql != null) {				
+				if(SQLQuery.containPartitionCode(sql))
+					for(int x=0;x<this.partitions;x++){
+						if(x == this.partitionID){
+						this.mSQLStatements.add(new SQLQuery(sql, i,
+								true,this.partitions,this.partitionID));
+						}
+					}						
+				else
+					this.mSQLStatements.add(new SQLQuery(sql, i,
+							this.mSQLStatements.size() % this.partitions == this.partitionID));
 			}
 		}
 
@@ -553,7 +574,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	 * @see com.kni.etl.ketl.qa.QAForJDBCReader#getSQLStatements()
 	 */
 	public SQLQuery[] getSQLStatements() throws KETLThreadException {
-		ArrayList sql = this.getSQLStatementArray();
+		List<SQLQuery> sql = this.getSQLStatementArray();
 
 		if ((sql != null) && (sql.size() > 0)) {
 
@@ -590,7 +611,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		this.mFetchSize = XMLHelper.getAttributeAsInt(xmlSourceNode.getAttributes(), "FETCHSIZE", this.batchSize * 2);
 		this.mSQLSample = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(), JDBCReader.SQL_SAMPLE_ATTRIB,
 				"");
-
+		
 		this.instantiateHelper(xmlSourceNode);
 
 		// remove the queries not destined for this partition
@@ -598,7 +619,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		this.mSQLStatements.clear();
 		for (Object element : items) {
 			if (((SQLQuery) element).executeQuery())
-				this.mSQLStatements.add(element);
+				this.mSQLStatements.add((SQLQuery)element);
 		}
 		return 0;
 	}
