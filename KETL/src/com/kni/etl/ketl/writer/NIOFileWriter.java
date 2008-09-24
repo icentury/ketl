@@ -475,6 +475,9 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 		del = del == null ? alwaysEscape : del;
 
 		if (hasDelimeter && datum != null && del != null) {
+
+			if (datum.contains(this.msEscapeChar))
+				datum = datum.replace(this.msEscapeChar, this.msEscapeChar + this.msEscapeChar);
 			if (datum.contains(del))
 				return datum.replace(del, this.msEscapeChar + del);
 		}
