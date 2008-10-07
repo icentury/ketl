@@ -8,18 +8,16 @@
 	<classpathentry kind="lib" path="lib/jaxrpc.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
 	<classpathentry kind="lib" path="lib/saaj.jar"/>
-	<classpathentry kind="lib" path="lib/saxon8.jar"/>
-	<classpathentry kind="lib" path="lib/saxon8-dom.jar"/>
-	<classpathentry kind="lib" path="lib/saxon8-xpath.jar"/>
-	<classpathentry kind="lib" path="C:/development/Lib/ojdbc14.jar"/>
+	<classpathentry kind="lib" path="C:/Development/lib/ojdbc14.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3.8.1"/>
-	<classpathentry kind="lib" path="C:/development/hypersonic/hsqldb_1_8_0_7/hsqldb/lib/hsqldb.jar" sourcepath="C:/development/hypersonic/hsqldb_1_8_0_7/hsqldb/src"/>
-	<classpathentry kind="lib" path="C:/development/Netezza/nzjdbc.jar"/>
-	<classpathentry kind="lib" path="C:/development/Lib/mysql-connector-java-3.1.12/mysql-connector-java-3.1.12-bin.jar" sourcepath="src"/>
 	<classpathentry kind="lib" path="lib/postgresql.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.5.0_11/lib/tools.jar"/>
 	<classpathentry kind="lib" path="lib/h2.jar"/>
-	<classpathentry kind="lib" path="C:/development/piccolo-1.04/lib/Piccolo.jar"/>
 	<classpathentry kind="lib" path="lib/je-3.2.74.jar" sourcepath="C:/development/je-3.2.74/src"/>
+	<classpathentry kind="lib" path="C:/Development/piccolo-1.04/lib/Piccolo.jar"/>
+	<classpathentry kind="lib" path="lib/saxon9-dom.jar"/>
+	<classpathentry kind="lib" path="lib/saxon9-xpath.jar"/>
+	<classpathentry kind="lib" path="lib/saxon9.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.5.0_16/lib/tools.jar"/>
+	<classpathentry kind="lib" path="C:/Development/Inet/Oranxo/Oranxo.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

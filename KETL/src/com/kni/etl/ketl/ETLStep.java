@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -359,6 +360,20 @@ public abstract class ETLStep extends ETLWorker {
             }
 
             return val;
+        }
+
+        return null;
+    }
+
+    public Map getParameterListValues(int iParamList) {
+        if (this.maParameters != null) {
+            ParameterList paramList = (ParameterList) this.maParameters.get(iParamList);
+
+            if (paramList == null) {
+                return null;
+            }
+
+            return paramList.getParameters();            
         }
 
         return null;

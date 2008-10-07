@@ -32,6 +32,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.w3c.dom.Element;
@@ -1021,6 +1023,17 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
     /** The purge cache. */
     private boolean purgeCache;
 
+	private Properties mDatabaseProperties;
+
+    private Properties getDatabaseProperties() {
+		return this.mDatabaseProperties;
+	}
+
+	private void setDatabaseProperties(Map<String, Object>  parameterListValues) throws Exception {
+		this.mDatabaseProperties = JDBCItemHelper.getProperties(parameterListValues);		
+	}
+	
+	
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.smp.ETLTransform#initialize(org.w3c.dom.Node)
      */
@@ -1040,6 +1053,12 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
         this.strURL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
         this.strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
         this.strPreSQL = this.getParameterValue(0, DBConnection.PRESQL_ATTRIB);
+		try {
+			this.setDatabaseProperties(this.getParameterListValues(0));
+		} catch (Exception e1) {
+			throw new KETLThreadException(e1,this);
+		}
+		
         NamedNodeMap nmAttrs = xmlConfig.getAttributes();
 
         int minSize = NumberFormatter.convertToBytes(EngineConstants.getDefaultCacheSize());
@@ -1095,13 +1114,13 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
         try {
             this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName,
-                    this.strPassword, this.strPreSQL, true);
+                    this.strPassword, this.strPreSQL, true, this.getDatabaseProperties());
 
             this.mUsedConnections.add(this.mcDBConnection);
 
             DatabaseMetaData md = this.mcDBConnection.getMetaData();
 
-            this.mDBType = md.getDatabaseProductName();
+            this.mDBType = EngineConstants.cleanseDatabaseName(md.getDatabaseProductName());
             this.maxCharLength = md.getMaxCharLiteralLength();
             this.supportsSetSavepoint = md.supportsSavepoints();
             this.mBatchData = XMLHelper.getAttributeAsBoolean(nmAttrs, DimensionTransformation.BATCH_ATTRIB,

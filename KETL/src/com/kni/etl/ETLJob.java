@@ -701,6 +701,31 @@ public class ETLJob {
 	public Object getGlobalParameter(Object oName) {
 		return this.getParameterValue(this.msGlobalParameterListName, (String) oName, null);
 	}
+	
+	public ParameterList getGlobalParameterList() {
+		ArrayList res = (ArrayList) this.mTagLevelParameterListCache
+				.get(this.msGlobalParameterListName);
+
+		if (res == null)
+			return null;
+
+		if (res.size() > 1)
+			ResourcePool
+					.LogMessage(
+							this,
+							ResourcePool.WARNING_MESSAGE,
+							"Multiple parameter lists found for the parameter list "
+									+ this.msGlobalParameterListName
+									+ ", first list will be used.");
+
+		for (Object o : res) {
+			ParameterList pl = (ParameterList) o;
+			return pl;
+
+		}
+
+		return null;
+	}
 
 	/**
 	 * Insert the method's description here. Creation date: (5/20/2002 2:08:13 PM)
@@ -961,6 +986,7 @@ public class ETLJob {
 	public int getGlobalParameterListID() {
 		return this.miGlobalParameterListID;
 	}
+	
 
 	/**
 	 * Sets the global parameter list ID.

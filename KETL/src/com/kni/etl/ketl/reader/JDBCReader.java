@@ -30,6 +30,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -297,19 +298,18 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	 *            the param list
 	 * 
 	 * @return the connection
-	 * 
-	 * @throws SQLException
-	 *             the SQL exception
-	 * @throws ClassNotFoundException
-	 *             the class not found exception
+	 * @throws Exception 
 	 */
-	private Connection getConnection(int paramList) throws SQLException, ClassNotFoundException {
+	private Connection getConnection(int paramList) throws Exception {
 		if (this.mcDBConnection != null)
 			ResourcePool.releaseConnection(this.mcDBConnection);
+		
+		
+		Properties props = JDBCItemHelper.getProperties(this.getParameterListValues(paramList));
 		this.mcDBConnection = ResourcePool.getConnection(this.getParameterValue(paramList, DBConnection.DRIVER_ATTRIB),
 				this.getParameterValue(paramList, DBConnection.URL_ATTRIB), this.getParameterValue(paramList,
 						DBConnection.USER_ATTRIB), this.getParameterValue(paramList, DBConnection.PASSWORD_ATTRIB),
-				this.getParameterValue(paramList, JDBCReader.PRESQL_ATTRIB), true);
+				this.getParameterValue(paramList, JDBCReader.PRESQL_ATTRIB), true, props);
 
 		return this.mcDBConnection;
 	}
@@ -353,6 +353,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		return new JDBCReaderETLOutPort(this, this);
 	}
 
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -410,9 +411,8 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 						this.mColMetadata[i][JDBCReader.ColType] = this.mrsDBResultSet.getMetaData().getColumnType(
 								i + 1);
 
-						this.mColMetadata[i][JDBCReader.ColPrecision] = this.mrsDBResultSet.getMetaData().getPrecision(
-								i + 1);
-						this.mColMetadata[i][JDBCReader.ColScale] = this.mrsDBResultSet.getMetaData().getScale(i + 1);
+						this.mColMetadata[i][JDBCReader.ColPrecision] = JDBCReader.getPrecision(this.mrsDBResultSet.getMetaData(), i + 1);
+						this.mColMetadata[i][JDBCReader.ColScale] = JDBCReader.getScale(this.mrsDBResultSet.getMetaData(), i + 1);
 					}
 				} else {
 					iColumnCount = this.mColMetadata.length;
@@ -669,7 +669,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 					throw new KETLThreadException(e, this);
 				}
 
-				String mDBType = this.mcDBConnection.getMetaData().getDatabaseProductName();
+				String mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
 
 				sql = this.getStepTemplate(mDBType, "GETCOLUMNS", true);
 				sql = EngineConstants.replaceParameterV2(sql, "QUERY", aSQLStatement[0].getSQL());
@@ -699,8 +699,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 						Element newOut = this.getXMLConfig().getOwnerDocument().createElement(ETLStep.OUT_TAG);
 
 						newOut.setAttribute("NAME", rm.getColumnName(i));
-						newOut.setAttribute("DATATYPE", this.getJavaType(rm.getColumnType(i), rm
-								.getColumnDisplaySize(i), rm.getPrecision(i), rm.getScale(i)));
+						newOut.setAttribute("DATATYPE", this.getJavaType(rm.getColumnType(i), JDBCReader.getColumnDisplaySize(rm, i), JDBCReader.getPrecision(rm, i), JDBCReader.getScale(rm, i)));
 						newOut.setAttribute("CHANNEL", channel);
 						this.getXMLConfig()
 								.appendChild(this.getXMLConfig().getOwnerDocument().importNode(newOut, true));
@@ -714,8 +713,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 								"Output columns does not match number of columns in source query", this);
 
 					for (int i = 0; i < cols; i++) {
-						String type = this.getJavaType(rm.getColumnType(i + 1), rm.getColumnDisplaySize(i + 1), rm
-								.getPrecision(i + 1), rm.getScale(i + 1));
+						String type = this.getJavaType(rm.getColumnType(i + 1), JDBCReader.getColumnDisplaySize(rm, i + 1), JDBCReader.getPrecision(rm, i + 1), JDBCReader.getScale(rm, i + 1));
 						String definedType = XMLHelper.getAttributeAsString(nl[i].getAttributes(), "DATATYPE", null);
 
 						// update type
@@ -742,7 +740,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 
 				ResourcePool.releaseConnection(mcDBConnection);
 				this.mcDBConnection = null;
-			} catch (SQLException e1) {
+			} catch (Exception e1) {
 				throw new KETLThreadException("Problem executing SQL \"" + sql + "\"- " + e1.getMessage(), e1, this);
 			}
 		}
@@ -764,6 +762,29 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 			return tmp;
 		}
 		return tmp;
+	}
+
+	public static int getPrecision(ResultSetMetaData resultSetMetaData,
+			int column) throws SQLException {
+		try {
+			return resultSetMetaData.getPrecision(column);
+		} catch(NumberFormatException e){
+			return -1;
+		}
+	}
+
+	public static int getScale(ResultSetMetaData resultSetMetaData, int column)
+			throws SQLException {
+		try {
+			return resultSetMetaData.getScale(column);
+		} catch(NumberFormatException e){
+			return -1;
+		}
+	}
+
+	public static int getColumnDisplaySize(ResultSetMetaData resultSetMetaData,
+			int column) throws SQLException {
+		return resultSetMetaData.getColumnDisplaySize(column);
 	}
 
 	/*

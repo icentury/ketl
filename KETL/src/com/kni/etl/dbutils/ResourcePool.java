@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
@@ -382,6 +383,7 @@ public class ResourcePool {
 	 *            the str prep SQL
 	 * @param bAllowPooling
 	 *            the b allow pooling
+	 * @param pProperties TODO
 	 * @return the connection
 	 * @throws SQLException
 	 *             the SQL exception
@@ -389,7 +391,7 @@ public class ResourcePool {
 	 *             the class not found exception
 	 */
 	public static synchronized Connection getConnection(String strDriverClass, String strURL, String strUserName,
-			String strPassword, String strPrepSQL, boolean bAllowPooling) throws SQLException, ClassNotFoundException {
+			String strPassword, String strPrepSQL, boolean bAllowPooling, Properties pProperties) throws SQLException, ClassNotFoundException {
 		// Get hashtable of lookup caches
 		Hashtable<Connection, PooledConnection> aConnections = (Hashtable<Connection, PooledConnection>) ResourcePool.mResources[ResourcePool.CONNECTIONS];
 
@@ -426,7 +428,7 @@ public class ResourcePool {
 
 		PooledConnection connection = null;
 
-		connection = new PooledConnection(strDriverClass, strURL, strUserName, strPassword, strPrepSQL, bAllowPooling);
+		connection = new PooledConnection(strDriverClass, strURL, strUserName, strPassword, strPrepSQL, bAllowPooling,pProperties );
 
 		connection.setInUse(true);
 		aConnections.put(connection.mConnection, connection);

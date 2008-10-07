@@ -25,12 +25,15 @@ package com.kni.etl.ketl.writer;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Vector;
 
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.kni.etl.dbutils.DatabaseColumnDefinition;
+import com.kni.etl.dbutils.JDBCItemHelper;
 import com.kni.etl.dbutils.PrePostSQL;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.dbutils.StatementManager;
@@ -134,6 +137,8 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
     /** The mc DB connection. */
     Connection mcDBConnection = null;
 
+	private Properties mDatabaseProperties;
+
     /**
      * DOCUMENT ME!.
      * 
@@ -160,7 +165,12 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
         this.strURL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
         this.strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
         this.strPreSQL = this.getParameterValue(0, DBConnection.PRESQL_ATTRIB);
-
+        try {
+			this.setDatabaseProperties(this.getParameterListValues(0));
+		} catch (Exception e1) {
+			throw new KETLThreadException(e1,this);
+		}
+        
         // Convert the vector we've been building into a more common array...
         this.madcdColumns = (DatabaseColumnDefinition[]) this.mvColumns.toArray(new DatabaseColumnDefinition[0]);
 
@@ -181,7 +191,7 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
 
         try {
             this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName,
-                    this.strPassword, this.strPreSQL, true);
+                    this.strPassword, this.strPreSQL, true, this.getDatabaseProperties());
             this.executePreStatements();
             this.executePreBatchStatements();
 
@@ -194,6 +204,14 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
 
         return 0;
     }
+    
+    private Properties getDatabaseProperties() {
+		return this.mDatabaseProperties;
+	}
+
+	private void setDatabaseProperties(Map<String, Object>  parameterListValues) throws Exception {
+		this.mDatabaseProperties = JDBCItemHelper.getProperties(parameterListValues);		
+	}
 
     /** The stmt. */
     PGCopyWriter stmt = null;

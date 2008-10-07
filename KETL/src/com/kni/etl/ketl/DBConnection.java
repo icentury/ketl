@@ -83,6 +83,7 @@ public interface DBConnection {
      * 
      * @throws SQLException the SQL exception
      * @throws ClassNotFoundException the class not found exception
+     * @throws  
      */
     public Connection getConnection() throws SQLException, ClassNotFoundException;
 }

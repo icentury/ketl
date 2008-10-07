@@ -25,6 +25,8 @@ package com.kni.etl;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Properties;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -35,6 +37,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import com.kni.etl.dbutils.JDBCItemHelper;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.DBConnection;
 import com.kni.etl.util.XMLHelper;
@@ -203,6 +206,13 @@ public class SQLJob extends ETLJob implements DBConnection {
         return (String) this.getGlobalParameter(DBConnection.PRESQL_ATTRIB);
     }
 
+    public Properties getDatabaseProperties() throws Exception {
+    	ParameterList p = this.getGlobalParameterList();
+    	if(p== null) return null;
+		return JDBCItemHelper.getProperties(p.getParameters());
+	}
+
+	
     /**
      * Insert the method's description here. Creation date: (5/4/2002 6:00:10 PM)
      * 
@@ -421,8 +431,12 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @see com.kni.etl.ketl.DBConnection#getConnection()
      */
     public Connection getConnection() throws SQLException, ClassNotFoundException {
-        return ResourcePool.getConnection(this.getDatabaseDriverClass(), this.getDatabaseURL(), this.getDatabaseUser(),
-                this.getDatabasePassword(), this.getPreSQL(), true);
+        try {
+			return ResourcePool.getConnection(this.getDatabaseDriverClass(), this.getDatabaseURL(), this.getDatabaseUser(),
+			        this.getDatabasePassword(), this.getPreSQL(), true, this.getDatabaseProperties());
+		} catch (Exception e) {
+			throw new SQLException(e.getMessage());
+		}
     }
 
 }

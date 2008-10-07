@@ -46,6 +46,8 @@ import com.kni.etl.util.XMLHelper;
  */
 public class EngineConstants {
 
+	private enum  DBType  { POSTGRESQL, ORACLE, MYSQL, HSQLDB, H2,TERADATA, SQLSERVER };
+	
     /** The Constant SESSION_BROWSER. */
     public final static int SESSION_BROWSER = 11;
     
@@ -978,4 +980,18 @@ public class EngineConstants {
     public static String getDefaultCacheSize() {
         return EngineConstants.DEFAULTCACHESIZE;
     }
+
+    /* determines the database type from the product name, as not all drivers return the same product name */
+	public static String cleanseDatabaseName(String name) throws Exception {
+		if(name == null)
+			throw new Exception("Could not determine database type from name, name is null");
+		
+		for(DBType dbType:DBType.values()){
+			
+			if(name.toUpperCase().contains(dbType.name()))
+				return dbType.name();
+		}
+		
+		throw new Exception("Could not determine database type from name: " + name);	
+	}
 }

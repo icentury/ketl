@@ -25,6 +25,8 @@ package com.kni.etl.ketl.writer;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Properties;
 
 import org.w3c.dom.Node;
 
@@ -230,6 +232,15 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
     /** The jdbc helper. */
     private JDBCItemHelper jdbcHelper;
 
+	private Properties mDatabaseProperties;
+
+    private Properties getDatabaseProperties() {
+		return this.mDatabaseProperties;
+	}
+
+	private void setDatabaseProperties(Map<String, Object>  parameterListValues) throws Exception {
+		this.mDatabaseProperties = JDBCItemHelper.getProperties(parameterListValues);		
+	}
     // Return 0 if success, otherwise error code...
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
@@ -281,10 +292,15 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
         strURL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
         strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
         strPreSQL = this.getParameterValue(0, DBConnection.PRESQL_ATTRIB);
-
+        try {
+			this.setDatabaseProperties(this.getParameterListValues(0));
+        } catch (Exception e1) {
+			throw new KETLThreadException(e1,this);
+		}
+        
         try {
             this.setConnection(ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword, strPreSQL,
-                    true));
+                    true, this.getDatabaseProperties()));
 
             this.maxCharLength = this.mcDBConnection.getMetaData().getMaxCharLiteralLength();
             this.executePreStatements();

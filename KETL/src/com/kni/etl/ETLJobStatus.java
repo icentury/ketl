@@ -114,6 +114,9 @@ public class ETLJobStatus extends ETLStatus {
     
     /** The Constant ATTEMPT_CANCEL. */
     public final static int ATTEMPT_CANCEL = 22;
+    
+    /** The Constant FATAL. */
+    public final static int FATAL_STATE = -1;
 
     /**
      * ETLJobStatus constructor comment.

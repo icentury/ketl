@@ -30,6 +30,8 @@ import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Properties;
 
 import org.w3c.dom.Element;
 
@@ -39,6 +41,21 @@ import org.w3c.dom.Element;
  */
 public class JDBCItemHelper {
 
+	
+	static public Properties getProperties(Map<String,Object> parameterListValues) throws Exception{
+		Properties props = new java.util.Properties();
+		for(Map.Entry<String, Object> parameter :parameterListValues.entrySet()){
+			if(parameter.getKey().equals("DBPARAMETER")){
+				String[] val = parameter.getValue().toString().split("=");
+				if(val == null || val.length != 2){
+					throw new Exception("DBPARAMETER invalid. Format must be <PARAMETERNAME>=<VALUE> e.g. BufferSize=4096");
+				}
+				props.put(val[0],val[1]);
+			}
+		}
+		
+		return props;
+	}
 	// convert sql datatype to required datatype
 	// ENHANCE: Implement full JDC 3.0 conversion
 	/**

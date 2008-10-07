@@ -30,12 +30,15 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.kni.etl.EngineConstants;
+import com.kni.etl.dbutils.JDBCItemHelper;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.DBConnection;
 import com.kni.etl.ketl.ETLOutPort;
@@ -233,7 +236,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
 		try {
 
-			this.mDBType = this.mcDBConnection.getMetaData().getDatabaseProductName();
+			this.mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
 		} catch (Exception e) {
 			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to get database type from metadata: "
 					+ e.toString());
@@ -387,6 +390,8 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	private String user;
 
 	private String pwd;
+
+	private Properties mDatabaseProperties;
 
 	/**
 	 * Gets the next table.
@@ -824,12 +829,26 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 		this.url = this.getParameterValue(0, DBConnection.URL_ATTRIB);
 		this.user = this.getParameterValue(0, DBConnection.USER_ATTRIB);
 		this.pwd = this.getParameterValue(0, DBConnection.PASSWORD_ATTRIB);
+		try {
+			this.setDatabaseProperties(this.getParameterListValues(0));
+		} catch (Exception e1) {
+			throw new KETLThreadException(e1,this);
+		}
 		this.mMaxDOVSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), JDBCSSAScanner.MAX_DOV_SIZE,
 				this.mMaxDOVSize);
 
 		return 0;
 	}
 
+	private Properties getDatabaseProperties() {
+		return this.mDatabaseProperties;
+	}
+
+	private void setDatabaseProperties(Map<String, Object>  parameterListValues) throws Exception {
+		this.mDatabaseProperties = JDBCItemHelper.getProperties(parameterListValues);		
+	}
+	
+	
 	// Opens a new connection with the given information.
 	/**
 	 * Open connection.
@@ -846,7 +865,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	 */
 	public Connection openConnection() {
 		try {
-			this.mcDBConnection = ResourcePool.getConnection(driver, url, user, pwd, null, true);
+			this.mcDBConnection = ResourcePool.getConnection(driver, url, user, pwd, null, true, this.getDatabaseProperties());
 
 			return this.mcDBConnection;
 		} catch (Exception e) {

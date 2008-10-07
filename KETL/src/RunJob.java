@@ -137,7 +137,7 @@ public class RunJob {
 
 			// EngineConstants.getSystemXML();
 
-			if (this.useMD) {
+			if (this.useMD != null && this.useMD) {
 				this.xmlConfig = Metadata.LoadConfigFile(null, configFile);
 				this.connectToServer();
 			}

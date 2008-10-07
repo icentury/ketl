@@ -32,6 +32,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -56,13 +57,7 @@ public class PooledConnection {
     
     /** The URL. */
     String mURL;
-    
-    /** The user name. */
-    String mUserName;
-    
-    /** The password. */
-    String mPassword;
-    
+        
     /** The pre SQL. */
     String mPreSQL;
     
@@ -71,6 +66,8 @@ public class PooledConnection {
     
     /** The last activity. */
     java.util.Date mLastActivity = null;
+
+	private Properties pProperties;
 
     /**
      * The Constructor.
@@ -81,30 +78,35 @@ public class PooledConnection {
      * @param pPassword the password
      * @param pPreSQL the pre SQL
      * @param pAllowReuse the allow reuse
+     * @param properties 
      * 
      * @throws ClassNotFoundException the class not found exception
      * @throws SQLException the SQL exception
      */
     public PooledConnection(String pDriverClass, String pURL, String pUserName, String pPassword, String pPreSQL,
-            boolean pAllowReuse) throws ClassNotFoundException, SQLException {
+            boolean pAllowReuse, Properties properties) throws ClassNotFoundException, SQLException {
         super();
 
         this.mAllowReuse = pAllowReuse;
 
         this.mDriverClass = pDriverClass;
-        this.mURL = pURL;
-        this.mUserName = pUserName;
-        this.mPassword = pPassword;
+		this.mURL = pURL;
+		this.pProperties = properties;
+		this.mUserName = pUserName;
+		if (pUserName != null)
+			this.pProperties.put("user", pUserName);
+		if (pPassword != null)
+			this.pProperties.put("password", pPassword);
 
-        if (pPreSQL == null) {
-            pPreSQL = PooledConnection.NULL;
-        }
+		if (pPreSQL == null) {
+			pPreSQL = PooledConnection.NULL;
+		}
 
         this.mPreSQL = pPreSQL;
 
         // create new connection and mark element as in use.
         Class.forName(pDriverClass);
-        this.mConnection = DriverManager.getConnection(pURL, pUserName, pPassword);
+        this.mConnection = DriverManager.getConnection(pURL, this.pProperties);
 
         if (pPreSQL != PooledConnection.NULL) {
             Statement stmt = this.mConnection.createStatement();
@@ -150,6 +152,8 @@ public class PooledConnection {
 
     /** The owner. */
     private Thread owner=null;
+
+	private Object mUserName;
     
     /**
      * Sets the in use.
@@ -213,7 +217,7 @@ public class PooledConnection {
         }
 
         if (pDriverClass.equals(this.mDriverClass) && pURL.equals(this.mURL) && pUserName.equals(this.mUserName)
-                && pPassword.equals(this.mPassword) && pPreSQL.equals(this.mPreSQL)) {
+                &&  pPreSQL.equals(this.mPreSQL)) {
             return true;
         }
 

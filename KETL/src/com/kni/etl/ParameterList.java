@@ -90,6 +90,10 @@ public class ParameterList {
 
         return this.hmParameterList.get(oName);
     }
+    
+    public Map getParameters() {
+    	return java.util.Collections.unmodifiableMap(this.hmParameterList);
+    }
 
     /**
      * Insert the method's description here. Creation date: (5/8/2002 4:33:44 PM)

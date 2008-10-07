@@ -165,7 +165,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
 			// Get a connection to our database...
 			try {
 				this.dbConnection = ResourcePool.getConnection(sjJob.getDatabaseDriverClass(), sjJob.getDatabaseURL(),
-						sjJob.getDatabaseUser(), sjJob.getDatabasePassword(), sjJob.getPreSQL(), true);
+						sjJob.getDatabaseUser(), sjJob.getDatabasePassword(), sjJob.getPreSQL(), true, sjJob.getDatabaseProperties());
 			} catch (Exception e) {
 				jsJobStatus.setErrorCode(1); // BRIAN: NEED TO SET UP SQL JOB ERROR CODES
 				jsJobStatus.setErrorMessage("Error connecting to database: " + e.getMessage());

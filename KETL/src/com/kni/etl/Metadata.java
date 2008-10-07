@@ -134,7 +134,7 @@ public class Metadata {
 	private String singleRowPullSyntax;
 
 	/** The db types. */
-	private String[] dbTypes = { "PostGreSQL", "Oracle", "MySQL", "HSQLDB", "H2" };
+	private enum  ValidMDDBTypes  { POSTGRESQL,  ORACLE,  MYSQL,  HSQLDB,  H2 };
 
 	/** The db use identity column. */
 	private boolean[] dbUseIdentityColumn = { false, false, true, false, false };
@@ -2072,9 +2072,10 @@ public class Metadata {
 				m_stmt.close();
 			}
 
-			if (status_id == null)
-				throw new Exception("Job not in job_log table, load id = " + pLoadID);
-
+			if (status_id == null){
+				ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Job not in job_log table, issuing cancel for load id = " + pLoadID + ", restart of server recommended");
+				return ETLJobStatus.FATAL_STATE;
+			}
 			return status_id.intValue();
 		}
 
@@ -4376,24 +4377,22 @@ public class Metadata {
 			boolean ansi92 = mdDB.supportsANSI92EntryLevelSQL();
 			boolean outerJoins = mdDB.supportsLimitedOuterJoins();
 
-			int dbType = -1;
-
-			for (int i = 0; i < this.dbTypes.length; i++) {
-				if (this.dbTypes[i].equalsIgnoreCase(mdDB.getDatabaseProductName())) {
-					dbType = i;
-
+			
+			boolean found = false;
+			for (ValidMDDBTypes dbType: ValidMDDBTypes.values()) {
+				if (dbType.name().equals(EngineConstants.cleanseDatabaseName(mdDB.getDatabaseProductName()))) {
+					found = true;
 					// finish loop
-					i = this.dbTypes.length;
-					this.currentTimeStampSyntax = this.dbTimeStampTypes[dbType];
-					this.nextLoadIDSyntax = this.dbSequenceSyntax[dbType].replaceAll("#", "LOAD_ID");
-					this.useIdentityColumn = this.dbUseIdentityColumn[dbType];
-					this.secondsBeforeRetry = this.dbSecondsBeforeRetry[dbType];
+					this.currentTimeStampSyntax = this.dbTimeStampTypes[dbType.ordinal()];
+					this.nextLoadIDSyntax = this.dbSequenceSyntax[dbType.ordinal()].replaceAll("#", "LOAD_ID");
+					this.useIdentityColumn = this.dbUseIdentityColumn[dbType.ordinal()];
+					this.secondsBeforeRetry = this.dbSecondsBeforeRetry[dbType.ordinal()];
 
-					this.nextServerIDSyntax = this.dbSequenceSyntax[dbType].replaceAll("#", "SERVER_ID");
-					this.singleRowPullSyntax = this.dbSingleRowPull[dbType];
-					this.mResolvedLoadTableName = this.mLoadTableName[dbType];
+					this.nextServerIDSyntax = this.dbSequenceSyntax[dbType.ordinal()].replaceAll("#", "SERVER_ID");
+					this.singleRowPullSyntax = this.dbSingleRowPull[dbType.ordinal()];
+					this.mResolvedLoadTableName = this.mLoadTableName[dbType.ordinal()];
 
-					String incrementIdenentityColumnSyntax = this.dbIncrementIdentityColumnSyntax[dbType];
+					String incrementIdenentityColumnSyntax = this.dbIncrementIdentityColumnSyntax[dbType.ordinal()];
 					if (incrementIdenentityColumnSyntax != null) {
 						this.mIncIdentColStmt = this.metadataConnection
 								.prepareStatement(incrementIdenentityColumnSyntax);
@@ -4401,7 +4400,7 @@ public class Metadata {
 				}
 			}
 
-			if (dbType == -1) {
+			if (!found) {
 				throw new Exception("ERROR: " + mdDB.getDatabaseProductName()
 						+ " is not supported for metadata storage");
 			}

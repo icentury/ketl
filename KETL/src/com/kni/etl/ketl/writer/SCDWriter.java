@@ -34,6 +34,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
@@ -875,6 +877,8 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
     @SuppressWarnings("unused")
     private String mFirstSK;
 
+	private Properties mDatabaseProperties;
+
     /**
      * Gets the ID quote.
      * 
@@ -909,7 +913,11 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
         this.strURL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
         this.strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
         this.strPreSQL = this.getParameterValue(0, DBConnection.PRESQL_ATTRIB);
-
+        try {
+			setDatabaseProperties(this.getParameterListValues(0));
+        } catch (Exception e1) {
+			throw new KETLThreadException(e1,this);
+		}
         // Get the attributes
         NamedNodeMap nmAttrs = nConfig.getAttributes();
 
@@ -941,9 +949,9 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
 
         try {
             this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName,
-                    this.strPassword, this.strPreSQL, true);
+                    this.strPassword, this.strPreSQL, true, this.getDatabaseProperties());
 
-            this.mDBType = this.mcDBConnection.getMetaData().getDatabaseProductName();
+            this.mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
             this.mUsedConnections.add(this.mcDBConnection);
 
             DatabaseMetaData md = this.mcDBConnection.getMetaData();
@@ -1224,7 +1232,15 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
         return 0;
     }
 
-    /** The cache persistence ID. */
+    private Properties getDatabaseProperties() {
+		return this.mDatabaseProperties;
+	}
+
+	private void setDatabaseProperties(Map<String, Object>  parameterListValues) throws Exception {
+		this.mDatabaseProperties = JDBCItemHelper.getProperties(parameterListValues);		
+	}
+
+	/** The cache persistence ID. */
     private Integer mCachePersistenceID = -1;
 
     /** The cache size. */

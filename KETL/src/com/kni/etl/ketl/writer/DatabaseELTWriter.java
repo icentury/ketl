@@ -33,6 +33,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
@@ -1158,6 +1160,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 	/** The hash compare only. */
 	private boolean mHashCompareOnly;
 
+	private Properties mDatabaseProperties;
+
 	/**
 	 * Gets the ID quote.
 	 * 
@@ -1170,6 +1174,15 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 		return null;
 	}
 
+	
+	private Properties getDatabaseProperties() {
+		return this.mDatabaseProperties;
+	}
+
+	private void setDatabaseProperties(Map<String, Object>  parameterListValues) throws Exception {
+		this.mDatabaseProperties = JDBCItemHelper.getProperties(parameterListValues);		
+	}
+	
 	/**
 	 * DOCUMENT ME!.
 	 * 
@@ -1197,7 +1210,11 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 		this.strURL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
 		this.strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
 		this.strPreSQL = this.getParameterValue(0, DBConnection.PRESQL_ATTRIB);
-
+		try {
+			this.setDatabaseProperties(this.getParameterListValues(0));
+		} catch (Exception e2) {
+			throw new KETLThreadException(e2,this);
+		}
 		this.mbReinitOnError = XMLHelper.getAttributeAsBoolean(nmAttrs, "RECONNECTONERROR", true);
 		this.mbReplaceMode = XMLHelper.getAttributeAsBoolean(nmAttrs, "REPLACEROWS", false);
 
@@ -1239,10 +1256,10 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 
 		try {
 			this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName,
-					this.strPassword, this.strPreSQL, true);
+					this.strPassword, this.strPreSQL, true, this.getDatabaseProperties());
 
 			this.mcDBConnection.setAutoCommit(false);
-			this.mDBType = this.mcDBConnection.getMetaData().getDatabaseProductName();
+			this.mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
 			this.mUsedConnections.add(this.mcDBConnection);
 
 			DatabaseMetaData md = this.mcDBConnection.getMetaData();
@@ -1591,7 +1608,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 		if (this.mManageIndexes == false)
 			return;
 
-		ResultSet indexRs = this.mcDBConnection.getMetaData().getIndexInfo(null, this.mstrSchemaName,
+		ResultSet indexRs = this.mcDBConnection.getMetaData().getIndexInfo(null, this.mstrSchemaName.length()==0?null:this.mstrSchemaName,
 				this.mstrTableName, false, true);
 		ArrayList indexList = new ArrayList();
 		while (indexRs.next()) {
