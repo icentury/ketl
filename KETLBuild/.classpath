@@ -27,7 +27,8 @@
 	<classpathentry kind="lib" path="/KETL/lib/saxon9-dom.jar"/>
 	<classpathentry kind="lib" path="/KETL/lib/saxon9-xpath.jar"/>
 	<classpathentry kind="lib" path="/KETL/lib/saxon9.jar"/>
-	<classpathentry kind="lib" path="C:/Development/lib/ojdbc14.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.5.0_16/lib/tools.jar"/>
+	<classpathentry kind="lib" path="C:/Development/datadirect/ddjdbc40.jar"/>
+	<classpathentry kind="lib" path="C:/Development/Oracle/ojdbc5.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>
