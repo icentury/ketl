@@ -10,5 +10,5 @@ cd $KETLDIR
 
 $JAVA_HOME/bin/java $JAVA_OPTS \
       -classpath $JAVA_HOME/lib/tools.jar:$KETLDIR/lib/KETL.jar \
-      RunJob FILE=$CURRENT_DIR/$1
+      RunJob $*
 cd $CURRENT_DIR

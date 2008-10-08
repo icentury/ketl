@@ -7,7 +7,7 @@
 CURRENT_DIR=`pwd`
 cd $KETLDIR
 
-. $KETLDIR/conf/Extra.Config
+. $KETLDIR/conf/SmallExtra.Config
 
 CLASSPATH=$KETL_DIR
 
