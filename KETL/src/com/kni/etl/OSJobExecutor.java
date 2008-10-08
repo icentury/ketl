@@ -49,12 +49,13 @@ public class OSJobExecutor extends ETLJobExecutor {
 
 		/** The alive. */
 		boolean alive = true;
-
-		/** The current job. */
-		OSJob currentJob = null;
-
+		
 		/** The process. */
 		public Process process = null;;
+
+		public OSJobMonitor(ETLJob job) {
+			this.setName("OS Job Monitor - " + job.getJobID());
+		}
 
 		/*
 		 * (non-Javadoc)
@@ -66,11 +67,12 @@ public class OSJobExecutor extends ETLJobExecutor {
 			try {
 				while (this.alive) {
 
-					if (this.process != null && this.currentJob != null && this.currentJob.isCancelled()) {
+					ETLJob job = ojJob;
+					if (this.process != null && job != null && job.isCancelled()) {
 						this.process.destroy();
-						this.currentJob.cancelSuccessfull(true);
+						job.cancelSuccessfull(true);
 					}
-					Thread.sleep(500);
+					Thread.sleep(250);
 				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -98,7 +100,7 @@ public class OSJobExecutor extends ETLJobExecutor {
 	@Override
 	protected boolean executeJob(ETLJob jCurrentJob) {
 		boolean bSuccess = true;
-		this.monitor = new OSJobMonitor();
+		this.monitor = new OSJobMonitor(jCurrentJob);
 		try {
 			this.monitor.start();
 

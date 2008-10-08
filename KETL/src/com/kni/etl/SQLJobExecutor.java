@@ -58,12 +58,13 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
 		/** The alive. */
 		boolean alive = true;
-
-		/** The current job. */
-		ETLJob currentJob = null;
-
+		
 		/** The stmt. */
 		public Statement stmt = null;;
+
+		public SQLJobMonitor(ETLJob ejJob) {
+			this.setName("SQL Job Monitor - " + ejJob.getJobID());
+		}
 
 		/*
 		 * (non-Javadoc)
@@ -72,19 +73,20 @@ public class SQLJobExecutor extends ETLJobExecutor {
 		 */
 		@Override
 		public void run() {
-			try {
+			try {				
 				while (this.alive) {
 
-					if (this.stmt != null && this.currentJob != null && this.currentJob.isCancelled()) {
+					ETLJob job = sjJob;
+					if (this.stmt != null && job != null && job.isCancelled()) {
 						try {
 							this.stmt.cancel();
-							this.currentJob.cancelSuccessfull(true);
+							job.cancelSuccessfull(true);
 						} catch (SQLException e) {
 							ResourcePool.LogException(e, this);
 						}
 
 					}
-					Thread.sleep(500);
+					Thread.sleep(250);
 
 				}
 			} catch (InterruptedException e) {
@@ -146,7 +148,8 @@ public class SQLJobExecutor extends ETLJobExecutor {
 	 */
 	@Override
 	protected boolean executeJob(ETLJob ejJob) {
-		this.monitor = new SQLJobMonitor();
+		this.monitor = new SQLJobMonitor(ejJob);
+		
 		try {
 			this.monitor.start();
 
@@ -159,7 +162,6 @@ public class SQLJobExecutor extends ETLJobExecutor {
 			}
 
 			sjJob = (SQLJob) ejJob;
-			this.monitor.currentJob = sjJob;
 			jsJobStatus = sjJob.getStatus();
 
 			// Get a connection to our database...
@@ -370,7 +372,6 @@ public class SQLJobExecutor extends ETLJobExecutor {
 			}
 		} finally {
 			this.sjJob = null;
-			this.monitor.currentJob = null;
 			this.monitor.stmt = null;
 			this.monitor.alive = false;
 		}
