@@ -1331,4 +1331,26 @@ public class ETLJob {
 		this.notificationMode = null;
 	}
 
+	
+	private int timeOut = Integer.MAX_VALUE;
+
+	private String pool;
+	
+	public void setTimeout(int arg0){
+		this.timeOut = arg0;
+	}
+	public int getTimeout() {
+		return this.timeOut;
+	}
+
+	public void setPool(String pool) {
+		this.pool = pool;		
+	}
+	
+	public String getPool(){
+		if(pool == null)
+			return EngineConstants.DEFAULT_POOL;
+		return pool;
+	}
+
 }

@@ -413,6 +413,7 @@ public class SQLJob extends ETLJob implements DBConnection {
             }
 
             this.mSQLNode = nl.item(0);
+            this.setTimeout(XMLHelper.getAttributeAsInt(this.mSQLNode.getAttributes(),"TIMEOUT",Integer.MAX_VALUE));
             
             this.setNotificationMode(XMLHelper.getAttributeAsString(this.mSQLNode.getAttributes(),"EMAILSTATUS",null));
             

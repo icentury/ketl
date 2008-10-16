@@ -82,6 +82,8 @@ public abstract class ETLJobExecutor extends Thread {
 
 	private String msType;
 
+	private String pool;
+
 	/**
 	 * ETLJobExecutorThread constructor comment.
 	 */
@@ -619,12 +621,12 @@ public abstract class ETLJobExecutor extends Thread {
 
 	private String getLabel() {
 		if (this.llPendingQueue.size() > 0)
-			return this.msType + this.llPendingQueue.toString();
+			return this.msType + " - " + this.pool + " " +  this.llPendingQueue.toString();
 		ETLJob job;
 		if ((job = this.getCurrentETLJob()) != null)
-			return this.msType + "[" + job.toString() + "]";
+			return this.msType + " - " + this.pool + " [" + job.toString() + "]";
 
-		return this.msType;
+		return this.msType + " - " + this.pool;
 	}
 
 	/**
@@ -775,6 +777,10 @@ public abstract class ETLJobExecutor extends Thread {
 
 	protected boolean isValidType(ETLJob job) {
 		return this.msType == null || this.msType.equals(job.getJobTypeName());
+	}
+
+	public void setPool(String pool) {
+		this.pool = pool;		
 	}
 
 }

@@ -182,11 +182,13 @@ public class KETLCluster {
         /** The count. */
         int mCount;
 
+		
         /**
          * Instantiates a new executor.
          * 
          * @param mName The name
          * @param mCount The count
+         * @param pool 
          */
         public Executor(String mName, int mCount) {
             super();
@@ -211,7 +213,7 @@ public class KETLCluster {
         @Override
         public String toString() {
             StringBuffer sb = new StringBuffer();
-            sb.append("\t" + this.mName + ": ");
+            sb.append("\t" + this.mName +": ");
 
             if (this.mCount != -1) {
                 sb.append("(Total: " + this.mCount + ") ");
@@ -289,11 +291,12 @@ public class KETLCluster {
      * @param mServerID The server ID
      * @param mName The name
      * @param mCount The count
+     * @param pool 
      */
-    public void addExecutor(int mServerID, String mName, int mCount) {
+    public void addExecutor(int mServerID, String mName, int mCount, String pool) {
         Server s = (Server) this.mServers.get(new Integer(mServerID));
-        Executor e = new Executor(mName, mCount);
-        s.addExecutor(mName, e);
+        Executor e = new Executor(mName+"[" + pool + "]", mCount);
+        s.addExecutor(mName+"[" + pool + "]", e);
     }
 
     /**
@@ -303,26 +306,27 @@ public class KETLCluster {
      * @param mName The name
      * @param mState The state
      * @param mCount The count
+     * @param pool 
      */
-    public void addExecutorState(int mServerID, String mName, String mState, int mCount) {
+    public void addExecutorState(int mServerID, String mName, String mState, int mCount, String pool) {
         Executor e;
 
         if (mServerID == -1) {
-            e = (Executor) this.unAssignedExec.get(mName);
+            e = (Executor) this.unAssignedExec.get(mName+"[" + pool + "]");
 
             if (e == null) {
-                e = new Executor(mName, -1);
+                e = new Executor(mName+"[" + pool + "]", -1);
             }
 
-            this.unAssignedExec.put(mName, e);
+            this.unAssignedExec.put(mName+"[" + pool + "]", e);
         }
         else {
             Server s = (Server) this.mServers.get(new Integer(mServerID));
-            e = (Executor) s.getExecutor(mName);
+            e = (Executor) s.getExecutor(mName+"[" + pool + "]");
 
             if (e == null) {
-                e = new Executor(mName, -1);
-                s.addExecutor(mName, e);
+                e = new Executor(mName+"[" + pool + "]", -1);
+                s.addExecutor(mName+"[" + pool + "]", e);
             }
         }
 

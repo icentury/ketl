@@ -73,7 +73,9 @@ public class SQLJobExecutor extends ETLJobExecutor {
 		 */
 		@Override
 		public void run() {
-			try {				
+			try {	
+				long startTime = System.currentTimeMillis();
+				int cnt = 0;
 				while (this.alive) {
 
 					ETLJob job = sjJob;
@@ -86,7 +88,29 @@ public class SQLJobExecutor extends ETLJobExecutor {
 						}
 
 					}
-					Thread.sleep(250);
+					
+					if (cnt % 8 == 0 && cnt > 0){
+						long runTime = (System.currentTimeMillis() - startTime) / 1000;
+						
+						job.getStatus().setExtendedMessage(("Running statement("+ runTime +"s):" + (curSQL==null?"n/a":curSQL)));
+						
+						if (runTime > job.getTimeout()){
+							job.getStatus().setExtendedMessage(
+									"Job being failed timeout exceeded of " + job.getTimeout() + "s");					
+							if (this.stmt != null) {
+								try {
+									stmt.cancel();
+								} catch (SQLException e) {
+									ResourcePool.LogException(e, this);
+								}
+							} else {
+
+							}
+						}
+
+					}
+					Thread.sleep(500);
+					cnt++;
 
 				}
 			} catch (InterruptedException e) {
@@ -138,6 +162,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
 	}
 
 	private SQLJob sjJob;
+	private String curSQL;
 
 	/**
 	 * Insert the method's description here. Creation date: (5/4/2002 5:37:52 PM)
@@ -151,11 +176,11 @@ public class SQLJobExecutor extends ETLJobExecutor {
 		this.monitor = new SQLJobMonitor(ejJob);
 		
 		try {
+			curSQL = null;
+			
 			this.monitor.start();
 
 			ETLStatus jsJobStatus;
-			String curSQL = null;
-
 			// Only accept SQL jobs...
 			if ((ejJob instanceof SQLJob) == false) {
 				return false;

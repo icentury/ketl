@@ -178,13 +178,13 @@ public class ETLThreadManager {
         this.startTime = System.currentTimeMillis();
         this.previousTime = this.startTime;
 
-        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "- Initializing threads");
-        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "- Registering queues");
+        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "- Initializing threads");
+        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "- Registering queues");
         for (Object o : this.threads) {
             ((WorkerThread) o).step.initializeQueues();
         }
 
-        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "- Initializing core managers");
+        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "- Initializing core managers");
         for (Object o : this.threads) {
             try {
                 ((WorkerThread) o).step.initialize(this.mkjExecutor);
@@ -195,19 +195,19 @@ public class ETLThreadManager {
             }
         }
 
-        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
+        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE,
                 "- Compiling and instantiating cores");
         for (Object o : this.threads) {
             ((WorkerThread) o).step.compile();
         }
 
-        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "- Starting threads");
+        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "- Starting threads");
         synchronized (this) {
             for (Object o : this.threads) {
                 ((WorkerThread) o).thread.start();
             }
         }
-        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Threads initialized");
+        ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "Threads initialized");
     }
 
     /**

@@ -410,6 +410,8 @@ public class EngineConstants {
     
     /** The Constant STATIC_PERSISTENCE. */
     public static final int STATIC_PERSISTENCE = 2;
+
+	public static final String DEFAULT_POOL = "Default";
     
     /** The DEFAULTCACHESIZE. */
     private static String DEFAULTCACHESIZE = "64kb";

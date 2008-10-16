@@ -650,7 +650,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 			throw new KETLThreadException("ERROR: No SQL statements found", this);
 
 		if (JDBCReader.outsResolved(this.getXMLConfig())) {
-			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Outputs resolved in another partition");
+			ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Outputs resolved in another partition");
 			return;
 		}
 
@@ -703,7 +703,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 						newOut.setAttribute("CHANNEL", channel);
 						this.getXMLConfig()
 								.appendChild(this.getXMLConfig().getOwnerDocument().importNode(newOut, true));
-						ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Inferring port "
+						ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Inferring port "
 								+ XMLHelper.getAttributeAsString(newOut.getAttributes(), "NAME", "N/A") + " as "
 								+ newOut.getAttribute("DATATYPE"));
 					}

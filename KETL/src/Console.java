@@ -102,7 +102,7 @@ public class Console {
 
 	/** The Constant JOBDETAIL_TYPES. */
 	static final String[] JOBDETAIL_TYPES = { "XMLDEFINITION", "DEFINITION", "DEPENDENCIES", "EXECUTE",
-			"IGNOREDEPENDENCIES", "MULTI", "IMPORT", "EXPORT", "DELETE", "RESTART", "SKIP", "EXECUTEDIRECT", "CANCEL" };
+			"IGNOREDEPENDENCIES", "MULTI", "IMPORT", "EXPORT", "DELETE", "RESTART", "SKIP", "EXECUTEDIRECT", "KILL" };
 
 	/** The Constant LIST. */
 	static final int LIST = 0;
@@ -636,11 +636,25 @@ public class Console {
 									this.md.setJobStatus(eJob);
 									sb.append("Job: " + eJob.getJobID() + " cancelled");
 								}
+							} else if (eJob.getStatus().getStatusCode() == ETLJobStatus.EXECUTING) {
+								System.out
+										.print("Job "
+												+ eJob.getJobID()
+												+ " is executing do you really want to cancel it Y(Yes), N(No): ");
+								choice = this.stdin.readLine();
+
+								if (choice.equalsIgnoreCase("Y")) {
+									eJob.getStatus().setStatusCode(
+											ETLJobStatus.ATTEMPT_CANCEL);
+									this.md.setJobStatus(eJob);
+									sb.append("Job: " + eJob.getJobID()
+											+ " cancelled");
+								}
 							} else {
 								sb
 										.append("Job: "
 												+ eJob.getJobID()
-												+ " can not be cancelled as it is already running or not in the current run list");
+												+ " can not be cancelled as it is not in the current run list");
 							}
 
 							break;
@@ -1523,13 +1537,13 @@ public class Console {
 							"Just Finished"));
 				}
 
-				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.EXECUTING), "Executing"));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PAUSED), "Paused"));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.READY_TO_RUN), "Ready To Run"));
 				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.FAILED), "Failed"));
 				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_FAILED),
 						"Just Failed"));
-				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PAUSED), "Paused"));
-				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.READY_TO_RUN), "Ready To Run"));
-
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.EXECUTING), "Executing"));
+				
 				return sb.toString();
 			}
 

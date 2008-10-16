@@ -1427,7 +1427,7 @@ public class Metadata {
 			m_stmt = this.metadataConnection
 					.prepareStatement("select a.server_id,server_name,status_desc,last_ping_time,start_time,c.description,threads, "
 							+ this.currentTimeStampSyntax
-							+ " from "
+							+ ",a.pool from "
 							+ this.tablePrefix
 							+ "server_executor a, "
 							+ this.tablePrefix
@@ -1450,7 +1450,7 @@ public class Metadata {
 					int serverID = m_rs.getInt(1);
 					kc.addServer(serverID, m_rs.getString(2), m_rs.getTimestamp(5), m_rs.getTimestamp(4), m_rs
 							.getString(3), m_rs.getTimestamp(8));
-					kc.addExecutor(serverID, m_rs.getString(6), m_rs.getInt(7));
+					kc.addExecutor(serverID, m_rs.getString(6), m_rs.getInt(7), m_rs.getString(9));
 				} catch (Exception e) {
 					e.printStackTrace();
 					ResourcePool.LogMessage("Error getting server states: " + e.getMessage());
@@ -1468,11 +1468,11 @@ public class Metadata {
 				m_stmt.close();
 			}
 
-			m_stmt = this.metadataConnection.prepareStatement("select server_id,c.description,status_desc,count(*) "
+			m_stmt = this.metadataConnection.prepareStatement("select server_id,c.description,status_desc,pool,count(*) "
 					+ " from " + this.tablePrefix + "job_log a , " + this.tablePrefix + "job_status b,  " + " "
 					+ this.tablePrefix + "job_type c, " + this.tablePrefix + "job d "
 					+ " where a.status_id = b.status_id " + " and a.job_id = d.job_id "
-					+ " and c.job_type_id = d.job_type_id " + " group by server_id,status_desc,c.description");
+					+ " and c.job_type_id = d.job_type_id " + " group by server_id,status_desc,c.description,pool");
 			m_rs = m_stmt.executeQuery();
 
 			while (m_rs.next()) {
@@ -1483,7 +1483,9 @@ public class Metadata {
 						serverId = -1;
 					}
 
-					kc.addExecutorState(serverId, m_rs.getString(2), m_rs.getString(3), m_rs.getInt(4));
+					String srv = m_rs.getString(4);
+					srv = srv==null?EngineConstants.DEFAULT_POOL:srv;
+					kc.addExecutorState(serverId, m_rs.getString(2), m_rs.getString(3), m_rs.getInt(5),srv);
 				} catch (Exception e) {
 					ResourcePool.LogMessage("Error getting executor state: " + e.getMessage());
 					e.printStackTrace();
@@ -1896,7 +1898,7 @@ public class Metadata {
 
 			m_stmt = this.metadataConnection
 					.prepareStatement("SELECT CLASS_NAME,PROJECT_ID,JOB_ID,ACTION,NAME,RETRY_ATTEMPTS,PARAMETER_LIST_ID,"
-							+ "A.JOB_TYPE_ID,a.DESCRIPTION,b.DESCRIPTION,DISABLE_ALERTING,SECONDS_BEFORE_RETRY FROM  "
+							+ "A.JOB_TYPE_ID,a.DESCRIPTION,b.DESCRIPTION,DISABLE_ALERTING,SECONDS_BEFORE_RETRY,A.POOL FROM  "
 							+ this.tablePrefix
 							+ "JOB A,  "
 							+ this.tablePrefix
@@ -1950,7 +1952,7 @@ public class Metadata {
 
 					// get seconds before retry
 					newETLJob.setSecondsBeforeRetry(m_rs.getInt(12));
-
+					newETLJob.setPool(m_rs.getString(13));
 					if ((x != null) && x.equalsIgnoreCase("Y")) {
 						newETLJob.setDisableAlerting(true);
 					}
@@ -2354,6 +2356,38 @@ public class Metadata {
 
 		return (jobs);
 	}
+	
+	
+	public void recoverServerJobs(int serverID) throws SQLException,
+			java.lang.Exception {
+		PreparedStatement m_stmt = null;
+
+		synchronized (this.oLock) {
+			// Make metadata connection alive.
+			this.refreshMetadataConnection();
+
+			m_stmt = this.metadataConnection
+					.prepareStatement("update "
+							+ this.tablePrefix
+							+ "job_log set status_id = "
+							+ ETLJobStatus.PENDING_CLOSURE_FAILED
+							+ ", message = 'Failed due to server failure' where status_id = "
+							+ ETLJobStatus.EXECUTING + " and server_id = ?");
+			m_stmt.setInt(1, serverID);
+			m_stmt.executeUpdate();
+
+			m_stmt.getConnection().commit();
+
+			if (m_stmt != null) {
+				m_stmt.close();
+			}
+
+			if (m_stmt != null) {
+				m_stmt.close();
+			}
+		}
+
+	}
 
 	/** The Constant WAITS_ON. */
 	public static final String WAITS_ON = "Y";
@@ -2527,8 +2561,8 @@ public class Metadata {
 
 							if (na == null) {
 								action = "";
-							} else {
-								action = n.getFirstChild().getNodeValue();
+							} else {								
+								action = XMLHelper.outputXML(n);
 							}
 						} else if ((n.getNodeName().equalsIgnoreCase("DEPENDS_ON") == false)
 								&& (n.getNodeName().equalsIgnoreCase("WAITS_ON") == false)) {
@@ -2574,7 +2608,7 @@ public class Metadata {
 							if (na == null) {
 								action = "";
 							} else {
-								action = n.getFirstChild().getNodeValue();
+								action = XMLHelper.outputXML(n);
 							}
 						} else if ((n.getNodeName().equalsIgnoreCase("DEPENDS_ON") == false)
 								&& (n.getNodeName().equalsIgnoreCase("WAITS_ON") == false)) {
@@ -4124,7 +4158,7 @@ public class Metadata {
 			this.refreshMetadataConnection();
 
 			m_stmt = this.metadataConnection
-					.prepareStatement("SELECT b.CLASS_NAME,THREADS,QUEUE_SIZE,d.DESCRIPTION FROM  " + this.tablePrefix
+					.prepareStatement("SELECT b.CLASS_NAME,THREADS,QUEUE_SIZE,d.DESCRIPTION,A.POOL FROM  " + this.tablePrefix
 							+ "SERVER_EXECUTOR A,  " + this.tablePrefix + "JOB_EXECUTOR B, " + this.tablePrefix
 							+ "job_executor_job_type c, " + this.tablePrefix
 							+ "job_type d WHERE A.JOB_EXECUTOR_ID = B.JOB_EXECUTOR_ID AND "
@@ -4138,19 +4172,21 @@ public class Metadata {
 			// cycle through pending jobs setting next run date
 			while (m_rs.next()) {
 				if (res == null) {
-					res = new Object[i + 1][4];
+					res = new Object[i + 1][5];
 					res[i][0] = m_rs.getString(1);
 					res[i][1] = m_rs.getInt(2);
 					res[i][2] = m_rs.getInt(3);
 					res[i][3] = m_rs.getString(4);
+					res[i][4] = m_rs.getString(5);
 				} else {
 					i++;
 
-					Object[][] tmp = new Object[i + 1][4];
+					Object[][] tmp = new Object[i + 1][5];
 					tmp[i][0] = m_rs.getString(1);
 					tmp[i][1] = m_rs.getInt(2);
 					tmp[i][2] = m_rs.getInt(3);
 					tmp[i][3] = m_rs.getString(4);
+					tmp[i][4] = m_rs.getString(5);
 					System.arraycopy(res, 0, tmp, 0, res.length);
 					res = tmp;
 				}
@@ -4314,10 +4350,61 @@ public class Metadata {
 
 	private static org.h2.tools.Server h2Server;
 
+	private long lastMDCheck = System.currentTimeMillis();
+	
+	public synchronized boolean testMDConnection(Connection cConnection) {
+		try {
+			synchronized (this.oLock) {
+				
+				if(lastMDCheck+1000>System.currentTimeMillis()){
+					return true;
+				}
+				
+				lastMDCheck = System.currentTimeMillis();
+				// Test the connection first to make sure it's still alive...
+				try {
+					Statement stmt = cConnection.createStatement();
+					ResultSet rs = stmt.executeQuery("select 1 from "
+							+ this.tablePrefix
+							+ "JOB_STATUS WHERE STATUS_ID = "
+							+ ETLJobStatus.EXECUTING);
+
+					int i = 0;
+					while (rs.next()) {
+						i = rs.getInt(1);
+					}
+
+					rs.close();
+					stmt.close();
+					if (i == 0) {
+						cConnection.close();
+						cConnection = null;
+
+						return false;
+					}
+				} catch (Exception e) {
+					// If can't read metadata, the connection must be dead.
+					// Remove
+					// it from our pool...
+					cConnection.close();
+					cConnection = null;
+
+					return false;
+				}
+			}
+		} catch (Exception e) {
+			// If can't create a statement, the connection must really be dead.
+			// Remove it from our pool...
+			return false;
+		}
+
+		return true;
+	}
+
 	protected void refreshMetadataConnection() throws SQLException, java.lang.Exception {
 		if (this.metadataConnection != null) {
 			try {
-				if (ResourcePool.testConnection(this.metadataConnection) == false) {
+				if (this.testMDConnection(this.metadataConnection) == false) {
 					System.err.println("[" + new java.util.Date() + "] checkConnection connection closed for reason unknown");
 					this.metadataConnection = null;
 				}
@@ -4437,6 +4524,14 @@ public class Metadata {
 						+ "job_log where stats is null");
 			} catch (Exception e) {
 				throw new RuntimeException("Metadata needs updating to 2.1.9, see scripts in $KETLDIR/setup");
+			}
+			
+			// check for pool code 2.1.30
+			try {
+				stmt.execute("select count(*) from " + this.tablePrefix
+						+ "server_executor where pool is null");
+			} catch (Exception e) {
+				throw new RuntimeException("Metadata needs updating to 2.1.30, see scripts in $KETLDIR/setup");
 			}
 		} finally {
 			if (stmt != null)
@@ -4849,6 +4944,47 @@ public class Metadata {
 				ResourcePool.logMessage("Error setting status: error:" + e + "(" + sql + ")");
 			} catch (Exception e) {
 				ResourcePool.logMessage("Error setting status: error:" + e);
+			}
+		}
+	}
+
+	/**
+	 * Insert the method's description here. Creation date: (5/8/2002 3:51:42
+	 * PM)
+	 * 
+	 * @param pETLJob
+	 *            com.kni.etl.ETLJob
+	 */
+	public void setJobMessage(ETLJob pETLJob) {
+		String sql = null;
+		PreparedStatement m_stmt = null;
+
+		synchronized (this.oLock) {
+			try {
+				// Make metadata connection alive.
+				this.refreshMetadataConnection();
+
+				m_stmt = this.metadataConnection.prepareStatement("UPDATE  " + this.tablePrefix
+							+ "JOB_LOG SET MESSAGE =  ? WHERE DM_LOAD_ID = ?"); 
+					
+				m_stmt.setString(1, pETLJob.getStatus().getStatusMessage() == null ? null : (pETLJob.getStatus()
+						.getStatusMessage().getBytes().length > 2000 ? pETLJob.getStatus().getStatusMessage()
+						.substring(0, 1000)
+						+ ".." : pETLJob.getStatus().getStatusMessage()));
+
+				m_stmt.setInt(2, pETLJob.getJobExecutionID());
+
+				m_stmt.execute();
+				
+				this.metadataConnection.commit();
+
+				if (m_stmt != null) {
+					m_stmt.close();
+				}				
+			} catch (SQLException e) {
+				ResourcePool.logMessage("Error setting status message: error:" + e + "(" + sql + ")");
+			} catch (Exception e) {
+				ResourcePool.logMessage("Error setting status message: error:" + e);
 			}
 		}
 	}

@@ -141,7 +141,7 @@ public class OSJob extends ETLJob {
             }
             
             debug  = XMLHelper.getAttributeAsBoolean(nl.item(0).getAttributes(), "DEBUG", false);
-
+            this.setTimeout(XMLHelper.getAttributeAsInt(nl.item(0).getAttributes(),"TIMEOUT",Integer.MAX_VALUE));
 
             this.setNotificationMode(XMLHelper.getAttributeAsString(nl.item(0).getAttributes(),"EMAILSTATUS",null));
             if ((cmd = ETLJobExecutor.getExternalSourceCode(nl.item(0)))==null)
@@ -241,6 +241,10 @@ public class OSJob extends ETLJob {
      */
     @Override
     public String toString() {
-        return (String) this.getAction(true);
+        try {
+			return this.getCommandLine();
+		} catch (Exception e) {
+			return this.getJobID();
+		}
     }
 }

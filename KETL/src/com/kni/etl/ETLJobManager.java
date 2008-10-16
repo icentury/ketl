@@ -58,6 +58,8 @@ public class ETLJobManager {
 
 	private String msType;
 
+	private String pool;
+
 	/**
 	 * ETLJobExecutor constructor comment.
 	 * 
@@ -67,8 +69,9 @@ public class ETLJobManager {
 	 *            The max num threads
 	 * @param iMaxQueueSize
 	 *            The max queue size
+	 * @param pool 
 	 */
-	public ETLJobManager(String strJobExecutorClass, int iMaxNumThreads, int iMaxQueueSize, String type) {
+	public ETLJobManager(String strJobExecutorClass, int iMaxNumThreads, int iMaxQueueSize, String type, String pool) {
 		super();
 		this.mjmsStatus = new ETLJobManagerStatus();
 		this.mstrJobExecutorClass = strJobExecutorClass;
@@ -80,6 +83,7 @@ public class ETLJobManager {
 		this.miMaxNumThreads = iMaxNumThreads;
 		this.miMaxQueueSize = iMaxQueueSize;
 		this.msType = type;
+		this.pool = pool;
 
 		this.mjmsStatus.setStatusCode(ETLJobManagerStatus.INITIALIZING); // We'll
 		// set
@@ -336,6 +340,7 @@ public class ETLJobManager {
 			jeExecutorThread.setType(this.msType);
 			jeExecutorThread.setPendingQueue(this.mllPendingQueue);
 			jeExecutorThread.start();
+			jeExecutorThread.setPool(this.getPool());
 			this.cjeExecutorThreads.add(jeExecutorThread); // Add the thread to
 			// our collection
 		}
@@ -356,6 +361,10 @@ public class ETLJobManager {
 		if (this.mllPendingQueue.remainingCapacity() == 0)
 			return false;
 
+		// valid for pool
+		if(this.getPool().equals(ejNewJob.getPool())==false)
+			return false;
+		
 		// Don't accept jobs if we're in a bad state...
 		switch (this.getStatus().getStatusCode()) {
 		case ETLJobManagerStatus.ERROR:
@@ -511,5 +520,11 @@ public class ETLJobManager {
 				.setWarningMessage("Unexpected state derived when checking job and executor status.  Temporarily setting to FULL.");
 
 		return this.mjmsStatus.setStatusCode(ETLJobManagerStatus.FULL);
+	}
+
+	public String getPool() {
+		if (pool == null)
+			return EngineConstants.DEFAULT_POOL;
+		return pool;
 	}
 }

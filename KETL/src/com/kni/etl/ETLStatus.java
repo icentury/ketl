@@ -53,7 +53,7 @@ public class ETLStatus {
     protected int iWarningCode, miServer;
     
     /** The message changed. */
-    public boolean messageChanged = false;
+    public boolean statusChanged = false;
     
     /** The str error message. */
     protected java.lang.String strErrorMessage = "";
@@ -70,41 +70,7 @@ public class ETLStatus {
     /** The execution date. */
     private java.sql.Timestamp mStartDate, mEndDate, mExecutionDate;
 
-    /**
-     * Gets the end date.
-     * 
-     * @return Returns the endDate.
-     */
-    public final java.sql.Timestamp getEndDate() {
-        return this.mEndDate;
-    }
-
-    /**
-     * Sets the end date.
-     * 
-     * @param pEndDate The endDate to set.
-     */
-    public final void setEndDate(java.sql.Timestamp pEndDate) {
-        this.mEndDate = pEndDate;
-    }
-
-    /**
-     * Gets the start date.
-     * 
-     * @return Returns the startDate.
-     */
-    public final java.sql.Timestamp getStartDate() {
-        return this.mStartDate;
-    }
-
-    /**
-     * Sets the start date.
-     * 
-     * @param pStartDate The startDate to set.
-     */
-    public final void setStartDate(java.sql.Timestamp pStartDate) {
-        this.mStartDate = pStartDate;
-    }
+	public boolean messageChanged = false;
 
     /**
      * ETLStatus constructor comment.
@@ -112,6 +78,15 @@ public class ETLStatus {
     public ETLStatus() {
         super();
         this.setStatusCode(0); // Good practice to set default code here
+    }
+
+    /**
+     * Gets the end date.
+     * 
+     * @return Returns the endDate.
+     */
+    public final java.sql.Timestamp getEndDate() {
+        return this.mEndDate;
     }
 
     /**
@@ -133,12 +108,12 @@ public class ETLStatus {
     }
 
     /**
-     * Insert the method's description here. Creation date: (5/3/2002 12:31:11 PM)
+     * Gets the execution date.
      * 
-     * @return int
+     * @return Returns the executionDate.
      */
-    public synchronized int getStatusCode() {
-        return this.iStatusCode;
+    public final java.sql.Timestamp getExecutionDate() {
+        return this.mExecutionDate;
     }
 
     /**
@@ -148,6 +123,57 @@ public class ETLStatus {
      */
     public synchronized String getExtendedMessage() {
         return this.strExtendedMessage;
+    }
+
+    /**
+     * Gets the server ID.
+     * 
+     * @return Returns the server.
+     */
+    public final int getServerID() {
+        return this.miServer;
+    }
+
+    /**
+     * Gets the start date.
+     * 
+     * @return Returns the startDate.
+     */
+    public final java.sql.Timestamp getStartDate() {
+        return this.mStartDate;
+    }
+
+    /**
+     * Gets the stats node.
+     * 
+     * @return the stats node
+     */
+    protected Element getStatsNode() {
+        if (this.statsNode == null) {
+            Document documentRoot;
+
+            DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder;
+            try {
+                builder = dmf.newDocumentBuilder();
+            } catch (ParserConfigurationException e) {
+                throw new RuntimeException(e);
+            }
+            documentRoot = builder.newDocument();
+            this.statsNode = documentRoot.createElement("STATS");
+            documentRoot.appendChild(this.statsNode);
+        }
+
+        return this.statsNode;
+    }
+
+    /**
+     * Insert the method's description here. Creation date: (5/3/2002 12:31:11 PM)
+     * 
+     * @return int
+     */
+    public synchronized int getStatusCode() {
+        return this.iStatusCode;
     }
 
     /**
@@ -206,6 +232,17 @@ public class ETLStatus {
     }
 
     /**
+     * Gets the XML stats.
+     * 
+     * @return the XML stats
+     */
+    public final String getXMLStats() {
+        if (this.statsNode == null)
+            return null;
+        return XMLHelper.outputXML(this.statsNode);
+    }
+
+    /**
      * Insert the method's description here. Creation date: (5/3/2002 1:22:09 PM)
      * 
      * @param iStatusCode The status code
@@ -221,6 +258,15 @@ public class ETLStatus {
                 "isValidStatusCode: Invalid status code ID=" + iStatusCode);
 
         return false;
+    }
+
+    /**
+     * Sets the end date.
+     * 
+     * @param pEndDate The endDate to set.
+     */
+    public final void setEndDate(java.sql.Timestamp pEndDate) {
+        this.mEndDate = pEndDate;
     }
 
     /**
@@ -242,6 +288,60 @@ public class ETLStatus {
     }
 
     /**
+     * Sets the execution date.
+     * 
+     * @param pExecutionDate The executionDate to set.
+     */
+    public final void setExecutionDate(java.sql.Timestamp pExecutionDate) {
+        this.mExecutionDate = pExecutionDate;
+    }
+
+    /**
+     * Sets the extended message.
+     * 
+     * @param newExtendedMessage the new extended message
+     */
+    public synchronized void setExtendedMessage(java.lang.String newExtendedMessage) {
+        if (this.strExtendedMessage != null && this.strExtendedMessage.equals(newExtendedMessage))
+            return;
+
+        this.strExtendedMessage = newExtendedMessage;
+        this.messageChanged  = true;
+    }
+
+    /**
+     * Sets the server ID.
+     * 
+     * @param pServer The server to set.
+     */
+    public final void setServerID(int pServer) {
+        this.miServer = pServer;
+    }
+
+    /**
+     * Sets the start date.
+     * 
+     * @param pStartDate The startDate to set.
+     */
+    public final void setStartDate(java.sql.Timestamp pStartDate) {
+        this.mStartDate = pStartDate;
+    }
+
+    /**
+     * Sets the stats.
+     * 
+     * @param records the records
+     * @param executionTime the execution time
+     */
+    public void setStats(int records, long executionTime) {
+        Element e = this.getStatsNode();
+
+        e.setAttribute("RECORDS", Integer.toString(records));
+        e.setAttribute("TIMING", Long.toString(executionTime));
+
+    }
+
+    /**
      * Sets the status of the object.
      * 
      * @param iNewStatus The new status
@@ -256,7 +356,7 @@ public class ETLStatus {
         if (this.isValidStatusCode(iNewStatus)) {
             this.iStatusCode = iNewStatus;
         }
-
+        this.statusChanged = true;
         return this.iStatusCode;
     }
 
@@ -279,19 +379,6 @@ public class ETLStatus {
     }
 
     /**
-     * Sets the extended message.
-     * 
-     * @param newExtendedMessage the new extended message
-     */
-    public synchronized void setExtendedMessage(java.lang.String newExtendedMessage) {
-        if (this.strExtendedMessage != null && this.strExtendedMessage.equals(newExtendedMessage))
-            return;
-
-        this.strExtendedMessage = newExtendedMessage;
-        this.messageChanged = true;
-    }
-
-    /**
      * Returns a String that represents a summary of the current status.
      * 
      * @return a string representation of the receiver
@@ -305,90 +392,5 @@ public class ETLStatus {
         }
 
         return "";
-    }
-
-    /**
-     * Gets the execution date.
-     * 
-     * @return Returns the executionDate.
-     */
-    public final java.sql.Timestamp getExecutionDate() {
-        return this.mExecutionDate;
-    }
-
-    /**
-     * Sets the execution date.
-     * 
-     * @param pExecutionDate The executionDate to set.
-     */
-    public final void setExecutionDate(java.sql.Timestamp pExecutionDate) {
-        this.mExecutionDate = pExecutionDate;
-    }
-
-    /**
-     * Gets the server ID.
-     * 
-     * @return Returns the server.
-     */
-    public final int getServerID() {
-        return this.miServer;
-    }
-
-    /**
-     * Sets the server ID.
-     * 
-     * @param pServer The server to set.
-     */
-    public final void setServerID(int pServer) {
-        this.miServer = pServer;
-    }
-
-    /**
-     * Gets the XML stats.
-     * 
-     * @return the XML stats
-     */
-    public final String getXMLStats() {
-        if (this.statsNode == null)
-            return null;
-        return XMLHelper.outputXML(this.statsNode);
-    }
-
-    /**
-     * Gets the stats node.
-     * 
-     * @return the stats node
-     */
-    protected Element getStatsNode() {
-        if (this.statsNode == null) {
-            Document documentRoot;
-
-            DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder;
-            try {
-                builder = dmf.newDocumentBuilder();
-            } catch (ParserConfigurationException e) {
-                throw new RuntimeException(e);
-            }
-            documentRoot = builder.newDocument();
-            this.statsNode = documentRoot.createElement("STATS");
-            documentRoot.appendChild(this.statsNode);
-        }
-
-        return this.statsNode;
-    }
-
-    /**
-     * Sets the stats.
-     * 
-     * @param records the records
-     * @param executionTime the execution time
-     */
-    public void setStats(int records, long executionTime) {
-        Element e = this.getStatsNode();
-
-        e.setAttribute("RECORDS", Integer.toString(records));
-        e.setAttribute("TIMING", Long.toString(executionTime));
-
     }
 }

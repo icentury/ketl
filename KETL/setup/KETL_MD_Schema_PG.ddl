@@ -94,7 +94,8 @@ CREATE TABLE job (
     disable_alerting character varying(1),
     "action" text,
     old_action2 bytea,
-    last_update_date timestamp without time zone
+    last_update_date timestamp without time zone,
+	pool text
 );
 
 

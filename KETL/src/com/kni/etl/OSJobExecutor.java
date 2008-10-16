@@ -24,6 +24,7 @@ package com.kni.etl;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.InputStreamHandler;
@@ -37,11 +38,18 @@ import com.kni.util.ExternalJarLoader;
  */
 public class OSJobExecutor extends ETLJobExecutor {
 
+	private enum Stage {Preparing,About_To_Execute,Executing,Completed,  Connecting_STDOUT, Connecting_STDIN};
+	
+	private Stage stage = Stage.Preparing;
+	
 	/** The monitor. */
 	private OSJobMonitor monitor;
 
 	private OSJob ojJob;
 
+	private String cmd;
+
+	
 	/**
 	 * The Class OSJobMonitor.
 	 */
@@ -51,10 +59,13 @@ public class OSJobExecutor extends ETLJobExecutor {
 		boolean alive = true;
 		
 		/** The process. */
-		public Process process = null;;
+		public Process process = null;
 
-		public OSJobMonitor(ETLJob job) {
+		private Thread caller;;
+
+		public OSJobMonitor(ETLJob job,Thread caller) {
 			this.setName("OS Job Monitor - " + job.getJobID());
+			this.caller = caller;
 		}
 
 		/*
@@ -65,18 +76,61 @@ public class OSJobExecutor extends ETLJobExecutor {
 		@Override
 		public void run() {
 			try {
+				boolean killAttempt = false;
+				long startTime = System.currentTimeMillis();
+				int cnt =0;
 				while (this.alive) {
 
-					ETLJob job = ojJob;
-					if (this.process != null && job != null && job.isCancelled()) {
-						this.process.destroy();
+					Process currentProcess = this.process;
+					OSJob job = ojJob;
+					if (currentProcess != null && job != null && job.isCancelled()) {
+						interruptExecution(currentProcess);
 						job.cancelSuccessfull(true);
 					}
-					Thread.sleep(250);
+					
+					if (cnt % 8 == 0 && cnt > 0) {
+						long runTime = (System.currentTimeMillis() - startTime) / 1000;
+						job.getStatus().setExtendedMessage(
+								stage.name().replace("_", " ") + "(" + runTime
+										+ "s): " + (cmd == null ? "n/a" : cmd));
+
+						// if stuck in about to execute and 60s have gone by
+						// fail command due solaris issue
+						if (stage == Stage.About_To_Execute
+								&& runTime > 60 && killAttempt == false) {							
+							killAttempt = true;
+							ResourcePool
+									.LogMessage(Thread.currentThread(),
+											ResourcePool.ERROR_MESSAGE,
+											"Failing OS job, due to unresponsive execution");
+							
+							interruptExecution(currentProcess);
+						} else if (runTime > job.getTimeout()){
+							String msg = "Job being failed timeout exceeded of " + job.getTimeout() + "s";
+							ResourcePool.LogMessage(this.caller,ResourcePool.ERROR_MESSAGE,msg);
+							job.getStatus().setExtendedMessage(msg);					
+							interruptExecution(currentProcess);
+						}
+					}
+					
+					
+					Thread.sleep(500);
+					cnt++;
 				}
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+			}
+		}
+
+		private void interruptExecution(Process currentProcess)
+				throws InterruptedException {
+			if(currentProcess == null)
+				caller.interrupt();
+			else {
+				currentProcess.destroy();
+				Thread.sleep(5000);
+				if(stage != Stage.Completed)
+					caller.interrupt();
 			}
 		}
 
@@ -100,10 +154,12 @@ public class OSJobExecutor extends ETLJobExecutor {
 	@Override
 	protected boolean executeJob(ETLJob jCurrentJob) {
 		boolean bSuccess = true;
-		this.monitor = new OSJobMonitor(jCurrentJob);
+		 	
+		this.monitor = new OSJobMonitor(jCurrentJob,Thread.currentThread());
 		try {
+			stage = Stage.Preparing;
+			cmd = null;
 			this.monitor.start();
-
 			ETLStatus jsJobStatus;
 			String strWorkingDirectory;
 			Process pProcess = null;
@@ -129,26 +185,32 @@ public class OSJobExecutor extends ETLJobExecutor {
 				String osName = System.getProperty("os.name");
 				String strExecStmt;
 
+				cmd = ojJob.getCommandLine();
 				if (osName.startsWith("Windows")) {
-					strExecStmt = "cmd.exe /c " + ojJob.getCommandLine();
+					strExecStmt = "cmd.exe /c " + cmd;
 				} else // assume some UNIX/Linux system
 				{
 					// strExecStmt = "/bin/sh -c " + ojJob.getCommandLine(); //
 					// this is only for script files!
-					strExecStmt = ojJob.getCommandLine();
+					strExecStmt = cmd;
 				}
 
 				if (ojJob.isDebug())
 					ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Executing os command: " + strExecStmt);
 
+				stage  = Stage.About_To_Execute;
+				
 				if (fWorkingDirectory != null) {
-					pProcess = Runtime.getRuntime().exec(strExecStmt, null, fWorkingDirectory);
+					pProcess = Runtime.getRuntime().exec(strExecStmt, null,
+							fWorkingDirectory);
 				} else {
 					pProcess = Runtime.getRuntime().exec(strExecStmt);
 				}
 
+				stage = Stage.Connecting_STDOUT;
+				
 				this.monitor.process = pProcess;
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				jsJobStatus.setErrorCode(1); // BRIAN: NEED TO SET UP OS JOB
 				// ERROR CODES
 				jsJobStatus.setErrorMessage("Error running exec(): " + e.getMessage());
@@ -166,12 +228,14 @@ public class OSJobExecutor extends ETLJobExecutor {
 				InputStream inStream = pProcess.getInputStream();
 				new InputStreamHandler(inBuffer, inStream);
 
+				stage = Stage.Connecting_STDIN;
 				StringBuilder errBuffer = new StringBuilder();
 				InputStream errStream = pProcess.getErrorStream();
 				new InputStreamHandler(errBuffer, errStream);
-
+				
+				stage = Stage.Executing;
 				int iReturnValue = pProcess.waitFor();
-
+				stage = Stage.Completed;
 				if (inBuffer.length() > 0) {
 					jsJobStatus.setExtendedMessage(inBuffer.toString());
 				}
@@ -199,6 +263,7 @@ public class OSJobExecutor extends ETLJobExecutor {
 				return false;
 			}
 		} finally {
+			this.stage = Stage.Completed;
 			this.monitor.alive = false;
 			this.ojJob = null;
 		}
