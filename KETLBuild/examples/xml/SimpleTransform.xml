@@ -2,7 +2,7 @@
 
 
 	  <PARAMETER_LIST NAME="testData">
-		    		    <PARAMETER NAME="SEARCHPATH">examples/data/CSV.txt</PARAMETER>
+		    		    <PARAMETER NAME="SEARCHPATH">C:/Development/livecode/workspace/KETLBuild/examples/data/CSV.txt</PARAMETER>
       </PARAMETER_LIST>
 	 
 	
@@ -21,8 +21,8 @@
                         <IN>Status.string</IN>                        
                         <IN>Status.timestamp</IN>                        
                         <OUT NAME="newInt" DATATYPE="INTEGER">${int}*1000</OUT>
-                        <OUT NAME="dt" DATATYPE="java.util.Date">org.apache.commons.lang.time.DateUtils.truncate(${timestamp},Calendar.DAY_OF_MONTH)</OUT>
                         <OUT NAME="newString" DATATYPE="STRING">${string}.matches("Hello|f")?"Match":"NoMatch"</OUT>
+                        <OUT NAME="id" DATATYPE="LONG">Sequence.next("Test",200)</OUT>
                   </STEP>
 
                    <STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.ConsoleWriter">
