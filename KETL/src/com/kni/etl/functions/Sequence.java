@@ -9,11 +9,11 @@ import com.kni.etl.ketl.exceptions.KETLThreadException;
 public class Sequence {
 	 static private Map<String,IDCounter> idCounters = new HashMap<String,IDCounter>();
 	    
-	    final static synchronized public long next(String name,long batchSize) throws KETLThreadException {
+	    final static synchronized public long next(String name) throws KETLThreadException {
 	    	try {	    		
 				IDCounter idCounter = idCounters.get(name);
 				if (idCounter == null) {
-					idCounter = new IDCounter(name, batchSize);
+					idCounter = new IDCounter(name, 10);
 					idCounters.put(name, idCounter);
 				}
 				

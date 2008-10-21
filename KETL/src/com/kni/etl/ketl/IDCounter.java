@@ -98,6 +98,8 @@ public class IDCounter {
         }
     }
 
+    
+    private long previousBatchFetchTime = System.currentTimeMillis();
     /**
      * Increment ID.
      * 
@@ -111,6 +113,14 @@ public class IDCounter {
                 try {
                     // System.out.println("IDS " + Thread.currentThread().getName() + ": ID in " + id + " batchsize:" +
                     // batchSize);
+                	if((System.currentTimeMillis()-this.previousBatchFetchTime)<1000)
+                		this.batchSize = this.batchSize*2;                	
+                	else  if ((System.currentTimeMillis()-this.previousBatchFetchTime)>10000)
+                		this.batchSize = this.batchSize / 2;
+                	
+                	this.previousBatchFetchTime = System.currentTimeMillis();
+                	
+                		
                     this.id = this.md.getBatchOfIDValues(this.IDName, this.batchSize);
 
                     // System.out.println("IDS " + Thread.currentThread().getName() + ": ID out " + id + " batchsize:" +
