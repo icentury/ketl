@@ -30,6 +30,7 @@ import java.util.List;
 
 import com.kni.etl.EngineConstants;
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.IDCounter;
 import com.kni.etl.sessionizer.AnalyzePageview.Holder;
 import com.kni.etl.stringtools.BoyerMooreAlgorithm;
 import com.kni.etl.stringtools.StringManipulator;

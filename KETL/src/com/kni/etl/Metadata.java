@@ -4667,8 +4667,8 @@ public class Metadata {
 									+ " will be initialized with a predefined number of executors, to modify this go to the server_executors table.");
 
 					m_stmt = this.metadataConnection.prepareStatement("INSERT INTO  " + this.tablePrefix
-							+ "SERVER_EXECUTOR(SERVER_ID,JOB_EXECUTOR_ID,THREADS) "
-							+ " SELECT ?,JOB_EXECUTOR_ID,CASE JOB_EXECUTOR_ID WHEN 4 THEN 1 ELSE 2 END FROM "
+							+ "SERVER_EXECUTOR(SERVER_ID,JOB_EXECUTOR_ID,THREADS,POOL) "
+							+ " SELECT ?,JOB_EXECUTOR_ID,CASE JOB_EXECUTOR_ID WHEN 4 THEN 1 ELSE 2 END,'"+EngineConstants.DEFAULT_POOL+"' FROM "
 							+ this.tablePrefix + "JOB_EXECUTOR");
 					m_stmt.setInt(1, serverID);
 					m_stmt.execute();

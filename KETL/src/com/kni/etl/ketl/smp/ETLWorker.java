@@ -580,7 +580,7 @@ abstract public class ETLWorker implements Runnable {
 	 * @return the string
 	 */
 	protected String generateCoreImports() {
-		return "import com.kni.etl.ketl.exceptions.*;\n" + "import com.kni.etl.ketl.smp.*;\n";
+		return "import com.kni.etl.ketl.exceptions.*;\n" + "import com.kni.etl.ketl.smp.*;\n"+ "import com.kni.etl.functions.*;\n";
 	}
 
 	/**

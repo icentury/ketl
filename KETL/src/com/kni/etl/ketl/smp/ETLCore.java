@@ -28,10 +28,12 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.kni.etl.Metadata;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.IDCounter;
 import com.kni.etl.ketl.KETLJob;
 import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.ketl.exceptions.KETLException;
@@ -228,6 +230,7 @@ abstract public class ETLCore implements DefaultCore {
         }
 
     }
+          
 
     /**
      * Lookup.
@@ -354,6 +357,7 @@ abstract public class ETLCore implements DefaultCore {
             return arg1;
         }
     }
+    
 
     /**
      * To float.

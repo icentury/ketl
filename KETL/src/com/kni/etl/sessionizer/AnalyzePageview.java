@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.IDCounter;
 
 // TODO: Auto-generated Javadoc
 /**

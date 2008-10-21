@@ -26,7 +26,7 @@
  * To change this generated comment go to
  * Window>Preferences>Java>Code Generation>Code and Comments
  */
-package com.kni.etl.sessionizer;
+package com.kni.etl.ketl;
 
 import com.kni.etl.Metadata;
 import com.kni.etl.dbutils.ResourcePool;

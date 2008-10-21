@@ -27,6 +27,7 @@ import java.util.List;
 
 import com.kni.etl.KNIHashMap;
 import com.kni.etl.ReadWriteLock;
+import com.kni.etl.ketl.IDCounter;
 
 // TODO: Auto-generated Javadoc
 /**

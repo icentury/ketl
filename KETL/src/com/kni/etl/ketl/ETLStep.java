@@ -91,6 +91,8 @@ public abstract class ETLStep extends ETLWorker {
     /** The Constant CASE_TAG. */
     public static final String CASE_TAG = "CASE";
 
+    public static final String IMPORTS = "IMPORTS";
+    
     /** The Constant DEFAULT_TAG. */
     public static final String DEFAULT_TAG = "DEFAULT";
 
@@ -657,6 +659,8 @@ public abstract class ETLStep extends ETLWorker {
         return super.complete();
     }
 
+    
+    private String userDefinedImports;
     /**
      * Record check.
      * 
@@ -705,6 +709,8 @@ public abstract class ETLStep extends ETLWorker {
 
         this.batchSize = XMLHelper.getAttributeAsInt(xmlConfig.getParentNode().getParentNode().getAttributes(),
                 ETLStep.BATCHSIZE_ATTRIB, ETLStep.DEFAULT_BATCHSIZE);
+        this.userDefinedImports = XMLHelper.getAttributeAsString(xmlConfig.getParentNode().getParentNode().getAttributes(),
+                ETLStep.IMPORTS, null);
 
         this.mbLogBadRecords = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), ETLStep.LOG_BAD_RECORDS,
                 this.mbLogBadRecords);
@@ -732,6 +738,19 @@ public abstract class ETLStep extends ETLWorker {
         return 0;
     }
 
+    
+    /* (non-Javadoc)
+     * @see com.kni.etl.ketl.smp.ETLWorker#generateCoreImports()
+     */
+    @Override
+    protected String generateCoreImports() {
+    	if(userDefinedImports != null && this.userDefinedImports.trim().length()>0){
+    		 return super.generateCoreImports() + ( "import " + userDefinedImports.replace(",",";\nimport ") + ";\n");    	
+    	}
+        return super.generateCoreImports();
+    }
+
+    
     /**
      * Adds the trigger.
      * 

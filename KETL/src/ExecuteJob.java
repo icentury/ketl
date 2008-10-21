@@ -188,6 +188,8 @@ class ExecuteJob {
 
         // String mdServer = null;
         String allowMultiple = null;
+        
+        boolean asynchronous = true;
 
         for (String element : args) {
             if ((server == null) && (element.indexOf("SERVER=") != -1)) {
@@ -204,6 +206,13 @@ class ExecuteJob {
 
             if ((ignoreDependencies == null) && (element.indexOf("IGNORE_DEPENDENCIES=") != -1)) {
                 ignoreDependencies = ExecuteJob.extractArguments(element, "IGNORE_DEPENDENCIES=");
+            }
+
+            if (element.indexOf("ASYNC=") != -1) {
+                String tmp = ExecuteJob.extractArguments(element, "ASYNC=");
+                if(tmp.equalsIgnoreCase("FALSE")){
+                	asynchronous = false;	
+                }
             }
 
             if ((allowMultiple == null) && (element.indexOf("ALLOW_MULTIPLE=") != -1)) {
@@ -263,6 +272,9 @@ class ExecuteJob {
             }
             if (md.executeJob(pID, jobID, ignoreDeps, allowMult)) {
                 ResourcePool.logMessage("Job submitted to server for direct execution.");
+                if(asynchronous == false){
+                	// wait for job to finish
+                }
             }
             else {
                 ResourcePool.logMessage("Warning Job not submitted to server for execution.");
