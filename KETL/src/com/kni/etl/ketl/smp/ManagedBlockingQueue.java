@@ -46,6 +46,8 @@ public abstract class  ManagedBlockingQueue extends LinkedBlockingQueue {
      */
     public abstract void setName(String arg0);
 
+    public abstract String getName();
+    
     /**
      * Register reader.
      * 

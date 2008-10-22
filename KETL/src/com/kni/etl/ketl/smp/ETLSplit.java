@@ -25,6 +25,8 @@ package com.kni.etl.ketl.smp;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Node;
 
@@ -54,10 +56,10 @@ public abstract class ETLSplit extends ETLStep {
     int queues;
     
     /** The channel list. */
-    ArrayList channelList = new ArrayList();
+    List channelList = new ArrayList();
     
     /** The channel map. */
-    HashMap channelMap = new HashMap();
+    Map<String,Integer> channelMap = new HashMap();
 
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.smp.ETLWorker#generateCoreHeader()
@@ -135,6 +137,7 @@ public abstract class ETLSplit extends ETLStep {
         this.channelList.add(pClassArray);
     }
 
+    private int[] channelPath;
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.smp.ETLWorker#generatePortMappingCode()
      */
@@ -149,13 +152,12 @@ public abstract class ETLSplit extends ETLStep {
         sb.append(this.getRecordExecuteMethodHeader() + "\n");
         // outputs
         if (this.mOutPorts != null) {
-
-            int x = 0;
+        	
             sb.append("switch(pOutPath){\n");
-            for (Object o : this.channelMap.keySet()) {
-                String channel = (String) o;
+            for (Map.Entry<String,Integer> entry : this.channelMap.entrySet()) {
+                String channel = (String) entry.getKey();
 
-                sb.append("case " + (x++) + ": {\n");
+                sb.append("case " + (entry.getValue()) + ": {\n");
                 for (int i = 0; i < this.mOutPorts.length; i++) {
                     if (this.mOutPorts[i].getChannel().equals(channel)) {
                         sb.append(this.mOutPorts[i].generateCode(i));
@@ -196,6 +198,13 @@ public abstract class ETLSplit extends ETLStep {
         this.mExpectedOutputDataTypes = new Class[this.queues][];
         this.channelList.toArray(this.mExpectedOutputDataTypes);
 
+        // map the right output queue to the right channel id; 
+        this.channelPath = new int[this.channelMap.size()];
+        
+        for(int i=0;i<this.queue.length;i++){
+        	this.channelPath[i] = this.channelMap.get(this.queue[i].getName());
+        }
+        
         Object[][][] res = new Object[this.queues][][];
         while (true) {
             this.interruptExecution();
@@ -253,7 +262,7 @@ public abstract class ETLSplit extends ETLStep {
         this.updateThreadStats(rows);
 
         for (int i = 0; i < this.queues; i++) {
-            this.queue[i].put(res[i]);
+            this.queue[i].put(res[this.channelPath[i]]);
         }        
     }
 
@@ -299,12 +308,12 @@ public abstract class ETLSplit extends ETLStep {
 
         for (int i = 0; i < length; i++) {
 
-            if (i == 0)
+            if (i == 0) 
                 this.mInputRecordWidth = this.mExpectedInputDataTypes.length;
 
             for (int path = 0; path < this.queues; path++) {
 
-                if (i == 0 && this.mOutputRecordWidth[path] == -1)
+                if (i == 0 && this.mOutputRecordWidth[path] == -1) 
                     this.mOutputRecordWidth[path] = this.mExpectedOutputDataTypes[path].length;
                 
                 Object[] result = new Object[this.mOutputRecordWidth[path]];

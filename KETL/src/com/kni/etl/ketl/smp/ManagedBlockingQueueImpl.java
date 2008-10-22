@@ -60,6 +60,10 @@ final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
     public void setName(String arg0) {
         this.name = arg0;
     }
+    
+    public String getName() {
+    	return this.name;
+    }
 
     /* (non-Javadoc)
      * @see java.util.concurrent.LinkedBlockingQueue#toString()

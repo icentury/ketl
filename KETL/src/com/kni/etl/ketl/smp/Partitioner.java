@@ -136,6 +136,10 @@ final public class Partitioner extends ManagedBlockingQueue {
 			this.name = arg0;
 		}
 
+	    public String getName() {
+	    	return this.name;
+	    }
+
 		/*
 		 * (non-Javadoc)
 		 * 
@@ -228,6 +232,11 @@ final public class Partitioner extends ManagedBlockingQueue {
 		this.name = arg0;
 	}
 
+    public String getName() {
+    	return this.name;
+    }
+
+    
 	/*
 	 * (non-Javadoc)
 	 * 
