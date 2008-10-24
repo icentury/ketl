@@ -242,7 +242,7 @@ public class OSJobExecutor extends ETLJobExecutor {
 				}
 				
 				try {
-					this.fireJobTriggers(ojJob.getJobTriggers(),Integer.toString(iReturnValue));
+					this.fireJobTriggers(ojJob.iLoadID,ojJob.getJobTriggers(),Integer.toString(iReturnValue));
 				} catch(Exception e){
 					ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Error firing triggers, check format <EXITCODE>=<VALUE>=(exec|setStatus)(..);... : " + e.getMessage());
 				}

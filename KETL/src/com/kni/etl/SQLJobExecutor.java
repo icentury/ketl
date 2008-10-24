@@ -301,7 +301,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
 								if (jobTriggers != null) {
 									try {
-										this.fireJobTriggers(jobTriggers,
+										this.fireJobTriggers(sjJob.iLoadID,jobTriggers,
 														value);
 									} catch (Exception e) {
 										ResourcePool

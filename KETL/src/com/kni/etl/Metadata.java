@@ -2082,6 +2082,55 @@ public class Metadata {
 		}
 
 	}
+	
+	/**
+	 * Gets the job status by execution id.
+	 * 
+	 * @param pLoadID
+	 *            the load ID
+	 * @return the job status by execution id
+	 * @throws SQLException
+	 *             the SQL exception
+	 * @throws Exception
+	 *             the exception
+	 */
+	public int getJobExecutionIdByLoadId(String pJobId,int pLoadID) throws SQLException, java.lang.Exception {
+		PreparedStatement m_stmt = null;
+		ResultSet m_rs = null;
+
+		synchronized (this.oLock) {
+			// Make metadata connection alive.
+			this.refreshMetadataConnection();
+
+			m_stmt = this.metadataConnection.prepareStatement("SELECT DM_LOAD_ID FROM  " + this.tablePrefix
+					+ "JOB_LOG A " + "WHERE LOAD_ID = ? AND JOB_ID = ?");
+			m_stmt.setInt(1, pLoadID);
+			m_stmt.setString(2, pJobId);
+			m_rs = m_stmt.executeQuery();
+
+			Integer executionId = null;
+			// cycle through pending jobs setting next run date
+			while (m_rs.next()) {
+				executionId = m_rs.getInt(1);
+			}
+
+			// Close open resources
+			if (m_rs != null) {
+				m_rs.close();
+			}
+
+			if (m_stmt != null) {
+				m_stmt.close();
+			}
+
+			if (executionId == null){
+				ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Job not in job_log table, issuing cancel for load id = " + pLoadID + ", restart of server recommended");
+				return ETLJobStatus.FATAL_STATE;
+			}
+			return executionId.intValue();
+		}
+
+	}
 
 	/**
 	 * Gets the detailed job status.

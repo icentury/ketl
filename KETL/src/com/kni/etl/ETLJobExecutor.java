@@ -794,7 +794,7 @@ public abstract class ETLJobExecutor extends Thread {
 	
 	private static enum TRIGGER_CMD {EXEC,SETSTATUS};
 	
-	protected void fireJobTriggers(String triggers, String value) throws Exception  {
+	protected void fireJobTriggers(int currentLoadId, String triggers, String value) throws Exception  {
 		if(triggers == null || triggersEnabled == false)
 			return;
 		
@@ -831,7 +831,8 @@ public abstract class ETLJobExecutor extends Thread {
 				} else if (command.startsWith("setStatus(")) {
 					String[] params = command.replace("setStatus(", "").replace(")", "").split(",");
 
-					ETLJob j = ResourcePool.getMetadata().getJob(params[0].trim());								
+					ETLJob j = ResourcePool.getMetadata().getJob(params[0].trim(), currentLoadId,
+							ResourcePool.getMetadata().getJobExecutionIdByLoadId(params[0].trim(), currentLoadId));					 							
 
 					if (j == null)
 						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
