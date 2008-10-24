@@ -30,6 +30,7 @@ import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -147,7 +148,7 @@ public class Console {
 	static final int LAST = 14;
 
 	/** The Constant RUN_TYPES. */
-	static final String[] RUN_TYPES = { "LIST", "RESET", "LOOKUPS", "LOADID" };
+	static final String[] RUN_TYPES = { "LIST", "RESET", "LOOKUPS", "LOADID","ENABLETRIGGERS","FOREGROUND" };
 
 	/** The Constant SERVER. */
 	static final int SERVER = 12;
@@ -180,11 +181,14 @@ public class Console {
 			"JOB <NAME> {DEFINITION|DELETE|KILL|XMLDEFINITION|RESTART|SKIP|EXPORT <FILENAME>|IMPORT <FILENAME>|DEPENDENCIES|EXECUTE <PROJECTID> {MULTI} {IGNOREDEPENDENCIES}}",
 			"RESTART {IMMEDIATE|NORMAL}", "QUIT", "CONNECT <SERVER|LOCALHOST> <USERNAME>", "HELP",
 			"PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}", "PAUSE <SERVERID>", "RESUME <SERVERID>",
-			"PROJECT LIST", "SERVER LIST", "RUN {LIST|RESET|LOOKUPS|<FILENAME>|LOADID <VALUE>}",
+			"PROJECT LIST", "SERVER LIST", "RUN {LIST|RESET|LOOKUPS|ENABLETRIGGERS <TRUE|FALSE>|<FILENAME>|FOREGROUND <JOBID>|LOADID <VALUE>}",
 			"/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}" };
 
 	/** The Constant XMLDEFINITION. */
 	static final int XMLDEFINITION = 0;
+
+	private static final int ENABLETRIGGERS = 4;
+	private static final int FOREGROUND = 5;
 
 	/**
 	 * Display version info.
@@ -268,6 +272,8 @@ public class Console {
 
 	/** The xml config. */
 	Document xmlConfig = null;
+
+	private boolean enableTriggers;
 
 	/**
 	 * Connected.
@@ -766,8 +772,9 @@ public class Console {
 							try {
 								pID = Integer.parseInt(pCommands[3]);
 
-								if (this.md.executeJob(pID, pCommands[1], ignoreDeps, allowMult)) {
-									sb.append("Job submitted to server for direct execution.\n");
+								int loadId;
+								if ((loadId = this.md.executeJob(pID, pCommands[1], ignoreDeps, allowMult)) != -1) {
+									sb.append("Job submitted to server for direct execution, load id = "+ loadId +".\n");
 								} else {
 									sb.append("Warning Job not submitted to server for execution.\n");
 								}
@@ -1224,7 +1231,7 @@ public class Console {
 	 *            the commands
 	 * @return the string
 	 */
-	private String runJob(String[] pCommands) {
+	private String runJob(String[] pCommands) throws Exception {
 		StringBuffer sb = new StringBuffer();
 
 		{
@@ -1250,6 +1257,17 @@ public class Console {
 				}
 
 				return "LoadID = " + this.iLoadID;
+			case ENABLETRIGGERS:
+				try {
+					if (pCommands.length == 3)
+						this.enableTriggers = Boolean.parseBoolean(pCommands[2]);
+					else
+						return "Invalid syntax - run enabletriggers true|false";
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				return "Triggers: " + (this.enableTriggers?"Enabled":"Disabled");
 			case RESET:
 				if (pCommands.length == 3) {
 					if (ResourcePool.releaseLookup(pCommands[2]))
@@ -1267,11 +1285,31 @@ public class Console {
 				return sb.toString();
 			case LOOKUPS:
 				System.gc();
-				ArrayList list = ResourcePool.getLookups(this.iLoadID);
+				List<String> list = ResourcePool.getLookups(this.iLoadID);
 				for (int i = 0; i < list.size(); i++)
 					sb.append("" + (i + 1) + ".\t" + list.get(i) + "\n");
 				return sb.toString();
-
+			case FOREGROUND:
+				if (pCommands.length != 3)
+					return "Invalid syntax - run foreground <jobid>";
+				
+				ETLJob[] jobs = this.md.getJobDetails(pCommands[2].replaceAll("\\*", "%"));
+				
+			
+				File f = File.createTempFile("ketl",".tmp");
+				BufferedWriter out = new BufferedWriter(new java.io.FileWriter(f));
+		
+				out.write("<?xml version=\"1.0\"?>\n<ETL VERSION=\"" + this.md.getMetadataVersion()
+						+ "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n");
+				
+				for(ETLJob job:jobs){
+					out.write(job.getXMLJobDefinition());										
+				}
+				
+				out.write("\n</ETL>");
+				out.close();
+				f.deleteOnExit();
+				pCommands = new String[] {"run",f.getAbsolutePath()};		
 			default:
 				if (pCommands.length == 2) {
 
@@ -1323,7 +1361,7 @@ public class Console {
 							ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Unknown job type, skipping job "
 									+ jobID);
 						else
-							ETLJobExecutor._execute(new String[] { "LOADID=" + this.iLoadID, "FILE=" + file,
+							ETLJobExecutor._execute(new String[] { "ENABLETRIGGERS=" + (this.enableTriggers?"TRUE":"FALSE"),"LOADID=" + this.iLoadID, "FILE=" + file,
 									"JOBID=" + jobID }, cur, false, 0);
 
 					}

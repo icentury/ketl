@@ -272,66 +272,102 @@ public class SQLJobExecutor extends ETLJobExecutor {
 
 							try {
 								long executionTime = this.wrapExecution(stmt, curSQL, debug);
-
+								
 								curSQL = null;
+
+								String jobTriggers = XMLHelper.getAttributeAsString(n.getAttributes(),"JOBTRIGGERS",null);
+								String value = null;
+								if (paramName != null || jobTriggers != null) {
+									ResultSet rs = stmt.getResultSet();
+									try {
+										int cols = rs.getMetaData()
+												.getColumnCount();
+
+										if (cols != 1) {
+											throw new Exception(
+													"For parameter writeback or triggers only one column is expected, the following SQL returns more than one column -"
+															+ n
+																	.getFirstChild()
+																	.getNodeValue());
+										}
+
+										while (rs.next()) {
+											value = rs.getString(1);
+										}
+									} finally {
+										rs.close();
+									}
+								}
+
+								if (jobTriggers != null) {
+									try {
+										this.fireJobTriggers(jobTriggers,
+														value);
+									} catch (Exception e) {
+										ResourcePool
+												.LogMessage(
+														Thread.currentThread(),
+														ResourcePool.ERROR_MESSAGE,
+														"Error firing triggers, check format <EXITCODE>=(<Project Id>,<Job Id>,{Ignore Dependencies},{Allow Multiple});... : "
+																+ e
+																		.getMessage());
+									}
+								}
 								if (paramName != null) {
 
-									String paramListName = XMLHelper.getAttributeAsString(n.getAttributes(),
-											EngineConstants.PARAMETER_LIST, null);
+									String paramListName = XMLHelper
+											.getAttributeAsString(
+													n.getAttributes(),
+													EngineConstants.PARAMETER_LIST,
+													null);
 
 									if (paramListName == null)
 										throw new Exception(
 												"For parameter list name must be specified for writeback,add tag "
 														+ EngineConstants.PARAMETER_LIST);
 
-									ResultSet rs = stmt.getResultSet();
-									int cols = rs.getMetaData().getColumnCount();
+									if (value == null) {
+										ResourcePool.LogMessage(this,
+												ResourcePool.WARNING_MESSAGE,
+												"Parameter write back resulted in setting parameter "
+														+ paramName
+														+ " to NULL");
+									}
 
-									if (cols != 1) {
+									Metadata md = ResourcePool.getMetadata();
+
+									if (md == null) {
 										throw new Exception(
-												"For parameter writeback only one column is expected, the following SQL returns more than one column -"
-														+ n.getFirstChild().getNodeValue());
+												"Parameter writeback failed as metadata could not be connected to");
 									}
 
-									while (rs.next()) {
-										String paramValue = rs.getString(1);
+									DocumentBuilderFactory factory = DocumentBuilderFactory
+											.newInstance();
+									DocumentBuilder builder = factory
+											.newDocumentBuilder();
 
-										if (paramValue == null) {
-											ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE,
-													"Parameter write back resulted in setting parameter " + paramName
-															+ " to NULL");
-										}
-
-										Metadata md = ResourcePool.getMetadata();
-
-										if (md == null) {
-											throw new Exception(
-													"Parameter writeback failed as metadata could not be connected to");
-										}
-
-										DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-										DocumentBuilder builder = factory.newDocumentBuilder();
-
-										Document document = builder.newDocument(); // Create from whole cloth
-										Element paramList = document.createElement(EngineConstants.PARAMETER_LIST);
-										Element parameter = document.createElement(EngineConstants.PARAMETER);
-										document.appendChild(paramList);
-										paramList.appendChild(parameter);
-										parameter.setAttribute(ETLStep.NAME_ATTRIB, paramName);
-										parameter.setTextContent(paramValue);
-										paramList.setAttribute(ETLStep.NAME_ATTRIB, paramListName);
-										md.importParameterList(paramList);
-
-										break;
-									}
-
-									rs.close();
-
+									Document document = builder.newDocument(); // Create
+																				// from
+																				// whole
+																				// cloth
+									Element paramList = document
+											.createElement(EngineConstants.PARAMETER_LIST);
+									Element parameter = document
+											.createElement(EngineConstants.PARAMETER);
+									document.appendChild(paramList);
+									paramList.appendChild(parameter);
+									parameter.setAttribute(ETLStep.NAME_ATTRIB,
+											paramName);
+									parameter.setTextContent(value);
+									paramList.setAttribute(ETLStep.NAME_ATTRIB,
+											paramListName);
+									md.importParameterList(paramList);
 								} else if (nl.getLength() == 1) {
 									sjJob.setResultSet(stmt.getResultSet());
 								}
 
-								sjJob.setUpdateCount(sjJob.getUpdateCount() + stmt.getUpdateCount());
+								sjJob.setUpdateCount(sjJob.getUpdateCount()
+										+ stmt.getUpdateCount());
 								sjJob.getStatus().setStats(statement, stmt.getUpdateCount(), executionTime);
 							} catch (SQLException e) {
 								if (critical)

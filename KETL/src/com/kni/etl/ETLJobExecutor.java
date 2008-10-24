@@ -84,6 +84,8 @@ public abstract class ETLJobExecutor extends Thread {
 
 	private String pool;
 
+	private boolean triggersEnabled = true;
+
 	/**
 	 * ETLJobExecutorThread constructor comment.
 	 */
@@ -293,6 +295,9 @@ public abstract class ETLJobExecutor extends Thread {
 
 			if ((fileName == null) && (element.indexOf("FILE=") != -1)) {
 				fileName = ArgumentParserUtil.extractArguments(element, "FILE=");
+			}
+			if (element.indexOf("ENABLETRIGGERS=") != -1) {
+				pETLJobExecutor.setTriggersOn(Boolean.parseBoolean(ArgumentParserUtil.extractArguments(element, "ENABLETRIGGERS=")));
 			}
 
 			if ((jobName == null) && (element.indexOf("JOB_NAME=") != -1)) {
@@ -782,5 +787,38 @@ public abstract class ETLJobExecutor extends Thread {
 	public void setPool(String pool) {
 		this.pool = pool;		
 	}
+	
+	public void setTriggersOn(boolean enableTriggers){
+		this.triggersEnabled = enableTriggers;
+	}
+	protected void fireJobTriggers(String triggers, String value) throws Exception  {
+		if(triggers == null || triggersEnabled == false)
+			return;
+		
+		String tmp[] = triggers.split(";");
+		
+		if(tmp == null || tmp.length == 0) {
+			ResourcePool.logMessage("Check trigger format <EXITCODE>=(<Project Id>,<Job Id>,{Ignore Dependencies},{Allow Multiple});..., current definition "  + triggers);
+			throw new Exception("Trigger error");
+		}
+		
+		for(String trigger : tmp){
+			String[] parts = trigger.split("=");
+			if(parts[0].equalsIgnoreCase(value)){
+				
+				// trim out
+				String[] params =  parts[1].replace("(", "").replace(")","").split(",");
+				
+				int loadId;
+				if((loadId = ResourcePool.getMetadata().executeJob(Integer.parseInt(params[0].trim()),params[1].trim(), params.length<3?false:Boolean.parseBoolean(params[2].trim()), params.length<4?false:Boolean.parseBoolean(params[3].trim()))) == -1) {
+					ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Job trigger did not fire job, check trigger and previous errors - " + trigger);
+				} else {
+					ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Job triggered load " + loadId + ", for job " + params[1].trim());;
+				}
+				
+			}
+		}
+	}
+
 
 }

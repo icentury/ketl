@@ -7,13 +7,16 @@
 CURRENT_DIR=`pwd`
 cd $KETLDIR
 
-. $KETLDIR/conf/SmallExtra.Config
+pgmdir=`dirname \`command which $0\``
+loaderRoot=`dirname $pgmdir`
+loaderJars=`echo $KETLDIR/lib/*.jar | tr ' ' ':'`
 
+. $KETLDIR/conf/Extra.Libraries
+. $KETLDIR/conf/SmallExtra.Config
 CLASSPATH=$KETL_DIR
 
+
 $JAVA_HOME/bin/java $JAVA_OPTS \
-      -Dlog4j.configuration=file:$KETLDIR/conf/Console.log.properties \
-      -classpath $JAVA_HOME/lib/tools.jar:$KETLDIR/lib/KETL.jar \
+      -classpath "$loaderJars":"$ketlextralibs" \
       Console
 cd $CURRENT_DIR
-

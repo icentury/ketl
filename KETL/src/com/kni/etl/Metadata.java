@@ -1402,7 +1402,7 @@ public class Metadata {
 	 */
 	public boolean executeJob(int pProjectID, String pJobID, boolean pIgnoreDependencies) throws SQLException,
 			java.lang.Exception {
-		return this.executeJob(pProjectID, pJobID, pIgnoreDependencies, false);
+		return this.executeJob(pProjectID, pJobID, pIgnoreDependencies, false) != -1;
 	}
 
 	/**
@@ -1519,17 +1519,18 @@ public class Metadata {
 	 *            the project ID
 	 * @param pJobID
 	 *            the job ID
-	 * @return boolean
+	 * @return load id or -1 if not executed
 	 * @throws SQLException
 	 *             the SQL exception
 	 * @throws Exception
 	 *             the exception
 	 */
-	public boolean executeJob(int pProjectID, String pJobID, boolean pIgnoreDependencies, boolean pAllowMultiple)
+	public int executeJob(int pProjectID, String pJobID, boolean pIgnoreDependencies, boolean pAllowMultiple)
 			throws SQLException, java.lang.Exception {
 		PreparedStatement m_stmt = null;
 		ResultSet rs = null;
 		ResultSet m_rs = null;
+		int loadID = -1;
 
 		synchronized (this.oLock) {
 
@@ -1567,7 +1568,7 @@ public class Metadata {
 									+ "blocking job maybe a prior load failure.", Thread.currentThread().getName()
 									.equalsIgnoreCase("ETLDaemon") ? true : false);
 
-					return false;
+					return -1;
 				}
 
 			}
@@ -1578,8 +1579,7 @@ public class Metadata {
 			m_rs = m_stmt.executeQuery();
 
 			String jobID = pJobID;
-			int loadID;
-
+			
 			PreparedStatement newLoadStmt = this.metadataConnection.prepareStatement("INSERT INTO  " + this.tablePrefix
 					+ this.loadTableName() + "(LOAD_ID,START_JOB_ID,START_DATE,PROJECT_ID) VALUES(?,?,"
 					+ this.currentTimeStampSyntax + ",?)");
@@ -1720,7 +1720,7 @@ public class Metadata {
 			}
 		}
 
-		return true;
+		return loadID;
 	}
 
 	/**
@@ -5844,4 +5844,110 @@ public class Metadata {
 		return this.mResolvedLoadTableName == null ? "LOAD" : this.mResolvedLoadTableName;
 	}
 
+	public boolean executorAvailable(int jobTypeID, String pool)
+			throws Exception {
+
+		PreparedStatement m_stmt = null;
+
+		synchronized (this.oLock) {
+			// Make metadata connection alive.
+			this.refreshMetadataConnection();
+
+			// get executor info
+			m_stmt = this.metadataConnection
+					.prepareStatement("SELECT sum(THREADS) " + "	FROM "
+							+ this.tablePrefix + "SERVER_EXECUTOR A, "
+							+ this.tablePrefix + "JOB_EXECUTOR B, "
+							+ this.tablePrefix + "job_executor_job_type c, "
+							+ "	" + this.tablePrefix + "job_type d, "
+							+ this.tablePrefix + "server e "
+							+ " WHERE A.JOB_EXECUTOR_ID = B.JOB_EXECUTOR_ID "
+							+ " AND b.job_executor_id = c.job_executor_id "
+							+ " AND c.job_type_id = d.job_type_id  "
+							+ " AND e.server_id = a.server_id "
+							+ " and e.last_ping_time > sysdate - (1/1440) "
+							+ "  and d.job_type_id = ? and a.pool = ?");
+			
+			m_stmt.setInt(1, jobTypeID);
+			m_stmt.setString(2, pool);
+			
+			ResultSet rs = m_stmt.executeQuery();
+			int threads = 0;
+			while (rs.next()) {
+				threads = rs.getInt(1);
+			}
+
+			rs.close();
+
+			if (m_stmt != null)
+				m_stmt.close();
+
+			if (threads == 0) {
+				return false;
+			}
+
+			// get how many used
+			m_stmt = this.metadataConnection
+					.prepareStatement("select count(*) from "
+							+ this.tablePrefix
+							+ "job_log a join "
+							+ this.tablePrefix
+							+ "job b on (a.job_id = b.job_id) where status_id = 1 and b.job_type_id = ? and b.pool = ?");
+			
+			m_stmt.setInt(1, jobTypeID);
+			m_stmt.setString(2, pool);
+			rs = m_stmt.executeQuery();
+
+			// reduce the number threads by the number used
+			while (rs.next()) {
+				threads = threads - rs.getInt(1);
+			}
+
+			rs.close();
+
+			if (m_stmt != null)
+				m_stmt.close();
+
+			if (threads == 0) {
+				return false;
+			}
+
+		}
+
+		return true;
+	}
+
+	public boolean loadComplete(int loadId) throws SQLException, Exception {
+		PreparedStatement m_stmt = null;
+
+		synchronized (this.oLock) {
+			// Make metadata connection alive.
+			this.refreshMetadataConnection();
+
+			// get executor info
+			m_stmt = this.metadataConnection.prepareStatement("SELECT count(*)FROM "
+							+ this.tablePrefix + "JOB_LOG "
+							+ " WHERE LOAD_ID = ? ");
+
+			m_stmt.setInt(1, loadId);
+
+			ResultSet rs = m_stmt.executeQuery();
+			int pendingJobs = 0;
+			while (rs.next()) {
+				pendingJobs = rs.getInt(1);
+			}
+
+			rs.close();
+
+			if (m_stmt != null)
+				m_stmt.close();
+
+			if (pendingJobs > 0) {
+				return false;
+			}
+
+		}
+
+		return true;
+	}
 }

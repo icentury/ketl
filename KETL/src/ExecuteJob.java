@@ -27,6 +27,7 @@ import java.util.StringTokenizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import com.kni.etl.ETLJob;
 import com.kni.etl.Metadata;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.XMLHelper;
@@ -38,258 +39,371 @@ import com.kni.util.ExternalJarLoader;
  */
 class ExecuteJob {
 
-    /**
-     * ExecuteJob constructor comment.
-     */
-    public ExecuteJob() {
-        super();
-    }
+	/**
+	 * ExecuteJob constructor comment.
+	 */
+	public ExecuteJob() {
+		super();
+	}
 
-    /**
-     * Extract arguments.
-     * 
-     * @param pArg the arg
-     * @param pVarName the var name
-     * 
-     * @return the string
-     */
-    public static String extractArguments(String pArg, String pVarName) {
-        String result = null;
-        int argPos = -1;
+	/**
+	 * Extract arguments.
+	 * 
+	 * @param pArg
+	 *            the arg
+	 * @param pVarName
+	 *            the var name
+	 * 
+	 * @return the string
+	 */
+	public static String extractArguments(String pArg, String pVarName) {
+		String result = null;
+		int argPos = -1;
 
-        argPos = pArg.indexOf(pVarName);
+		argPos = pArg.indexOf(pVarName);
 
-        if (argPos != -1) {
-            String fields = pArg.substring(pVarName.length());
+		if (argPos != -1) {
+			String fields = pArg.substring(pVarName.length());
 
-            if (fields.length() > 0) {
-                result = fields;
-            }
-        }
+			if (fields.length() > 0) {
+				result = fields;
+			}
+		}
 
-        return (result);
-    }
+		return (result);
+	}
 
-    /**
-     * Extract multiple arguments.
-     * 
-     * @param pArg the arg
-     * @param pVarName the var name
-     * 
-     * @return the string[]
-     */
-    public static String[] extractMultipleArguments(String pArg, String pVarName) {
-        String[] result = null;
-        int argPos = -1;
+	/**
+	 * Extract multiple arguments.
+	 * 
+	 * @param pArg
+	 *            the arg
+	 * @param pVarName
+	 *            the var name
+	 * 
+	 * @return the string[]
+	 */
+	public static String[] extractMultipleArguments(String pArg, String pVarName) {
+		String[] result = null;
+		int argPos = -1;
 
-        argPos = pArg.indexOf(pVarName);
+		argPos = pArg.indexOf(pVarName);
 
-        if (argPos != -1) {
-            String fields = pArg.substring(pVarName.length(), pArg.indexOf(")", pVarName.length()));
+		if (argPos != -1) {
+			String fields = pArg.substring(pVarName.length(), pArg.indexOf(")",
+					pVarName.length()));
 
-            if (fields.indexOf(',') != -1) {
-                // string contains multiple files
-                StringTokenizer st = new StringTokenizer(fields, ",");
+			if (fields.indexOf(',') != -1) {
+				// string contains multiple files
+				StringTokenizer st = new StringTokenizer(fields, ",");
 
-                int nFields = st.countTokens();
+				int nFields = st.countTokens();
 
-                result = new String[nFields];
+				result = new String[nFields];
 
-                int pos = 0;
+				int pos = 0;
 
-                while (st.hasMoreTokens()) {
-                    result[pos] = st.nextToken();
-                    pos++;
-                }
-            }
-            else if (fields.length() > 0) {
-                result = new String[1];
-                result[0] = fields;
-            }
-        }
+				while (st.hasMoreTokens()) {
+					result[pos] = st.nextToken();
+					pos++;
+				}
+			} else if (fields.length() > 0) {
+				result = new String[1];
+				result[0] = fields;
+			}
+		}
 
-        return (result);
-    }
+		return (result);
+	}
 
-    /**
-     * Connect to server.
-     * 
-     * @param xmlConfig the xml config
-     * @param pServerName the server name
-     * 
-     * @return the metadata
-     * 
-     * @throws Exception the exception
-     */
-    static private Metadata connectToServer(Document xmlConfig, String pServerName) throws Exception {
-        Node nCurrentServer;
-        String password;
-        String url;
-        String driver;
-        String mdprefix;
-        String username;
-        Metadata md = null;
-        nCurrentServer = XMLHelper.findElementByName(xmlConfig, "SERVER", "NAME", pServerName);
+	/**
+	 * Connect to server.
+	 * 
+	 * @param xmlConfig
+	 *            the xml config
+	 * @param pServerName
+	 *            the server name
+	 * 
+	 * @return the metadata
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	static private Metadata connectToServer(Document xmlConfig,
+			String pServerName) throws Exception {
+		Node nCurrentServer;
+		String password;
+		String url;
+		String driver;
+		String mdprefix;
+		String username;
+		Metadata md = null;
+		nCurrentServer = XMLHelper.findElementByName(xmlConfig, "SERVER",
+				"NAME", pServerName);
 
-        if (nCurrentServer == null) {
-            throw new Exception("ERROR: Server " + pServerName + " not found!");
-        }
+		if (nCurrentServer == null) {
+			throw new Exception("ERROR: Server " + pServerName + " not found!");
+		}
 
-        username = XMLHelper.getChildNodeValueAsString(nCurrentServer, "USERNAME", null, null, null);
-        password = XMLHelper.getChildNodeValueAsString(nCurrentServer, "PASSWORD", null, null, null);
+		username = XMLHelper.getChildNodeValueAsString(nCurrentServer,
+				"USERNAME", null, null, null);
+		password = XMLHelper.getChildNodeValueAsString(nCurrentServer,
+				"PASSWORD", null, null, null);
 
-        url = XMLHelper.getChildNodeValueAsString(nCurrentServer, "URL", null, null, null);
-        driver = XMLHelper.getChildNodeValueAsString(nCurrentServer, "DRIVER", null, null, null);
-        mdprefix = XMLHelper.getChildNodeValueAsString(nCurrentServer, "MDPREFIX", null, null, null);
-        String passphrase = XMLHelper.getChildNodeValueAsString(nCurrentServer, "PASSPHRASE", null, null, null);
+		url = XMLHelper.getChildNodeValueAsString(nCurrentServer, "URL", null,
+				null, null);
+		driver = XMLHelper.getChildNodeValueAsString(nCurrentServer, "DRIVER",
+				null, null, null);
+		mdprefix = XMLHelper.getChildNodeValueAsString(nCurrentServer,
+				"MDPREFIX", null, null, null);
+		String passphrase = XMLHelper.getChildNodeValueAsString(nCurrentServer,
+				"PASSPHRASE", null, null, null);
 
-        // metadata object isn't set and login information found then connect to metadata
+		// metadata object isn't set and login information found then connect to
+		// metadata
 
-        try {
-            Metadata mds = new Metadata(true, passphrase);
-            mds.setRepository(username, password, url, driver, mdprefix);
-            pServerName = XMLHelper.getAttributeAsString(nCurrentServer.getAttributes(), "NAME", pServerName);
-            ResourcePool.setMetadata(mds);
-            md = ResourcePool.getMetadata();
+		try {
+			Metadata mds = new Metadata(true, passphrase);
+			mds.setRepository(username, password, url, driver, mdprefix);
+			pServerName = XMLHelper.getAttributeAsString(nCurrentServer
+					.getAttributes(), "NAME", pServerName);
+			ResourcePool.setMetadata(mds);
+			md = ResourcePool.getMetadata();
 
-        } catch (Exception e1) {
-            throw new Exception("ERROR: Connecting to metadata - " + e1.getMessage());
-        }
+		} catch (Exception e1) {
+			throw new Exception("ERROR: Connecting to metadata - "
+					+ e1.getMessage());
+		}
 
-        return md;
-    }
+		return md;
+	}
 
-    /**
-     * Starts the application.
-     * 
-     * @param args an array of command-line arguments
-     */
-    public static void main(java.lang.String[] args) {
+	private static enum EXIT_CODES {
+		SUCCESS, NOCAPACITY, INVALIDJOB, FAILED, JOBNOTSUBMITTED, INVALIDPROJECT, INVALIDARGUMENTS, METADATA_ERROR, INVALIDSTATE
+	};
 
-    	String ketldir = System.getenv("KETLDIR");
+	/**
+	 * Starts the application.
+	 * 
+	 * @param args
+	 *            an array of command-line arguments
+	 */
+	public static void main(java.lang.String[] args) {
+
+		String ketldir = System.getenv("KETLDIR");
 		if (ketldir == null) {
-			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.WARNING_MESSAGE,"KETLDIR not set, defaulting to working dir");
+			ResourcePool.LogMessage(Thread.currentThread(),
+					ResourcePool.WARNING_MESSAGE,
+					"KETLDIR not set, defaulting to working dir");
 			ketldir = ".";
 		}
 
-		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.Libraries"),
-				"ketlextralibs", ";");
-		
-        // String mdServer = null;
-        String jobID = null;
+		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf"
+				+ File.separator + "Extra.Libraries"), "ketlextralibs", ";");
 
-        String server = null;
+		// String mdServer = null;
+		String jobID = null;
 
-        // String mdServer = null;
-        String projectID = null;
+		String server = null;
 
-        // String mdServer = null;
-        String ignoreDependencies = null;
+		// String mdServer = null;
+		String projectID = null;
 
-        // String mdServer = null;
-        String allowMultiple = null;
-        
-        boolean asynchronous = true;
+		// String mdServer = null;
+		String ignoreDependencies = null;
 
-        for (String element : args) {
-            if ((server == null) && (element.indexOf("SERVER=") != -1)) {
-                server = ExecuteJob.extractArguments(element, "SERVER=");
-            }
+		// String mdServer = null;
+		String allowMultiple = null;
 
-            if ((jobID == null) && (element.indexOf("JOB_ID=") != -1)) {
-                jobID = ExecuteJob.extractArguments(element, "JOB_ID=");
-            }
+		boolean asynchronous = true, avoidQueue = false;
 
-            if ((projectID == null) && (element.indexOf("PROJECT_ID=") != -1)) {
-                projectID = ExecuteJob.extractArguments(element, "PROJECT_ID=");
-            }
+		for (String element : args) {
+			if ((server == null) && (element.indexOf("SERVER=") != -1)) {
+				server = ExecuteJob.extractArguments(element, "SERVER=");
+			}
 
-            if ((ignoreDependencies == null) && (element.indexOf("IGNORE_DEPENDENCIES=") != -1)) {
-                ignoreDependencies = ExecuteJob.extractArguments(element, "IGNORE_DEPENDENCIES=");
-            }
+			if ((jobID == null) && (element.indexOf("JOB_ID=") != -1)) {
+				jobID = ExecuteJob.extractArguments(element, "JOB_ID=");
+			}
 
-            if (element.indexOf("ASYNC=") != -1) {
-                String tmp = ExecuteJob.extractArguments(element, "ASYNC=");
-                if(tmp.equalsIgnoreCase("FALSE")){
-                	asynchronous = false;	
-                }
-            }
+			if ((projectID == null) && (element.indexOf("PROJECT_ID=") != -1)) {
+				projectID = ExecuteJob.extractArguments(element, "PROJECT_ID=");
+			}
 
-            if ((allowMultiple == null) && (element.indexOf("ALLOW_MULTIPLE=") != -1)) {
-                allowMultiple = ExecuteJob.extractArguments(element, "ALLOW_MULTIPLE=");
-            }
-        }
+			if ((ignoreDependencies == null)
+					&& (element.indexOf("IGNORE_DEPENDENCIES=") != -1)) {
+				ignoreDependencies = ExecuteJob.extractArguments(element,
+						"IGNORE_DEPENDENCIES=");
+			}
 
-        if (allowMultiple == null) {
-            allowMultiple = "FALSE";
-        }
+			if (element.indexOf("ASYNC=") != -1) {
+				String tmp = ExecuteJob.extractArguments(element, "ASYNC=");
+				if (tmp.equalsIgnoreCase("FALSE")) {
+					asynchronous = false;
+				}
+			}
 
-        if ((server == null) || (ignoreDependencies == null) || (projectID == null) || (jobID == null)) {
-            System.out
-                    .println("Wrong arguments:  SERVER=TEST PROJECT_ID=1 JOB_ID=TEST_SCRIPT IGNORE_DEPENDENCIES=FALSE [ALLOW_MULTIPLE=FALSE]");
-            System.out
-                    .println("example:  SERVER=TEST PROJECT_ID=1 JOB_ID=TEST_SCRIPT IGNORE_DEPENDENCIES=FALSE ALLOW_MULTIPLE=FALSE");
+			if (element.indexOf("AVOIDQUEUE=") != -1) {
+				String tmp = ExecuteJob
+						.extractArguments(element, "AVOIDQUEUE=");
+				if (tmp.equalsIgnoreCase("TRUE")) {
+					avoidQueue = true;
+				}
+			}
 
-            return;
-        }
-        Metadata md = null;
+			if ((allowMultiple == null)
+					&& (element.indexOf("ALLOW_MULTIPLE=") != -1)) {
+				allowMultiple = ExecuteJob.extractArguments(element,
+						"ALLOW_MULTIPLE=");
+			}
+		}
 
-        try {
-            md = ExecuteJob.connectToServer(Metadata.LoadConfigFile(null, Metadata.CONFIG_FILE), server);
-        } catch (Exception e1) {
-            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Connecting to metadata - "
-                    + e1.getMessage());
-            System.exit(com.kni.etl.EngineConstants.METADATA_ERROR_EXIT_CODE);
-        }
+		if (allowMultiple == null) {
+			allowMultiple = "FALSE";
+		}
 
-        boolean ignoreDeps = false;
-        boolean allowMult = false;
+		if (ignoreDependencies == null) {
+			ignoreDependencies = "FALSE";
+		}
 
-        if (ignoreDependencies.compareToIgnoreCase("true") == 0) {
-            ignoreDeps = true;
-        }
+		if ((server == null) || (ignoreDependencies == null)
+				|| (projectID == null) || (jobID == null)) {
+			System.out
+					.println("Wrong arguments:  SERVER=TEST PROJECT_ID=1 JOB_ID=TEST_SCRIPT IGNORE_DEPENDENCIES=FALSE [ALLOW_MULTIPLE=FALSE]");
+			System.out
+					.println("example:  SERVER=TEST ASYNC=TRUE AVOIDQUEUE=FALSE PROJECT_ID=1 JOB_ID=TEST_SCRIPT IGNORE_DEPENDENCIES=FALSE ALLOW_MULTIPLE=FALSE");
 
-        if (allowMultiple.compareToIgnoreCase("true") == 0) {
-            allowMult = true;
-        }
+			System.exit(EXIT_CODES.INVALIDARGUMENTS.ordinal());
+		}
+		Metadata md = null;
 
-        int pID;
+		try {
+			md = ExecuteJob.connectToServer(Metadata.LoadConfigFile(null,
+					Metadata.CONFIG_FILE), server);
+		} catch (Exception e1) {
+			ResourcePool.LogMessage(Thread.currentThread(),
+					ResourcePool.ERROR_MESSAGE, "Connecting to metadata - "
+							+ e1.getMessage());
+			System.exit(EXIT_CODES.METADATA_ERROR.ordinal());
+		}
 
-        try {
-            pID = Integer.parseInt(projectID);
-        } catch (Exception e) {
-            ResourcePool.LogMessage("Invalid project id");
+		boolean ignoreDeps = false;
+		boolean allowMult = false;
 
-            return;
-        }
+		if (ignoreDependencies.compareToIgnoreCase("true") == 0) {
+			ignoreDeps = true;
+		}
 
-        try {
-            com.kni.etl.ETLJob[] e = md.getJobDetails(jobID);
+		if (allowMultiple.compareToIgnoreCase("true") == 0) {
+			allowMult = true;
+		}
 
-            if (e == null || e.length == 0) {
-                System.err.println("[" + new java.util.Date() + "] Job " + jobID + " not found in metadata.");
-                System.exit(-1);
-            }
-            if (md.executeJob(pID, jobID, ignoreDeps, allowMult)) {
-                ResourcePool.logMessage("Job submitted to server for direct execution.");
-                if(asynchronous == false){
-                	// wait for job to finish
-                }
-            }
-            else {
-                ResourcePool.logMessage("Warning Job not submitted to server for execution.");
+		int pID = -1;
 
-                md.closeMetadata();
+		try {
+			pID = Integer.parseInt(projectID);
+		} catch (Exception e) {
+			ResourcePool.LogMessage(Thread.currentThread(),
+					ResourcePool.ERROR_MESSAGE, "Invalid project id");
+			System.exit(EXIT_CODES.INVALIDPROJECT.ordinal());
+		}
 
-                System.exit(1);
-            }
-        } catch (SQLException e) {
-            ResourcePool.logMessage(e);
-            md.closeMetadata();
-        } catch (Exception e) {
-            ResourcePool.logMessage(e);
-        }
+		try {
+			com.kni.etl.ETLJob job = md.getJob(jobID);
 
-        md.closeMetadata();
-    }
+			if (job == null) {
+				ResourcePool.LogMessage(Thread.currentThread(),
+						ResourcePool.ERROR_MESSAGE, " Job " + jobID
+								+ " not found in metadata.");
+				System.exit(EXIT_CODES.INVALIDJOB.ordinal());
+			}
+
+			if (avoidQueue) {
+				boolean capacity = true;
+				// check for capacity
+
+				if (md.executorAvailable(job.getJobTypeID(), job.getPool()) == false) {
+					ResourcePool.LogMessage(Thread.currentThread(),
+							ResourcePool.ERROR_MESSAGE, job.getJobTypeName()
+									+ " executor not available for job "
+									+ job.getJobID());
+					exit(md, EXIT_CODES.NOCAPACITY.ordinal());
+				}
+
+			}
+			int loadId;
+			if ((loadId = md.executeJob(pID, jobID, ignoreDeps, allowMult)) != -1) {
+				ResourcePool.LogMessage(Thread.currentThread(),
+						ResourcePool.ERROR_MESSAGE,
+						"Job submitted to server for direct execution, load id = "
+								+ loadId + ".");
+				if (asynchronous == false) {
+					// wait for job to finish
+					int waitTime = 1;
+					while (md.loadComplete(loadId) == false) {
+						Thread.sleep(waitTime * 1000);
+						// ramp up wait time to every 10 seconds
+						if (waitTime <= 10)
+							waitTime++;
+						if(waitTime == 10){
+							ETLJob[] loadJobs = md.getLoadJobs(null, loadId);
+							for (ETLJob completeJob : loadJobs) {
+								if(completeJob.isCompleted()==false)
+									ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.INFO_MESSAGE, completeJob
+												.getStatus()
+												.getExtendedMessage());							
+							}
+						}
+					}
+
+					// job finished get end state, return failed exit code and
+					// error message if failed
+					ETLJob[] loadJobs = md.getLoadJobs(null, loadId);
+					for (ETLJob completeJob : loadJobs) {
+						if (completeJob.getJobID().equals(jobID)) {
+							if (completeJob.isSuccessful()) {
+								ResourcePool.LogMessage(Thread.currentThread(),
+										ResourcePool.INFO_MESSAGE, completeJob
+												.getStatus()
+												.getExtendedMessage());
+								exit(md, EXIT_CODES.SUCCESS.ordinal());
+							} else {
+								ResourcePool.LogMessage(Thread.currentThread(),
+										ResourcePool.ERROR_MESSAGE, completeJob
+												.getStatus().getExtendedMessage());
+
+								exit(md, EXIT_CODES.FAILED.ordinal());
+							}
+
+						}
+					}
+				}
+			} else {
+				ResourcePool.LogMessage(Thread.currentThread(),
+						ResourcePool.ERROR_MESSAGE,
+						"Warning Job not submitted to server for execution.");
+
+				exit(md, EXIT_CODES.JOBNOTSUBMITTED.ordinal());
+			}
+		} catch (SQLException e) {
+			ResourcePool.logMessage(e);
+
+		} catch (Exception e) {
+			ResourcePool.logMessage(e);
+		}
+
+		ResourcePool.LogMessage(Thread.currentThread(),
+				ResourcePool.ERROR_MESSAGE,
+				"Invalid state reached.");
+
+		exit(md, EXIT_CODES.INVALIDSTATE.ordinal());
+	}
+
+	private static void exit(Metadata md, int exitCode) {
+		if (md != null)
+			md.closeMetadata();
+
+		System.exit(exitCode);
+	}
+
 }

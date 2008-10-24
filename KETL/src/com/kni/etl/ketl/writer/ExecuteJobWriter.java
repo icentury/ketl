@@ -132,7 +132,7 @@ public class ExecuteJobWriter extends ETLWriter implements DefaultWriterCore {
             throw new KETLWriteException("Could not connect to the metadata");
 
         try {
-            if (ResourcePool.getMetadata().executeJob(projectID, jobID, ignoreDependencies, allowMultiple) == false)
+            if (ResourcePool.getMetadata().executeJob(projectID, jobID, ignoreDependencies, allowMultiple) == -1)
                 throw new KETLWriteException("Failed to execute job, see KETLLog");
         } catch (Exception e) {
             throw new KETLWriteException("Error executing job - " + e.getMessage(), e);

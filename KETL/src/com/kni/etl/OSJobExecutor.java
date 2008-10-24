@@ -25,6 +25,7 @@ package com.kni.etl;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.sql.SQLException;
 
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.util.InputStreamHandler;
@@ -234,15 +235,22 @@ public class OSJobExecutor extends ETLJobExecutor {
 				new InputStreamHandler(errBuffer, errStream);
 				
 				stage = Stage.Executing;
-				int iReturnValue = pProcess.waitFor();
+				int iReturnValue = pProcess.waitFor();							
 				stage = Stage.Completed;
 				if (inBuffer.length() > 0) {
 					jsJobStatus.setExtendedMessage(inBuffer.toString());
 				}
-
+				
+				try {
+					this.fireJobTriggers(ojJob.getJobTriggers(),Integer.toString(iReturnValue));
+				} catch(Exception e){
+					ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Error firing triggers, check format <EXITCODE>=(<Project Id>,<Job Id>,{Ignore Dependencies},{Allow Multiple});... : " + e.getMessage());
+				}
+				
 				jsJobStatus.setErrorCode(iReturnValue); // Set the return value
 				// as the error code
-
+				
+				
 				if (iReturnValue != 0) {
 					jsJobStatus.setErrorMessage("STDERROR:" + errBuffer.toString());
 					jsJobStatus.setExtendedMessage("STDOUT:" + inBuffer.toString());
@@ -271,6 +279,7 @@ public class OSJobExecutor extends ETLJobExecutor {
 		return bSuccess;
 	}
 
+	
 	/**
 	 * Insert the method's description here. Creation date: (5/7/2002 2:26:26 PM)
 	 * 

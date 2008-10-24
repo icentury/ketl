@@ -26,6 +26,7 @@ import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -68,12 +69,34 @@ public class OSJob extends ETLJob {
      */
     @Override
     protected Node setChildNodes(Node pParentNode) {
-        Element e = pParentNode.getOwnerDocument().createElement("OSJOB");
-        e.appendChild(pParentNode.getOwnerDocument().createTextNode(this.getAction(false).toString()));
-        pParentNode.appendChild(e);
+		String action = this.getAction(false).toString();
+		Node e;
+		if (action.indexOf("<OSJOB") != -1) {
+			DocumentBuilder builder = null;
+			Document xmlDOM = null;
+			DocumentBuilderFactory dmfFactory = DocumentBuilderFactory
+					.newInstance();
 
-        return e;
-    }
+			try {
+				builder = dmfFactory.newDocumentBuilder();
+				xmlDOM = builder
+						.parse(new InputSource(new StringReader(action)));
+			} catch (Exception e1) {
+				throw new RuntimeException(e1);
+			}
+			
+			e = pParentNode.getOwnerDocument().importNode(
+					xmlDOM.getFirstChild(), true);
+		} else {
+			e = pParentNode.getOwnerDocument().createElement("OSJOB");
+			e.appendChild(pParentNode.getOwnerDocument().createTextNode(
+					this.getAction(false).toString()));
+		}
+		
+		pParentNode.appendChild(e);
+
+		return e;
+	}
 
     /**
      * Insert the method's description here. Creation date: (5/7/2002 2:32:19 PM)
@@ -247,4 +270,38 @@ public class OSJob extends ETLJob {
 			return this.getJobID();
 		}
     }
+
+	public String getJobTriggers() throws Exception {
+		 String cmd = (String) this.getAction(true);
+
+		if (cmd.indexOf("<OSJOB") != -1) {
+            DocumentBuilder builder = null;
+            Document xmlDOM = null;
+            DocumentBuilderFactory dmfFactory = DocumentBuilderFactory.newInstance();
+
+            builder = dmfFactory.newDocumentBuilder();
+            xmlDOM = builder.parse(new InputSource(new StringReader(cmd)));
+
+            NodeList nl = xmlDOM.getElementsByTagName("OSJOB");
+            
+            
+            if ((nl == null) || (nl.getLength() == 0)) {
+                this.getStatus().setErrorCode(2); // BRIAN: NEED TO SET UP KETL JOB ERROR CODES
+                this.getStatus().setErrorMessage("Error reading job XML: no Command specified.");
+
+                return null;
+            }
+
+            if (nl.getLength() > 1) {
+                this.getStatus().setErrorCode(2); // BRIAN: NEED TO SET UP KETL JOB ERROR CODES
+                this.getStatus().setErrorMessage("Error reading job XML: more than 1 Command top node specified.");
+
+                return null;
+            }
+            
+            
+            return XMLHelper.getAttributeAsString(nl.item(0).getAttributes(),"JOBTRIGGERS",null);
+		}
+		return null;
+	}
 }
