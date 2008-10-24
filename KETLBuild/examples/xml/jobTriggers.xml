@@ -2,39 +2,45 @@
 <ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 
-	<!-- initial job triggers OS2 and OS4 if exit code is 0 else if code is 1 then OS3 -->
-	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="OS1" NAME="" PARAMETER_LIST="params" PROJECT="TEST" RETRY_ATTEMPTS="0"
+	<!-- initial job triggers load for OS4 and SKIPS OS2 if exit code is good -->
+	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="OSCONDITION" NAME="" PARAMETER_LIST="params" PROJECT="TEST" RETRY_ATTEMPTS="0"
 		SECONDS_BEFORE_RETRY="10" TYPE="OSJOB">
-		<OSJOB JOBTRIGGERS="0=(2,OS2,true);1=(2,OS3);0=(2,OS4,false)">echo 0</OSJOB>
+		<OSJOB JOBTRIGGERS="0=exec(2,SQLCONDITION);1=exec(2,OS3,true);0=setStatus(OS2,SKIP)">echo 0</OSJOB>
 	</JOB>
 	
-	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="SQL1" NAME=""  PARAMETER_LIST="Target_DWH"  PROJECT="TEST" RETRY_ATTEMPTS="0"
-		SECONDS_BEFORE_RETRY="10" TYPE="SQL">
-		<SQL>
-			<STATEMENT JOBTRIGGERS="A=(2,OS2,true);B=(2,OS3);A=(2,OS4,false)">select 'A' from dual</STATEMENT>
-		</SQL>
-	</JOB>
-
-	<!--- Job: OS2-->
 	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="OS2" NAME="" PARAMETER_LIST="params" PROJECT="TEST" RETRY_ATTEMPTS="0"
 		SECONDS_BEFORE_RETRY="10" TYPE="OSJOB">
+		<DEPENDS_ON>OSCONDITION</DEPENDS_ON>
 		<OSJOB>echo "OS2"</OSJOB>
 	</JOB>
 	
-	<!-- triggered job triggers OS3 if exit code is 0 else if code is 1 then OS5 -->
-	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="OS4" NAME="" PARAMETER_LIST="params" PROJECT="TEST" RETRY_ATTEMPTS="0"
+	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="OS1" NAME="" PARAMETER_LIST="params" PROJECT="TEST" RETRY_ATTEMPTS="0"
 		SECONDS_BEFORE_RETRY="10" TYPE="OSJOB">
-		<OSJOB JOBTRIGGERS="0=(2,OS3);1=(2,OS5)">echo "OS4"</OSJOB>
+		<DEPENDS_ON>OS2</DEPENDS_ON>
+		<OSJOB>echo "OS1"</OSJOB>
 	</JOB>
+	<!--  end of job sequence -->
 	
-	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="OS3" NAME="" PARAMETER_LIST="params" PROJECT="TEST" RETRY_ATTEMPTS="0"
-		SECONDS_BEFORE_RETRY="10" TYPE="OSJOB">
-		<OSJOB>echo "OS3"</OSJOB>
-	</JOB>
+	<!--  other job sequence -->
+	<!--  if a then fire OS4 without dependencies else fire with dependencies -->
+	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="SQLCONDITION" NAME=""  PARAMETER_LIST="Target_DWH"  PROJECT="TEST" RETRY_ATTEMPTS="0"
+		SECONDS_BEFORE_RETRY="10" TYPE="SQL">
+		<SQL>
+			<STATEMENT JOBTRIGGERS="A=exec(2,OS4,true);B=exec(2,OS4,false)">select 'A' from dual</STATEMENT>
+		</SQL>
+	</JOB>	
+	<!--  end of job sequence -->
 	
+	<!--  other job sequence -->
 	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="OS5" NAME="" PARAMETER_LIST="params" PROJECT="TEST" RETRY_ATTEMPTS="0"
 		SECONDS_BEFORE_RETRY="10" TYPE="OSJOB">
 		<OSJOB>echo "OS5"</OSJOB>
+	</JOB>
+	
+	<JOB DESCRIPTION="" DISABLE_ALERTING="N" ID="OS4" NAME="" PARAMETER_LIST="params" PROJECT="TEST" RETRY_ATTEMPTS="0"
+		SECONDS_BEFORE_RETRY="10" TYPE="OSJOB">
+		<DEPENDS_ON>OS5</DEPENDS_ON>
+		<OSJOB>echo "OS4"</OSJOB>
 	</JOB>
 	
 </ETL>
