@@ -791,6 +791,9 @@ public abstract class ETLJobExecutor extends Thread {
 	public void setTriggersOn(boolean enableTriggers){
 		this.triggersEnabled = enableTriggers;
 	}
+	
+	private static enum TRIGGER_CMD {EXEC,SETSTATUS};
+	
 	protected void fireJobTriggers(String triggers, String value) throws Exception  {
 		if(triggers == null || triggersEnabled == false)
 			return;
@@ -798,7 +801,7 @@ public abstract class ETLJobExecutor extends Thread {
 		String tmp[] = triggers.split(";");
 		
 		if(tmp == null || tmp.length == 0) {
-			ResourcePool.logMessage("Check trigger format <EXITCODE>=(<Project Id>,<Job Id>,{Ignore Dependencies},{Allow Multiple});..., current definition "  + triggers);
+			ResourcePool.logMessage("Check trigger format <VALUE>=(exec|setStatus)(..);..., current definition "  + triggers);
 			throw new Exception("Trigger error");
 		}
 		
@@ -807,15 +810,65 @@ public abstract class ETLJobExecutor extends Thread {
 			if(parts[0].equalsIgnoreCase(value)){
 				
 				// trim out
-				String[] params =  parts[1].replace("(", "").replace(")","").split(",");
 				
+				String command = parts[1];
+				
+				
+				if(command.startsWith("exec(")){
 				int loadId;
-				if((loadId = ResourcePool.getMetadata().executeJob(Integer.parseInt(params[0].trim()),params[1].trim(), params.length<3?false:Boolean.parseBoolean(params[2].trim()), params.length<4?false:Boolean.parseBoolean(params[3].trim()))) == -1) {
-					ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Job trigger did not fire job, check trigger and previous errors - " + trigger);
-				} else {
-					ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Job triggered load " + loadId + ", for job " + params[1].trim());;
-				}
 				
+				String[] params =  command.replace("exec(", "").replace(")","").split(",");
+				
+				if ((loadId = ResourcePool.getMetadata().executeJob(Integer.parseInt(params[0].trim()),
+							params[1].trim(), params.length < 3 ? false : Boolean.parseBoolean(params[2].trim()),
+							params.length < 4 ? false : Boolean.parseBoolean(params[3].trim()))) == -1) {
+						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
+								"Job trigger did not fire job, check trigger and previous errors - " + trigger);
+					} else {
+						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
+								"Job triggered load " + loadId + ", for job " + params[1].trim());						
+					}
+				} else if (command.startsWith("setStatus(")) {
+					String[] params = command.replace("setStatus(", "").replace(")", "").split(",");
+
+					ETLJob j = ResourcePool.getMetadata().getJob(params[0].trim());								
+
+					if (j == null)
+						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
+								"Job " + j.getJobID() + " could not be found");
+					else if (j.getStatus() == null || j.iJobExecutionID == 0)
+						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
+								"Job " + j.getJobID() + " is not current in the job queue");					
+					else {
+						String toStatus = params[1].trim();	
+						
+						int status_id = -1;
+						
+						if (toStatus.equalsIgnoreCase("PAUSE"))
+							status_id = ETLJobStatus.PAUSED;
+						else if (toStatus.equalsIgnoreCase("RESUME"))
+							status_id = ETLJobStatus.QUEUED_FOR_EXECUTION;
+						else if (toStatus.equalsIgnoreCase("SKIP"))
+							status_id = ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL;
+						else if (toStatus.equalsIgnoreCase("CANCEL"))
+							status_id = ETLJobStatus.PENDING_CLOSURE_CANCELLED;
+						else if (toStatus.equalsIgnoreCase("RESTART"))
+							status_id = ETLJobStatus.READY_TO_RUN;
+
+						if (status_id == -1)
+							ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
+									"Invalid status " + params[1]);
+						else {
+							j.getStatus().setStatusCode(status_id);
+							ResourcePool.getMetadata().setJobStatus(j);
+							ResourcePool
+									.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Status changed for job " + j.getJobID());
+						}
+					}
+				} else {
+					ResourcePool.logMessage("Unknown trigger command " + command);
+				}
+
 			}
 		}
 	}

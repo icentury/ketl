@@ -244,7 +244,7 @@ public class OSJobExecutor extends ETLJobExecutor {
 				try {
 					this.fireJobTriggers(ojJob.getJobTriggers(),Integer.toString(iReturnValue));
 				} catch(Exception e){
-					ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Error firing triggers, check format <EXITCODE>=(<Project Id>,<Job Id>,{Ignore Dependencies},{Allow Multiple});... : " + e.getMessage());
+					ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.ERROR_MESSAGE,"Error firing triggers, check format <EXITCODE>=<VALUE>=(exec|setStatus)(..);... : " + e.getMessage());
 				}
 				
 				jsJobStatus.setErrorCode(iReturnValue); // Set the return value

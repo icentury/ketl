@@ -308,7 +308,7 @@ public class SQLJobExecutor extends ETLJobExecutor {
 												.LogMessage(
 														Thread.currentThread(),
 														ResourcePool.ERROR_MESSAGE,
-														"Error firing triggers, check format <EXITCODE>=(<Project Id>,<Job Id>,{Ignore Dependencies},{Allow Multiple});... : "
+														"Error firing triggers, check format <EXITCODE>=<VALUE>=(exec|setStatus)(..);... : "
 																+ e
 																		.getMessage());
 									}
