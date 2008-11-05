@@ -136,6 +136,8 @@ public abstract class ETLTransform extends ETLStep {
 			return;
 		}
 
+		if (this.timing)
+			this.startTimeNano = System.nanoTime();
 		for (int i = 0; i < length; i++) {
 			Object[] current = res[i];
 
@@ -151,7 +153,13 @@ public abstract class ETLTransform extends ETLStep {
 
 				this.aggregateOut.add(result);
 				if (this.aggregateOut.size() >= length) {
+					if (this.timing)
+						this.totalTimeNano += System.nanoTime() - this.startTimeNano;
+					
 					this.sendAggregateBatch();
+					
+					if (this.timing)
+						this.startTimeNano = System.nanoTime();
 				}
 			}
 
@@ -163,6 +171,10 @@ public abstract class ETLTransform extends ETLStep {
 			this.previous = current;
 
 		}
+		
+		if (this.timing)
+			this.totalTimeNano += System.nanoTime() - this.startTimeNano;
+
 
 	}
 
@@ -230,13 +242,16 @@ public abstract class ETLTransform extends ETLStep {
 		return new DefaultComparator(elements);
 	}
 
+	private int maxSortSize = 5000;
+	private int maxMergeSize = 128;
+	private int maxReadBufferSize = 4096;
 	/**
 	 * Gets the max sort size.
 	 * 
 	 * @return the max sort size
 	 */
 	private int getMaxSortSize() {
-		return 5000;
+		return this.maxSortSize;
 	}
 
 	/**
@@ -245,7 +260,7 @@ public abstract class ETLTransform extends ETLStep {
 	 * @return the merge size
 	 */
 	private int getMergeSize() {
-		return 128;
+		return this.maxMergeSize;
 	}
 
 	/**
@@ -254,7 +269,7 @@ public abstract class ETLTransform extends ETLStep {
 	 * @return the read buffer size
 	 */
 	private int getReadBufferSize() {
-		return 4096;
+		return this.maxReadBufferSize;
 	}
 
 	/*
@@ -321,22 +336,25 @@ public abstract class ETLTransform extends ETLStep {
 		return this.srcQueue;
 	}
 
+	private int totalReadBufferSize = 524288;
 	/**
 	 * Gets the total read buffer size.
 	 * 
 	 * @return the total read buffer size
 	 */
 	private int getTotalReadBufferSize() {
-		return 524288;
+		return this.totalReadBufferSize;
 	}
 
+	
+	private int writeBufferSize = 4096;
 	/**
 	 * Gets the write buffer size.
 	 * 
 	 * @return the write buffer size
 	 */
 	private int getWriteBufferSize() {
-		return 4096;
+		return this.writeBufferSize;
 	}
 
 	/**
@@ -389,6 +407,11 @@ public abstract class ETLTransform extends ETLStep {
 
 		this.mSortData = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), "SORT", false);
 
+		this.maxMergeSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(),"SORTMERGESIZE",this.maxMergeSize);
+		this.maxSortSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(),"SORTSIZE",this.maxSortSize);
+		this.maxReadBufferSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(),"SORTREADBUFFER",this.maxReadBufferSize);
+		this.totalReadBufferSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(),"SORTTOTALREADBUFFER",this.totalReadBufferSize);
+		this.writeBufferSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(),"SORTWRITEBUFFER",this.writeBufferSize);
 		return 0;
 	}
 
@@ -510,6 +533,9 @@ public abstract class ETLTransform extends ETLStep {
 		this.mExternalSort = new ExternalSort(this.getSortComparator(), this.getMaxSortSize(), this.getMergeSize(),
 				this.getTotalReadBufferSize(), this.getReadBufferSize(), this.getWriteBufferSize());
 
+		ResourcePool.LogMessage(this,ResourcePool.INFO_MESSAGE, "Starting sort");
+		
+		
 		while (true) {
 			this.interruptExecution();
 			Object o;
@@ -517,14 +543,24 @@ public abstract class ETLTransform extends ETLStep {
 			if (o == ETLWorker.ENDOBJ) {
 				break;
 			}
+			
+			if (this.timing)
+				this.startTimeNano = System.nanoTime();
 			Object[][] res = (Object[][]) o;
 
 			this.postSortBatchSize = (res.length + this.postSortBatchSize) / 2;
 
 			for (int i = res.length - 1; i > -1; i--)
 				this.mExternalSort.add(res[i]);
-		}
+			
+			if (this.timing)
+				this.totalTimeNano += System.nanoTime() - this.startTimeNano;
 
+		}
+		
+		this.mExternalSort.commit();
+		
+		ResourcePool.LogMessage(this,ResourcePool.INFO_MESSAGE, "Sort complete, sort rate " + this.mExternalSort.sortRate() + " rec/s");				
 	}
 
 	/** The count. */
@@ -701,6 +737,10 @@ public abstract class ETLTransform extends ETLStep {
 			this.interruptExecution();
 			Object o = null;
 
+			if (this.timing)
+				this.startTimeNano = System.nanoTime();
+			
+			
 			Object[][] data = readData ? new Object[this.postSortBatchSize][] : null;
 
 			if (readData) {
@@ -717,6 +757,10 @@ public abstract class ETLTransform extends ETLStep {
 					data[i] = (Object[]) o;
 				}
 			}
+			
+			if (this.timing)
+				this.totalTimeNano += System.nanoTime() - this.startTimeNano;
+
 
 			if (data == null) {
 				if (this.mAggregate) {
@@ -730,7 +774,7 @@ public abstract class ETLTransform extends ETLStep {
 			Object[][] res;
 
 			if (this.timing)
-				this.startTimeNano += System.nanoTime();
+				this.startTimeNano = System.nanoTime();
 			res = this.transformBatch(data, this.postSortBatchSize);
 			if (this.timing)
 				this.totalTimeNano += System.nanoTime() - this.startTimeNano;

@@ -22,6 +22,8 @@
  */
 package com.kni.etl.util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -67,6 +69,10 @@ final public class Store {
     /** The object input stream. */
     private ObjectInputStream mObjectInputStream;
 
+	private BufferedOutputStream mBufferedOutputStream;
+
+	private BufferedInputStream mBufferedInputStream;
+
     /**
      * Instantiates a new store.
      * 
@@ -82,7 +88,8 @@ final public class Store {
         this.mOutputStream = new FileOutputStream(fd);
         this.mFileChannel = this.mOutputStream.getChannel();
         this.mByteOutputStream = java.nio.channels.Channels.newOutputStream(this.mFileChannel);
-        this.mObjectOutputStream = new ObjectOutputStream(this.mByteOutputStream);
+        this.mBufferedOutputStream = new BufferedOutputStream(this.mByteOutputStream,pWriteBufferSize);
+        this.mObjectOutputStream = new ObjectOutputStream(this.mBufferedOutputStream);
     }
 
     /**
@@ -141,18 +148,27 @@ final public class Store {
         try {
             this.mObjectOutputStream.close();
         } catch (Exception e) {
+        	e.printStackTrace();
+        }
+        try {
+            this.mBufferedOutputStream.close();
+        } catch (Exception e) {
+        	e.printStackTrace();
         }
         try {
             this.mByteOutputStream.close();
         } catch (Exception e) {
+        	e.printStackTrace();
         }
         try {
             this.mFileChannel.close();
         } catch (Exception e) {
+        	e.printStackTrace();
         }
         try {
             this.mOutputStream.close();
         } catch (Exception e) {
+        	e.printStackTrace();
         }
     }
 
@@ -160,21 +176,30 @@ final public class Store {
      * Read close.
      */
     final private void readClose() {
-        try {
+    	try {
             this.mObjectInputStream.close();
         } catch (Exception e) {
+        	e.printStackTrace();
+        }
+        try {
+            this.mBufferedInputStream.close();
+        } catch (Exception e) {
+        	e.printStackTrace();
         }
         try {
             this.mByteInputStream.close();
         } catch (Exception e) {
+        	e.printStackTrace();
         }
         try {
             this.mFileChannel.close();
         } catch (Exception e) {
+        	e.printStackTrace();
         }
         try {
             this.mInputStream.close();
         } catch (Exception e) {
+        	e.printStackTrace();
         }
     }
 
@@ -240,7 +265,8 @@ final public class Store {
 
         this.mFileChannel = this.mInputStream.getChannel();
         this.mByteInputStream = java.nio.channels.Channels.newInputStream(this.mFileChannel);
-        this.mObjectInputStream = new ObjectInputStream(this.mByteInputStream);
+        this.mBufferedInputStream = new BufferedInputStream(this.mByteInputStream,readBufferSize);
+        this.mObjectInputStream = new ObjectInputStream(this.mBufferedInputStream);
     }
 
 }

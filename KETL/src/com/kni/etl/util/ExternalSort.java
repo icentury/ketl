@@ -45,76 +45,28 @@ import com.kni.util.Sort;
  */
 final public class ExternalSort implements Set {
 
-    // int subSpoolCount = 0;
-    /** The pos. */
-    int pos;
-    
-    /** The db. */
-    public BufferedObjectStore db;
-    
-    /** The data. */
-    public Object[] data;
-    
-    /** The current pos. */
-    int currentPos;
-    
-    /** The records. */
-    int records = 0;
-    
-    /** The total records. */
-    int totalRecords = 0;
-    
-    /** The max sort size. */
-    int maxSortSize = 1024;
-    
-    /** The spools. */
-    ArrayList spools = new ArrayList();
-    
-    /** The ma stores. */
-    Store[] maStores;
-    
-    /** The merged spools. */
-    ArrayList mergedSpools = new ArrayList();
-    
-    /** The root. */
-    SortedList root;
-    
-    /** The merge size. */
-    int mMergeSize = 128;
-    
-    /** The read buffer size. */
-    int readBufferSize;
-    
-    /** The max individual read buffer size. */
-    int maxIndividualReadBufferSize;
-    
-    /** The write buffer size. */
-    int writeBufferSize;
-    
-    /** The distinct. */
-    boolean mDistinct = false;
-
     /**
      * The Class BufferedObjectStore.
      */
     final public class BufferedObjectStore {
 
-        /** The stores. */
-        ArrayList stores = new ArrayList();
-        
         /** The store cnt. */
         int storeCnt = 0;
+        
+        /** The stores. */
+        ArrayList stores = new ArrayList();
 
-        /* (non-Javadoc)
-         * @see java.lang.Object#finalize()
+        /**
+         * Close.
+         * 
+         * @throws Exception the exception
          */
-        @Override
-        protected void finalize() throws Throwable {
-            if ((this.stores != null) & (this.stores.size() > 0)) {
-                this.close();
+        final public void close() throws Exception {
+            for (int i = 0; i < this.stores.size(); i++) {
+                ((Store) this.stores.get(i)).close();
             }
 
-            super.finalize();
+            this.stores.clear();
         }
 
         /**
@@ -134,20 +86,96 @@ final public class ExternalSort implements Set {
             return store;
         }
 
-        /**
-         * Close.
-         * 
-         * @throws Exception the exception
+        /* (non-Javadoc)
+         * @see java.lang.Object#finalize()
          */
-        final public void close() throws Exception {
-            for (int i = 0; i < this.stores.size(); i++) {
-                ((Store) this.stores.get(i)).close();
+        @Override
+        protected void finalize() throws Throwable {
+            if ((this.stores != null) & (this.stores.size() > 0)) {
+                this.close();
             }
 
-            this.stores.clear();
+            super.finalize();
         }
     }
+    
+    /** The commit pending. */
+    boolean commitPending = true;
+    
+    /** The current pos. */
+    int currentPos;
+    
+    /** The data. */
+    public Object[] data;
+    
+    /** The db. */
+    public BufferedObjectStore db;
+    
+    /** The ma stores. */
+    Store[] maStores;
+    
+    /** The max individual read buffer size. */
+    int maxIndividualReadBufferSize;
+    
+    /** The max sort size. */
+    int maxSortSize = 1000000;
+    
+    /** The comparator. */
+    Comparator mComparator = null;
+    
+    /** The distinct. */
+    boolean mDistinct = false;
+    
+    /** The merged spools. */
+    ArrayList mergedSpools = new ArrayList();
+    
+    /** The last exception. */
+    Exception mLastException;
+    
+    /** The low memory threashold. */
+	long mLowMemoryThreashold = -1;
+    
+    /** The merge size. */
+    int mMergeSize = 128;
+    
+    /** The previous. */
+    Object mPrevious = null;
+    
+    // int subSpoolCount = 0;
+    /** The pos. */
+    int pos;
 
+    private int prevSortSpeed[][] =  new int[5][2];
+
+    private int sortSize  = 5000;
+    /** The read buffer size. */
+    int readBufferSize;
+
+    /** The records. */
+    int records = 0;
+
+    /** The root. */
+    SortedList root;
+
+    /** The spool lookup. */
+    private HashMap spoolLookup = new HashMap();
+
+    /** The spools. */
+    ArrayList spools = new ArrayList();
+
+    private long startTime;
+
+    /** The total records. */
+    int totalRecords = 0;
+
+    private int tuneCnt = 0,tuneInterval = 2;
+
+    private boolean tuning = false;
+
+    private int tuningRun = 0;
+
+    /** The write buffer size. */
+    int writeBufferSize;
     /**
      * Instantiates a new external sort.
      * 
@@ -170,13 +198,10 @@ final public class ExternalSort implements Set {
         this.readBufferSize = readBufferSize;
         this.maxIndividualReadBufferSize = maxIndividualReadBufferSize;
         this.mComparator = cmp;
-        this.data = new Object[maxSortSize];
+        this.data = new Object[this.maxSortSize];
         this.currentPos = 0;
+        this.startTime = System.currentTimeMillis();
     }
-
-    /** The last exception. */
-    Exception mLastException;
-
     /* (non-Javadoc)
      * @see java.util.Set#add(java.lang.Object)
      */
@@ -185,27 +210,55 @@ final public class ExternalSort implements Set {
 
         this.records++;
 
-        if (this.records == this.maxSortSize) {
-            this.totalRecords = this.totalRecords + this.records;
-            this.records = 0;
+        if (this.records == this.sortSize) {
+			if (this.sortSize == this.maxSortSize || this.isMemoryLow()) {
+				this.totalRecords = this.totalRecords + this.records;
+				this.records = 0;
 
-            try {
-                this.spool();
-            } catch (Exception e) {
-                throw new SortException(e);
-            }
-        }
+				try {
+					this.spool();
+				} catch (Exception e) {
+					throw new SortException(e);
+				}
+			} else {
+				this.sortSize = (int) (this.sortSize * 1.5);
+				if (this.sortSize > this.maxSortSize)
+					this.sortSize = this.maxSortSize;
+			}
+		}
 
         return true;
     }
+    /* (non-Javadoc)
+     * @see java.util.Set#addAll(java.util.Collection)
+     */
+    public boolean addAll(Collection c) {
+        throw new RuntimeException();
+    }
+    /**
+     * Adds the to sorted list.
+     * 
+     * @param arg0 the arg0
+     * @param arg1 the arg1
+     */
+    private void addToSortedList(Object arg0, Object arg1) {
+        this.spoolLookup.put(arg0, arg1);
+        this.root.add(arg0);
+    }
+    /* (non-Javadoc)
+     * @see java.util.Set#clear()
+     */
+    public void clear() {
+        throw new RuntimeException();
+    }
 
     /**
-     * Gets the last exception.
+     * Close.
      * 
-     * @return the last exception
+     * @throws Exception the exception
      */
-    final public Exception getLastException() {
-        return this.mLastException;
+    final public void close() throws Exception {
+        this.db.close();
     }
 
     /**
@@ -256,6 +309,23 @@ final public class ExternalSort implements Set {
                 this.dedup();
             }
         }
+        
+        this.commitPending = false;        
+    }
+
+    /* (non-Javadoc)
+     * @see java.util.Set#contains(java.lang.Object)
+     */
+    public boolean contains(Object o) {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    /* (non-Javadoc)
+     * @see java.util.Set#containsAll(java.util.Collection)
+     */
+    public boolean containsAll(Collection c) {
+        throw new RuntimeException();
     }
 
     /**
@@ -278,6 +348,155 @@ final public class ExternalSort implements Set {
             ar.toArray(this.data);
             this.currentPos = ar.size();
         }
+    }
+
+	/**
+     * Gets the last exception.
+     * 
+     * @return the last exception
+     */
+    final public Exception getLastException() {
+        return this.mLastException;
+    }
+    
+        
+	/**
+     * Gets the next.
+     * 
+     * @return the next
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
+    final public Object getNext() throws IOException, ClassNotFoundException {
+        if (this.commitPending) {
+            this.commit();
+        }
+
+        // if no spools then read directory from memory
+        if (this.maStores == null) {
+            if (this.pos == this.currentPos) {
+                return null;
+            }
+
+            return this.data[this.pos++];
+        }
+
+        // if distinct results not required then pull next value
+        if (this.mDistinct == false) {
+            return this.getNextFromSpoolsSortedList();
+        }
+
+        Object current = this.getNextFromSpoolsSortedList();
+
+        if ((this.mPrevious == null) || (current == null)) {
+            this.mPrevious = current;
+
+            return current;
+        }
+
+        while (true) {
+            if (this.mComparator.compare(current, this.mPrevious) == 0) {
+                current = this.getNextFromSpoolsSortedList();
+
+                if (current == null)
+                    return null;
+            }
+            else {
+                this.mPrevious = current;
+
+                return current;
+            }
+        }
+    }
+	
+    /**
+     * Gets the next from spools sorted list.
+     * 
+     * @return the next from spools sorted list
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
+    final Object getNextFromSpoolsSortedList() throws IOException, ClassNotFoundException {
+        Object first = this.root.removeFirst();
+
+        if (first == null) {
+            return null;
+        }
+
+        Integer pos = (Integer) this.spoolLookup.remove(first);
+        Store spool = this.maStores[pos];
+
+        if (spool.hasNext()) {
+            Object o = spool.next();
+            this.addToSortedList(o, pos);
+        }
+        else {
+            spool.close();
+        }
+
+        return first;
+    }
+
+    /* (non-Javadoc)
+     * @see java.util.Set#isEmpty()
+     */
+    final public boolean isEmpty() {
+        return (this.records == 0) ? true : false;
+    }
+
+    final protected boolean isMemoryLow() {
+		Runtime r = Runtime.getRuntime();
+		long free = (r.maxMemory() - (r.totalMemory() - r.freeMemory()));
+		if (free < (1048576*4))
+			return true;
+
+		return false;
+	}
+
+    /* (non-Javadoc)
+     * @see java.util.Set#iterator()
+     */
+    public Iterator iterator() {
+        throw new RuntimeException();
+    }
+
+    /**
+     * Merge.
+     * 
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException the class not found exception
+     */
+    final void merge() throws IOException, ClassNotFoundException {
+        // if 1 spool left then don't merge it with itself.
+        if (this.spools.size() == 1) {
+            this.mergedSpools.add(this.spools.get(0));
+            this.spools.remove(0);
+
+            return;
+        }
+
+        // prep spools for merging
+        this.prepSpoolsForMergeSortedList();
+
+        // create output store
+        Store store = this.db.createSet(this.writeBufferSize);
+
+        Object o = null;
+
+        // get next from spools and write to new store
+        while (!((o = this.getNextFromSpoolsSortedList()) == null)) {
+            store.add(o);
+        }
+
+        // commit data to the store
+        store.commit();
+
+        // record store to merged stores pool
+        this.mergedSpools.add(store);
+
+        this.currentPos = 0;
     }
 
     /**
@@ -323,22 +542,33 @@ final public class ExternalSort implements Set {
         }
     }
 
-    /**
-     * Adds the to sorted list.
-     * 
-     * @param arg0 the arg0
-     * @param arg1 the arg1
+    /* (non-Javadoc)
+     * @see java.util.Set#remove(java.lang.Object)
      */
-    private void addToSortedList(Object arg0, Object arg1) {
-        this.spoolLookup.put(arg0, arg1);
-        this.root.add(arg0);
+    public boolean remove(Object o) {
+        throw new RuntimeException();
     }
 
-    /** The spool lookup. */
-    private HashMap spoolLookup = new HashMap();
+    /* (non-Javadoc)
+     * @see java.util.Set#removeAll(java.util.Collection)
+     */
+    public boolean removeAll(Collection c) {
+        throw new RuntimeException();
+    }
 
-    /** The comparator. */
-    Comparator mComparator = null;
+    /* (non-Javadoc)
+     * @see java.util.Set#retainAll(java.util.Collection)
+     */
+    public boolean retainAll(Collection c) {
+        throw new RuntimeException();
+    }
+
+    /* (non-Javadoc)
+     * @see java.util.Set#size()
+     */
+    final public int size() {
+        return this.records;
+    }
 
     /**
      * Spool.
@@ -348,7 +578,24 @@ final public class ExternalSort implements Set {
      */
     final void spool() throws IOException, ClassNotFoundException {
         // sort data
-        Sort.quickSort2(this.data, this.mComparator, 0, this.currentPos - 1);
+    	/*
+    	if(1==0 && tuning == false && tuneCnt++ % 5 == 0) {
+    		tuning = true;
+    		tuningRun = 0;
+    		// setup test bands
+    		prevSortSpeed[0][0] = this.maxSortSize;
+    		prevSortSpeed[1][0] = (int) (this.maxSortSize * 0.5);
+    		prevSortSpeed[2][0] = (int) (this.maxSortSize * 0.75);
+    		prevSortSpeed[3][0] = (int) (this.maxSortSize * 1.5);
+    		prevSortSpeed[4][0] = (int) (this.maxSortSize * 2);	    						
+    	}
+    	
+    	if(tuning)
+    		startTimeNano = System.currentTimeMillis();
+		*/
+    	Sort.quickSort2(this.data, this.mComparator, 0, this.currentPos - 1);
+        
+    	
 
         // if distinct sort required then dedup
         if (this.mDistinct) {
@@ -367,6 +614,36 @@ final public class ExternalSort implements Set {
         // record spool for later use
         this.spools.add(store);
 
+        /*
+        if (this.tuning){
+			long execTime = (System.currentTimeMillis() - this.startTimeNano);
+			int speed = (int)((this.currentPos-1)/execTime)*1000;
+			
+			// record speed
+			prevSortSpeed[tuningRun][1] = speed;								
+			tuningRun++;
+
+			if(tuningRun < 5){
+				this.maxSortSize = prevSortSpeed[tuningRun][0];
+				this.data = new Object[this.maxSortSize];
+			} else {
+				this.tuning = false;
+				
+				int bestTime = 0;
+				for (int i = 0; i < this.prevSortSpeed.length; i++) {
+					if (this.prevSortSpeed[i][1] > this.prevSortSpeed[bestTime][1])
+						bestTime = i;
+				}
+				
+				if(bestTime != 0){
+					ResourcePool.LogMessage(this,"Auto-tuning sort size from " + this.prevSortSpeed[0][0] + " to " + this.prevSortSpeed[bestTime][0]);
+				}
+				this.maxSortSize = this.prevSortSpeed[bestTime][0];
+				this.data = new Object[this.maxSortSize];
+			}							
+    	}
+    	*/
+        
         // if spools >= than merge size then merge
         if (this.spools.size() >= this.mMergeSize) {
             while (this.spools.size() > 0) {
@@ -377,167 +654,6 @@ final public class ExternalSort implements Set {
 
         // reset array position
         this.currentPos = 0;
-    }
-
-    /**
-     * Merge.
-     * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws ClassNotFoundException the class not found exception
-     */
-    final void merge() throws IOException, ClassNotFoundException {
-        // if 1 spool left then don't merge it with itself.
-        if (this.spools.size() == 1) {
-            this.mergedSpools.add(this.spools.get(0));
-            this.spools.remove(0);
-
-            return;
-        }
-
-        // prep spools for merging
-        this.prepSpoolsForMergeSortedList();
-
-        // create output store
-        Store store = this.db.createSet(this.writeBufferSize);
-
-        Object o = null;
-
-        // get next from spools and write to new store
-        while (!((o = this.getNextFromSpoolsSortedList()) == null)) {
-            store.add(o);
-        }
-
-        // commit data to the store
-        store.commit();
-
-        // record store to merged stores pool
-        this.mergedSpools.add(store);
-
-        this.currentPos = 0;
-    }
-
-    /** The previous. */
-    Object mPrevious = null;
-
-    /**
-     * Gets the next from spools sorted list.
-     * 
-     * @return the next from spools sorted list
-     * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws ClassNotFoundException the class not found exception
-     */
-    final Object getNextFromSpoolsSortedList() throws IOException, ClassNotFoundException {
-        Object first = this.root.removeFirst();
-
-        if (first == null) {
-            return null;
-        }
-
-        Integer pos = (Integer) this.spoolLookup.remove(first);
-        Store spool = this.maStores[pos];
-
-        if (spool.hasNext()) {
-            Object o = spool.next();
-            this.addToSortedList(o, pos);
-        }
-        else {
-            spool.close();
-        }
-
-        return first;
-    }
-
-    /**
-     * Close.
-     * 
-     * @throws Exception the exception
-     */
-    final public void close() throws Exception {
-        this.db.close();
-    }
-
-    /** The commit pending. */
-    boolean commitPending = true;
-
-    /**
-     * Gets the next.
-     * 
-     * @return the next
-     * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws ClassNotFoundException the class not found exception
-     */
-    final public Object getNext() throws IOException, ClassNotFoundException {
-        if (this.commitPending) {
-            this.commitPending = false;
-            this.commit();
-        }
-
-        // if no spools then read directory from memory
-        if (this.maStores == null) {
-            if (this.pos == this.currentPos) {
-                return null;
-            }
-
-            return this.data[this.pos++];
-        }
-
-        // if distinct results not required then pull next value
-        if (this.mDistinct == false) {
-            return this.getNextFromSpoolsSortedList();
-        }
-
-        Object current = this.getNextFromSpoolsSortedList();
-
-        if ((this.mPrevious == null) || (current == null)) {
-            this.mPrevious = current;
-
-            return current;
-        }
-
-        while (true) {
-            if (this.mComparator.compare(current, this.mPrevious) == 0) {
-                current = this.getNextFromSpoolsSortedList();
-
-                if (current == null)
-                    return null;
-            }
-            else {
-                this.mPrevious = current;
-
-                return current;
-            }
-        }
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#size()
-     */
-    final public int size() {
-        return this.records;
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#isEmpty()
-     */
-    final public boolean isEmpty() {
-        return (this.records == 0) ? true : false;
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#contains(java.lang.Object)
-     */
-    public boolean contains(Object o) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#iterator()
-     */
-    public Iterator iterator() {
-        throw new RuntimeException();
     }
 
     /* (non-Javadoc)
@@ -553,47 +669,9 @@ final public class ExternalSort implements Set {
     public Object[] toArray(Object[] a) {
         throw new RuntimeException();
     }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#remove(java.lang.Object)
-     */
-    public boolean remove(Object o) {
-        throw new RuntimeException();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#containsAll(java.util.Collection)
-     */
-    public boolean containsAll(Collection c) {
-        throw new RuntimeException();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#addAll(java.util.Collection)
-     */
-    public boolean addAll(Collection c) {
-        throw new RuntimeException();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#retainAll(java.util.Collection)
-     */
-    public boolean retainAll(Collection c) {
-        throw new RuntimeException();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#removeAll(java.util.Collection)
-     */
-    public boolean removeAll(Collection c) {
-        throw new RuntimeException();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.Set#clear()
-     */
-    public void clear() {
-        throw new RuntimeException();
-    }
+    
+	public long sortRate() {
+		return (this.totalRecords / (System.currentTimeMillis()-this.startTime))*1000;
+	}
 
 }
