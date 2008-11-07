@@ -1048,8 +1048,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 	private void getColumnDataTypes() throws SQLException {
 		ResultSet rs = this.mcDBConnection.getMetaData().getColumns(
 				null,
-				XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), DatabaseELTWriter.SCHEMA_ATTRIB,
-						null), this.mstrTableName, "%");
+				this.setDBCase(XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), DatabaseELTWriter.SCHEMA_ATTRIB,
+						null)), this.mstrTableName, "%");
 
 		boolean found = false;
 		while (rs.next()) {
@@ -1608,7 +1608,8 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 		if (this.mManageIndexes == false)
 			return;
 
-		ResultSet indexRs = this.mcDBConnection.getMetaData().getIndexInfo(null, this.mstrSchemaName.length()==0?null:this.mstrSchemaName,
+		ResultSet indexRs = this.mcDBConnection.getMetaData().getIndexInfo(null, this.setDBCase(XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), DatabaseELTWriter.SCHEMA_ATTRIB,
+				null)),
 				this.mstrTableName, false, true);
 		ArrayList indexList = new ArrayList();
 		while (indexRs.next()) {
