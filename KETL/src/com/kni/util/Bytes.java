@@ -33,6 +33,251 @@ import com.kni.etl.ketl.exceptions.KETLError;
 final public class Bytes {
 
     /**
+     * Append.
+     * 
+     * @param a the a
+     * @param b the b
+     * 
+     * @return the byte[]
+     */
+    public static byte[] append(byte[] a, byte[] b) {
+        byte[] z = new byte[a.length + b.length + 1];
+        System.arraycopy(a, 0, z, 0, a.length);
+        z[a.length] = 0;
+        System.arraycopy(b, 0, z, a.length, b.length);
+        return z;
+    }
+
+    /**
+     * Join.
+     * 
+     * @param a the a
+     * @param b the b
+     * 
+     * @return the byte[]
+     */
+    public static byte[] join(byte[] a, byte[] b) {
+        byte[] z = new byte[a.length + b.length];
+        System.arraycopy(a, 0, z, 0, a.length);
+        System.arraycopy(b, 0, z, a.length, b.length);
+        return z;
+    }
+
+    /**
+     * Pack2.
+     * 
+     * @param arr the arr
+     * @param offs the offs
+     * @param val the val
+     */
+    public static void pack2(byte[] arr, int offs, short val) {
+        arr[offs] = (byte) (val >> 8);
+        arr[offs + 1] = (byte) val;
+    }
+
+    /**
+     * Pack2.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
+    public static byte[] pack2(short val) {
+        return new byte[] { (byte) (val >> 8), (byte) val };
+    }
+
+    /**
+     * Pack4.
+     * 
+     * @param arr the arr
+     * @param offs the offs
+     * @param val the val
+     */
+    public static void pack4(byte[] arr, int offs, int val) {
+        arr[offs] = (byte) (val >> 24);
+        arr[offs + 1] = (byte) (val >> 16);
+        arr[offs + 2] = (byte) (val >> 8);
+        arr[offs + 3] = (byte) val;
+    }
+
+    /**
+     * Pack4.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
+    public static byte[] pack4(int val) {
+        return new byte[] { (byte) (val >> 24), (byte) (val >> 16), (byte) (val >> 8), (byte) val };
+    }
+
+    /**
+     * Pack8.
+     * 
+     * @param arr the arr
+     * @param offs the offs
+     * @param val the val
+     */
+    public static void pack8(byte[] arr, int offs, long val) {
+        Bytes.pack4(arr, offs, (int) (val >> 32));
+        Bytes.pack4(arr, offs + 4, (int) val);
+    }
+
+    /**
+     * Pack8.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
+    public static byte[] pack8(long val) {
+        return new byte[] { (byte) (val >> 56), (byte) (val >> 48), (byte) (val >> 40), (byte) (val >> 32),
+                (byte) (val >> 24), (byte) (val >> 16), (byte) (val >> 8), (byte) val };
+    }
+
+    /**
+     * Pack f4.
+     * 
+     * @param arr the arr
+     * @param offs the offs
+     * @param val the val
+     */
+    public static void packF4(byte[] arr, int offs, float val) {
+        Bytes.pack4(arr, offs, Float.floatToIntBits(val));
+    }
+
+    /**
+     * Pack f4.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
+    public static byte[] packF4(float val) {
+        return Bytes.pack4(Float.floatToIntBits(val));
+    }
+
+    /**
+     * Pack f8.
+     * 
+     * @param arr the arr
+     * @param offs the offs
+     * @param val the val
+     */
+    public static void packF8(byte[] arr, int offs, double val) {
+        Bytes.pack8(arr, offs, Double.doubleToLongBits(val));
+    }
+
+    /**
+     * Pack f8.
+     * 
+     * @param val the val
+     * 
+     * @return the byte[]
+     */
+    public static byte[] packF8(double val) {
+        return Bytes.pack8(Double.doubleToLongBits(val));
+    }
+
+    /**
+     * Pack str.
+     * 
+     * @param arr the arr
+     * @param offs the offs
+     * @param str the str
+     * @param encoding the encoding
+     * 
+     * @return the int
+     */
+    public static int packStr(byte[] arr, int offs, String str, String encoding) {
+        if (str == null) {
+            Bytes.pack4(arr, offs, -1);
+            offs += 4;
+        }
+        else if (encoding == null) {
+            int n = str.length();
+            Bytes.pack4(arr, offs, n);
+            offs += 4;
+            for (int i = 0; i < n; i++) {
+                Bytes.pack2(arr, offs, (short) str.charAt(i));
+                offs += 2;
+            }
+        }
+        else {
+            try {
+                byte[] bytes = str.getBytes(encoding);
+                Bytes.pack4(arr, offs, -2 - bytes.length);
+                System.arraycopy(bytes, 0, arr, offs + 4, bytes.length);
+                offs += 4 + bytes.length;
+            } catch (UnsupportedEncodingException x) {
+                throw new KETLError("UNSUPPORTED_ENCODING");
+            }
+        }
+        return offs;
+    }
+
+    /**
+     * Pack str.
+     * 
+     * @param str the str
+     * @param encoding the encoding
+     * 
+     * @return the byte[]
+     * 
+     * @throws UnsupportedEncodingException the unsupported encoding exception
+     */
+    public static byte[] packStr(String str, String encoding) throws UnsupportedEncodingException {
+        if (str == null) {
+            return Bytes.pack4(-1);
+        }
+        if (encoding == null) {
+            return str.getBytes();
+
+        }
+
+        return str.getBytes(encoding);
+
+    }
+
+    /**
+     * Sizeof.
+     * 
+     * @param arr the arr
+     * @param offs the offs
+     * 
+     * @return the int
+     */
+    public static int sizeof(byte[] arr, int offs) {
+        int len = Bytes.unpack4(arr, offs);
+        if (len >= 0) {
+            return 4 + len * 2;
+        }
+        else if (len < -1) {
+            return 4 - 2 - len;
+        }
+        else {
+            return 4;
+        }
+    }
+
+    /**
+     * Sizeof.
+     * 
+     * @param str the str
+     * @param encoding the encoding
+     * 
+     * @return the int
+     */
+    public static int sizeof(String str, String encoding) {
+        try {
+            return str == null ? 4 : encoding == null ? 4 + str.length() * 2
+                    : 4 + new String(str).getBytes(encoding).length;
+        } catch (UnsupportedEncodingException x) {
+            throw new KETLError("UNSUPPORTED_ENCODING");
+        }
+    }
+
+    /**
      * Unpack2.
      * 
      * @param arr the arr
@@ -126,251 +371,6 @@ final public class Bytes {
             }
         }
         return null;
-    }
-
-    /**
-     * Pack2.
-     * 
-     * @param arr the arr
-     * @param offs the offs
-     * @param val the val
-     */
-    public static void pack2(byte[] arr, int offs, short val) {
-        arr[offs] = (byte) (val >> 8);
-        arr[offs + 1] = (byte) val;
-    }
-
-    /**
-     * Pack4.
-     * 
-     * @param arr the arr
-     * @param offs the offs
-     * @param val the val
-     */
-    public static void pack4(byte[] arr, int offs, int val) {
-        arr[offs] = (byte) (val >> 24);
-        arr[offs + 1] = (byte) (val >> 16);
-        arr[offs + 2] = (byte) (val >> 8);
-        arr[offs + 3] = (byte) val;
-    }
-
-    /**
-     * Pack8.
-     * 
-     * @param arr the arr
-     * @param offs the offs
-     * @param val the val
-     */
-    public static void pack8(byte[] arr, int offs, long val) {
-        Bytes.pack4(arr, offs, (int) (val >> 32));
-        Bytes.pack4(arr, offs + 4, (int) val);
-    }
-
-    /**
-     * Pack f4.
-     * 
-     * @param arr the arr
-     * @param offs the offs
-     * @param val the val
-     */
-    public static void packF4(byte[] arr, int offs, float val) {
-        Bytes.pack4(arr, offs, Float.floatToIntBits(val));
-    }
-
-    /**
-     * Pack f8.
-     * 
-     * @param arr the arr
-     * @param offs the offs
-     * @param val the val
-     */
-    public static void packF8(byte[] arr, int offs, double val) {
-        Bytes.pack8(arr, offs, Double.doubleToLongBits(val));
-    }
-
-    /**
-     * Pack str.
-     * 
-     * @param arr the arr
-     * @param offs the offs
-     * @param str the str
-     * @param encoding the encoding
-     * 
-     * @return the int
-     */
-    public static int packStr(byte[] arr, int offs, String str, String encoding) {
-        if (str == null) {
-            Bytes.pack4(arr, offs, -1);
-            offs += 4;
-        }
-        else if (encoding == null) {
-            int n = str.length();
-            Bytes.pack4(arr, offs, n);
-            offs += 4;
-            for (int i = 0; i < n; i++) {
-                Bytes.pack2(arr, offs, (short) str.charAt(i));
-                offs += 2;
-            }
-        }
-        else {
-            try {
-                byte[] bytes = str.getBytes(encoding);
-                Bytes.pack4(arr, offs, -2 - bytes.length);
-                System.arraycopy(bytes, 0, arr, offs + 4, bytes.length);
-                offs += 4 + bytes.length;
-            } catch (UnsupportedEncodingException x) {
-                throw new KETLError("UNSUPPORTED_ENCODING");
-            }
-        }
-        return offs;
-    }
-
-    /**
-     * Sizeof.
-     * 
-     * @param str the str
-     * @param encoding the encoding
-     * 
-     * @return the int
-     */
-    public static int sizeof(String str, String encoding) {
-        try {
-            return str == null ? 4 : encoding == null ? 4 + str.length() * 2
-                    : 4 + new String(str).getBytes(encoding).length;
-        } catch (UnsupportedEncodingException x) {
-            throw new KETLError("UNSUPPORTED_ENCODING");
-        }
-    }
-
-    /**
-     * Sizeof.
-     * 
-     * @param arr the arr
-     * @param offs the offs
-     * 
-     * @return the int
-     */
-    public static int sizeof(byte[] arr, int offs) {
-        int len = Bytes.unpack4(arr, offs);
-        if (len >= 0) {
-            return 4 + len * 2;
-        }
-        else if (len < -1) {
-            return 4 - 2 - len;
-        }
-        else {
-            return 4;
-        }
-    }
-
-    /**
-     * Pack2.
-     * 
-     * @param val the val
-     * 
-     * @return the byte[]
-     */
-    public static byte[] pack2(short val) {
-        return new byte[] { (byte) (val >> 8), (byte) val };
-    }
-
-    /**
-     * Pack4.
-     * 
-     * @param val the val
-     * 
-     * @return the byte[]
-     */
-    public static byte[] pack4(int val) {
-        return new byte[] { (byte) (val >> 24), (byte) (val >> 16), (byte) (val >> 8), (byte) val };
-    }
-
-    /**
-     * Pack8.
-     * 
-     * @param val the val
-     * 
-     * @return the byte[]
-     */
-    public static byte[] pack8(long val) {
-        return new byte[] { (byte) (val >> 56), (byte) (val >> 48), (byte) (val >> 40), (byte) (val >> 32),
-                (byte) (val >> 24), (byte) (val >> 16), (byte) (val >> 8), (byte) val };
-    }
-
-    /**
-     * Pack f4.
-     * 
-     * @param val the val
-     * 
-     * @return the byte[]
-     */
-    public static byte[] packF4(float val) {
-        return Bytes.pack4(Float.floatToIntBits(val));
-    }
-
-    /**
-     * Pack f8.
-     * 
-     * @param val the val
-     * 
-     * @return the byte[]
-     */
-    public static byte[] packF8(double val) {
-        return Bytes.pack8(Double.doubleToLongBits(val));
-    }
-
-    /**
-     * Pack str.
-     * 
-     * @param str the str
-     * @param encoding the encoding
-     * 
-     * @return the byte[]
-     * 
-     * @throws UnsupportedEncodingException the unsupported encoding exception
-     */
-    public static byte[] packStr(String str, String encoding) throws UnsupportedEncodingException {
-        if (str == null) {
-            return Bytes.pack4(-1);
-        }
-        if (encoding == null) {
-            return str.getBytes();
-
-        }
-
-        return str.getBytes(encoding);
-
-    }
-
-    /**
-     * Append.
-     * 
-     * @param a the a
-     * @param b the b
-     * 
-     * @return the byte[]
-     */
-    public static byte[] append(byte[] a, byte[] b) {
-        byte[] z = new byte[a.length + b.length + 1];
-        System.arraycopy(a, 0, z, 0, a.length);
-        z[a.length] = 0;
-        System.arraycopy(b, 0, z, a.length, b.length);
-        return z;
-    }
-
-    /**
-     * Join.
-     * 
-     * @param a the a
-     * @param b the b
-     * 
-     * @return the byte[]
-     */
-    public static byte[] join(byte[] a, byte[] b) {
-        byte[] z = new byte[a.length + b.length];
-        System.arraycopy(a, 0, z, 0, a.length);
-        System.arraycopy(b, 0, z, a.length, b.length);
-        return z;
     }
 
 }

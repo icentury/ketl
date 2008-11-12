@@ -22,6 +22,7 @@
  */
 package com.kni.etl.ketl.smp;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,6 +32,7 @@ import org.w3c.dom.Node;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLInPort;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.checkpointer.Checkpoint;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
@@ -46,7 +48,51 @@ import com.kni.etl.util.aggregator.Direct;
  * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
  *         Generation&gt;Code and Comments
  */
-public abstract class ETLTransform extends ETLStep {
+public abstract class ETLTransform extends ETLStep implements Checkpoint {
+
+	public boolean checkpointEnabled() {
+		return false;
+	}
+
+	public boolean checkpointExists() {
+		// checks for the existance of a checkpoint that was previously created
+		if(new File("${CHECKPOINTPATH}" + File.pathSeparator + this.partitionID + File.pathSeparator + this.getJobExecutionID() + "." + this.getName())
+		return false;
+	}
+
+	public void loadCheckpoint() throws InterruptedException {
+		while (true) {
+			this.interruptExecution();
+			Object o;
+			o = this.getSourceQueue().take();
+			if (o == ETLWorker.ENDOBJ) {
+				break;
+			}
+			
+			if (this.timing)
+				this.startTimeNano = System.nanoTime();
+
+			this.mCheckpointStore.write(o);
+			
+			if (this.timing)
+				this.totalTimeNano += System.nanoTime() - this.startTimeNano;
+		}				
+		
+		// wait for parallel steps to complete. if they don't checkpoint failed		
+	}
+
+	public void readCheckpoint() {
+		// open the store for reading
+		// spool the refeed as a thread
+		{
+		Object data =null;
+		while((data = this.mCheckpointStore.read())!= null){
+			this.getSourceQueue().put(data);
+		}
+		
+		this.getSourceQueue().put(ETLWorker.ENDOBJ);
+		}
+	}
 
 	/** The aggregate out. */
 	private ArrayList aggregateOut = new ArrayList();
@@ -191,6 +237,15 @@ public abstract class ETLTransform extends ETLStep {
 			this.mAggregate = true;
 			this.aggregates = ((AggregatingTransform) this).getAggregates();
 			this.mDefaultComparator = this.getAggregateComparator();
+		}
+		
+		Checkpoint checkpoint = this;
+		if(checkpoint.checkpointEnabled())
+		{
+			if(checkpoint.checkpointExists()==false){
+				checkpoint.loadCheckpoint();
+			}			
+			checkpoint.readCheckpoint();
 		}
 
 		if (this.mSortData) {

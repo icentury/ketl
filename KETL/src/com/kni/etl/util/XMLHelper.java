@@ -207,7 +207,7 @@ public class XMLHelper {
 	 */
 	private static String outputXML2(Node node) {
 		String result = null;
-		Document document = node.getOwnerDocument();
+		Document document = node instanceof Document?(Document)node:node.getOwnerDocument();
 		if (document != null) {
 			StringWriter strWtr = new StringWriter();
 			StreamResult strResult = new StreamResult(strWtr);
