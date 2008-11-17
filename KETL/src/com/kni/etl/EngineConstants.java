@@ -428,6 +428,13 @@ public class EngineConstants {
     /** The BA d_ RECOR d_ PATH. */
     public static String BAD_RECORD_PATH = "log";
     
+    /** The globals. */
+    private static Element globals = null;
+
+	public static String CHECKPOINT_PATH = "checkpoint";
+
+	public static String MONITORPATH = "monitor";
+    
     /** The CACH e_ PATH. */
     public static String CACHE_PATH = ".";
     
@@ -437,8 +444,8 @@ public class EngineConstants {
     /** The CACHEMEMRATIO. */
     private static double CACHEMEMRATIO = 0.5;
 
-    /** The system XML. */
-    private static Document mSystemXML = EngineConstants._getSystemXML();
+    /** The system XML. this must occur as the last parameter */
+    private static Document zmSystemXML = EngineConstants._getSystemXML();
 
     /**
      * EngineConstants constructor comment.
@@ -447,8 +454,7 @@ public class EngineConstants {
         super();
     }
 
-    /** The globals. */
-    private static Element globals = null;
+    
 
     /**
      * _get system XML.
@@ -573,45 +579,47 @@ public class EngineConstants {
                 e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "BADRECORDPATH");
                 if (e != null) {
                     try {
-                        EngineConstants.BAD_RECORD_PATH = XMLHelper.getTextContent(e);
-
-                        File f = new File(EngineConstants.BAD_RECORD_PATH);
-                        if (f.exists() == false) {
-                            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
-                                    "Creating bad record directory " + f.getAbsolutePath());
-                            f.mkdir();
-                        }
-                        else if (f.exists() && f.isDirectory() == false) {
-                            System.err
-                                    .println("Cannot initialize as bad record directory, as it is currently a file and not a directory: "
-                                            + f.getAbsolutePath());
-                            ResourcePool.logError("Please move this file or rename it: " + f.getAbsolutePath());
-                        }
+                        EngineConstants.BAD_RECORD_PATH = XMLHelper.getTextContent(e);                        
+                    } catch (Exception e1) {
+                    }
+                }
+                
+                
+                checkPath(EngineConstants.BAD_RECORD_PATH,"bad record path");
+                
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "CHECKPOINTPATH");
+                if (e != null) {
+                    try {
+                        EngineConstants.CHECKPOINT_PATH = XMLHelper.getTextContent(e);
+                        
                     } catch (Exception e1) {
 
                     }
                 }
+                
+                checkPath(EngineConstants.CHECKPOINT_PATH,"checkpoint path");
+                
+                
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "MONITORPATH");
+                if (e != null) {
+                    try {
+                        EngineConstants.MONITORPATH = XMLHelper.getTextContent(e);                        
+                    } catch (Exception e1) {
+                    }
+                }
+                
+                checkPath(EngineConstants.MONITORPATH,"monitor path");
 
                 e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "CACHEPATH");
                 if (e != null) {
                     try {
-                        EngineConstants.CACHE_PATH = XMLHelper.getTextContent(e);
-
-                        File f = new File(EngineConstants.CACHE_PATH);
-                        if (f.exists() == false) {
-                            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
-                                    "Creating cache directory " + f.getAbsolutePath());
-                            f.mkdir();
-                        }
-                        else if (f.exists() && f.isDirectory() == false) {
-                        	ResourcePool.logError("Cannot initialize cache record directory, as it is currently a file and not a directory: "
-                                            + f.getAbsolutePath());
-                            ResourcePool.logError("Please move this file or rename it: " + f.getAbsolutePath());
-                        }
+                        EngineConstants.CACHE_PATH = XMLHelper.getTextContent(e);                        
                     } catch (Exception e1) {
 
                     }
                 }
+                
+                checkPath(EngineConstants.CACHE_PATH,"cache path");
             }
 
             File dir = new File(Metadata.getKETLPath() + File.separator + "xml" + File.separator + "plugins");
@@ -678,17 +686,32 @@ public class EngineConstants {
 
     }
 
+	private static void checkPath(String path, String name) {
+		File f = new File(path);
+		if (f.exists() == false) {
+		    ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
+		            "Creating " + name + " directory " + f.getAbsolutePath());
+		    f.mkdir();
+		}
+		else if (f.exists() && f.isDirectory() == false) {
+		    System.err
+		            .println("Cannot initialize " + name + " directory, as it is currently a file and not a directory: "
+		                    + f.getAbsolutePath());
+		    ResourcePool.logError("Please move this file or rename it: " + f.getAbsolutePath());
+		}
+	}
+
     /**
      * Gets the system XML.
      * 
      * @return the system XML
      */
     public static synchronized Document getSystemXML() {
-        if (EngineConstants.mSystemXML == null) {
-            EngineConstants.mSystemXML = EngineConstants._getSystemXML();
+        if (EngineConstants.zmSystemXML == null) {
+            EngineConstants.zmSystemXML = EngineConstants._getSystemXML();
         }
 
-        return EngineConstants.mSystemXML;
+        return EngineConstants.zmSystemXML;
     }
 
     /**

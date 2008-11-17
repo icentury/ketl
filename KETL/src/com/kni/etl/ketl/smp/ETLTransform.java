@@ -56,27 +56,11 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 
 	public boolean checkpointExists() {
 		// checks for the existance of a checkpoint that was previously created
-		if(new File("${CHECKPOINTPATH}" + File.pathSeparator + this.partitionID + File.pathSeparator + this.getJobExecutionID() + "." + this.getName())
 		return false;
 	}
 
 	public void loadCheckpoint() throws InterruptedException {
-		while (true) {
-			this.interruptExecution();
-			Object o;
-			o = this.getSourceQueue().take();
-			if (o == ETLWorker.ENDOBJ) {
-				break;
-			}
-			
-			if (this.timing)
-				this.startTimeNano = System.nanoTime();
-
-			this.mCheckpointStore.write(o);
-			
-			if (this.timing)
-				this.totalTimeNano += System.nanoTime() - this.startTimeNano;
-		}				
+					
 		
 		// wait for parallel steps to complete. if they don't checkpoint failed		
 	}
@@ -84,14 +68,7 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 	public void readCheckpoint() {
 		// open the store for reading
 		// spool the refeed as a thread
-		{
-		Object data =null;
-		while((data = this.mCheckpointStore.read())!= null){
-			this.getSourceQueue().put(data);
-		}
 		
-		this.getSourceQueue().put(ETLWorker.ENDOBJ);
-		}
 	}
 
 	/** The aggregate out. */

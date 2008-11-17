@@ -49,7 +49,7 @@ public class KETLCluster {
     /**
      * The Class Server.
      */
-    class Server {
+    public class Server {
 
         /** The name. */
         public String mName;
@@ -280,9 +280,15 @@ public class KETLCluster {
     public void addServer(int mServerID, String mName, Timestamp mStarted, Timestamp mLastPing, String mStatus,
             Timestamp mSystemTime) {
         if (this.mServers.get(new Integer(mServerID)) == null) {
-            Server s = new Server(mServerID, mName, mStarted, mLastPing, mStatus, mSystemTime);
+            Server s = this.newServer(mServerID, mName, mStarted, mLastPing, mStatus, mSystemTime);
             this.mServers.put(new Integer(mServerID), s);
         }
+    }
+    
+    
+    public Server newServer(int mServerID, String mName, Timestamp mStarted, Timestamp mLastPing, String mStatus,
+            Timestamp mSystemTime) {
+            return new Server(mServerID, mName, mStarted, mLastPing, mStatus, mSystemTime);            
     }
 
     /**

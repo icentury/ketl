@@ -40,6 +40,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -55,6 +56,7 @@ import org.xml.sax.InputSource;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.KETLCluster;
+import com.kni.etl.ketl.KETLCluster.Server;
 import com.kni.etl.sessionizer.PageParserPageDefinition;
 import com.kni.etl.sessionizer.PageParserPageParameter;
 import com.kni.etl.sessionizer.SessionDefinition;
@@ -868,6 +870,165 @@ public class Metadata {
 
 		return true;
 	}
+	
+	
+	/**
+	 * Send email.
+	 * 
+	 * @param pNew_job_id
+	 *            the new_job_id
+	 * @param pSubject
+	 *            the subject
+	 * @param pMessage
+	 *            the message
+	 * @return true, if successful
+	 * @throws SQLException
+	 *             the SQL exception
+	 * @throws Exception
+	 *             the exception
+	 */
+	public boolean sendEmailToAll(String pSubject, String pMessage) throws SQLException,
+			java.lang.Exception {
+		PreparedStatement m_stmt = null;
+		ResultSet m_rs = null;
+		SMTPClient client = new SMTPClient();
+
+		try {
+			int reply;
+
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
+					"Attempting to send email, list of recipients follows:");
+
+
+			
+				m_stmt = this.metadataConnection.prepareStatement("select hostname,login,pwd,from_address    from  "
+						+ this.tablePrefix + "mail_server_detail");
+				m_rs = m_stmt.executeQuery();
+
+				String sMailHost = null;
+				String sFromAddress = null;
+
+				// String sLogin;
+				// String sPWD;
+				while (m_rs.next()) {
+					sMailHost = m_rs.getString(1);
+					sFromAddress = m_rs.getString(4);
+				}
+
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Using mail server: " + sMailHost);
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "From address: " + sFromAddress);
+
+				if (m_stmt != null) {
+					m_stmt.close();
+				}
+
+				try {
+					client.connect(sMailHost);
+				} catch (com.kni.util.net.smtp.SMTPConnectionClosedException e) {
+					System.err.println("[" + new java.util.Date() + "] SMTP server refused connection.");
+
+					return false;
+				}
+
+				// After connection attempt, you should check the reply code
+				// to verify
+				// success.
+				reply = client.getReplyCode();
+
+				if (!SMTPReply.isPositiveCompletion(reply)) {
+					client.disconnect();
+					System.err.println("[" + new java.util.Date() + "] SMTP server refused connection.");
+
+					return false;
+				}
+
+				client.login();
+
+				if (sMailHost != null) {
+
+					// After connection attempt, you should check the reply code
+					// to verify
+					// success.
+					m_stmt = this.metadataConnection
+							.prepareStatement("SELECT ADDRESS,SUBJECT_PREFIX,MAX_MESSAGE_LENGTH,ADDRESS_NAME FROM  "
+									+ this.tablePrefix
+									+ "alert_subscription a,  "
+									+ this.tablePrefix
+									+ "alert_address b WHERE a.address_id = b.address_id AND a.all_errors = 'Y'");
+					m_rs = m_stmt.executeQuery();
+
+					String[] msgParts = new String[1];
+
+					while (m_rs.next()) {
+						try {
+							// Create the email message
+
+							int maxMsgLength = m_rs.getInt(3);
+
+							if (maxMsgLength == 0) {
+								maxMsgLength = 16096;
+							}
+
+							String toAddress = m_rs.getString(1);
+
+							boolean plainTxt = false;
+
+							if (toAddress != null) {
+								String[] parts = toAddress.split("@");
+								if (parts.length > 2) {
+									if (parts[2] != null && !parts[2].equals("HTML"))
+										plainTxt = true;
+
+									toAddress = parts[0] + "@" + parts[1];
+								} else
+									plainTxt = false;
+							}											
+							msgParts[0] = pMessage;
+
+							
+							
+							client
+									.sendSimpleMessage(
+											sFromAddress,
+											toAddress,
+											"Content-Type: multipart/mixed; boundary=\"DataSeparatorString\"\r\nMIME-Version: 1.0\r\nSubject:"
+													+ pSubject + "\r\n"
+													+ (plainTxt ? this.getNewTextEmail(msgParts, maxMsgLength) : this
+															.getNewHTMLEmail("", msgParts))
+													);
+													
+
+							ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Recipient: " + toAddress);
+						} catch (Exception e) {
+							ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Email send error "
+									+ e.toString());
+							ResourcePool.LogException(e, this);
+
+						}
+					}
+
+					client.logout();
+					client.disconnect();
+
+					if (m_stmt != null) {
+						m_stmt.close();
+
+					}
+				}
+			
+
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Emails sent");
+
+			// Do useful stuff here.
+		} catch (Exception e) {
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not connect to SMTP server.");
+			ResourcePool.LogException(e, this);
+
+			return false;
+		}
+
+		return true;
+	}
 
 	/**
 	 * Send alert email.
@@ -1159,12 +1320,17 @@ public class Metadata {
 				.append("--DataSeparatorString\r\nContent-Type: text/html; charset=\"us-ascii\"\r\n\r\n<html><head><meta http-equiv=\"Content-Language\" content=\"en-us\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\"><style>\n<!--\n.tbl { border-left-style: none; border-right-style: none;border-top: 1.5pt solid green; border-bottom: 1.5pt solid green }\n.ms-simple1-tl { border-left-style: none; border-right-style: none; border-top-style: none;border-bottom: .75pt solid green }\n.row {  border-left-style: none; border-right-style: none; border-top-style: none;border-bottom: .75pt solid green;font-size: 9pt }--></style></head><body><font face=\"Arial\"><b>KETL "
 						+ level + "</b><table border=\"0\" width=\"100%\" id=\"table1\" class=\"tbl\">\r\n");
 
-		sb.append(this.writeHTMLRow(level + " Message", msgParts[0]));
-		sb.append(this.writeHTMLRow("Job ID", msgParts[1]));
-		sb.append(this.writeHTMLRow("Datetime", msgParts[2]));
-		sb.append(this.writeHTMLRow(level + " Code", msgParts[3]));
-		sb.append(this.writeHTMLRow("Extended Message", msgParts[4] == null ? "NULL" : msgParts[4].replace("\n",
-				"<br/>")));
+		if (msgParts.length == 1)
+			sb.append(this.writeHTMLRow(level + " Message", msgParts[0]));
+		if (msgParts.length == 2)
+			sb.append(this.writeHTMLRow("Job ID", msgParts[1]));
+		if (msgParts.length == 3)
+			sb.append(this.writeHTMLRow("Datetime", msgParts[2]));
+		if (msgParts.length == 4)
+			sb.append(this.writeHTMLRow(level + " Code", msgParts[3]));
+		if (msgParts.length == 5)
+			sb.append(this.writeHTMLRow("Extended Message", msgParts[4] == null ? "NULL" : msgParts[4].replace("\n",
+					"<br/>")));
 
 		return sb.toString();
 	}
@@ -1506,6 +1672,54 @@ public class Metadata {
 
 		return kc;
 	}
+	
+	
+	/**
+	 * Gets the cluster details.
+	 * 
+	 * @return the cluster details
+	 * @throws SQLException
+	 *             the SQL exception
+	 * @throws Exception
+	 *             the exception
+	 */
+	public List<KETLCluster.Server> getAliveServers() throws SQLException, java.lang.Exception {
+		PreparedStatement m_stmt = null;
+		ResultSet m_rs = null;
+
+		List<KETLCluster.Server> servers = new ArrayList<KETLCluster.Server>();
+		
+		synchronized (this.oLock) {
+			// Make metadata connection alive.
+			this.refreshMetadataConnection();
+
+			m_stmt = this.metadataConnection
+					.prepareStatement("select server_id,server_name,start_time,last_ping_time, "
+							+ this.currentTimeStampSyntax							
+							+ " from " + this.tablePrefix
+							+ "server "
+							+ " where  status_id = 1 "
+							+ " order by server_name ");
+			m_rs = m_stmt.executeQuery();
+
+			while (m_rs.next()) {
+					servers.add(new KETLCluster().newServer(m_rs.getInt(1),  m_rs.getString(2), m_rs.getTimestamp(3), m_rs.getTimestamp(4), "Alive", m_rs.getTimestamp(5)));				
+			}
+
+			// Close open resources
+			if (m_rs != null) {
+				m_rs.close();
+			}
+
+			if (m_stmt != null) {
+				m_stmt.close();
+			}		
+			
+		}
+
+		return servers;
+	}
+	
 
 	/**
 	 * Insert the method's description here. Creation date: (6/6/2002 9:29:56
