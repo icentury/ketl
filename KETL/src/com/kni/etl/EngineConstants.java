@@ -228,6 +228,8 @@ public class EngineConstants {
     /** The Constant OTHER_STR. */
     public final static String OTHER_STR = "";
     
+    public static String PARTITION_PATH="PARTITIONPATH";
+    
     /** The Constant OBJECT_TYPES. */
     private final static String[] OBJECT_TYPES = { null, EngineConstants.IP_ADDRESS_STR, EngineConstants.IN_COOKIE_STR,
             EngineConstants.OUT_COOKIE_STR, EngineConstants.GET_REQUEST_STR, EngineConstants.BROWSER_STR,
@@ -607,7 +609,7 @@ public class EngineConstants {
                     } catch (Exception e1) {
                     }
                 }
-                
+               
                 checkPath(EngineConstants.MONITORPATH,"monitor path");
 
                 e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "CACHEPATH");
