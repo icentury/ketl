@@ -131,8 +131,10 @@ final public class FastSerializer {
 	 */
 	public static void serialize(final Object obj,DataOutputStream out) throws IOException {
 
-		if (obj == null)
+		if (obj == null) {	
 			out.write(new byte[] { NULL });
+			return;
+		}
 
 		Class cl = obj.getClass();
 		byte[] buf;
