@@ -48,6 +48,7 @@ import com.kni.etl.ETLJobStatus;
 import com.kni.etl.EngineConstants;
 import com.kni.etl.ParameterList;
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.checkpointer.CheckPointStore;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLReadException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
@@ -193,7 +194,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
      */
     private ETLThreadManager compileJob(Element job) throws ParserConfigurationException, SQLException, Exception {
         // create list of steps by type
-        NodeList ls = job.getElementsByTagName("STEP");
+    	NodeList ls = job.getElementsByTagName("STEP");
 
         int batchSize = XMLHelper.getAttributeAsInt(job.getAttributes(), "BATCHSIZE", 1000);
         int queueSize = XMLHelper.getAttributeAsInt(job.getAttributes(), "QUEUESIZE", 5);
@@ -245,8 +246,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 ((Element) step.getConfig()).setAttribute("BATCHSIZE", Integer.toString(batchSize));
             if (((Element) step.getConfig()).hasAttribute("QUEUESIZE") == false)
                 ((Element) step.getConfig()).setAttribute("QUEUESIZE", Integer.toString(queueSize));
-
-            pendingInstantiation.add(step);
+           pendingInstantiation.add(step);
         }
 
         // instantiate thread manager
@@ -273,11 +273,10 @@ public class KETLJobExecutor extends ETLJobExecutor {
                 throw new KETLThreadException("Reader parrallism must either be 1 or equal to the job parallism of "
                         + partitions, this);
 
-            step.setThreadGroup(ETLThreadGroup.newInstance(null, ETLThreadManager.getThreadingType((Element) step
-                    .getConfig()), step, instancePartitions, this.em));
-
-            readySources.put(step.getName(), step);
-            pendingInstantiation.remove(step);
+			step.setThreadGroup(ETLThreadGroup.newInstance(null, ETLThreadManager.getThreadingType((Element) step.getConfig()), step, instancePartitions, this.em));
+			readySources.put(step.getName(), step);
+			pendingInstantiation.remove(step);
+			
         }
 
         // find all source requests in <IN> channels and see if the source is available
@@ -354,7 +353,8 @@ public class KETLJobExecutor extends ETLJobExecutor {
         return this.em;
     }
 
-    /**
+
+	/**
      * Insert the method's description here. Creation date: (5/4/2002 5:37:52 PM)
      * 
      * @param ejJob the ej job
@@ -495,8 +495,8 @@ public class KETLJobExecutor extends ETLJobExecutor {
             // so we can exit a little more gracefully...
             try {
                 try {
-                    this.em = this.compileJob((Element) xmlDOM.getElementsByTagName("ACTION").item(0));
-                    this.ejCurrentJob.setNotificationMode(XMLHelper.getAttributeAsString(xmlDOM.getElementsByTagName(
+                	 this.em = this.compileJob((Element) xmlDOM.getElementsByTagName("ACTION").item(0));
+                	 this.ejCurrentJob.setNotificationMode(XMLHelper.getAttributeAsString(xmlDOM.getElementsByTagName(
                             "ACTION").item(0).getAttributes(), "EMAILSTATUS", null));
                 } catch (java.lang.reflect.InvocationTargetException e) {
                     throw (Exception) e.getCause();

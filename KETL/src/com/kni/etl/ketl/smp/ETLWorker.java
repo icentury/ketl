@@ -1475,6 +1475,10 @@ abstract public class ETLWorker implements Runnable {
 
 	/** The controlled exit. */
 	private boolean controlledExit = false;
+	
+	private boolean wasPreviouslyRun = false;
+	
+	
 
 	/*
 	 * (non-Javadoc)
@@ -1487,7 +1491,8 @@ abstract public class ETLWorker implements Runnable {
 				synchronized (this.mThreadManager) {
 					ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Alive");
 				}	
-				this.executeWorker();
+				if(!wasPreviouslyRun)
+					this.executeWorker();
 				this.complete();
 				this.controlledExit = true;
 			} catch (java.lang.Error e) {
@@ -1770,5 +1775,13 @@ abstract public class ETLWorker implements Runnable {
 	 *            the new queue
 	 */
 	abstract public void switchTargetQueue(ManagedBlockingQueue currentQueue, ManagedBlockingQueue newQueue);
+
+	public boolean isWasPreviouslyRun() {
+		return wasPreviouslyRun;
+	}
+
+	public void setWasPreviouslyRun(boolean wasPreviouslyRun) {
+		this.wasPreviouslyRun = wasPreviouslyRun;
+	}
 
 }

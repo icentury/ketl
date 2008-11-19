@@ -37,6 +37,7 @@ import com.kni.etl.ETLStatus;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.KETLJobExecutor;
+import com.kni.etl.ketl.checkpointer.CheckPointStore;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
 
@@ -162,7 +163,7 @@ public class ETLThreadManager {
 	}
 
 
-	/** The previous time. */
+    /** The previous time. */
     private long startTime, previousTime;
 
     /** The previous writer records. */
@@ -191,15 +192,30 @@ public class ETLThreadManager {
         }
 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "- Initializing core managers");
-        for (Object o : this.threads) {
+        ETLStep lastTransformer = null;
+        boolean metFirstTransformer = false;
+        
+        for (WorkerThread workerThread : this.threads) {
             try {
-                ((WorkerThread) o).step.initialize(this.mkjExecutor);
+                ETLWorker step = (workerThread).step;
+                if(step instanceof ETLTransform){
+                	metFirstTransformer = true;
+                	lastTransformer = (ETLTransform)step;
+                }
+                
+                if((step instanceof com.kni.etl.ketl.reader.ETLReader && CheckPointStore.wasTheSourcePreviouslyRead(step)) ||
+                		(step instanceof ETLTransform && CheckPointStore.wasTheStepExecutedSuccessfully(step)))
+                	 step.setWasPreviouslyRun(true);
+                step.initialize(this.mkjExecutor);
+                
+               
             } catch (Throwable e) {
                 if (e instanceof KETLThreadException)
                     throw (KETLThreadException) e;
                 throw new KETLThreadException(e.getMessage(), e);
             }
-        }
+        }if(metFirstTransformer && lastTransformer!=null)
+        	lastTransformer.setWasPreviouslyRun(false);
 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE,
                 "- Compiling and instantiating cores");
@@ -228,6 +244,8 @@ public class ETLThreadManager {
 
     /** The detailed. */
     boolean detailed = true;
+
+
 
     /**
      * Monitor.
@@ -563,4 +581,6 @@ public class ETLThreadManager {
         }
         return cnt;
     }
+
+	
 }

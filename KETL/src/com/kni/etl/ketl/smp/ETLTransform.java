@@ -113,7 +113,12 @@ public abstract class ETLTransform extends ETLStep {
 	public ETLTransform(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 		
-		this.mCheckpointStore  = new CheckPointStore(this);
+		try {
+			this.mCheckpointStore  = new CheckPointStore(this);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private CheckPointStore mCheckpointStore;
@@ -204,13 +209,15 @@ public abstract class ETLTransform extends ETLStep {
 		}
 
 		LinkedBlockingQueue<Object> queue;
+		ETLStep thisStep = (ETLStep)this;
 
 		if (this.timing)
 			this.startTimeNano = System.nanoTime();
 
 		
-		if (this.mCheckpointStore.checkpointEnabled()) {
-			if (!this.mCheckpointStore.exists()) {
+		if (this.mCheckpointStore.checkpointEnabled(thisStep)) {
+			
+			if (!CheckPointStore.wasTheStepExecutedSuccessfully(thisStep)) {
 				this.mCheckpointStore.write(this.getSourceQueue());
 			}
 			this.mCheckpointStore.read();

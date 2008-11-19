@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -44,7 +45,9 @@ import com.kni.etl.EngineConstants;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
+import com.kni.etl.ketl.reader.ETLReader;
 import com.kni.etl.ketl.smp.ETLThreadGroup;
+import com.kni.etl.ketl.smp.ETLTransform;
 import com.kni.etl.ketl.smp.ETLWorker;
 import com.kni.util.AutoClassCaster;
 import com.kni.util.Bytes;
@@ -55,8 +58,10 @@ import com.kni.util.FastSerializer;
  * 
  */
 public class CheckPointStore {
+	
+	boolean useFastSerializer = false;
 
-	private boolean compress = false;
+	private boolean compress = true;
 
 	class Reader implements Runnable {
 
@@ -113,7 +118,7 @@ public class CheckPointStore {
 						queue.put(FastSerializer.deserialize(fis));
 					}
 				} catch (EOFException e) {
-
+					ResourcePool.logException(e);
 				}
 				fis.close();
 				queue.put(ETLWorker.ENDOBJ);
@@ -136,7 +141,10 @@ public class CheckPointStore {
 
 		public void run() {
 			try {
-				readInputStream();
+				if (useFastSerializer)
+					readInputStream();
+				else
+					readCompressedInputStream();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -150,7 +158,7 @@ public class CheckPointStore {
 	File store, tmpStore;
 	private LinkedBlockingQueue<Object> queue;
 
-	public CheckPointStore(ETLStep step) throws KETLThreadException {
+	public CheckPointStore(ETLStep step) throws KETLThreadException, IOException {
 		this.step = step;
 		File partDir = new File(EngineConstants.PARTITION_PATH + File.separator + step.getPartitionID());
 
@@ -160,23 +168,28 @@ public class CheckPointStore {
 		else if (partDir.exists() == false)
 			partDir.mkdir();
 
-		String name = step.getJobID() + "." + step.getName() + "." + step.getJobExecutionID();
-		store = new File(partDir, name);
+		store = getPartitionFile(step, partDir);
 		if (store.exists() && 1 == 0) {
 			this.checkpointExisted = true;
 		} else {
-			tmpStore = new File(partDir, name + ".loading");
+			tmpStore = new File(store.getCanonicalPath() + ".loading");
 
 			if (tmpStore.exists()) {
 				tmpStore.delete();
-				tmpStore = new File(partDir, name + ".loading");
+				tmpStore = new File(store.getCanonicalPath() + ".loading");
 			}
 			this.checkpointExisted = false;
 		}
 	}
 
-	public boolean checkpointEnabled() {
-		return true;
+	private static File getPartitionFile(ETLStep step, File partDir) {
+		String name = step.getJobID() + "." + step.getName() + "." + step.getJobExecutionID();
+		File file = new File(partDir, name);
+		return file;
+	}
+
+	public boolean checkpointEnabled(ETLStep step) {
+		return step.isUseCheckPoint();
 	}
 
 	public void compressWrite(LinkedBlockingQueue<Object> queue) throws IOException, InterruptedException {
@@ -217,18 +230,50 @@ public class CheckPointStore {
 	}
 
 	public void write(LinkedBlockingQueue<Object> queue) throws IOException, InterruptedException {
-		step.setWaiting("checkpoint to load");
-		
-		DataOutputStream fos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(store)));
-		Object object = queue.take();
-		while (object != ETLWorker.ENDOBJ) {
-			FastSerializer.serialize(object, fos);
-			object = queue.take();
+		if (useFastSerializer) {
+			step.setWaiting("checkpoint to load");
+			DataOutputStream fos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(store)));
+			Object object = queue.take();
+			while (object != ETLWorker.ENDOBJ) {
+				FastSerializer.serialize(object, fos);
+				object = queue.take();
+			}
+			fos.flush();
+			fos.close();
+			//this.compressWrite(queue);
+			step.setWaiting(null);
 		}
-		fos.flush();
-		fos.close();
-		 
-		//this.compressWrite(queue);
-		step.setWaiting(null);
+		else 
+			compressWrite(queue);
 	}
+	public static boolean wasTheStepExecutedSuccessfully(final ETLWorker step) {
+		File partDir = new File(EngineConstants.PARTITION_PATH + File.separator + step.getPartitionID());
+		File[] thisJobFiles = partDir.listFiles(getFileNameFilter(step));
+		return thisJobFiles.length>0;
+	}
+
+	public static boolean wasTheSourcePreviouslyRead(final ETLWorker step) {
+		File partDir = new File(EngineConstants.PARTITION_PATH + File.separator + step.getPartitionID());
+		File[] thisJobFiles = partDir.listFiles(getFileNameFilter(step));
+		return thisJobFiles.length>0;
+	}
+
+	private static FilenameFilter getFileNameFilter(final ETLWorker step) {
+		return new FilenameFilter(){
+
+			public boolean accept(File dir, String name) {
+				String[] nameParts = name.split("\\.");
+					if(nameParts.length>2 && nameParts[0].equals(step.getJobID()) && 
+							(nameParts[1].equals(step.getName()) || step instanceof ETLReader) && 
+							nameParts[2].equals(""+step.getJobExecutionID()))
+						return true;
+					else return false;
+				
+			}
+			
+		};
+	}
+}
+interface ExceptionListener {
+	  public void exceptionOccurred(Exception x, Object source);
 }

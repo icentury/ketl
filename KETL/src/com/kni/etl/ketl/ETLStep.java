@@ -145,6 +145,7 @@ public abstract class ETLStep extends ETLWorker {
 
     /** The Constant XMLSOURCENAME_ATTRIB. */
     public static final String XMLSOURCENAME_ATTRIB = "XMLSOURCENAME";
+	private static final String USE_CHECK_POINT = "USE_CHECK_POINT";
     
     /** The ma parameters. */
     protected List maParameters;
@@ -687,6 +688,7 @@ public abstract class ETLStep extends ETLWorker {
 
     
     private String userDefinedImports;
+	private boolean useCheckPoint;
     /**
      * Record check.
      * 
@@ -745,6 +747,8 @@ public abstract class ETLStep extends ETLWorker {
 
         // Pull the error limit...
         this.miErrorLimit = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), ETLStep.ERRORLIMIT_ATTRIB, ETLStep.DEFAULT_ERRORLIMIT);
+        
+        this.useCheckPoint = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), ETLStep.USE_CHECK_POINT, false);
 
         /*
          * String strParameterListName = null; // Find the name of the parameter list to be used... if
@@ -1155,5 +1159,13 @@ public abstract class ETLStep extends ETLWorker {
         return (ETLStep) this.getThreadManager().getStep(this, mstrTargetStep);
 
     }
+
+	public boolean isUseCheckPoint() {
+		return useCheckPoint;
+	}
+
+	public void setUseCheckPoint(boolean useCheckPoint) {
+		this.useCheckPoint = useCheckPoint;
+	}
 
 }

@@ -22,6 +22,9 @@
  */
 package com.kni.etl.ketl.smp;
 
+import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -30,6 +33,7 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLOutPort;
 import com.kni.etl.ketl.ETLPort;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.checkpointer.CheckPointStore;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLReadException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
@@ -230,36 +234,37 @@ public abstract class ETLReader extends ETLStep {
     @Override
     final protected void executeWorker() throws InterruptedException, ClassNotFoundException, KETLThreadException,
             KETLReadException {
-
+    	
         Object[][] o;
         boolean data = true;
-
+        
         while (data) {
             this.interruptExecution();
             if (this.mBatchManagement) {
-                this.mBatchManager.initializeBatch();
+	                this.mBatchManager.initializeBatch();
+	            }
+	
+	            if (this.timing)
+	                this.startTimeNano = System.nanoTime();
+	            o = this.getNextBatch();
+	            if (this.timing)
+	                this.totalTimeNano += System.nanoTime() - this.startTimeNano;
+	
+	            if (this.mBatchManagement) {
+	                o = this.mBatchManager.finishBatch(o, o.length);
+	            }
+	
+	            if (o.length < this.batchSize) {
+	                data = false;
+	                this.updateThreadStats(o.length);
+	            }
+	            else {
+	                this.updateThreadStats(this.batchSize);
+	            }
+	            
+	
+	            this.queue.put(o);
             }
-
-            if (this.timing)
-                this.startTimeNano = System.nanoTime();
-            o = this.getNextBatch();
-            if (this.timing)
-                this.totalTimeNano += System.nanoTime() - this.startTimeNano;
-
-            if (this.mBatchManagement) {
-                o = this.mBatchManager.finishBatch(o, o.length);
-            }
-
-            if (o.length < this.batchSize) {
-                data = false;
-                this.updateThreadStats(o.length);
-            }
-            else {
-                this.updateThreadStats(this.batchSize);
-            }
-
-            this.queue.put(o);
-        }
 
         this.queue.put(ETLWorker.ENDOBJ);
 
