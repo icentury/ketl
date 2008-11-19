@@ -45,6 +45,7 @@ import com.kni.etl.EngineConstants;
 import com.kni.etl.ParameterList;
 import com.kni.etl.SharedCounter;
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.exceptions.KETLException;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.qa.QACollection;
@@ -63,12 +64,13 @@ public abstract class ETLStep extends ETLWorker {
 
     /** The job. */
     private ETLJob mJob;
+    private Exception pendingException;
 
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.smp.ETLWorker#interruptExecution()
      */
     @Override
-    final protected void interruptExecution() throws InterruptedException {
+    final protected void interruptExecution() throws InterruptedException,KETLThreadException {
         if (this.mJob.isKilled()) {
             throw new InterruptedException("Job has been killed");
         }
@@ -79,7 +81,13 @@ public abstract class ETLStep extends ETLWorker {
             }
             this.setWaiting(null);
             this.interruptExecution();
-        }
+        }  
+        else if (this.pendingException != null)
+        	throw new KETLThreadException(this.pendingException,this);
+    }
+    
+    final public void setPendingException(Exception e){
+    	this.pendingException = e;
     }
 
     /** The Constant TAGS_NOT_SUPPORTING_PARAMETERS. */
@@ -211,8 +219,8 @@ public abstract class ETLStep extends ETLWorker {
             if (this.moDump == null) {
                 String rootPath = this.getJobExecutor().ejCurrentJob.getLoggingPath();
 
-                this.mDumpFile = rootPath + File.separator + this.getJobExecutor().getCurrentETLJob().getJobID() + "."
-                        + this.getJobExecutor().getCurrentETLJob().getJobExecutionID();
+                this.mDumpFile = rootPath + File.separator + this.getJobID() + "."
+                        + this.getJobExecutionID();
                 this.moDump = new FileOutputStream(this.mDumpFile);
                 this.moDumpBuffer = new BufferedOutputStream(this.moDump);
                 this.mDumpWriter = new PrintWriter(this.moDumpBuffer);
@@ -268,6 +276,24 @@ public abstract class ETLStep extends ETLWorker {
         }
 
     }
+    
+    /**
+	 * Gets the job execution ID.
+	 * 
+	 * @return the job execution ID
+	 */
+	final public long getJobExecutionID() {
+		return this.getJobExecutor().getCurrentETLJob().getJobExecutionID();
+	}
+	/**
+	 * Gets the job execution ID.
+	 * 
+	 * @return the job execution ID
+	 */
+	final public String getJobID() {
+		return this.getJobExecutor().getCurrentETLJob().getJobID();
+	}
+	
 
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.smp.ETLWorker#closeStep(boolean)

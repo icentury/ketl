@@ -42,6 +42,7 @@ import com.kni.etl.ketl.ETLOutPort;
 import com.kni.etl.ketl.ETLPort;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.KETLJobExecutor;
+import com.kni.etl.ketl.exceptions.KETLException;
 import com.kni.etl.ketl.exceptions.KETLReadException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
@@ -389,7 +390,7 @@ abstract public class ETLWorker implements Runnable {
 	 * 
 	 * @return the thread manager
 	 */
-	protected ETLThreadManager getThreadManager() {
+	public ETLThreadManager getThreadManager() {
 		return this.mThreadManager;
 	}
 
@@ -398,6 +399,10 @@ abstract public class ETLWorker implements Runnable {
 
 	/** The partitions. */
 	protected int queueSize, batchSize, partitionID, partitions;
+
+	public int getPartitionID() {
+		return partitionID;
+	}
 
 	/** The record count. */
 	private int recordCount = 0;
@@ -733,9 +738,8 @@ abstract public class ETLWorker implements Runnable {
 	 * 
 	 * @return the job execution ID
 	 */
-	final protected long getJobExecutionID() {
-		return 1;// System.nanoTime();
-	}
+	abstract public long getJobExecutionID();
+	abstract public String getJobID();
 
 	/**
 	 * Gets the name.
@@ -1482,7 +1486,7 @@ abstract public class ETLWorker implements Runnable {
 			try {
 				synchronized (this.mThreadManager) {
 					ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Alive");
-				}
+				}	
 				this.executeWorker();
 				this.complete();
 				this.controlledExit = true;
@@ -1522,16 +1526,19 @@ abstract public class ETLWorker implements Runnable {
 	 * 
 	 * @throws InterruptedException
 	 *             the interrupted exception
+	 * @throws KETLThreadException 
+	 * @throws  
+	 * @throws Exception 
 	 */
-	abstract protected void interruptExecution() throws InterruptedException;
+	abstract protected void interruptExecution() throws InterruptedException,KETLThreadException;
 
 	/**
 	 * Interrupt all steps.
 	 */
-	final private void interruptAllSteps() {
+	final public void interruptAllSteps() {
 		this.mThreadManager.jobThreadGroup.interrupt();
 		this.mFailAll = true;
-	}
+	}	
 
 	/**
 	 * Clean shutdown.

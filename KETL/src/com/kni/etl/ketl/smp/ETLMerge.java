@@ -171,7 +171,7 @@ public abstract class ETLMerge extends ETLStep {
      * @see com.kni.etl.ketl.smp.ETLWorker#executeWorker()
      */
     @Override
-    final protected void executeWorker() throws KETLTransformException, InterruptedException {
+    final protected void executeWorker() throws KETLTransformException, InterruptedException, KETLThreadException {
 
         Object[][] oLeftBatch = null, oRightBatch = null, res = new Object[this.batchSize][], freeBatch = null;
         int leftPos = 0, rightPos = 0, rightLen = 0, leftLen = 0, resultLength = 0, batchLength = this.batchSize;

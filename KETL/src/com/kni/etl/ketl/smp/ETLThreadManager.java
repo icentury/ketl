@@ -155,8 +155,14 @@ public class ETLThreadManager {
         wt.thread.setName(es.getName() + ", Type:" + name + " [" + (es.partitionID + 1) + " of " + es.partitions + "]");
 
     }
+    
 
-    /** The previous time. */
+    public ThreadGroup getJobThreadGroup() {
+		return jobThreadGroup;
+	}
+
+
+	/** The previous time. */
     private long startTime, previousTime;
 
     /** The previous writer records. */

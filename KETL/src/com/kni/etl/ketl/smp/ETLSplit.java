@@ -189,7 +189,7 @@ public abstract class ETLSplit extends ETLStep {
      * @see com.kni.etl.ketl.smp.ETLWorker#executeWorker()
      */
     @Override
-    final protected void executeWorker() throws InterruptedException, KETLTransformException {
+    final protected void executeWorker() throws InterruptedException, KETLTransformException, KETLThreadException {
 
         this.queues = this.queue.length;
         this.mOutputRecordWidth = new int[this.queues];

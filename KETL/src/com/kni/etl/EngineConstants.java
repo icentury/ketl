@@ -228,7 +228,7 @@ public class EngineConstants {
     /** The Constant OTHER_STR. */
     public final static String OTHER_STR = "";
     
-    public static String PARTITION_PATH="PARTITIONPATH";
+    public static String PARTITION_PATH="partitions";
     
     /** The Constant OBJECT_TYPES. */
     private final static String[] OBJECT_TYPES = { null, EngineConstants.IP_ADDRESS_STR, EngineConstants.IN_COOKIE_STR,
@@ -432,9 +432,7 @@ public class EngineConstants {
     
     /** The globals. */
     private static Element globals = null;
-
-	public static String CHECKPOINT_PATH = "checkpoint";
-
+	
 	public static String MONITORPATH = "monitor";
     
     /** The CACH e_ PATH. */
@@ -589,17 +587,17 @@ public class EngineConstants {
                 
                 checkPath(EngineConstants.BAD_RECORD_PATH,"bad record path");
                 
-                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "CHECKPOINTPATH");
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "PARTITIONPATH");
                 if (e != null) {
                     try {
-                        EngineConstants.CHECKPOINT_PATH = XMLHelper.getTextContent(e);
+                        EngineConstants.PARTITION_PATH = XMLHelper.getTextContent(e);
                         
                     } catch (Exception e1) {
 
                     }
                 }
                 
-                checkPath(EngineConstants.CHECKPOINT_PATH,"checkpoint path");
+                checkPath(EngineConstants.PARTITION_PATH,"partition path");
                 
                 
                 e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "MONITORPATH");

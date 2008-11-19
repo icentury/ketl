@@ -30,7 +30,7 @@ public class ETLThreadGroup {
     public final static int FANIN = 3;
     private ETLThreadManager mETLThreadManager;
     private int mQueueSize;
-    private final static int DEFAULTQUEUESIZE = 5;
+    public final static int DEFAULTQUEUESIZE = 5;
     private String[] mPortList = null;
 
     public static ETLThreadGroup newInstance(ETLThreadGroup srcGrp, int iType, Step type, int partitions,

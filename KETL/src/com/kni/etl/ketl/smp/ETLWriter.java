@@ -178,7 +178,7 @@ public abstract class ETLWriter extends ETLStep {
      * @see com.kni.etl.ketl.smp.ETLWorker#executeWorker()
      */
     @Override
-    final protected void executeWorker() throws InterruptedException, KETLWriteException, KETLQAException {
+    final protected void executeWorker() throws InterruptedException, KETLWriteException, KETLThreadException {
         int res;
         while (true) {
             this.interruptExecution();
@@ -191,9 +191,7 @@ public abstract class ETLWriter extends ETLStep {
             Object[][] data = (Object[][]) o;
 
             if (this.mBatchManagement) {
-
                 data = this.mBatchManager.initializeBatch(data, data.length);
-
             }
 
             if (this.timing)

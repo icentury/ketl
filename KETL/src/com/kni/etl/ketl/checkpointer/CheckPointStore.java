@@ -22,166 +22,213 @@
  */
 package com.kni.etl.ketl.checkpointer;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.io.OutputStream;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import com.kni.etl.EngineConstants;
 import com.kni.etl.dbutils.ResourcePool;
-import com.kni.etl.ketl.exceptions.KETLException;
+import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.exceptions.KETLThreadException;
+import com.kni.etl.ketl.smp.ETLThreadGroup;
 import com.kni.etl.ketl.smp.ETLWorker;
-import com.kni.etl.ketl.smp.ManagedBlockingQueue;
 import com.kni.util.AutoClassCaster;
+import com.kni.util.Bytes;
+import com.kni.util.FastSerializer;
 
 /**
  * @author sjaini
  * 
  */
-public class CheckPointStore implements ExceptionListener{
-	File store;
-	private Set<ExceptionListener> exceptionListeners = Collections.synchronizedSet(new HashSet<ExceptionListener>());
-	private int exceptionCount;
+public class CheckPointStore {
 
-	public File getStoreFilePathRoot() {
-		String path = EngineConstants.PARTITION_PATH;
-		File partitionRootDir = new File(path);
-		return partitionRootDir;
-	}
+	private boolean compress = false;
 
-	public void setStore(String relativeFilePath, boolean isNew) throws IOException, KETLException {
+	class Reader implements Runnable {
 
-		store = new File(getStoreFilePathRoot().getPath() + relativeFilePath +".gz");
-		if (!isNew && store.exists()) {
-			throw new KETLException("An attempt to create a new file with a path that already exists is made for path" + relativeFilePath);
-		} else
-			store.createNewFile();
-	}
+		private Thread parentThread;
 
-	public void write(ManagedBlockingQueue managedBlockingQueue) throws IOException, InterruptedException {
-
-		FileOutputStream fos = new FileOutputStream(store);
-		Object object = managedBlockingQueue.take();
-		while (object != ETLWorker.ENDOBJ) {
-			byte[] byteCode = AutoClassCaster.serialize(object);
-			fos.write(byteCode.length);
-			fos.write(byteCode);
-			object = managedBlockingQueue.take();
-		}
-		fos.flush();
-		fos.close();
-
-	}
-	public void compressWrite(ManagedBlockingQueue managedBlockingQueue) throws IOException, InterruptedException {
-		ObjectOutputStream bos = new ObjectOutputStream(new GZIPOutputStream(new FileOutputStream(store)));
-		Object object = managedBlockingQueue.take();
-		while (object != ETLWorker.ENDOBJ) {
-			bos.writeObject(object);
-			object = managedBlockingQueue.take();
-		}
-		bos.flush();
-		bos.close();
-	}
-	
-	
-
-	class Reader extends Thread {
-
-		private LinkedBlockingQueue<Object> managedBlockingQueue;
-
-		public Reader(LinkedBlockingQueue<Object> managedBlockingQueue, ExceptionListener el) {
-			super();
-			this.addExceptionListener(el);
-			this.managedBlockingQueue = managedBlockingQueue;
+		public Reader(Thread thread) {
+			this.parentThread = thread;
 		}
 
-		
-		public void addExceptionListener(ExceptionListener l) {
-		    if (l != null) {
-		      exceptionListeners.add(l);
-		    }
-		  }
+		private void readCompressedInputStream() throws FileNotFoundException, IOException, ClassNotFoundException,
+				InterruptedException {
+			Object returnValue;
+			ObjectInputStream fis;
+			try {
+
+				if (compress)
+					fis = new ObjectInputStream(
+							new GZIPInputStream(new BufferedInputStream(new FileInputStream(store))));
+				else
+					fis = new ObjectInputStream(new BufferedInputStream(new FileInputStream(store)));
+
+				try {
+					while ((returnValue = fis.readObject()) != null) {
+						queue.put(returnValue);
+					}
+				} catch (EOFException e) {
+
+				}
+				fis.close();
+				queue.put(ETLWorker.ENDOBJ);
+
+			} catch (Exception e) {
+				ResourcePool.logException(e);
+				step.setPendingException(e);
+				Thread.currentThread();
+				while (true) {
+					Thread.sleep(1000);					
+					if (parentThread.isAlive()) {
+						step.interruptAllSteps();
+					} else {
+						return;
+					}
+				}
+			}
+
+		}
+
+		private void readInputStream() throws ClassNotFoundException,
+				InterruptedException, IOException {
+			try {
+				DataInputStream fis = new DataInputStream(new BufferedInputStream(new FileInputStream(store)));				
+				try {
+					while (true) {
+						queue.put(FastSerializer.deserialize(fis));
+					}
+				} catch (EOFException e) {
+
+				}
+				fis.close();
+				queue.put(ETLWorker.ENDOBJ);
+
+			} catch (Exception e) {
+				ResourcePool.logException(e);
+				step.setPendingException(e);
+				Thread.currentThread();
+				while (true) {
+					Thread.sleep(1000);
+					if (parentThread.isAlive()) {
+						step.interruptAllSteps();
+					} else {
+						return;
+					}
+				}
+			}
+
+		}
 
 		public void run() {
 			try {
-				readCompressedInputStream();
+				readInputStream();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 
-		private void readInputStream() throws FileNotFoundException, IOException, ClassNotFoundException, InterruptedException {
-			Object returnValue;
-			FileInputStream fis;
-			fis = new FileInputStream(store);
-			byte[] buf;
-			int length;
-			while ((length = fis.read()) != -1) {
-				buf = new byte[length];
-				fis.read(buf);
-				returnValue = AutoClassCaster.deserialize(buf, 0, length);
-				managedBlockingQueue.put(returnValue);
-			}
-			fis.close();
-			managedBlockingQueue.put(ETLWorker.ENDOBJ);
-		}
-		private void readCompressedInputStream() throws FileNotFoundException, IOException, ClassNotFoundException, InterruptedException {
-			Object returnValue;
-			ObjectInputStream fis;
-			fis = new ObjectInputStream(new GZIPInputStream(new FileInputStream(store)));
-			
-			try {
-				while ((returnValue =fis.readObject())!=null) {
-					managedBlockingQueue.put(returnValue);
-				}
-			} catch (EOFException e) {
-				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "End of file reached" + store.getCanonicalPath());
-			}
-			fis.close();
-			managedBlockingQueue.put(ETLWorker.ENDOBJ);
-		}
-		private void sendException(Exception x) {
-		    if (exceptionListeners.size() == 0) {
-		      x.printStackTrace();
-		      return;
-		    }
-
-		    synchronized (exceptionListeners) {
-		      Iterator iter = exceptionListeners.iterator();
-		      while (iter.hasNext()) {
-		        ExceptionListener l = (ExceptionListener) iter.next();
-
-		        l.exceptionOccurred(x, this);
-		      }
-		    }
-		  }
-
 	}
 
-	public void read(ManagedBlockingQueue managedBlockingQueue) throws IOException, ClassNotFoundException, InterruptedException {
-		new Reader(managedBlockingQueue, this).start();
+	private boolean checkpointExisted;
+	private ETLStep step;
+
+	File store, tmpStore;
+	private LinkedBlockingQueue<Object> queue;
+
+	public CheckPointStore(ETLStep step) throws KETLThreadException {
+		this.step = step;
+		File partDir = new File(EngineConstants.PARTITION_PATH + File.separator + step.getPartitionID());
+
+		if (partDir.exists() && partDir.isDirectory() == false)
+			throw new KETLThreadException("Partition part error, a file exists which is blocking the partition "
+					+ partDir.getAbsolutePath(), this);
+		else if (partDir.exists() == false)
+			partDir.mkdir();
+
+		String name = step.getJobID() + "." + step.getName() + "." + step.getJobExecutionID();
+		store = new File(partDir, name);
+		if (store.exists() && 1 == 0) {
+			this.checkpointExisted = true;
+		} else {
+			tmpStore = new File(partDir, name + ".loading");
+
+			if (tmpStore.exists()) {
+				tmpStore.delete();
+				tmpStore = new File(partDir, name + ".loading");
+			}
+			this.checkpointExisted = false;
+		}
 	}
 
-	public void exceptionOccurred(Exception x, Object source) {
-		 exceptionCount++;
-		    System.err.println("EXCEPTION #" + exceptionCount + ", source="
-		        + source);
-		    x.printStackTrace();
+	public boolean checkpointEnabled() {
+		return true;
+	}
+
+	public void compressWrite(LinkedBlockingQueue<Object> queue) throws IOException, InterruptedException {
+
+		ObjectOutputStream bos;
+
+		if (compress)
+			bos = new ObjectOutputStream(new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(tmpStore))));
+		else
+			bos = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(tmpStore)));
+
+		Object object = queue.take();
+		while (object != ETLWorker.ENDOBJ) {
+			bos.writeObject(object);
+			object = queue.take();
+		}
+		bos.flush();
+		bos.close();
+
+		// rename file now its loaded
+		tmpStore.renameTo(store);
+	}
+
+	public boolean exists() {
+		return false;
+	}
+
+	public LinkedBlockingQueue<Object> getOutputQueue() {
+		return this.queue;
+	}
+
+	public void read() throws IOException, ClassNotFoundException, InterruptedException {
+		this.queue = new LinkedBlockingQueue<Object>(ETLThreadGroup.DEFAULTQUEUESIZE);
+		Thread reader = new Thread(step.getThreadManager().getJobThreadGroup(),new Reader(Thread.currentThread()));
+		reader.setName("Checkpoint Reader [" + step.getJobID() + "." + step.getName() + " - ["
+				+ step.getJobExecutionID() + "][" + step.getPartitionID() + "]");
+		reader.start();
+	}
+
+	public void write(LinkedBlockingQueue<Object> queue) throws IOException, InterruptedException {
+		step.setWaiting("checkpoint to load");
 		
+		DataOutputStream fos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(store)));
+		Object object = queue.take();
+		while (object != ETLWorker.ENDOBJ) {
+			FastSerializer.serialize(object, fos);
+			object = queue.take();
+		}
+		fos.flush();
+		fos.close();
+		 
+		//this.compressWrite(queue);
+		step.setWaiting(null);
 	}
 }
-interface ExceptionListener {
-	  public void exceptionOccurred(Exception x, Object source);
-}
-

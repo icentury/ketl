@@ -22,21 +22,17 @@
  */
 package com.kni.etl.ketl.smp;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.w3c.dom.Node;
 
-import com.kni.etl.EngineConstants;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLInPort;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.checkpointer.CheckPointStore;
-import com.kni.etl.ketl.checkpointer.Checkpoint;
-
-import com.kni.etl.ketl.exceptions.KETLException;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
@@ -44,7 +40,6 @@ import com.kni.etl.util.ExternalSort;
 import com.kni.etl.util.XMLHelper;
 import com.kni.etl.util.aggregator.Aggregator;
 import com.kni.etl.util.aggregator.Direct;
-import com.kni.util.AutoClassCaster;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -54,7 +49,7 @@ import com.kni.util.AutoClassCaster;
  *         to Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and
  *         Comments
  */
-public abstract class ETLTransform extends ETLStep implements Checkpoint {
+public abstract class ETLTransform extends ETLStep {
 
 	/** The aggregate out. */
 	private ArrayList aggregateOut = new ArrayList();
@@ -117,50 +112,14 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 	 */
 	public ETLTransform(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-	}
-
-	private CheckPointStore mCheckpointStore = new CheckPointStore();
-
-	public boolean checkpointEnabled() {
-		return true;
-	}
-
-	public boolean checkpointExists() {
-		// checks for the existance of a checkpoint that was previously created
-		String fileURI = getCheckPointFileURI();
-		File checkPointFile = new File(fileURI);
-		return checkPointFile.exists();
-	}
-
-	private String getCheckPointFileURI() {
-		String rootDirPath = EngineConstants.PARTITION_PATH;
-		String fileURI = rootDirPath + File.pathSeparator + this.partitionID + File.pathSeparator + this.getJobExecutionID() + "." + this.getName();
-		return fileURI;
-	}
-
-	public void setCheckPointStore() throws IOException, KETLException {
-		this.mCheckpointStore.setStore(getCheckPointFileURI(), true);
-	}
-
-	public void loadCheckpoint() throws InterruptedException, IOException, KETLException {
-
-		this.interruptExecution();
-		if (this.timing)
-			this.startTimeNano = System.nanoTime();
-		if (!checkpointExists())
-			setCheckPointStore();
-
-		//this.mCheckpointStore.write(this.getSourceQueue());
-		this.mCheckpointStore.compressWrite(this.getSourceQueue());
-
-		if (this.timing)
-			this.totalTimeNano += System.nanoTime() - this.startTimeNano;
-	}
-
-	public void readCheckpoint() throws InterruptedException, IOException, ClassNotFoundException {
 		
-		this.mCheckpointStore.read(this.getSourceQueue());
+		this.mCheckpointStore  = new CheckPointStore(this);
 	}
+
+	private CheckPointStore mCheckpointStore;
+
+	
+	
 
 	/**
 	 * Aggregate batch.
@@ -244,23 +203,31 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 			this.mDefaultComparator = this.getAggregateComparator();
 		}
 
-		try {
-			Checkpoint checkpoint = this;
-			if (checkpoint.checkpointEnabled()) {
-				if (!checkpoint.checkpointExists()) {
-					checkpoint.loadCheckpoint();
-				}
-				checkpoint.readCheckpoint();
-			}
-		} catch (KETLException e) {
-			throw new KETLTransformException("Exception while loading/reading checkpoint", e);
-		}
+		LinkedBlockingQueue<Object> queue;
 
+		if (this.timing)
+			this.startTimeNano = System.nanoTime();
+
+		
+		if (this.mCheckpointStore.checkpointEnabled()) {
+			if (!this.mCheckpointStore.exists()) {
+				this.mCheckpointStore.write(this.getSourceQueue());
+			}
+			this.mCheckpointStore.read();
+			queue = this.mCheckpointStore.getOutputQueue();
+		} else {
+			queue = this.getSourceQueue();
+		}
+		
+		if (this.timing)
+			this.totalTimeNano += System.nanoTime() - this.startTimeNano;
+
+		
 		if (this.mSortData) {
-			this.sortData();
+			this.sortData(queue);
 			this.transformFromSort(); 
 		} else
-			this.transformFromQueue();
+			this.transformFromQueue(queue);
 
 	}
 
@@ -393,7 +360,7 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 	 * 
 	 * @return the source queue
 	 */
-	ManagedBlockingQueue getSourceQueue() {
+	private ManagedBlockingQueue getSourceQueue() {
 		return this.srcQueue;
 	}
 
@@ -591,8 +558,9 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 	 *             Signals that an I/O exception has occurred.
 	 * @throws ClassNotFoundException
 	 *             the class not found exception
+	 * @throws KETLThreadException 
 	 */
-	private void sortData() throws InterruptedException, IOException, ClassNotFoundException {
+	private void sortData(LinkedBlockingQueue queue) throws InterruptedException, IOException, ClassNotFoundException, KETLThreadException {
 
 		this.postSortBatchSize = this.batchSize;
 		// instantiate sorter object
@@ -605,7 +573,7 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 		while (true) {
 			this.interruptExecution();
 			Object o;
-			o = this.getSourceQueue().take();
+			o = queue.take();
 			if (o == ETLWorker.ENDOBJ) {
 				break;
 			}
@@ -730,15 +698,14 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 	 *             the interrupted exception
 	 * @throws KETLTransformException
 	 *             the KETL transform exception
-	 * @throws KETLQAException
-	 *             the KETLQA exception
+	 * @throws KETLThreadException 
 	 */
-	final private void transformFromQueue() throws InterruptedException, KETLTransformException, KETLQAException {
+	final private void transformFromQueue(LinkedBlockingQueue queue) throws InterruptedException, KETLTransformException, KETLThreadException {
 
 		while (true) {
 			this.interruptExecution();
 			Object o;
-			o = this.getSourceQueue().take();
+			o = queue.take();
 			if (o == ETLWorker.ENDOBJ) {
 				if (this.mAggregate) {
 					this.aggregateBatch(null, -1);
@@ -773,6 +740,7 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 			} else
 				this.queue.put(res);
 
+
 			this.updateThreadStats(res.length);
 
 		}
@@ -790,10 +758,9 @@ public abstract class ETLTransform extends ETLStep implements Checkpoint {
 	 *             the interrupted exception
 	 * @throws KETLTransformException
 	 *             the KETL transform exception
-	 * @throws KETLQAException
-	 *             the KETLQA exception
+	 * @throws KETLThreadException 
 	 */
-	private void transformFromSort() throws IOException, ClassNotFoundException, InterruptedException, KETLTransformException, KETLQAException {
+	private void transformFromSort() throws IOException, ClassNotFoundException, InterruptedException, KETLTransformException, KETLThreadException {
 		boolean readData = true;
 		while (true) {
 			this.interruptExecution();
