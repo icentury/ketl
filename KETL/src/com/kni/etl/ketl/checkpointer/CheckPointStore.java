@@ -253,18 +253,14 @@ public class CheckPointStore {
 		return thisJobFiles.length>0;
 	}
 
-	public static boolean wasTheSourcePreviouslyRead(final ETLWorker step) {
-		File partDir = new File(EngineConstants.PARTITION_PATH + File.separator + step.getPartitionID());
-		File[] thisJobFiles = partDir.listFiles(getFileNameFilter(step));
-		return thisJobFiles.length>0;
-	}
-
 	private static FilenameFilter getFileNameFilter(final ETLWorker step) {
 		return new FilenameFilter(){
 
 			public boolean accept(File dir, String name) {
-				String[] nameParts = name.split("\\.");
-					if(nameParts.length>2 && nameParts[0].equals(step.getJobID()) && 
+					String[] nameParts = name.split("\\.");
+					if(name.endsWith("loading"))
+						return false;
+					else if(nameParts.length>2 && nameParts[0].equals(step.getJobID()) && 
 							(nameParts[1].equals(step.getName()) || step instanceof ETLReader) && 
 							nameParts[2].equals(""+step.getJobExecutionID()))
 						return true;

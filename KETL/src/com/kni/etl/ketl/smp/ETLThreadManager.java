@@ -201,13 +201,14 @@ public class ETLThreadManager {
         for (WorkerThread workerThread : this.threads) {
             try {
                 ETLStep step = (ETLStep)(workerThread).step;
-                if(step.isUseCheckPoint() && step instanceof ETLTransform){
+                boolean wasTheStepExecutedSuccessfully = CheckPointStore.wasTheStepExecutedSuccessfully(step);
+				
+                if(step.isUseCheckPoint() && step instanceof ETLTransform && wasTheStepExecutedSuccessfully){
                 	metFirstTransformer = true;
                 	lastTransformer = (ETLTransform)step;
                 }
                 
-                if(step.isUseCheckPoint() || (step instanceof com.kni.etl.ketl.reader.ETLReader && CheckPointStore.wasTheSourcePreviouslyRead(step)) ||
-                		(step instanceof ETLTransform && CheckPointStore.wasTheStepExecutedSuccessfully(step)))
+                if(( step.isUseCheckPoint() || step instanceof ETLReader || step instanceof ETLTransform) && wasTheStepExecutedSuccessfully)
                 	 step.setWasPreviouslyRun(true);
                 step.initialize(this.mkjExecutor);
                 
