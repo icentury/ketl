@@ -33,6 +33,7 @@ import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,6 +44,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.util.XMLHelper;
 
 // TODO: Auto-generated Javadoc
@@ -1335,6 +1337,8 @@ public class ETLJob {
 	private int timeOut = Integer.MAX_VALUE;
 
 	private String pool;
+
+	private Map<String, Integer> batchInfoMap = new HashMap<String, Integer>();
 	
 	public void setTimeout(int arg0){
 		this.timeOut = arg0;
@@ -1353,4 +1357,13 @@ public class ETLJob {
 		return pool;
 	}
 
+	public void updateBatchInfo(ETLStep thisStep, int batchNo) {
+		Integer lastBatchCounter = batchInfoMap.get(thisStep.getName());
+		this.batchInfoMap .put(thisStep.getName(), lastBatchCounter==null?batchNo:lastBatchCounter+batchNo);
+		
+	}
+	public Integer getLastBatchCounter(ETLStep step){
+		Integer lastBatchCounter = batchInfoMap.get(step.getName());
+		return lastBatchCounter==null?0:lastBatchCounter;
+	}
 }

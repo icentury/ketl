@@ -280,8 +280,7 @@ public abstract class ETLJobExecutor extends Thread {
 		// declare job name override
 		String jobName = null, jobID = null;
 		
-		boolean useCheckPoints = false;
-
+		
 		ArrayList overrideParameters = new ArrayList();
 		String[] ignoreQAs = null;
 		String server = null;
@@ -300,9 +299,6 @@ public abstract class ETLJobExecutor extends Thread {
 			}
 			if (element.indexOf("ENABLETRIGGERS=") != -1) {
 				pETLJobExecutor.setTriggersOn(Boolean.parseBoolean(ArgumentParserUtil.extractArguments(element, "ENABLETRIGGERS=")));
-			}
-			if (element.indexOf("USE_CHECK_POINTS=") != -1) {
-				useCheckPoints = Boolean.parseBoolean(ArgumentParserUtil.extractArguments(element, "USE_CHECK_POINTS="));
 			}
 			if ((jobName == null) && (element.indexOf("JOB_NAME=") != -1)) {
 				jobName = ArgumentParserUtil.extractArguments(element, "JOB_NAME=");

@@ -116,8 +116,7 @@ public abstract class ETLTransform extends ETLStep {
 		try {
 			this.mCheckpointStore  = new CheckPointStore(this);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new KETLThreadException("Unable to create check point store", e, this);
 		}
 	}
 
@@ -209,13 +208,13 @@ public abstract class ETLTransform extends ETLStep {
 		}
 
 		LinkedBlockingQueue<Object> queue;
-		ETLStep thisStep = (ETLStep)this;
+		
 
 		if (this.timing)
 			this.startTimeNano = System.nanoTime();
 
 		
-		queue = mCheckpointStore.processCheckPoint(thisStep, this.getSourceQueue());
+		queue = mCheckpointStore.processCheckPoint(this, this.getSourceQueue());
 		
 		if (this.timing)
 			this.totalTimeNano += System.nanoTime() - this.startTimeNano;
