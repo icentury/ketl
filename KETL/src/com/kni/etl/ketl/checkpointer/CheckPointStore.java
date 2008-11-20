@@ -49,6 +49,7 @@ import com.kni.etl.ketl.reader.ETLReader;
 import com.kni.etl.ketl.smp.ETLThreadGroup;
 import com.kni.etl.ketl.smp.ETLTransform;
 import com.kni.etl.ketl.smp.ETLWorker;
+import com.kni.etl.ketl.smp.ManagedBlockingQueue;
 import com.kni.util.AutoClassCaster;
 import com.kni.util.Bytes;
 import com.kni.util.FastSerializer;
@@ -272,6 +273,21 @@ public class CheckPointStore {
 			}
 			
 		};
+	}
+
+	public LinkedBlockingQueue<Object> processCheckPoint(ETLStep thisStep, ManagedBlockingQueue managedBlockingQueue ) throws IOException, InterruptedException, ClassNotFoundException {
+		LinkedBlockingQueue<Object> queue;
+		if (checkpointEnabled(thisStep)) {
+			
+			if (!CheckPointStore.wasTheStepExecutedSuccessfully(thisStep)) {
+				this.write((LinkedBlockingQueue<Object>)managedBlockingQueue);
+			}
+			this.read();
+			queue = this.getOutputQueue();
+		} else {
+			queue = managedBlockingQueue;
+		}
+		return queue;
 	}
 }
 interface ExceptionListener {

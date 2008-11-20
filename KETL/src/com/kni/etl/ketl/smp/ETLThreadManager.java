@@ -28,6 +28,9 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Element;
 
@@ -192,18 +195,18 @@ public class ETLThreadManager {
         }
 
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "- Initializing core managers");
-        ETLStep lastTransformer = null;
-        boolean metFirstTransformer = false;
         
+        boolean metFirstTransformer = false;
+        ETLTransform lastTransformer = null;
         for (WorkerThread workerThread : this.threads) {
             try {
-                ETLWorker step = (workerThread).step;
-                if(step instanceof ETLTransform){
+                ETLStep step = (ETLStep)(workerThread).step;
+                if(step.isUseCheckPoint() && step instanceof ETLTransform){
                 	metFirstTransformer = true;
                 	lastTransformer = (ETLTransform)step;
                 }
                 
-                if((step instanceof com.kni.etl.ketl.reader.ETLReader && CheckPointStore.wasTheSourcePreviouslyRead(step)) ||
+                if(step.isUseCheckPoint() || (step instanceof com.kni.etl.ketl.reader.ETLReader && CheckPointStore.wasTheSourcePreviouslyRead(step)) ||
                 		(step instanceof ETLTransform && CheckPointStore.wasTheStepExecutedSuccessfully(step)))
                 	 step.setWasPreviouslyRun(true);
                 step.initialize(this.mkjExecutor);
@@ -214,9 +217,14 @@ public class ETLThreadManager {
                     throw (KETLThreadException) e;
                 throw new KETLThreadException(e.getMessage(), e);
             }
-        }if(metFirstTransformer && lastTransformer!=null)
-        	lastTransformer.setWasPreviouslyRun(false);
-
+        }
+        if(metFirstTransformer){
+        	for (WorkerThread workerThread : this.threads){
+        		ETLStep step = (ETLStep)workerThread.step;
+				if(step.getName().equals(lastTransformer.getName()))
+					step.setWasPreviouslyRun(false);
+            }
+        }
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE,
                 "- Compiling and instantiating cores");
         for (Object o : this.threads) {

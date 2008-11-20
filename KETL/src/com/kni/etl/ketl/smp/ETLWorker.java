@@ -118,6 +118,9 @@ abstract public class ETLWorker implements Runnable {
 
 	/** The Constant STEP. */
 	static final int STEP = 0;
+	
+
+	private static final String USE_CHECK_POINT = "USE_CHECK_POINT";
 
 	/**
 	 * Configure buffer sort.
@@ -455,6 +458,8 @@ abstract public class ETLWorker implements Runnable {
 		this.xmlConfig = pXMLConfig;
 		this.mDebug = XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "DEBUG", false);
 		this.mMonitor = XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "MONITOR", false);
+		this.useCheckPoint = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), USE_CHECK_POINT, false);
+
 
 		try {
 			Class cl = Class.forName("com.kni.etl.ketl.smp.ETLBatchOptimizer");
@@ -1735,6 +1740,8 @@ abstract public class ETLWorker implements Runnable {
 	/** The waiting for. */
 	private Object mWaitingFor = null;
 
+	private boolean useCheckPoint;
+
 	/**
 	 * Sets the waiting.
 	 * 
@@ -1782,6 +1789,13 @@ abstract public class ETLWorker implements Runnable {
 
 	public void setWasPreviouslyRun(boolean wasPreviouslyRun) {
 		this.wasPreviouslyRun = wasPreviouslyRun;
+	}
+	public boolean isUseCheckPoint() {
+		return useCheckPoint;
+	}
+
+	public void setUseCheckPoint(boolean useCheckPoint) {
+		this.useCheckPoint = useCheckPoint;
 	}
 
 }

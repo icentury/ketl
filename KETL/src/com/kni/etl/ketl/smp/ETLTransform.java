@@ -215,16 +215,7 @@ public abstract class ETLTransform extends ETLStep {
 			this.startTimeNano = System.nanoTime();
 
 		
-		if (this.mCheckpointStore.checkpointEnabled(thisStep)) {
-			
-			if (!CheckPointStore.wasTheStepExecutedSuccessfully(thisStep)) {
-				this.mCheckpointStore.write(this.getSourceQueue());
-			}
-			this.mCheckpointStore.read();
-			queue = this.mCheckpointStore.getOutputQueue();
-		} else {
-			queue = this.getSourceQueue();
-		}
+		queue = mCheckpointStore.processCheckPoint(thisStep, this.getSourceQueue());
 		
 		if (this.timing)
 			this.totalTimeNano += System.nanoTime() - this.startTimeNano;

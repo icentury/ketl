@@ -31,6 +31,7 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLInPort;
 import com.kni.etl.ketl.ETLPort;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.checkpointer.CheckPointManager;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
@@ -173,6 +174,8 @@ public abstract class ETLWriter extends ETLStep {
 
     /** The batch manager. */
     private WriterBatchManager mBatchManager;
+    
+    private CheckPointManager checkPointManager;
 
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.smp.ETLWorker#executeWorker()
@@ -180,6 +183,7 @@ public abstract class ETLWriter extends ETLStep {
     @Override
     final protected void executeWorker() throws InterruptedException, KETLWriteException, KETLThreadException {
         int res;
+        checkPointManager = new CheckPointManager(this);
         while (true) {
             this.interruptExecution();
             Object o;
