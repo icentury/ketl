@@ -447,6 +447,8 @@ public class EngineConstants {
     /** The system XML. this must occur as the last parameter */
     private static Document zmSystemXML = EngineConstants._getSystemXML();
 
+	private static long loadTime;
+
     /**
      * EngineConstants constructor comment.
      */
@@ -466,8 +468,7 @@ public class EngineConstants {
         Document doc = null;
 
         try {
-            // get system xml
-            doc = XMLHelper.readXMLFromFile(Metadata.getKETLPath() + File.separator + Metadata.SYSTEM_FILE);
+            doc = loadSystemXML();
             // get all plugins
 
             EngineConstants.globals = (Element) XMLHelper.findElementByName(doc, "GLOBAL", null, null);
@@ -686,6 +687,18 @@ public class EngineConstants {
 
     }
 
+	private static Document loadSystemXML()  {
+		// get system xml
+		try {
+			return XMLHelper.readXMLFromFile(Metadata.getKETLPath() + File.separator + Metadata.SYSTEM_FILE);
+		} catch (Exception e) {
+			ResourcePool.LogMessage("System file not found or readable, expected location " + Metadata.getKETLPath()
+					+ File.separator + Metadata.SYSTEM_FILE);
+			throw new RuntimeException(e);
+
+		}		
+	}
+
 	private static void checkPath(String path, String name) {
 		File f = new File(path);
 		if (f.exists() == false) {
@@ -709,8 +722,13 @@ public class EngineConstants {
     public static synchronized Document getSystemXML() {
         if (EngineConstants.zmSystemXML == null) {
             EngineConstants.zmSystemXML = EngineConstants._getSystemXML();
+            loadTime = System.currentTimeMillis();
+        } else if(loadTime - System.currentTimeMillis() > 60000){
+        	loadTime = System.currentTimeMillis();
+        	EngineConstants.zmSystemXML = loadSystemXML();
         }
 
+        
         return EngineConstants.zmSystemXML;
     }
 
