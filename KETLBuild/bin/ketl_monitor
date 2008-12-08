@@ -2,11 +2,6 @@
 # +--------------------------+
 # | SETUP JAVA ENVIRONMENT   |
 # +--------------------------+
-
-
-CURRENT_DIR=`pwd`
-cd $KETLDIR
-
 pgmdir=`dirname \`command which $0\``
 loaderRoot=`dirname $pgmdir`
 loaderJars=`echo $KETLDIR/lib/*.jar | tr ' ' ':'`
@@ -14,11 +9,14 @@ loaderJars=`echo $KETLDIR/lib/*.jar | tr ' ' ':'`
 . $KETLDIR/conf/Extra.Libraries
 CLASSPATH=$KETL_DIR
 
+CURRENT_DIR=`pwd`
+cd $KETLDIR
 
-nohup $JAVA_HOME/bin/java \
-      -classpath "$loaderJars":"$ketlextralibs" \
-      ETLDaemonMonitor & 
+. $KETLDIR/conf/Extra.Config
+
+echo "Starting..."
+nohup $JAVA_HOME/bin/java   -classpath "$loaderJars":"$ketlextralibs" ETLDaemonMonitor $* &
 sleep 2
-mv nohup.out $KETLDIR/log/KETLMonitor.log 
-cd $CURRENT_DIR     
-echo "Monitor Started."
+mv nohup.out $KETLDIR/log/KETLMonitor.log
+cd $CURRENT_DIR
+echo "Started."
