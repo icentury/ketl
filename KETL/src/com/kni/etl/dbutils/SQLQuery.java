@@ -22,7 +22,11 @@
  */
 package com.kni.etl.dbutils;
 
-import com.kni.etl.EngineConstants;
+
+
+import java.text.ParseException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -30,7 +34,9 @@ import com.kni.etl.EngineConstants;
  */
 public class SQLQuery {
     
-    private static final String THIS_GET_PARTITION_ID = "this.getPartitionID()";
+	private static final String THIS_GET_PARTITION_ID = "this.getPartitionID()";
+
+	private static final String THIS_GET_RANGE_PARTITION = "this.getRangePartition(";
 
 	private static final String THIS_GET_PARTITIONS = "this.getPartitions()";
 
@@ -43,28 +49,78 @@ public class SQLQuery {
     /** The execute. */
     boolean execute;
     
+    
+    public static void main(String[] args) throws ParseException {
+    	int p = 5;
+    	for(int i=0;i<p;i++)
+    	System.out.println(replaceRangePartition("select  where this.getRangePartition(6,,45656565) dfgdf",p,i));
+	}
+    
     /**
      * Instantiates a new SQL query.
      * 
      * @param sql the sql
      * @param parameterList the parameter list
      * @param pExecute the execute
+     * @throws ParseException 
      */
-    public SQLQuery(String sql, int parameterList, boolean pExecute) {
+    public SQLQuery(String sql, int parameterList, boolean pExecute) throws ParseException {
         super();
         this.sql = sql;
         this.execute = pExecute;
         this.parameterList = parameterList;
-        sql.replace(THIS_GET_PARTITIONS,Integer.toString(1)).replace(THIS_GET_PARTITION_ID,Integer.toString(1));
+        this.sql = sql.replace(THIS_GET_PARTITIONS,Integer.toString(1)).replace(THIS_GET_PARTITION_ID,Integer.toString(0));
+        this.sql = replaceRangePartition( sql, 1,  0) ;
     }
     
     public SQLQuery(String sql, int parameterList, boolean pExecute, int partitions,
-			int partitionID) {
+			int partitionID) throws ParseException {
     	this.execute = pExecute;
         this.parameterList = parameterList;        
-        this.sql = sql.replace(THIS_GET_PARTITIONS,Integer.toString(partitions)).replace(THIS_GET_PARTITION_ID,Integer.toString(partitionID));    	        
+        this.sql = sql.replace(THIS_GET_PARTITIONS,Integer.toString(partitions)).replace(THIS_GET_PARTITION_ID,Integer.toString(partitionID));
+        this.sql = replaceRangePartition( sql, partitions,  partitionID) ;
 	}
 
+    
+    public static String replaceRangePartition(String sql, int partitions, int partitionID) throws ParseException {
+
+		Pattern p = Pattern.compile("(" + THIS_GET_RANGE_PARTITION.replace(".", "\\.").replace("(", "\\(") + ").*\\)");
+		Matcher m = p.matcher(sql);
+
+		try {
+			String code = sql;
+			while (m.find()) {
+				code = code.substring(m.start(), m.end());
+				code = code.replace(THIS_GET_RANGE_PARTITION, "").trim();
+				String[] params = code.substring(0, code.length() - 1).split(",");
+				int startId = Integer.parseInt(params[0].trim());
+				int endId = Integer.parseInt(params[1].trim());
+
+				int pSize = (endId - startId) / partitions;
+				int pStart, pEnd;
+				if (partitionID == 0) {
+					pStart = startId;
+					pEnd = pSize + startId;
+				} else if (partitionID == partitions - 1) {
+					pStart = (pSize * partitionID) + 1 + startId;
+					pEnd = endId;
+				} else {
+					pStart = (pSize * partitionID) + startId + 1;
+					pEnd = (pSize * (partitionID + 1)) + startId;
+				}
+				code = pStart + " and " + pEnd;
+				return m.replaceAll(code);
+			}
+
+			return code;
+		} catch (Throwable e) {
+			ParseException e1 = new ParseException("Invalid parameters for auto range partitioning syntax should be "
+					+ THIS_GET_RANGE_PARTITION + "start range, end range) - " + e.getMessage() + ", whilst parsing \"" + sql + "\"", m.start());
+			e1.setStackTrace(e.getStackTrace());
+			throw e1;
+		}
+
+	}
 	/**
      * Execute query.
      * 
@@ -105,6 +161,6 @@ public class SQLQuery {
     }
 
 	public static boolean containPartitionCode(String sql) {
-		return sql.contains(THIS_GET_PARTITIONS) && sql.contains(THIS_GET_PARTITION_ID);		
+		return sql.contains(THIS_GET_PARTITIONS) && sql.contains(THIS_GET_PARTITION_ID) || sql.contains(THIS_GET_RANGE_PARTITION);		
 	}
 }

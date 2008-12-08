@@ -1327,6 +1327,7 @@ public class Console {
 					try {
 						doc = XMLHelper.readXMLFromFile(file);
 					} catch (Exception e) {
+						ResourcePool.logException(e);
 						return e.toString();
 					}
 

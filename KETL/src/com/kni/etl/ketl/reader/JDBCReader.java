@@ -28,6 +28,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -517,54 +518,56 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	 */
 	private List<SQLQuery> getSQLStatementArray() throws KETLThreadException {
 		this.mSQLStatements = new ArrayList<SQLQuery>();
+		try {
+			Node[] nodes = XMLHelper.getElementsByName(this.getXMLConfig(), "IN", "*", "*");
 
-		Node[] nodes = XMLHelper.getElementsByName(this.getXMLConfig(), "IN", "*", "*");
+			if (nodes != null) {
+				for (Node element : nodes) {
+					String sql = XMLHelper.getTextContent(element);
+					if (sql != null && sql.equals("") == false) {
+						sql = sql.trim();
+						if (sql.startsWith("\"") && sql.endsWith("\"")) {
+							sql = sql.substring(1, sql.length() - 1);
+						}
 
-		if (nodes != null) {
-			for (Node element : nodes) {
-				String sql = XMLHelper.getTextContent(element);
-				if (sql != null && sql.equals("") == false) {
-					sql = sql.trim();
-					if (sql.startsWith("\"") && sql.endsWith("\"")) {
-						sql = sql.substring(1, sql.length() - 1);
-					}
-
-					
-					
-					if (sql.length() > 0){
-						if(SQLQuery.containPartitionCode(sql))
-							for(int i=0;i<this.partitions;i++){
-								if(i == this.partitionID){
-								this.mSQLStatements.add(new SQLQuery(sql, 0,
-										true,this.partitions,this.partitionID));
+						if (sql.length() > 0) {
+							if (SQLQuery.containPartitionCode(sql))
+								for (int i = 0; i < this.partitions; i++) {
+									if (i == this.partitionID) {
+										this.mSQLStatements.add(new SQLQuery(sql, 0, true, this.partitions,
+												this.partitionID));
+									}
 								}
-							}						
-						else
-							this.mSQLStatements.add(new SQLQuery(sql, 0,
-									this.mSQLStatements.size() % this.partitions == this.partitionID));
-							
+							else
+								this.mSQLStatements.add(new SQLQuery(sql, 0, this.mSQLStatements.size()
+										% this.partitions == this.partitionID));
+
+						}
 					}
 				}
 			}
-		}
 
-		for (int i = 0; i < this.maParameters.size(); i++) {
-			String sql = this.getParameterValue(i, ETLStep.SQL_ATTRIB);
+			for (int i = 0; i < this.maParameters.size(); i++) {
+				String sql = this.getParameterValue(i, ETLStep.SQL_ATTRIB);
 
-			if (sql != null) {				
-				if(SQLQuery.containPartitionCode(sql))
-					for(int x=0;x<this.partitions;x++){
-						if(x == this.partitionID){
-						this.mSQLStatements.add(new SQLQuery(sql, i,
-								true,this.partitions,this.partitionID));
+				if (sql != null) {
+					if (SQLQuery.containPartitionCode(sql))
+						for (int x = 0; x < this.partitions; x++) {
+							if (x == this.partitionID) {
+								this.mSQLStatements.add(new SQLQuery(sql, i, true, this.partitions, this.partitionID));
+							}
 						}
-					}						
-				else
-					this.mSQLStatements.add(new SQLQuery(sql, i,
-							this.mSQLStatements.size() % this.partitions == this.partitionID));
-			}
-		}
+					else
 
+						this.mSQLStatements.add(new SQLQuery(sql, i,
+								this.mSQLStatements.size() % this.partitions == this.partitionID));
+
+				}
+			}
+
+		} catch (ParseException e) {
+			throw new KETLThreadException(e, this);
+		}
 		return this.mSQLStatements;
 	}
 

@@ -294,8 +294,9 @@ final public class Partitioner extends ManagedBlockingQueue {
 				int pos = this.mHashOrder[i];
 				if (data[pos] == null)
 					h += 1;
-				if (data[pos] instanceof Number)
-					h = h + ((Number) data[pos]).intValue();
+				//else
+				//if (data[pos] instanceof Number)
+				//	h = h + ((Number) data[pos]).intValue();
 				else
 					h = 31 * h + data[pos].hashCode();
 			}

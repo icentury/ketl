@@ -110,16 +110,9 @@ public class XMLHelper {
 			builder = dmf.newDocumentBuilder();
 			xmlDocument = builder.parse(new InputSource(new StringReader(sb.toString())));
 
-		} catch (org.xml.sax.SAXException e) {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Parsing XML document("
-					+ pFileName + "), " + e.toString());
-
-			return null;
 		} catch (Exception e) {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Problem reading XML file ("
-					+ pFileName + ")" + e.toString());
-
-			return null;
+			throw new Exception( "Parsing XML document("
+					+ pFileName ,e);
 		} finally {
 			if (inputFileReader != null)
 				inputFileReader.close();
