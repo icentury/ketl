@@ -42,7 +42,7 @@ CREATE TABLE alert_address (
 );
 
 
-ALTER TABLE ketlmd.alert_address OWNER TO ketlmd;
+ALTER TABLE alert_address OWNER TO ketlmd;
 
 --
 -- TOC entry 1463 (class 1259 OID 205753208)
@@ -59,7 +59,7 @@ CREATE TABLE alert_subscription (
 );
 
 
-ALTER TABLE ketlmd.alert_subscription OWNER TO ketlmd;
+ALTER TABLE alert_subscription OWNER TO ketlmd;
 
 --
 -- TOC entry 1444 (class 1259 OID 205753148)
@@ -74,7 +74,7 @@ CREATE TABLE id_generator (
 );
 
 
-ALTER TABLE ketlmd.id_generator OWNER TO ketlmd;
+ALTER TABLE id_generator OWNER TO ketlmd;
 
 --
 -- TOC entry 1455 (class 1259 OID 205753183)
@@ -94,11 +94,12 @@ CREATE TABLE job (
     disable_alerting character varying(1),
     "action" text,
     old_action2 bytea,
-    last_update_date timestamp without time zone
+    last_update_date timestamp without time zone,
+	pool text
 );
 
 
-ALTER TABLE ketlmd.job OWNER TO ketlmd;
+ALTER TABLE job OWNER TO ketlmd;
 
 --
 -- TOC entry 1456 (class 1259 OID 205753188)
@@ -113,7 +114,7 @@ CREATE TABLE job_dependencie (
 );
 
 
-ALTER TABLE ketlmd.job_dependencie OWNER TO ketlmd;
+ALTER TABLE job_dependencie OWNER TO ketlmd;
 
 --
 -- TOC entry 1465 (class 1259 OID 205753216)
@@ -130,7 +131,7 @@ CREATE TABLE job_error (
 );
 
 
-ALTER TABLE ketlmd.job_error OWNER TO ketlmd;
+ALTER TABLE job_error OWNER TO ketlmd;
 
 --
 -- TOC entry 1445 (class 1259 OID 205753150)
@@ -149,7 +150,7 @@ CREATE TABLE job_error_hist (
 );
 
 
-ALTER TABLE ketlmd.job_error_hist OWNER TO ketlmd;
+ALTER TABLE job_error_hist OWNER TO ketlmd;
 
 --
 -- TOC entry 1446 (class 1259 OID 205753155)
@@ -163,7 +164,7 @@ CREATE TABLE job_executor (
 );
 
 
-ALTER TABLE ketlmd.job_executor OWNER TO ketlmd;
+ALTER TABLE job_executor OWNER TO ketlmd;
 
 --
 -- TOC entry 1457 (class 1259 OID 205753190)
@@ -177,7 +178,7 @@ CREATE TABLE job_executor_job_type (
 );
 
 
-ALTER TABLE ketlmd.job_executor_job_type OWNER TO ketlmd;
+ALTER TABLE job_executor_job_type OWNER TO ketlmd;
 
 --
 -- TOC entry 1464 (class 1259 OID 205753210)
@@ -200,7 +201,7 @@ CREATE TABLE job_log (
 );
 
 
-ALTER TABLE ketlmd.job_log OWNER TO ketlmd;
+ALTER TABLE job_log OWNER TO ketlmd;
 
 
 
@@ -226,7 +227,7 @@ CREATE TABLE job_log_hist (
 );
 
 
-ALTER TABLE ketlmd.job_log_hist OWNER TO ketlmd;
+ALTER TABLE job_log_hist OWNER TO ketlmd;
 
 --
 -- TOC entry 1468 (class 1259 OID 205753387)
@@ -278,7 +279,7 @@ CREATE VIEW job_progress AS
             job.job_id;
 
 
-ALTER TABLE ketlmd.job_progress OWNER TO ketlmd;
+ALTER TABLE job_progress OWNER TO ketlmd;
 
 --
 -- TOC entry 1448 (class 1259 OID 205753162)
@@ -296,7 +297,7 @@ CREATE TABLE job_qa_hist (
 );
 
 
-ALTER TABLE ketlmd.job_qa_hist OWNER TO ketlmd;
+ALTER TABLE job_qa_hist OWNER TO ketlmd;
 
 --
 -- TOC entry 1458 (class 1259 OID 205753192)
@@ -323,7 +324,7 @@ CREATE TABLE job_schedule (
 );
 
 
-ALTER TABLE ketlmd.job_schedule OWNER TO ketlmd;
+ALTER TABLE job_schedule OWNER TO ketlmd;
 
 --
 -- TOC entry 1449 (class 1259 OID 205753167)
@@ -337,7 +338,7 @@ CREATE TABLE job_status (
 );
 
 
-ALTER TABLE ketlmd.job_status OWNER TO ketlmd;
+ALTER TABLE job_status OWNER TO ketlmd;
 
 --
 -- TOC entry 1450 (class 1259 OID 205753169)
@@ -352,7 +353,7 @@ CREATE TABLE job_type (
 );
 
 
-ALTER TABLE ketlmd.job_type OWNER TO ketlmd;
+ALTER TABLE job_type OWNER TO ketlmd;
 
 --
 -- TOC entry 1459 (class 1259 OID 205753194)
@@ -371,7 +372,7 @@ CREATE TABLE "load" (
 );
 
 
-ALTER TABLE ketlmd."load" OWNER TO ketlmd;
+ALTER TABLE "load" OWNER TO ketlmd;
 
 --
 -- TOC entry 1466 (class 1259 OID 205753357)
@@ -386,7 +387,7 @@ CREATE SEQUENCE load_id
     CACHE 1;
 
 
-ALTER TABLE ketlmd.load_id OWNER TO ketlmd;
+ALTER TABLE load_id OWNER TO ketlmd;
 
 --
 -- TOC entry 1451 (class 1259 OID 205753171)
@@ -403,7 +404,7 @@ CREATE TABLE mail_server_detail (
 );
 
 
-ALTER TABLE ketlmd.mail_server_detail OWNER TO ketlmd;
+ALTER TABLE mail_server_detail OWNER TO ketlmd;
 
 --
 -- TOC entry 1460 (class 1259 OID 205753196)
@@ -421,7 +422,7 @@ CREATE TABLE parameter (
 );
 
 
-ALTER TABLE ketlmd.parameter OWNER TO ketlmd;
+ALTER TABLE parameter OWNER TO ketlmd;
 
 --
 -- TOC entry 1452 (class 1259 OID 205753176)
@@ -435,7 +436,7 @@ CREATE TABLE parameter_list (
 );
 
 
-ALTER TABLE ketlmd.parameter_list OWNER TO ketlmd;
+ALTER TABLE parameter_list OWNER TO ketlmd;
 
 --
 -- TOC entry 1453 (class 1259 OID 205753178)
@@ -449,7 +450,7 @@ CREATE TABLE project (
 );
 
 
-ALTER TABLE ketlmd.project OWNER TO ketlmd;
+ALTER TABLE project OWNER TO ketlmd;
 
 --
 -- TOC entry 1461 (class 1259 OID 205753201)
@@ -468,7 +469,7 @@ CREATE TABLE server (
 );
 
 
-ALTER TABLE ketlmd.server OWNER TO ketlmd;
+ALTER TABLE server OWNER TO ketlmd;
 
 --
 -- TOC entry 1462 (class 1259 OID 205753203)
@@ -480,11 +481,12 @@ CREATE TABLE server_executor (
     server_id integer NOT NULL,
     job_executor_id integer NOT NULL,
     threads integer,
-    queue_size integer
+    queue_size integer,
+	pool text
 );
 
 
-ALTER TABLE ketlmd.server_executor OWNER TO ketlmd;
+ALTER TABLE server_executor OWNER TO ketlmd;
 
 --
 -- TOC entry 1467 (class 1259 OID 205753359)
@@ -499,7 +501,7 @@ CREATE SEQUENCE server_id
     CACHE 1;
 
 
-ALTER TABLE ketlmd.server_id OWNER TO ketlmd;
+ALTER TABLE server_id OWNER TO ketlmd;
 
 --
 -- TOC entry 1454 (class 1259 OID 205753180)
@@ -513,7 +515,7 @@ CREATE TABLE server_status (
 );
 
 
-ALTER TABLE ketlmd.server_status OWNER TO ketlmd;
+ALTER TABLE server_status OWNER TO ketlmd;
 
 --
 -- TOC entry 1806 (class 16386 OID 205753222)
@@ -525,7 +527,7 @@ ALTER TABLE ONLY alert_address
     ADD CONSTRAINT alert_address_pkey PRIMARY KEY (address_id);
 
 
-ALTER INDEX ketlmd.alert_address_pkey OWNER TO ketlmd;
+ALTER INDEX alert_address_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1829 (class 16386 OID 205753244)
@@ -537,7 +539,7 @@ ALTER TABLE ONLY job_dependencie
     ADD CONSTRAINT job_dependencie_pkey PRIMARY KEY (job_id, parent_job_id);
 
 
-ALTER INDEX ketlmd.job_dependencie_pkey OWNER TO ketlmd;
+ALTER INDEX job_dependencie_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1834 (class 16386 OID 205753246)
@@ -549,7 +551,7 @@ ALTER TABLE ONLY job_executor_job_type
     ADD CONSTRAINT job_executor_job_type_pkey PRIMARY KEY (job_executor_id, job_type_id);
 
 
-ALTER INDEX ketlmd.job_executor_job_type_pkey OWNER TO ketlmd;
+ALTER INDEX job_executor_job_type_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1808 (class 16386 OID 205753224)
@@ -561,7 +563,7 @@ ALTER TABLE ONLY job_executor
     ADD CONSTRAINT job_executor_pkey PRIMARY KEY (job_executor_id);
 
 
-ALTER INDEX ketlmd.job_executor_pkey OWNER TO ketlmd;
+ALTER INDEX job_executor_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1810 (class 16386 OID 205753228)
@@ -573,7 +575,7 @@ ALTER TABLE ONLY job_log_hist
     ADD CONSTRAINT job_log_hist_job_id_key UNIQUE (job_id, load_id);
 
 
-ALTER INDEX ketlmd.job_log_hist_job_id_key OWNER TO ketlmd;
+ALTER INDEX job_log_hist_job_id_key OWNER TO ketlmd;
 
 --
 -- TOC entry 1812 (class 16386 OID 205753226)
@@ -585,7 +587,7 @@ ALTER TABLE ONLY job_log_hist
     ADD CONSTRAINT job_log_hist_pkey PRIMARY KEY (dm_load_id);
 
 
-ALTER INDEX ketlmd.job_log_hist_pkey OWNER TO ketlmd;
+ALTER INDEX job_log_hist_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1846 (class 16386 OID 205753260)
@@ -597,7 +599,7 @@ ALTER TABLE ONLY job_log
     ADD CONSTRAINT job_log_job_id_key UNIQUE (job_id, load_id);
 
 
-ALTER INDEX ketlmd.job_log_job_id_key OWNER TO ketlmd;
+ALTER INDEX job_log_job_id_key OWNER TO ketlmd;
 
 --
 -- TOC entry 1848 (class 16386 OID 205753258)
@@ -609,7 +611,7 @@ ALTER TABLE ONLY job_log
     ADD CONSTRAINT job_log_pkey PRIMARY KEY (dm_load_id);
 
 
-ALTER INDEX ketlmd.job_log_pkey OWNER TO ketlmd;
+ALTER INDEX job_log_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1827 (class 16386 OID 205753242)
@@ -621,7 +623,7 @@ ALTER TABLE ONLY job
     ADD CONSTRAINT job_pkey PRIMARY KEY (job_id);
 
 
-ALTER INDEX ketlmd.job_pkey OWNER TO ketlmd;
+ALTER INDEX job_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1836 (class 16386 OID 205753248)
@@ -633,7 +635,7 @@ ALTER TABLE ONLY job_schedule
     ADD CONSTRAINT job_schedule_pkey PRIMARY KEY (schedule_id);
 
 
-ALTER INDEX ketlmd.job_schedule_pkey OWNER TO ketlmd;
+ALTER INDEX job_schedule_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1815 (class 16386 OID 205753230)
@@ -645,7 +647,7 @@ ALTER TABLE ONLY job_status
     ADD CONSTRAINT job_status_pkey PRIMARY KEY (status_id);
 
 
-ALTER INDEX ketlmd.job_status_pkey OWNER TO ketlmd;
+ALTER INDEX job_status_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1817 (class 16386 OID 205753232)
@@ -657,7 +659,7 @@ ALTER TABLE ONLY job_type
     ADD CONSTRAINT job_type_pkey PRIMARY KEY (job_type_id);
 
 
-ALTER INDEX ketlmd.job_type_pkey OWNER TO ketlmd;
+ALTER INDEX job_type_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1838 (class 16386 OID 205753250)
@@ -669,7 +671,7 @@ ALTER TABLE ONLY "load"
     ADD CONSTRAINT load_pkey PRIMARY KEY (load_id);
 
 
-ALTER INDEX ketlmd.load_pkey OWNER TO ketlmd;
+ALTER INDEX load_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1819 (class 16386 OID 205753234)
@@ -681,7 +683,7 @@ ALTER TABLE ONLY mail_server_detail
     ADD CONSTRAINT mail_server_detail_pkey PRIMARY KEY (mailserver_id);
 
 
-ALTER INDEX ketlmd.mail_server_detail_pkey OWNER TO ketlmd;
+ALTER INDEX mail_server_detail_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1821 (class 16386 OID 205753236)
@@ -693,7 +695,7 @@ ALTER TABLE ONLY parameter_list
     ADD CONSTRAINT parameter_list_pkey PRIMARY KEY (parameter_list_id);
 
 
-ALTER INDEX ketlmd.parameter_list_pkey OWNER TO ketlmd;
+ALTER INDEX parameter_list_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1840 (class 16386 OID 205753252)
@@ -705,7 +707,7 @@ ALTER TABLE ONLY parameter
     ADD CONSTRAINT parameter_pkey PRIMARY KEY (parameter_id);
 
 
-ALTER INDEX ketlmd.parameter_pkey OWNER TO ketlmd;
+ALTER INDEX parameter_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1823 (class 16386 OID 205753238)
@@ -717,7 +719,7 @@ ALTER TABLE ONLY project
     ADD CONSTRAINT project_pkey PRIMARY KEY (project_id);
 
 
-ALTER INDEX ketlmd.project_pkey OWNER TO ketlmd;
+ALTER INDEX project_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1844 (class 16386 OID 205753256)
@@ -729,7 +731,7 @@ ALTER TABLE ONLY server_executor
     ADD CONSTRAINT server_executor_pkey PRIMARY KEY (server_id, job_executor_id);
 
 
-ALTER INDEX ketlmd.server_executor_pkey OWNER TO ketlmd;
+ALTER INDEX server_executor_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1842 (class 16386 OID 205753254)
@@ -741,7 +743,7 @@ ALTER TABLE ONLY server
     ADD CONSTRAINT server_pkey PRIMARY KEY (server_id);
 
 
-ALTER INDEX ketlmd.server_pkey OWNER TO ketlmd;
+ALTER INDEX server_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1825 (class 16386 OID 205753240)
@@ -753,7 +755,7 @@ ALTER TABLE ONLY server_status
     ADD CONSTRAINT server_status_pkey PRIMARY KEY (status_id);
 
 
-ALTER INDEX ketlmd.server_status_pkey OWNER TO ketlmd;
+ALTER INDEX server_status_pkey OWNER TO ketlmd;
 
 --
 -- TOC entry 1830 (class 1259 OID 205753205)
@@ -764,7 +766,7 @@ ALTER INDEX ketlmd.server_status_pkey OWNER TO ketlmd;
 CREATE INDEX job_id_dep_idx ON job_dependencie USING btree (job_id);
 
 
-ALTER INDEX ketlmd.job_id_dep_idx OWNER TO ketlmd;
+ALTER INDEX job_id_dep_idx OWNER TO ketlmd;
 
 --
 -- TOC entry 1831 (class 1259 OID 205753206)
@@ -775,7 +777,7 @@ ALTER INDEX ketlmd.job_id_dep_idx OWNER TO ketlmd;
 CREATE UNIQUE INDEX op_dep_idx ON job_dependencie USING btree (parent_job_id, job_id);
 
 
-ALTER INDEX ketlmd.op_dep_idx OWNER TO ketlmd;
+ALTER INDEX op_dep_idx OWNER TO ketlmd;
 
 --
 -- TOC entry 1832 (class 1259 OID 205753207)
@@ -786,7 +788,7 @@ ALTER INDEX ketlmd.op_dep_idx OWNER TO ketlmd;
 CREATE INDEX par_job_id_dep_idx ON job_dependencie USING btree (parent_job_id);
 
 
-ALTER INDEX ketlmd.par_job_id_dep_idx OWNER TO ketlmd;
+ALTER INDEX par_job_id_dep_idx OWNER TO ketlmd;
 
 --
 -- TOC entry 1813 (class 1259 OID 205753182)
@@ -797,7 +799,7 @@ ALTER INDEX ketlmd.par_job_id_dep_idx OWNER TO ketlmd;
 CREATE UNIQUE INDEX pk_job_qa_history ON job_qa_hist USING btree (job_id, qa_id, qa_type, step_name, record_date);
 
 
-ALTER INDEX ketlmd.pk_job_qa_history OWNER TO ketlmd;
+ALTER INDEX pk_job_qa_history OWNER TO ketlmd;
 
 --
 -- TOC entry 1849 (class 1259 OID 205753215)
@@ -808,7 +810,7 @@ ALTER INDEX ketlmd.pk_job_qa_history OWNER TO ketlmd;
 CREATE INDEX xie1job_log ON job_log USING btree (status_id);
 
 
-ALTER INDEX ketlmd.xie1job_log OWNER TO ketlmd;
+ALTER INDEX xie1job_log OWNER TO ketlmd;
 
 --
 -- TOC entry 1866 (class 16386 OID 205753329)
@@ -1170,10 +1172,10 @@ CREATE TABLE report_meta(
 	data_interval varchar(22)
 );
 
-ALTER TABLE ketlmd.report_meta OWNER TO ketlmd;
+ALTER TABLE report_meta OWNER TO ketlmd;
 
 
-ALTER TABLE ketlmd.report_meta
+ALTER TABLE report_meta
   ADD CONSTRAINT "PK_REPORT_META" PRIMARY KEY(rmid);
   
 

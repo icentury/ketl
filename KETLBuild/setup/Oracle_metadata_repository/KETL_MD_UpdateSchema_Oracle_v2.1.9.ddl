@@ -3,4 +3,3 @@ ALTER TABLE JOB_LOG_HIST
 
 ALTER TABLE JOB_LOG
   add (stats clob);
-
