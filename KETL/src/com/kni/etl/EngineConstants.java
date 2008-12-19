@@ -733,8 +733,8 @@ public class EngineConstants {
     }
     
     public static synchronized void clearSystemXML() {
-    	EngineConstants.zmSystemXML = null;
-        getSystemXML();
+    	ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, "Reloading system.xml, clear requested");
+    	EngineConstants.zmSystemXML = loadSystemXML();
     }
 
     /**
