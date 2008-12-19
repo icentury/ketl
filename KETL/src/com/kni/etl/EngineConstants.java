@@ -731,6 +731,11 @@ public class EngineConstants {
         
         return EngineConstants.zmSystemXML;
     }
+    
+    public static synchronized void clearSystemXML() {
+    	EngineConstants.zmSystemXML = null;
+        getSystemXML();
+    }
 
     /**
      * Replace parameter.

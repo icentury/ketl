@@ -458,7 +458,7 @@ abstract public class ETLWorker implements Runnable {
 		this.xmlConfig = pXMLConfig;
 		this.mDebug = XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "DEBUG", false);
 		this.mMonitor = XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "MONITOR", false);
-		this.useCheckPoint = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), USE_CHECK_POINT, false);
+		this.useCheckPoint = false;//XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), USE_CHECK_POINT, false);
 
 
 		try {

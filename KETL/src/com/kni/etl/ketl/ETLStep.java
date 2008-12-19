@@ -429,10 +429,17 @@ public abstract class ETLStep extends ETLWorker {
         Node n = XMLHelper.findElementByName(EngineConstants.getSystemXML(), "STEP", "CLASS", this.getClass()
                 .getCanonicalName());
 
-        if (n == null)
+        if(n == null){
+        	EngineConstants.clearSystemXML();
+        	n = XMLHelper.findElementByName(EngineConstants.getSystemXML(), "STEP", "CLASS", this.getClass()
+                    .getCanonicalName());
+        }
+        	
+        if (n == null) {
             throw new RuntimeException(
                     "Class requires an entry in the System.xml file to be valid, please add an entry for class "
                             + this.getClass().getCanonicalName());
+        }
         NodeList nl = ((Element) n).getElementsByTagName("PARAMETERS");
 
         HashSet res = new HashSet();
@@ -471,7 +478,7 @@ public abstract class ETLStep extends ETLWorker {
 
         if (n == null)
             return;
-
+            
         NodeList nl = ((Element) n).getElementsByTagName("PARAMETERS");
 
         for (int i = 0; i < nl.getLength(); i++) {
@@ -609,7 +616,7 @@ public abstract class ETLStep extends ETLWorker {
      */
     protected final Element getStepTemplates(Class pClass) throws KETLThreadException {
         Document doc = EngineConstants.getSystemXML();
-
+        
         if (doc == null)
             throw new KETLThreadException("System.xml cannot be found or instantiated", this);
 
@@ -617,6 +624,15 @@ public abstract class ETLStep extends ETLWorker {
         if (node == null) {
             synchronized (doc) {
                 node = (Element) XMLHelper.findElementByName(doc, "STEP", "CLASS", pClass.getCanonicalName());
+                
+                // bug fix, system xml gets corrupted and must be reloaded
+                if(node == null){
+                	EngineConstants.clearSystemXML();
+                	doc = EngineConstants.getSystemXML();
+                	this.mStepTemplate.clear();
+                    node = (Element) XMLHelper.findElementByName(doc, "STEP", "CLASS", pClass.getCanonicalName());
+                }
+                
                 if (node != null) {
                     node = (Element) XMLHelper.getElementByName(node, "TEMPLATES", null, null);
                     this.mStepTemplate.put(pClass.getCanonicalName(), node);

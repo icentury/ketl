@@ -254,11 +254,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
 
         // partitions
         int partitions = XMLHelper.getAttributeAsInt(job.getAttributes(), "PARRALLISM", 1);// Runtime.getRuntime().availableProcessors());
-
-        if (partitions > 1)
-            ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE,
-                    "PARRALLISM greater than 1 is not certified with this release");
-
+        
         // hashmap of ready sources
         HashMap readySources = new HashMap();
         // instantiate readers

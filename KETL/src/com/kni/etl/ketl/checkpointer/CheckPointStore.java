@@ -250,7 +250,7 @@ public class CheckPointStore {
 	public static boolean wasTheStepExecutedSuccessfully(final ETLWorker step) {
 		File partDir = new File(EngineConstants.PARTITION_PATH + File.separator + step.getPartitionID());
 		File[] thisJobFiles = partDir.listFiles(getFileNameFilter(step));
-		return thisJobFiles.length>0;
+		return thisJobFiles != null && thisJobFiles.length>0;
 	}
 
 	private static FilenameFilter getFileNameFilter(final ETLWorker step) {

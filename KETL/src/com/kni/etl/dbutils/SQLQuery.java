@@ -77,8 +77,9 @@ public class SQLQuery {
 			int partitionID) throws ParseException {
     	this.execute = pExecute;
         this.parameterList = parameterList;        
+        
         this.sql = sql.replace(THIS_GET_PARTITIONS,Integer.toString(partitions)).replace(THIS_GET_PARTITION_ID,Integer.toString(partitionID));
-        this.sql = replaceRangePartition( sql, partitions,  partitionID) ;
+        this.sql = replaceRangePartition( this.sql, partitions,  partitionID) ;
 	}
 
     
@@ -161,6 +162,6 @@ public class SQLQuery {
     }
 
 	public static boolean containPartitionCode(String sql) {
-		return sql.contains(THIS_GET_PARTITIONS) && sql.contains(THIS_GET_PARTITION_ID) || sql.contains(THIS_GET_RANGE_PARTITION);		
+		return (sql.contains(THIS_GET_PARTITIONS) && sql.contains(THIS_GET_PARTITION_ID)) || sql.contains(THIS_GET_RANGE_PARTITION);		
 	}
 }
