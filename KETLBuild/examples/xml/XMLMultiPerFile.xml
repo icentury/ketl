@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<ETL xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:fn="http://www.w3.org/2005/02/xpath-functions" VERSION="1.0" >
+
+
+
+	<JOB ID="MultiXMLPerFile" NAME="MultiXMLPerFile" DESCRIPTION="This job inserts data into a table by parsing the datafiles. This is the FANOUT process" PROJECT="TRACKUSER" RETRY_ATTEMPTS="5" SECONDS_BEFORE_RETRY="300" TYPE="KETL" TIMING="TRUE">
+		<DEPENDS_ON>truncateTmpEmailTracking</DEPENDS_ON>
+		<ACTION BATCHSIZE="250" PARRALLISM="4">
+			<!--  Step to Read file record by record -->
+			<STEP NAME="Data" CLASS="com.kni.etl.ketl.reader.NIOFileReader" ZIPPED="TRUE" xCHARACTERSET="UTF-8"  PARAMETER_LIST="logFiles" RECORD_DELIMITER="track>#0A" IGNOREINVALIDLASTRECORD="TRUE" TIMING="TRUE">
+				<OUT NAME="XML" DATATYPE="STRING" KEEPDELIMITER="TRUE"/>
+			</STEP>
+			<!--  Step to Parse XML documents and extract fields, fans data out into parallel parses -->
+			<!--  explicit parser used, this is optional -->
+			<STEP NAME="XMLData" DOCUMENTBUILDER="com.kni.etl.util.SAXONXMLHandler" ERRORLIMIT="10" 
+					CLASS="com.kni.etl.ketl.transformation.XMLToFieldsTransformation" XPATHEVALUATE="FALSE" XPATH="track" 
+					FLOWTYPE="FANOUT" TIMING="TRUE">
+				<IN XMLDATA="TRUE">Data.XML</IN>
+				<OUT NAME="UTS_LOAD_ID" COMPARE="FALSE" DATATYPE="STRING">"${LOAD_ID}"</OUT>
+				<OUT NAME="SESSION_ID" DATATYPE="INTEGER" XPATHEVALUATE="FALSE" XPATH="@session_id"/>
+				<OUT NAME="MEMBER_ID" DATATYPE="INTEGER" XPATHEVALUATE="FALSE" XPATH="@member_id"/>
+				<OUT NAME="TRACKING_TIME" DATATYPE="DATE" FORMATSTRING="e" XPATHEVALUATE="FALSE" XPATH="@tracking_time"/>
+				<OUT NAME="UNIQUE_ID_TYPE_IN" DATATYPE="STRING" XPATHEVALUATE="FALSE" XPATH="uidType"/>
+				<OUT NAME="UNIQUE_ID" DATATYPE="INTEGER" XPATH="uid"/>
+				<OUT NAME="RCPT_ID" DATATYPE="INTEGER" XPATH="rcptID"/>
+				<OUT NAME="FIRST_OPEN" DATATYPE="DATE" FORMATSTRING="e" XPATH="firstOpen"/>
+				<OUT NAME="LAST_OPEN" DATATYPE="DATE" FORMATSTRING="e" XPATH="lastOpen"/>
+				<OUT NAME="OPEN_COUNT" DATATYPE="INTEGER" XPATH="openCount"/>
+				<OUT NAME="TRACKING_CODE_ID_IN" DATATYPE="STRING" XPATH="trackingCode"/>
+				<OUT NAME="BROWSER_ID_IN" DATATYPE="STRING" XPATHEVALUATE="FALSE" XPATH="browserId"/>
+			</STEP>
+
+			<!--  Step to Insert fields into temp tables -->
+			<STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.JDBCWriter" 
+				PARAMETER_LIST="myDestinationDB" TABLE="target_table" ERRORLIMIT="500" 
+				TIMING="TRUE" MONITOR="FALSE" DEBUG="FALSE">
+				<IN>XMLData.*</IN>
+			</STEP>
+		</ACTION>
+	</JOB>
+
+</ETL>

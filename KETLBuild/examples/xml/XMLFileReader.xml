@@ -12,10 +12,21 @@
  		    <PARAMETER NAME="SEARCHPATH">examples\data\XML*.xml</PARAMETER>
       </PARAMETER_LIST>
 	 	
+	 	
+		<PARAMETER_LIST NAME="destination">
+			<PARAMETER NAME="USER">postgres</PARAMETER>
+			<PARAMETER NAME="PASSWORD">postgres</PARAMETER>
+			<PARAMETER NAME="URL">jdbc:postgresql://localhost/postgres</PARAMETER>
+			<PARAMETER NAME="DRIVER">org.postgresql.Driver</PARAMETER>
+			<PARAMETER NAME="PRESQL">set search_path = 'demo'</PARAMETER>				
+	    </PARAMETER_LIST>
+	 	
       <JOB  PARRALLISM="1" ID="XMLReadTest" NAME="XMLReadTest" PROJECT="TEST" TYPE="KETL">
             <ACTION>
                    <!-- READ PHASE -->            
                    <!--  Read each file extracting the xml data -->
+                   <!--  xpath evaluate false, use direct node access rather than xpath, much faster -->
+                   <!--  only use xpath if out cannot be accessed directly -->
                    <STEP NAME="XMLFile" CLASS="com.kni.etl.ketl.reader.XMLReader" XPATHEVALUATE="FALSE" XPATH="track" PARAMETER_LIST="testData">
 						<OUT NAME="SESSION_ID" DATATYPE="INTEGER" XPATHEVALUATE="FALSE" XPATH="@session_id"/>
 						<OUT NAME="MEMBER_ID" DATATYPE="INTEGER" XPATHEVALUATE="FALSE" XPATH="@member_id"/>
@@ -28,15 +39,11 @@
 						<OUT NAME="REFERRER" DATATYPE="STRING" XPATHEVALUATE="FALSE" XPATH="referer"/>
 						<OUT NAME="REMOTE_IP" DATATYPE="STRING" XPATHEVALUATE="FALSE" XPATH="remoteAddr"/>
                    </STEP>
-
-                   				   				   				
-
-                   <STEP NAME="Output" CLASS="com.kni.etl.ketl.writer.NullWriter">
-                        <IN>XMLFile.REMOTE_IP</IN>                        
-                        <IN>XMLFile.REFERRER</IN>                        
-                   </STEP>
-                  
-
+                   				   				   			
+                   <STEP NAME="Output" CLASS="com.kni.etl.ketl.writer.JDBCWriter" TABLE="TARGET_TABLE"  PARAMETER_LIST="destination" >
+                   		<PRESQL>truncate target_table</PRESQL>
+                        <IN>XMLFile.*</IN>                                                                      
+                   </STEP>                  
             </ACTION>
       </JOB>
 </ETL>

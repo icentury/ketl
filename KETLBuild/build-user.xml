@@ -26,6 +26,10 @@
     		<fileset dir="../KETL/lib"/>
   		</copy>
 
+		<copy todir="setup">
+    		<fileset dir="../KETL/setup"/>
+  		</copy>
+
 	 	<copy todir="lib">
     		<fileset dir="../KETLGPL/lib"/>
   		</copy>
