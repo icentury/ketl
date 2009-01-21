@@ -12,7 +12,7 @@
 		<OPTION NAME="INMEMORYCACHESIZE">1mb</OPTION>			
 	    <!-- <OPTION NAME="LOOKUPCLASS">com.kni.etl.ketl.lookup.HSQLDBIndexedMap</OPTION>		-->
 		<OPTION NAME="LOOKUPCLASS">com.kni.etl.ketl.lookup.SleepycatIndexedMap</OPTION>
-		<OPTION NAME="CHECKPOINTPATH">checkpoint</OPTION>		
+		<OPTION NAME="PARTITIONPATH">partitions</OPTION>		
 		<OPTION NAME="MONITORPATH">monitor</OPTION>		
 	</GLOBAL>
 	
