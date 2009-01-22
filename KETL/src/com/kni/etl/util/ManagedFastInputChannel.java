@@ -22,6 +22,7 @@
  */
 package com.kni.etl.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.channels.ReadableByteChannel;
 
@@ -44,6 +45,8 @@ public class ManagedFastInputChannel {
     
     /** The reader. */
     public FieldLevelFastInputChannel mReader;
+
+	public File file;
 
     /**
      * Close.
