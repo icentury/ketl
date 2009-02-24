@@ -358,6 +358,13 @@ abstract public class ETLCore implements DefaultCore {
         }
     }
     
+    protected final static String subString(String arg0,int start,int endIndex){
+    	if(arg0 == null || arg0.length() <= endIndex)
+    		return arg0;
+    		
+    	return arg0.substring(start,endIndex);    	
+    }
+    
 
     /**
      * To float.
