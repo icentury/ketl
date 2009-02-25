@@ -1,0 +1,12 @@
+
+<CLUSTER NAME="localhost">
+	<!-- time between tests -->
+	<PING>60</PING>
+	<!--  the number of seconds since the last server alive timestamp to generate an alert  -->
+	<NOTIFYTIME>60</NOTIFYTIME>
+	<FAILEMAIL>
+		<TOADDRESS>trash@ket.org</TOADDRESS>
+		<FROMADDRESS>test@ketl.org</FROMADDRESS>
+		<MAILHOST>127.0.0.1</MAILHOST>
+	</FAILEMAIL>
+</CLUSTER>
