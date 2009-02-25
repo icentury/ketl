@@ -1029,6 +1029,116 @@ public class Metadata {
 
 		return true;
 	}
+	
+	/**
+	 * Send email.
+	 * 
+	 * @param pNew_job_id
+	 *            the new_job_id
+	 * @param pSubject
+	 *            the subject
+	 * @param pMessage
+	 *            the message
+	 * @param maxMsgLength 
+	 * @return true, if successful
+	 * @throws SQLException
+	 *             the SQL exception
+	 * @throws Exception
+	 *             the exception
+	 */
+	public boolean sendEmailDirect(String sFromAddress, String toAddress, String sMailHost, String pSubject,
+			String pMessage, int maxMsgLength) throws SQLException, java.lang.Exception {
+		SMTPClient client = new SMTPClient();
+
+		try {
+			int reply;
+
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
+					"Attempting to send email, list of recipients follows:");
+
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Using mail server: " + sMailHost);
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "From address: " + sFromAddress);
+
+			try {
+				client.connect(sMailHost);
+			} catch (com.kni.util.net.smtp.SMTPConnectionClosedException e) {
+				System.err.println("[" + new java.util.Date() + "] SMTP server refused connection.");
+
+				return false;
+			}
+
+			// After connection attempt, you should check the reply code
+			// to verify
+			// success.
+			reply = client.getReplyCode();
+
+			if (!SMTPReply.isPositiveCompletion(reply)) {
+				client.disconnect();
+				System.err.println("[" + new java.util.Date() + "] SMTP server refused connection.");
+
+				return false;
+			}
+
+			client.login();
+
+			if (sMailHost != null) {
+
+				// After connection attempt, you should check the reply code
+				// to verify
+				// success.
+
+				String[] msgParts = new String[1];
+
+				{
+					try {
+						// Create the email message
+
+						boolean plainTxt = false;
+
+						if (toAddress != null) {
+							String[] parts = toAddress.split("@");
+							if (parts.length > 2) {
+								if (parts[2] != null && !parts[2].equals("HTML"))
+									plainTxt = true;
+
+								toAddress = parts[0] + "@" + parts[1];
+							} else
+								plainTxt = false;
+						}
+						msgParts[0] = pMessage;
+
+						client.sendSimpleMessage(sFromAddress, toAddress,
+								"Content-Type: multipart/mixed; boundary=\"DataSeparatorString\"\r\nMIME-Version: 1.0\r\nSubject:"
+										+ pSubject
+										+ "\r\n"
+										+ (plainTxt ? this.getNewTextEmail(msgParts, maxMsgLength) : this
+												.getNewHTMLEmail("", msgParts)));
+
+						ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Recipient: " + toAddress);
+					} catch (Exception e) {
+						ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Email send error " + e.toString());
+						ResourcePool.LogException(e, this);
+
+					}
+				}
+
+				client.logout();
+				client.disconnect();
+
+			}
+
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Emails sent");
+
+			// Do useful stuff here.
+		} catch (Exception e) {
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not connect to SMTP server.");
+			ResourcePool.LogException(e, this);
+
+			return false;
+		}
+
+		return true;
+	}
 
 	/**
 	 * Send alert email.
@@ -2539,7 +2649,7 @@ public class Metadata {
 			this.refreshMetadataConnection();
 
 			m_stmt = this.metadataConnection
-					.prepareStatement("select a.job_id,d.description,start_date,end_date,b.server_name,message "
+					.prepareStatement("select a.job_id,d.description,start_date,execution_date,end_date,b.server_name,message,a.load_id,a.dm_load_id "
 							+ " from " + this.tablePrefix + "job_log a, " + this.tablePrefix + "server b, "
 							+ this.tablePrefix + "job_type d," + this.tablePrefix + "job e "
 							+ " where a.status_id = ? " + " and a.job_id = e.job_id "
@@ -2548,16 +2658,20 @@ public class Metadata {
 			m_stmt.setInt(1, pStatus);
 			m_rs = m_stmt.executeQuery();
 
+			jobsToFetch.add(new Object[] {"Job","Type","Start Date","Exec Date","End Date","Load ID","Exec ID","Server","Message"});
 			// cycle through pending jobs setting next run date
 			while (m_rs.next()) {
 				try {
-					Object[] s = new Object[6];
+					Object[] s = new Object[9];
 					s[0] = m_rs.getString(1);
 					s[1] = m_rs.getString(2);
 					s[2] = m_rs.getTimestamp(3);
 					s[3] = m_rs.getTimestamp(4);
-					s[4] = m_rs.getString(5);
-					s[5] = m_rs.getString(6);
+					s[4] = m_rs.getTimestamp(5);
+					s[5] = m_rs.getInt(8);
+					s[6]= m_rs.getInt(9);
+					s[7] = m_rs.getString(6);
+					s[8] = m_rs.getString(7);
 					jobsToFetch.add(s);
 				} catch (Exception e) {
 					ResourcePool.logMessage("Error creating job: " + e.getMessage());
@@ -2576,7 +2690,7 @@ public class Metadata {
 			}
 
 			m_stmt = this.metadataConnection
-					.prepareStatement("select a.job_id,d.description,start_date,end_date,message " + " from "
+					.prepareStatement("select a.job_id,d.description,start_date,execution_date,end_date,message,a.load_id,a.dm_load_id " + " from "
 							+ this.tablePrefix + "job_log a,  " + this.tablePrefix + "job_type d," + this.tablePrefix
 							+ "job e " + " where a.status_id = ? " + " and a.job_id = e.job_id "
 							+ " and d.job_type_id = e.job_type_id and a.server_id is null" + " ORDER by a.job_id");
@@ -2586,13 +2700,17 @@ public class Metadata {
 			// cycle through pending jobs setting next run date
 			while (m_rs.next()) {
 				try {
-					Object[] s = new Object[6];
+					Object[] s = new Object[9];
 					s[0] = m_rs.getString(1);
 					s[1] = m_rs.getString(2);
 					s[2] = m_rs.getTimestamp(3);
 					s[3] = m_rs.getTimestamp(4);
-					s[4] = "Not assigned";
-					s[5] = m_rs.getString(5);
+					s[4] = m_rs.getTimestamp(5);
+					s[5] = m_rs.getInt(7);
+					s[6]= m_rs.getInt(8);
+					s[7] = "Not assigned";
+					s[8] = m_rs.getString(6);
+					
 					jobsToFetch.add(s);
 				} catch (Exception e) {
 					ResourcePool.logMessage("Error creating job: " + e.getMessage());
@@ -2611,6 +2729,10 @@ public class Metadata {
 			}
 		}
 
+		
+		if(jobsToFetch.size() == 1)
+			jobsToFetch.clear();
+		
 		Object[][] jobs = new Object[jobsToFetch.size()][];
 
 		for (int i = 0; i < jobs.length; i++) {
