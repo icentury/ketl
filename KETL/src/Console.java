@@ -817,7 +817,7 @@ public class Console {
 	 *            the table header
 	 * @return the string
 	 */
-	String jobStatusTable(Object[][] pJobs, String pTableHeader) {
+	String jobStatusTable(Object[][] pJobs, String pTableHeader, boolean compact) {
 		if (pJobs == null || pJobs.length == 0) {
 			return "";
 		}
@@ -842,15 +842,18 @@ public class Console {
 					else
 						tmp = element[x].toString();
 					widths[x] = widths[x] < tmp.length() ? tmp.length() : widths[x];
+					
+					if(compact && widths[x] > 128) {
+						widths[x] = 128;
+					}
 				}
 			}
 		}
 
-		boolean headerLine = false;
 		for (Object[] element : pJobs) {
 
 			for (int x = 0; x < element.length; x++) {
-				sb.append(fixedWidth(element[x], widths[x]));
+				sb.append(fixedWidth(element[x], widths[x],compact));
 
 				if (x < (element.length - 1)) {
 					sb.append(" | ");
@@ -868,7 +871,7 @@ public class Console {
 	
 	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("MM-dd-yy HH:mm:ss");
 
-	private String fixedWidth(Object object, int len) {
+	private String fixedWidth(Object object, int len, boolean compact) {
 		
 		String tmp;
 		if(object == null)
@@ -878,6 +881,11 @@ public class Console {
 		} else
 			tmp = object.toString();
 		
+		if(compact){
+			tmp = tmp.replace("\n"," ").replace("\r"," ");
+			if(tmp.length() > len)
+				tmp = tmp.substring(0,len);
+		}
 		
 		StringBuffer sb = new StringBuffer(tmp);
 
@@ -1599,27 +1607,29 @@ public class Console {
 				// list all running jobs, start time, server
 				StringBuffer sb = new StringBuffer();
 
-				if (pCommands.length == 3 && pCommands[2].equalsIgnoreCase("ALL")) {
+				boolean all  = pCommands.length == 3 && pCommands[2].equalsIgnoreCase("ALL");
+				boolean compact = !all;
+				if (all) {
 					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.WAITING_FOR_CHILDREN),
-							"Waiting for Children"));
-					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.REJECTED), "Rejected"));
-					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.CANCELLED), "Cancelled"));
+							"Waiting for Children",compact));
+					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.REJECTED), "Rejected",compact));
+					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.CANCELLED), "Cancelled",compact));
 					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.QUEUED_FOR_EXECUTION),
-							"Queued For Execution"));
+							"Queued For Execution",compact));
 					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_CANCELLED),
-							"Just Cancelled"));
+							"Just Cancelled",compact));
 					sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_SUCCESSFUL),
-							"Just Finished"));
+							"Just Finished",compact));
 				}
 
-				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PAUSED), "Paused"));
-				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.READY_TO_RUN), "Ready To Run"));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PAUSED), "Paused",compact));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.READY_TO_RUN), "Ready To Run",compact));
 				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.WAITING_TO_BE_RETRIED),
-						"Waiting To Retry"));
-				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.FAILED), "Failed"));
+						"Waiting To Retry",compact));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.FAILED), "Failed",compact));
 				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_FAILED),
-						"Just Failed"));
-				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.EXECUTING), "Executing"));
+						"Just Failed",compact));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.EXECUTING), "Executing",compact));
 
 				return sb.toString();
 			}
