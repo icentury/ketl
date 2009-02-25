@@ -29,7 +29,11 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Formatter;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -148,7 +152,7 @@ public class Console {
 	static final int LAST = 14;
 
 	/** The Constant RUN_TYPES. */
-	static final String[] RUN_TYPES = { "LIST", "RESET", "LOOKUPS", "LOADID","ENABLETRIGGERS","FOREGROUND" };
+	static final String[] RUN_TYPES = { "LIST", "RESET", "LOOKUPS", "LOADID", "ENABLETRIGGERS", "FOREGROUND" };
 
 	/** The Constant SERVER. */
 	static final int SERVER = 12;
@@ -166,9 +170,8 @@ public class Console {
 	static final int STATUS = 2;
 
 	/**
-	 * The KETL Console allows for remote management of the KETL server
-	 * Supported commands STATUS SHUTDOWN {IMMEDIATE|NORMAL} STARTUP JOB <NAME>
-	 * {DEFINITION|XMLDEFINITION|DEPENDENCIES} RESTART {IMMEDIAITE|NORMAL} QUIT.
+	 * The KETL Console allows for remote management of the KETL server Supported commands STATUS SHUTDOWN
+	 * {IMMEDIATE|NORMAL} STARTUP JOB <NAME> {DEFINITION|XMLDEFINITION|DEPENDENCIES} RESTART {IMMEDIAITE|NORMAL} QUIT.
 	 */
 	static final String[] strCommands = { "SHUTDOWN", "STARTUP", "STATUS", "JOB", "RESTART", "QUIT", "CONNECT", "HELP",
 			"PARAMETERLIST", "PAUSE", "RESUME", "PROJECT", "SERVER", "RUN", "/" };
@@ -181,13 +184,15 @@ public class Console {
 			"JOB <NAME> {DEFINITION|DELETE|KILL|XMLDEFINITION|RESTART|SKIP|EXPORT <FILENAME>|IMPORT <FILENAME>|DEPENDENCIES|EXECUTE <PROJECTID> {MULTI} {IGNOREDEPENDENCIES}}",
 			"RESTART {IMMEDIATE|NORMAL}", "QUIT", "CONNECT <SERVER|LOCALHOST> <USERNAME>", "HELP",
 			"PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}", "PAUSE <SERVERID>", "RESUME <SERVERID>",
-			"PROJECT LIST", "SERVER LIST", "RUN {LIST|RESET|LOOKUPS|ENABLETRIGGERS <TRUE|FALSE>|<FILENAME>|FOREGROUND <JOBID>|LOADID <VALUE>}",
+			"PROJECT LIST", "SERVER LIST",
+			"RUN {LIST|RESET|LOOKUPS|ENABLETRIGGERS <TRUE|FALSE>|<FILENAME>|FOREGROUND <JOBID>|LOADID <VALUE>}",
 			"/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}" };
 
 	/** The Constant XMLDEFINITION. */
 	static final int XMLDEFINITION = 0;
 
 	private static final int ENABLETRIGGERS = 4;
+
 	private static final int FOREGROUND = 5;
 
 	/**
@@ -209,7 +214,8 @@ public class Console {
 	public static void main(String[] args) {
 		String ketldir = System.getenv("KETLDIR");
 		if (ketldir == null) {
-			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.WARNING_MESSAGE,"KETLDIR not set, defaulting to working dir");
+			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+					"KETLDIR not set, defaulting to working dir");
 			ketldir = ".";
 		}
 
@@ -533,9 +539,8 @@ public class Console {
 				return this.importJobs(pCommands);
 			}
 			/*
-			 * else if ((pCommands.length > 2) && (resolveCommand(pCommands[2],
-			 * JOBDETAIL_TYPES) == EXECUTEDIRECT)) { return
-			 * executeDirect(pCommands); }
+			 * else if ((pCommands.length > 2) && (resolveCommand(pCommands[2], JOBDETAIL_TYPES) == EXECUTEDIRECT)) {
+			 * return executeDirect(pCommands); }
 			 */
 			else if (pCommands.length > 1) {
 				try {
@@ -643,24 +648,18 @@ public class Console {
 									sb.append("Job: " + eJob.getJobID() + " cancelled");
 								}
 							} else if (eJob.getStatus().getStatusCode() == ETLJobStatus.EXECUTING) {
-								System.out
-										.print("Job "
-												+ eJob.getJobID()
-												+ " is executing do you really want to cancel it Y(Yes), N(No): ");
+								System.out.print("Job " + eJob.getJobID()
+										+ " is executing do you really want to cancel it Y(Yes), N(No): ");
 								choice = this.stdin.readLine();
 
 								if (choice.equalsIgnoreCase("Y")) {
-									eJob.getStatus().setStatusCode(
-											ETLJobStatus.ATTEMPT_CANCEL);
+									eJob.getStatus().setStatusCode(ETLJobStatus.ATTEMPT_CANCEL);
 									this.md.setJobStatus(eJob);
-									sb.append("Job: " + eJob.getJobID()
-											+ " cancelled");
+									sb.append("Job: " + eJob.getJobID() + " cancelled");
 								}
 							} else {
-								sb
-										.append("Job: "
-												+ eJob.getJobID()
-												+ " can not be cancelled as it is not in the current run list");
+								sb.append("Job: " + eJob.getJobID()
+										+ " can not be cancelled as it is not in the current run list");
 							}
 
 							break;
@@ -774,7 +773,8 @@ public class Console {
 
 								int loadId;
 								if ((loadId = this.md.executeJob(pID, pCommands[1], ignoreDeps, allowMult)) != -1) {
-									sb.append("Job submitted to server for direct execution, load id = "+ loadId +".\n");
+									sb.append("Job submitted to server for direct execution, load id = " + loadId
+											+ ".\n");
 								} else {
 									sb.append("Warning Job not submitted to server for execution.\n");
 								}
@@ -818,7 +818,7 @@ public class Console {
 	 * @return the string
 	 */
 	String jobStatusTable(Object[][] pJobs, String pTableHeader) {
-		if (pJobs == null) {
+		if (pJobs == null || pJobs.length == 0) {
 			return "";
 		}
 
@@ -832,21 +832,57 @@ public class Console {
 
 		sb.append("\n");
 
+		int[] widths = new int[pJobs[0].length];
 		for (Object[] element : pJobs) {
 			for (int x = 0; x < element.length; x++) {
 				if (element[x] != null) {
-					sb.append(element[x]);
+					String tmp;
+					if(element[x] instanceof Date)
+						tmp = dateFormatter.format(element[x]);
+					else
+						tmp = element[x].toString();
+					widths[x] = widths[x] < tmp.length() ? tmp.length() : widths[x];
 				}
+			}
+		}
+
+		boolean headerLine = false;
+		for (Object[] element : pJobs) {
+
+			for (int x = 0; x < element.length; x++) {
+				sb.append(fixedWidth(element[x], widths[x]));
 
 				if (x < (element.length - 1)) {
-					sb.append(" - ");
+					sb.append(" | ");
 				}
 			}
 
 			sb.append("\n");
+
 		}
 
 		sb.append("\n");
+
+		return sb.toString();
+	}
+	
+	private static SimpleDateFormat dateFormatter = new SimpleDateFormat("MM-dd-yy HH:mm:ss");
+
+	private String fixedWidth(Object object, int len) {
+		
+		String tmp;
+		if(object == null)
+			tmp = "";
+		else if(object instanceof Date) {
+			tmp = dateFormatter.format(object);
+		} else
+			tmp = object.toString();
+		
+		
+		StringBuffer sb = new StringBuffer(tmp);
+
+		while (sb.length() < len)
+			sb.append(" ");
 
 		return sb.toString();
 	}
@@ -1267,7 +1303,7 @@ public class Console {
 					e.printStackTrace();
 				}
 
-				return "Triggers: " + (this.enableTriggers?"Enabled":"Disabled");
+				return "Triggers: " + (this.enableTriggers ? "Enabled" : "Disabled");
 			case RESET:
 				if (pCommands.length == 3) {
 					if (ResourcePool.releaseLookup(pCommands[2]))
@@ -1292,24 +1328,23 @@ public class Console {
 			case FOREGROUND:
 				if (pCommands.length != 3)
 					return "Invalid syntax - run foreground <jobid>";
-				
+
 				ETLJob[] jobs = this.md.getJobDetails(pCommands[2].replaceAll("\\*", "%"));
-				
-			
-				File f = File.createTempFile("ketl",".tmp");
+
+				File f = File.createTempFile("ketl", ".tmp");
 				BufferedWriter out = new BufferedWriter(new java.io.FileWriter(f));
-		
+
 				out.write("<?xml version=\"1.0\"?>\n<ETL VERSION=\"" + this.md.getMetadataVersion()
 						+ "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n");
-				
-				for(ETLJob job:jobs){
-					out.write(job.getXMLJobDefinition());										
+
+				for (ETLJob job : jobs) {
+					out.write(job.getXMLJobDefinition());
 				}
-				
+
 				out.write("\n</ETL>");
 				out.close();
 				f.deleteOnExit();
-				pCommands = new String[] {"run",f.getAbsolutePath()};		
+				pCommands = new String[] { "run", f.getAbsolutePath() };
 			default:
 				if (pCommands.length == 2) {
 
@@ -1362,8 +1397,9 @@ public class Console {
 							ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Unknown job type, skipping job "
 									+ jobID);
 						else
-							ETLJobExecutor._execute(new String[] { "ENABLETRIGGERS=" + (this.enableTriggers?"TRUE":"FALSE"),"LOADID=" + this.iLoadID, "FILE=" + file,
-									"JOBID=" + jobID }, cur, false, 0);
+							ETLJobExecutor._execute(new String[] {
+									"ENABLETRIGGERS=" + (this.enableTriggers ? "TRUE" : "FALSE"),
+									"LOADID=" + this.iLoadID, "FILE=" + file, "JOBID=" + jobID }, cur, false, 0);
 
 					}
 
@@ -1578,11 +1614,13 @@ public class Console {
 
 				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PAUSED), "Paused"));
 				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.READY_TO_RUN), "Ready To Run"));
+				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.WAITING_TO_BE_RETRIED),
+						"Waiting To Retry"));
 				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.FAILED), "Failed"));
 				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.PENDING_CLOSURE_FAILED),
 						"Just Failed"));
 				sb.append(this.jobStatusTable(this.md.getJobsByStatus(ETLJobStatus.EXECUTING), "Executing"));
-				
+
 				return sb.toString();
 			}
 
@@ -1595,27 +1633,19 @@ public class Console {
 	}
 
 	/*
-	 * private String executeDirect(String[] pCommands) throws Exception {
-	 * StringBuffer sb = new StringBuffer(); String className;
-	 * if(pCommands.length != 4) { return "Syntax: job <ID> EXECUTEDIRECT
-	 * <XMLFILENAME>"; } String xmlFile = pCommands[4]; if(md != null) { // get
-	 * job executor class int typeID; className =
-	 * md.getJobExecutorClassForTypeID(-1); } else {
-	 * ResourcePool.LogMessage(this,"Not connected to metadata, please specify
-	 * job execution class:"); className = stdin.readLine(); // request class }
-	 * return "Done"; }
+	 * private String executeDirect(String[] pCommands) throws Exception { StringBuffer sb = new StringBuffer(); String
+	 * className; if(pCommands.length != 4) { return "Syntax: job <ID> EXECUTEDIRECT <XMLFILENAME>"; } String xmlFile =
+	 * pCommands[4]; if(md != null) { // get job executor class int typeID; className =
+	 * md.getJobExecutorClassForTypeID(-1); } else { ResourcePool.LogMessage(this,"Not connected to metadata, please
+	 * specify job execution class:"); className = stdin.readLine(); // request class } return "Done"; }
 	 */
 
 	/*
-	 * private String executeDirect(String[] pCommands) throws Exception {
-	 * StringBuffer sb = new StringBuffer(); String className;
-	 * if(pCommands.length != 4) { return "Syntax: job <ID> EXECUTEDIRECT
-	 * <XMLFILENAME>"; } String xmlFile = pCommands[4]; if(md != null) { // get
-	 * job executor class int typeID; className =
-	 * md.getJobExecutorClassForTypeID(-1); } else {
-	 * ResourcePool.LogMessage(this,"Not connected to metadata, please specify
-	 * job execution class:"); className = stdin.readLine(); // request class }
-	 * return "Done"; }
+	 * private String executeDirect(String[] pCommands) throws Exception { StringBuffer sb = new StringBuffer(); String
+	 * className; if(pCommands.length != 4) { return "Syntax: job <ID> EXECUTEDIRECT <XMLFILENAME>"; } String xmlFile =
+	 * pCommands[4]; if(md != null) { // get job executor class int typeID; className =
+	 * md.getJobExecutorClassForTypeID(-1); } else { ResourcePool.LogMessage(this,"Not connected to metadata, please
+	 * specify job execution class:"); className = stdin.readLine(); // request class } return "Done"; }
 	 */
 
 	/**

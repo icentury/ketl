@@ -25,7 +25,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.sql.SQLException;
@@ -36,13 +35,9 @@ import java.util.StringTokenizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import sun.security.provider.MD2;
-
-import com.kni.etl.ETLJob;
 import com.kni.etl.EngineConstants;
 import com.kni.etl.Metadata;
 import com.kni.etl.dbutils.ResourcePool;
-import com.kni.etl.ketl.KETLCluster;
 import com.kni.etl.ketl.KETLCluster.Server;
 import com.kni.etl.util.XMLHelper;
 import com.kni.util.ExternalJarLoader;
@@ -212,7 +207,7 @@ class ETLDaemonMonitor {
 		}
 
 		ResourcePool.logError("A " + MONITOR_LOCK + " file exists! A monitor maybe already running.");
-		
+
 		if (exLck != null) {
 			try {
 				exLck.release();
@@ -237,11 +232,11 @@ class ETLDaemonMonitor {
 			}
 			lckFile = null;
 		}
-		
+
 		System.exit(EXIT_CODES.INVALIDSTATE.ordinal());
-		
+
 		return false;
-		
+
 	}
 
 	/**
@@ -258,44 +253,48 @@ class ETLDaemonMonitor {
 					"KETLDIR not set, defaulting to working dir");
 			ketldir = ".";
 		}
-		
-		if (lockMonitorInstance() == false)
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-					"A monitor lock could not be assigned, duplicate monitors exist, if you want to restart the monitor, identify the process and kill it");
 
+		if (lockMonitorInstance() == false)
+			ResourcePool
+					.LogMessage(
+							Thread.currentThread(),
+							ResourcePool.WARNING_MESSAGE,
+							"A monitor lock could not be assigned, duplicate monitors exist, if you want to restart the monitor, identify the process and kill it");
 
 		ExternalJarLoader.loadJars(new File(ketldir + File.separator + "conf" + File.separator + "Extra.Libraries"),
 				"ketlextralibs", ";");
 
-		// String mdServer = null;
-		String jobID = null;
-
-		String server = null;
-
-		// String mdServer = null;
-		String projectID = null;
-
-		// String mdServer = null;
-		String ignoreDependencies = null;
-
-		// String mdServer = null;
-		String allowMultiple = null;
-
-		boolean asynchronous = true, avoidQueue = false;
-		Integer pollTime = null, notifyTime = null;
+		String configFile = null;
 
 		for (String element : args) {
-			if ((server == null) && (element.indexOf("CLUSTER=") != -1)) {
-				server = ETLDaemonMonitor.extractArguments(element, "CLUSTER=");
+			if ((configFile == null) && (element.indexOf("CONFIGFILE=") != -1)) {
+				configFile = ETLDaemonMonitor.extractArguments(element, "CONFIGFILE=");
 			}
+		}
 
-			if ((pollTime == null) && (element.indexOf("POLL=") != -1)) {
-				pollTime = Integer.parseInt(ETLDaemonMonitor.extractArguments(element, "POLL="));
-			}
+		if (configFile == null)
+			configFile = Metadata.getKETLPath() + File.separator + "xml" + File.separator + "MonitorConfig.xml";
 
-			if ((notifyTime == null) && (element.indexOf("NOTIFYTIME=") != -1)) {
-				notifyTime = Integer.parseInt(ETLDaemonMonitor.extractArguments(element, "NOTIFYTIME="));
+		String server = null, fromAddress = null, toAddress = null, mailHost = null;
+		Integer pollTime = null, notifyTime = null;
+		try {
+			Document config = XMLHelper.readXMLFromFile(configFile);
+			Node cluster = XMLHelper.findElementByName(config, "CLUSTER", null, null);
+			server = XMLHelper.getAttributeAsString(cluster.getAttributes(), "NAME", null);
+			pollTime = Integer.parseInt(XMLHelper.getChildNodeValueAsString(cluster, "PING", null, null, "60"));
+			notifyTime = Integer.parseInt(XMLHelper.getChildNodeValueAsString(cluster, "NOTIFYTIME", null, null,
+			"300"));
+	
+			Node failEmail = XMLHelper.getElementByName(cluster, "FAILEMAIL", null, null);
+			if (failEmail != null) {
+				fromAddress = XMLHelper.getChildNodeValueAsString(failEmail, "FROMADDRESS", null, null, null);
+				toAddress = XMLHelper.getChildNodeValueAsString(failEmail, "TOADDRESS", null, null, null);
+				mailHost = XMLHelper.getChildNodeValueAsString(failEmail, "MAILHOST", null, null, null);
 			}
+		} catch (Exception e1) {
+			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Loading Monitors.xml - "
+					+ e1.getMessage());
+			System.exit(EXIT_CODES.METADATA_ERROR.ordinal());
 		}
 
 		if (pollTime == null)
@@ -304,17 +303,16 @@ class ETLDaemonMonitor {
 			notifyTime = 300;
 
 		if (server == null) {
-			System.out.println("Wrong arguments:  CLUSTER=<KETL_MD_NAME> {POLLTIME=<SECONDS>} {NOTIFYTIME=<SECONDS>}");
+			System.out
+					.println("Wrong arguments:  CLUSTER=<KETL_MD_NAME> {POLLTIME=<SECONDS>} {NOTIFYTIME=<SECONDS>} {FAILEMAIL=[MailHost,FromAddress,ToAddress]}");
 			System.out.println("example:  CLUSTER=TEST");
 
 			System.exit(EXIT_CODES.INVALIDARGUMENTS.ordinal());
 		}
 		Metadata md = null;
 
-		
 		InetAddress thisIp;
 
-		
 		try {
 			md = ETLDaemonMonitor.connectToServer(Metadata.LoadConfigFile(null, Metadata.CONFIG_FILE), server);
 		} catch (Exception e1) {
@@ -325,42 +323,55 @@ class ETLDaemonMonitor {
 
 		try {
 			String monitorName;
-			
+
 			thisIp = InetAddress.getLocalHost();
-			monitorName = thisIp.getHostName();						
-	
+			monitorName = thisIp.getHostName();
+
 			Set<Integer> warningSent = new HashSet<Integer>();
 			while (true) {
-				for (Server s : md.getAliveServers()) {
+				try {
+					for (Server s : md.getAliveServers()) {
 
-					long diff = (s.mSystemTime.getTime() - s.mLastPing.getTime()) / 1000;
+						long diff = (s.mSystemTime.getTime() - s.mLastPing.getTime()) / 1000;
 
-					if (diff >= notifyTime) {
-						if (warningSent.contains(s.mServerID) == false) {
-							md
-									.sendEmailToAll("KETL Server " + s.mName + " Offline","Monitor " + monitorName + " has detected that KETL server " + s.mName
-											+ " appears to be offline and has not pinged the metadata in " + diff
-											+ " seconds.");
-							warningSent.add(s.mServerID);
+						if (diff >= notifyTime) {
+							if (warningSent.contains(s.mServerID) == false) {
+								md.sendEmailToAll("KETL Server " + s.mName + " Offline", "Monitor " + monitorName
+										+ " has detected that KETL server " + s.mName
+										+ " appears to be offline and has not pinged the metadata in " + diff
+										+ " seconds.");
+								warningSent.add(s.mServerID);
+							}
+						} else {
+							if (warningSent.remove(s.mServerID)) {
+								md.sendEmailToAll("KETL Server " + s.mName + " Recovered", "Monitor " + monitorName
+										+ " has detected that KETL server " + s.mName
+										+ " appears to be online again and pinged the metadata in last " + diff
+										+ " seconds.");
+							}
 						}
-					} else {
-						if (warningSent.remove(s.mServerID)) {
-							md.sendEmailToAll("KETL Server " + s.mName + " Recovered", "Monitor " + monitorName + " has detected that KETL server " + s.mName
-									+ " appears to be online again and pinged the metadata in last " + diff
-									+ " seconds.");
-						}
+						File f = new File(EngineConstants.MONITORPATH + File.separator + s.mName + ".monitor");
+						FileWriter fw = new FileWriter(f);
+						fw.append(Long.toString(diff));
+						fw.close();
 					}
-					File f = new File(EngineConstants.MONITORPATH + File.separator + s.mName + ".monitor");
-					FileWriter fw = new FileWriter(f);
-					fw.append(Long.toString(diff));
-					fw.close();
+					Thread.sleep(pollTime * 1000);
+				} catch (Exception e) {
+					if (mailHost != null) {
+						md
+								.sendEmailDirect(
+										fromAddress,
+										toAddress,
+										mailHost,
+										"Monitor Cannot Connect To Metadata",
+										"The monitor for cluster "
+												+ server
+												+ " failed to connect to the metadata, the cluster is probably in an offline state",
+										16384);
+						Thread.sleep(600 * 1000);
+					}
 				}
-				Thread.sleep(pollTime * 1000);
 			}
-
-		} catch (SQLException e) {
-			ResourcePool.logMessage(e);
-
 		} catch (Exception e) {
 			ResourcePool.logMessage(e);
 		}
