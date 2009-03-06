@@ -318,7 +318,24 @@ class ETLDaemonMonitor {
 		} catch (Exception e1) {
 			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Connecting to metadata - "
 					+ e1.getMessage());
+			
+			if (mailHost != null) {
+				try {
+					Metadata
+							.sendEmailDirect(
+									fromAddress,
+									toAddress,
+									mailHost,
+									"Monitor Cannot Connect To " + server + " Metadata",
+									"The monitor for cluster "
+											+ server
+											+ " failed to connect to the metadata, the cluster is probably in an offline state",
+									16384);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			System.exit(EXIT_CODES.METADATA_ERROR.ordinal());
+			}
 		}
 
 		try {
@@ -363,7 +380,7 @@ class ETLDaemonMonitor {
 										fromAddress,
 										toAddress,
 										mailHost,
-										"Monitor Cannot Connect To Metadata",
+										"Monitor Cannot Connect To " + server + " Metadata",
 										"The monitor for cluster "
 												+ server
 												+ " failed to connect to the metadata, the cluster is probably in an offline state",
