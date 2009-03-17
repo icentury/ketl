@@ -22,10 +22,13 @@
  */
 package com.kni.etl.ketl.writer;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.CharsetEncoder;
@@ -34,6 +37,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipOutputStream;
 
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -89,7 +94,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	}
 
 	/** The Constant DEFAULT_BUFFER_SIZE. */
-	static final int DEFAULT_BUFFER_SIZE = 163840;
+	static final int DEFAULT_BUFFER_SIZE = 65536;
 
 	private static final String SKIP = "SKIP";
 
@@ -104,6 +109,8 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	private static final String QUOTES = "QUOTE";
 
 	private static final String ESCAPE_WHEN_QUOTED = "ESCAPEWHENQUOTED";
+
+	private static final String ZIP_ATTRIB = "ZIP";
 
 	/** The DEFAUL t_ VALUE. */
 	private static String DEFAULT_VALUE = "DEFAULTVALUE";
@@ -157,7 +164,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	private DestinationFieldDefinition[] mDestFieldDefinitions = null;
 
 	/** The mi output buffer size. */
-	private int miOutputBufferSize = 16384;
+	private int miOutputBufferSize = 65536;
 
 	/** The ms default delimiter. */
 	private String msDefaultDelimiter = null;
@@ -189,6 +196,8 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	private String fileNameFormat, filePathFormat;
 
 	private String mQuoteStrings;
+
+	private boolean mZip;
 
 	/*
 	 * (non-Javadoc)
@@ -229,16 +238,20 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 		/** The writer. */
 		Writer writer;
 
+		private OutputStream os;
+
+		private BufferedOutputStream bos;
+
+		private GZIPOutputStream zos;
+
 		/**
 		 * Open.
 		 * 
 		 * @param filePath
 		 *            the file path
-		 * 
-		 * @throws FileNotFoundException
-		 *             the file not found exception
+		 * @throws IOException 
 		 */
-		void open(String filePath) throws FileNotFoundException {
+		void open(String filePath) throws IOException {
 			this.stream = new FileOutputStream(filePath);
 			this.channel = this.stream.getChannel();
 			CharsetEncoder charSet = (NIOFileWriter.this.mCharSet == null ? java.nio.charset.Charset.defaultCharset()
@@ -246,9 +259,11 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
 			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Writing to file " + filePath
 					+ ", character set " + charSet.charset().displayName());
-			this.writer = java.nio.channels.Channels.newWriter(this.channel, charSet,
-					NIOFileWriter.this.miOutputBufferSize);
 
+			os = java.nio.channels.Channels.newOutputStream(this.channel);
+			bos = new BufferedOutputStream(os, NIOFileWriter.this.miOutputBufferSize);
+			zos = mZip ? new GZIPOutputStream(bos) : null;
+			this.writer = new OutputStreamWriter(mZip ? zos : os, charSet);
 		}
 
 		/**
@@ -258,7 +273,16 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 		 *             Signals that an I/O exception has occurred.
 		 */
 		void close() throws IOException {
+			this.writer.flush();
 			this.writer.close();
+			if (mZip) {
+				zos.flush();
+				zos.close();
+			}
+			bos.flush();
+			bos.close();
+			os.flush();
+			os.close();
 			this.channel.close();
 			this.stream.close();
 		}
@@ -269,11 +293,9 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	 * 
 	 * @param filePath
 	 *            the file path
-	 * 
-	 * @throws FileNotFoundException
-	 *             the file not found exception
+	 * @throws IOException 
 	 */
-	void createOutputFile(String filePath) throws FileNotFoundException {
+	void createOutputFile(String filePath) throws IOException {
 		// add file streams to parallel stream parser
 		OutputFile out = new OutputFile();
 		out.open(filePath);
@@ -297,6 +319,8 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 		NamedNodeMap nmAttrs = xmlDestNode.getAttributes();
 		this.mCharSet = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.CHARACTERSET_ATTRIB,
 				null);
+
+		this.mZip = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), NIOFileWriter.ZIP_ATTRIB, false);
 
 		if (nmAttrs == null) {
 			return 2;
@@ -388,16 +412,14 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 				nmAttrs = nl.item(i).getAttributes();
 				nmAttrs.getNamedItem(NIOFileWriter.NAME);
 
-				
-				destFieldDefinition.quoteString = XMLHelper.getAttributeAsString(nmAttrs,
-						NIOFileWriter.QUOTES, null);
-				if(destFieldDefinition.quoteString != null)
+				destFieldDefinition.quoteString = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.QUOTES, null);
+				if (destFieldDefinition.quoteString != null)
 					destFieldDefinition.quoteEnabled = true;
 				else if (this.mQuoteStrings == null && destFieldDefinition.quoteString == null)
 					destFieldDefinition.quoteEnabled = false;
 				else
 					destFieldDefinition.quoteString = this.mQuoteStrings;
-				
+
 				destFieldDefinition.MaxLength = XMLHelper.getAttributeAsInt(nmAttrs, NIOFileWriter.MAXIMUM_LENGTH,
 						destFieldDefinition.MaxLength);
 				destFieldDefinition.FixedWidth = XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileWriter.FIXEDWIDTH,
@@ -482,13 +504,14 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue()
 						: pInputRecords[this.mInPorts[i].getSourcePortIndex()];
 
-				
 				// if null then quotes have been enabled globally but will only apply if the value
 				// isn't a number. this can be determined here, as class is calculated at runtime
-				if(this.mDestFieldDefinitions[i].quoteEnabled == null && this.mDestFieldDefinitions[i].quoteString != null){
-					this.mDestFieldDefinitions[i].quoteEnabled = !Number.class.isAssignableFrom(this.mInPorts[i].getPortClass());
+				if (this.mDestFieldDefinitions[i].quoteEnabled == null
+						&& this.mDestFieldDefinitions[i].quoteString != null) {
+					this.mDestFieldDefinitions[i].quoteEnabled = !Number.class.isAssignableFrom(this.mInPorts[i]
+							.getPortClass());
 				}
-				
+
 				if (this.fileNameInPort && this.mDestFieldDefinitions[i].fileNamePort) {
 					fileName = data.toString();
 				}
@@ -506,17 +529,19 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 					if (this.mDestFieldDefinitions[i].DefaultValue != null) {
 						outData = this.escape(this.mDestFieldDefinitions[i].DefaultValue,
 								this.mDestFieldDefinitions[i].Delimiter, !this.mDestFieldDefinitions[i].FixedWidth,
-								this.mDestFieldDefinitions[i].alwaysEscape,this.mDestFieldDefinitions[i].quoteEnabled);
+								this.mDestFieldDefinitions[i].alwaysEscape, this.mDestFieldDefinitions[i].quoteEnabled);
 					}
 				} else {
 					if (this.mDestFieldDefinitions[i].FormatString != null) {
 						int idx = this.mInPorts[i].getSourcePortIndex();
 						outData = this.escape(this.mDestFieldDefinitions[i].getFormat(pExpectedDataTypes[idx]).format(
 								data), this.mDestFieldDefinitions[i].Delimiter,
-								!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape,this.mDestFieldDefinitions[i].quoteEnabled);
+								!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape,
+								this.mDestFieldDefinitions[i].quoteEnabled);
 					} else
 						outData = this.escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter,
-								!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape,this.mDestFieldDefinitions[i].quoteEnabled);
+								!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape,
+								this.mDestFieldDefinitions[i].quoteEnabled);
 				}
 
 				// get max length of item to place inoutput buffer
@@ -532,8 +557,8 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 						this.sb.append(' ');
 						rem--;
 					}
-				} else if (outData != null) {										
-					if(this.mDestFieldDefinitions[i].quoteEnabled)
+				} else if (outData != null) {
+					if (this.mDestFieldDefinitions[i].quoteEnabled)
 						outData = quote(outData, this.mDestFieldDefinitions[i].quoteString, this.msEscapeChar);
 					this.sb.append(outData);
 				}
@@ -582,8 +607,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
 	}
 
-	private OutputFile createNewWriterMap(String fileName, String subPartition) throws FileNotFoundException,
-			KETLWriteException {
+	private OutputFile createNewWriterMap(String fileName, String subPartition) throws KETLWriteException, IOException {
 		OutputFile out = new OutputFile();
 
 		String path = "";
@@ -634,16 +658,16 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	 * @param hasDelimeter
 	 *            the has delimeter
 	 * @param alwaysEscape
-	 * @param quoted 
+	 * @param quoted
 	 * 
 	 * @return the char sequence
 	 */
 	private String escape(String datum, String del, boolean hasDelimeter, String alwaysEscape, Boolean quoted) {
 
 		// no need to escape as the quoting will deal with escaping
-		if(quoted && this.escapeEvenWhenQuoted == false)
+		if (quoted && this.escapeEvenWhenQuoted == false)
 			return datum;
-		
+
 		del = del == null ? alwaysEscape : del;
 
 		if (hasDelimeter && datum != null && del != null) {
@@ -657,8 +681,8 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	}
 
 	private static String quote(String datum, String quotes, String escapeCharacter) {
-		//if (datum.contains(escapeCharacter))
-		//	datum = datum.replace(escapeCharacter, escapeCharacter + escapeCharacter);
+		// if (datum.contains(escapeCharacter))
+		// datum = datum.replace(escapeCharacter, escapeCharacter + escapeCharacter);
 		if (datum.contains(quotes))
 			return datum.replace(quotes, escapeCharacter + quotes);
 		return (quotes != null && datum != null) ? quotes + datum + quotes : datum;
