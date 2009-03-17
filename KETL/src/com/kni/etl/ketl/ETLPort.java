@@ -107,8 +107,8 @@ public abstract class ETLPort {
 	 *             the KETL thread exception
 	 */
 	public void used(boolean arg0) throws KETLThreadException {
-		ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Port: " + this.getPortName()
-				+ (arg0 ? " enabled" : " disabled"));
+		//ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Port: " + this.getPortName()
+		//		+ (arg0 ? " enabled" : " disabled"));
 		this.mUsed = arg0;
 	}
 
@@ -190,9 +190,9 @@ public abstract class ETLPort {
 			this.mbQAItemsExist = true;
 		}
 
-		ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Creating "
-				+ (this instanceof ETLInPort ? "IN" : "OUT") + " port " + this.mesStep.getName() + "."
-				+ this.getPortName());
+		//ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Creating "
+		//		+ (this instanceof ETLInPort ? "IN" : "OUT") + " port " + this.mesStep.getName() + "."
+		//		+ this.getPortName());
 		return 0;
 	}
 

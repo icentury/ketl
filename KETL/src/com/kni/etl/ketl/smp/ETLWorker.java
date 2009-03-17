@@ -25,9 +25,12 @@ package com.kni.etl.ketl.smp;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
@@ -47,6 +50,7 @@ import com.kni.etl.ketl.exceptions.KETLReadException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
+import com.kni.etl.ketl.smp.ETLThreadManager.WorkerThread;
 import com.kni.etl.util.ClassFromCode;
 import com.kni.etl.util.XMLHelper;
 
@@ -98,6 +102,9 @@ abstract public class ETLWorker implements Runnable {
 		return this.mDebug;
 	}
 
+	final public Collection<ETLOutPort> getOutPorts() {
+		return this.mOutPorts==null?this.hmOutports.values():java.util.Arrays.asList(this.mOutPorts);
+	}
 	/** The Constant CHANNEL. */
 	public static final int CHANNEL = 1;
 
@@ -118,7 +125,6 @@ abstract public class ETLWorker implements Runnable {
 
 	/** The Constant STEP. */
 	static final int STEP = 0;
-	
 
 	private static final String USE_CHECK_POINT = "USE_CHECK_POINT";
 
@@ -350,7 +356,7 @@ abstract public class ETLWorker implements Runnable {
 	protected HashMap hmInports = new HashMap();
 
 	/** The hm outports. */
-	protected HashMap hmOutports = new HashMap();
+	protected Map<String,ETLOutPort> hmOutports = new HashMap<String,ETLOutPort>();
 
 	/** The batch management. */
 	protected final boolean mBatchManagement = this.implementsBatchManagement();
@@ -458,8 +464,8 @@ abstract public class ETLWorker implements Runnable {
 		this.xmlConfig = pXMLConfig;
 		this.mDebug = XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "DEBUG", false);
 		this.mMonitor = XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "MONITOR", false);
-		this.useCheckPoint = false;//XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), USE_CHECK_POINT, false);
-
+		this.useCheckPoint = false;// XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), USE_CHECK_POINT,
+		// false);
 
 		try {
 			Class cl = Class.forName("com.kni.etl.ketl.smp.ETLBatchOptimizer");
@@ -590,7 +596,8 @@ abstract public class ETLWorker implements Runnable {
 	 * @return the string
 	 */
 	protected String generateCoreImports() {
-		return "import com.kni.etl.ketl.exceptions.*;\n" + "import com.kni.etl.ketl.smp.*;\n"+ "import com.kni.etl.functions.*;\n";
+		return "import com.kni.etl.ketl.exceptions.*;\n" + "import com.kni.etl.ketl.smp.*;\n"
+				+ "import com.kni.etl.functions.*;\n";
 	}
 
 	/**
@@ -744,6 +751,7 @@ abstract public class ETLWorker implements Runnable {
 	 * @return the job execution ID
 	 */
 	abstract public long getJobExecutionID();
+
 	abstract public String getJobID();
 
 	/**
@@ -1382,10 +1390,9 @@ abstract public class ETLWorker implements Runnable {
 				String channel = (sources.length == 3 ? sources[ETLWorker.CHANNEL] : null);
 				parent.removeChild(wildCardPort);
 				NamedNodeMap nm = wildCardPort.getAttributes();
-
-				for (Object o : pWorker.hmOutports.values()) {
-					ETLOutPort src = (ETLOutPort) o;
-
+				
+				for (ETLOutPort src : pWorker.getOutPorts()) {
+					
 					if (channel != null && src.getChannel().equals(channel) == false)
 						continue;
 					if (srcPortsUsed.contains(src))
@@ -1450,8 +1457,7 @@ abstract public class ETLWorker implements Runnable {
 			this.mFanInWorkerUsed.put(pWorker.mstrName, pWorker);
 
 		} else {
-			for (Object o : duplicateSource.hmOutports.values()) {
-				ETLOutPort p = (ETLOutPort) o;
+			for (ETLOutPort p : duplicateSource.getOutPorts()) {
 				if (p.isUsed())
 					pWorker.setOutUsed(p.getChannel(), p.mstrName);
 			}
@@ -1480,10 +1486,8 @@ abstract public class ETLWorker implements Runnable {
 
 	/** The controlled exit. */
 	private boolean controlledExit = false;
-	
+
 	private boolean wasPreviouslyRun = false;
-	
-	
 
 	/*
 	 * (non-Javadoc)
@@ -1495,8 +1499,8 @@ abstract public class ETLWorker implements Runnable {
 			try {
 				synchronized (this.mThreadManager) {
 					ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Alive");
-				}	
-				if(!wasPreviouslyRun)
+				}
+				if (!wasPreviouslyRun)
 					this.executeWorker();
 				this.complete();
 				this.controlledExit = true;
@@ -1509,10 +1513,11 @@ abstract public class ETLWorker implements Runnable {
 			this.interruptAllSteps();
 		} catch (Throwable e) {
 			this.controlledExit = true;
+			this.determineIfPrimary();
 			if (e.getCause() != null && e.getCause() instanceof InterruptedException) {
 				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Worker interrupted");
 				this.interruptAllSteps();
-			} else if (this instanceof ETLStep) {
+			} else if (this instanceof ETLStep && this.isPrimary()) {
 				ETLStep step = (ETLStep) this;
 				step.getJobExecutor().getCurrentETLJob().getStatus().setException(e);
 				step.getJobExecutor().getCurrentETLJob().getStatus().setErrorMessage(e.getMessage());
@@ -1528,19 +1533,35 @@ abstract public class ETLWorker implements Runnable {
 		}
 	}
 
+
+	private void determineIfPrimary() {
+		for (WorkerThread worker : this.mThreadManager.threads) {
+			if (worker.step.primaryInterruptSource == null)
+				worker.step.primaryInterruptSource = worker.step == this;
+		}
+		
+		
+	}
+
+	private boolean isPrimary() {
+		return this.primaryInterruptSource != null && this.primaryInterruptSource;
+	}
+
 	/** The fail all. */
 	private boolean mFailAll = false;
+
+	private Boolean primaryInterruptSource;
 
 	/**
 	 * Interrupt execution.
 	 * 
 	 * @throws InterruptedException
 	 *             the interrupted exception
-	 * @throws KETLThreadException 
-	 * @throws  
-	 * @throws Exception 
+	 * @throws KETLThreadException
+	 * @throws
+	 * @throws Exception
 	 */
-	abstract protected void interruptExecution() throws InterruptedException,KETLThreadException;
+	abstract protected void interruptExecution() throws InterruptedException, KETLThreadException;
 
 	/**
 	 * Interrupt all steps.
@@ -1548,7 +1569,7 @@ abstract public class ETLWorker implements Runnable {
 	final public void interruptAllSteps() {
 		this.mThreadManager.jobThreadGroup.interrupt();
 		this.mFailAll = true;
-	}	
+	}
 
 	/**
 	 * Clean shutdown.
@@ -1627,8 +1648,8 @@ abstract public class ETLWorker implements Runnable {
 			pChannel = ETLWorker.getChannels((Element) this.getXMLConfig())[ETLWorker.DEFAULT];
 		}
 
-		ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "setOutUsed -> Source Step: " + this.toString()
-				+ "\tChannel: " + pChannel + "\tPort: " + pPort);
+		//ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "setOutUsed -> Source Step: " + this.toString()
+		//		+ "\tChannel: " + pChannel + "\tPort: " + pPort);
 
 		ETLOutPort port = (ETLOutPort) this.hmOutports.get(pPort);
 
@@ -1790,6 +1811,7 @@ abstract public class ETLWorker implements Runnable {
 	public void setWasPreviouslyRun(boolean wasPreviouslyRun) {
 		this.wasPreviouslyRun = wasPreviouslyRun;
 	}
+
 	public boolean isUseCheckPoint() {
 		return useCheckPoint;
 	}

@@ -148,7 +148,7 @@ public abstract class ETLStep extends ETLWorker {
 	public static final String XMLSOURCENAME_ATTRIB = "XMLSOURCENAME";
 
 	/** The ma parameters. */
-	protected List maParameters;
+	protected List<ParameterList> maParameters;
 
 	/** The mkj executor. */
 	protected KETLJobExecutor mkjExecutor = null;
@@ -664,9 +664,12 @@ public abstract class ETLStep extends ETLWorker {
 	protected final Element getStepTemplates(Class pClass) throws KETLThreadException {
 		Document doc = EngineConstants.getSystemXML();
 
-		if (doc == null)
-			throw new KETLThreadException("System.xml cannot be found or instantiated", this);
-
+		if (doc == null) {
+			// try again, stupid xml bug
+			EngineConstants.clearSystemXML();
+			if((doc = EngineConstants.getSystemXML())==null)
+				throw new KETLThreadException("System.xml cannot be found or instantiated", this);
+		}
 		Element node = (Element) this.mStepTemplate.get(pClass.getCanonicalName());
 		if (node == null) {
 			synchronized (doc) {

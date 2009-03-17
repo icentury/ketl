@@ -33,9 +33,9 @@ import com.kni.etl.util.XMLHelper;
  * The Class ETLOutPort.
  */
 public class ETLOutPort extends ETLPort {
+   
 
-    
-    /**
+	/**
      * Instantiates a new ETL out port.
      * 
      * @param esOwningStep the es owning step

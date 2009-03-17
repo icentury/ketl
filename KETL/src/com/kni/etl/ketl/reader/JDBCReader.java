@@ -23,6 +23,7 @@
 package com.kni.etl.ketl.reader;
 
 import java.sql.Connection;
+import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -31,6 +32,7 @@ import java.sql.Statement;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.w3c.dom.Element;
@@ -44,6 +46,7 @@ import com.kni.etl.dbutils.PrePostSQL;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.dbutils.SQLQuery;
 import com.kni.etl.dbutils.StatementManager;
+import com.kni.etl.dbutils.SQLQuery.ParameterColumnMapping;
 import com.kni.etl.ketl.DBConnection;
 import com.kni.etl.ketl.ETLOutPort;
 import com.kni.etl.ketl.ETLStep;
@@ -68,7 +71,8 @@ import com.kni.etl.util.XMLHelper;
  * </p>
  * <p>
  * Company: Kinetic Networks
- * </p>.
+ * </p>
+ * .
  * 
  * @author Brian Sullivan
  * @version 1.0
@@ -79,6 +83,12 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	 * The Class JDBCReaderETLOutPort.
 	 */
 	public class JDBCReaderETLOutPort extends ETLOutPort {
+
+		List<ParameterColumnMapping> incrementalMappings = new ArrayList<ParameterColumnMapping>();
+
+		private Comparable maxValue;
+
+		public boolean hasIncrementalMapping = false;
 
 		/**
 		 * Instantiates a new JDBC reader ETL out port.
@@ -116,7 +126,31 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 			return 0;
 		}
 
+		public void setMax(Comparable<Comparable> object) {
+			if (object != null && (maxValue == null || object.compareTo(maxValue) > 0)) {
+				maxValue = object;
+			}
+		}
+
+		public void addMapping(ParameterColumnMapping param) {
+			this.hasIncrementalMapping = true;
+			incrementalMappings.add(param);
+		}
+
+		public void finalizeMappings() throws KETLThreadException {
+			for (ParameterColumnMapping mapping : this.incrementalMappings) {
+				mapping.setMaxValue(this.maxValue);
+				pendingMappings.add(mapping);
+			}
+
+			this.incrementalMappings.clear();
+			maxValue = null;
+			this.hasIncrementalMapping = false;
+		}
+
 	}
+
+	final List<ParameterColumnMapping> pendingMappings = new ArrayList<ParameterColumnMapping>();
 
 	/** The Constant ColPrecision. */
 	final static int ColPrecision = 1;
@@ -132,6 +166,9 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 
 	/** The Constant SQL_SAMPLE_ATTRIB. */
 	public static final String SQL_SAMPLE_ATTRIB = "SQLSAMPLE";
+
+	/** The Constant SQL_SAMPLE_ATTRIB. */
+	public static final String INCREMENTAL_ATTRIB = "INCREMENTAL";
 
 	/** The jdbc helper. */
 	private JDBCItemHelper jdbcHelper;
@@ -174,7 +211,9 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 
 	/** The fetch size. */
 	private int mFetchSize;
-	
+
+	private SQLQuery currentQuery;
+
 	/**
 	 * Instantiates a new JDBC reader.
 	 * 
@@ -192,7 +231,6 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	 */
 	public JDBCReader(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
 			throws KETLThreadException {
-
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
 	}
@@ -241,6 +279,17 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	 */
 	@Override
 	protected void close(boolean success) {
+
+		if (success) {
+			for (ParameterColumnMapping param : this.pendingMappings) {
+				try {
+					param.writeBackParameter();
+				} catch (KETLThreadException e) {
+					this.logException(e);
+				}
+			}
+		}
+
 		if (this.mcDBConnection != null) {
 			ResourcePool.releaseConnection(this.mcDBConnection);
 			this.mcDBConnection = null;
@@ -299,13 +348,12 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	 *            the param list
 	 * 
 	 * @return the connection
-	 * @throws Exception 
+	 * @throws Exception
 	 */
 	private Connection getConnection(int paramList) throws Exception {
 		if (this.mcDBConnection != null)
 			ResourcePool.releaseConnection(this.mcDBConnection);
-		
-		
+
 		Properties props = JDBCItemHelper.getProperties(this.getParameterListValues(paramList));
 		this.mcDBConnection = ResourcePool.getConnection(this.getParameterValue(paramList, DBConnection.DRIVER_ATTRIB),
 				this.getParameterValue(paramList, DBConnection.URL_ATTRIB), this.getParameterValue(paramList,
@@ -354,7 +402,6 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		return new JDBCReaderETLOutPort(this, this);
 	}
 
-	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -412,8 +459,10 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 						this.mColMetadata[i][JDBCReader.ColType] = this.mrsDBResultSet.getMetaData().getColumnType(
 								i + 1);
 
-						this.mColMetadata[i][JDBCReader.ColPrecision] = JDBCReader.getPrecision(this.mrsDBResultSet.getMetaData(), i + 1);
-						this.mColMetadata[i][JDBCReader.ColScale] = JDBCReader.getScale(this.mrsDBResultSet.getMetaData(), i + 1);
+						this.mColMetadata[i][JDBCReader.ColPrecision] = JDBCReader.getPrecision(this.mrsDBResultSet
+								.getMetaData(), i + 1);
+						this.mColMetadata[i][JDBCReader.ColScale] = JDBCReader.getScale(this.mrsDBResultSet
+								.getMetaData(), i + 1);
 					}
 				} else {
 					iColumnCount = this.mColMetadata.length;
@@ -427,10 +476,18 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 						try {
 							pResultArray[pos] = this.jdbcHelper.getObjectFromResultSet(this.mrsDBResultSet, i + 1,
 									pExpectedDataTypes[pos++], this.maxCharLength);
+
+							if (((JDBCReaderETLOutPort) this.mOutPorts[i]).hasIncrementalMapping) {
+								((JDBCReaderETLOutPort) this.mOutPorts[i]).setMax((Comparable) pResultArray[pos - 1]);
+							}
 						} catch (Exception e) {
 							throw new KETLReadException("Exception with out " + this.mOutPorts[i].mstrName + ": "
 									+ e.getMessage(), e);
 						}
+					} else if (((JDBCReaderETLOutPort) this.mOutPorts[i]).hasIncrementalMapping) {
+						((JDBCReaderETLOutPort) this.mOutPorts[i]).setMax((Comparable) this.jdbcHelper
+								.getObjectFromResultSet(this.mrsDBResultSet, i + 1, this.mOutPorts[i].getPortClass(),
+										this.maxCharLength));
 					}
 				}
 
@@ -438,22 +495,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 			}
 
 			if (this.rowIsValid == false) {
-				// if last row has been processed make sure cursor is closed.
-				try {
-					if (this.mrsDBResultSet != null) {
-						this.mrsDBResultSet.close();
-					}
-
-					this.mStmt.close();
-
-					// return connection to resourcepool
-					ResourcePool.releaseConnection(this.mcDBConnection);
-				} catch (SQLException e) {
-					// Closeout error.
-					ResourcePool.LogException(e, this);
-				}
-
-				this.mrsDBResultSet = null;
+				closeCurrentSQL();
 			}
 		} catch (Exception e) {
 			// return connection to resourcepool
@@ -483,6 +525,33 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		}
 
 		return 1;
+	}
+
+	private void closeCurrentSQL() throws KETLThreadException {
+		// if last row has been processed make sure cursor is closed.
+		try {
+			if (this.mrsDBResultSet != null) {
+				this.mrsDBResultSet.close();
+			}
+
+			this.mStmt.close();
+
+			// return connection to resourcepool
+			ResourcePool.releaseConnection(this.mcDBConnection);
+		} catch (SQLException e) {
+			// Closeout error.
+			ResourcePool.LogException(e, this);
+		}
+
+		this.mrsDBResultSet = null;
+
+		if (currentQuery.hasIncrementalParameters()) {
+			for (ETLOutPort port : this.mOutPorts) {
+				if (((JDBCReaderETLOutPort) port).hasIncrementalMapping) {
+					((JDBCReaderETLOutPort) port).finalizeMappings();
+				}
+			}
+		}
 	}
 
 	/*
@@ -531,16 +600,17 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 						}
 
 						if (sql.length() > 0) {
-							if (SQLQuery.containPartitionCode(sql))
+							if (SQLQuery.containPartitionCode(sql)) {
 								for (int i = 0; i < this.partitions; i++) {
 									if (i == this.partitionID) {
-										this.mSQLStatements.add(new SQLQuery(sql, 0, true, this.partitions,
-												this.partitionID));
+										this.mSQLStatements.add(parseIncremental(new SQLQuery(sql, 0, true,
+												this.partitions, this.partitionID)));
 									}
 								}
-							else
-								this.mSQLStatements.add(new SQLQuery(sql, 0, this.mSQLStatements.size()
-										% this.partitions == this.partitionID));
+							} else
+								this.mSQLStatements.add(parseIncremental(new SQLQuery(sql, 0, this.mSQLStatements
+										.size()
+										% this.partitions == this.partitionID)));
 
 						}
 					}
@@ -554,14 +624,13 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 					if (SQLQuery.containPartitionCode(sql))
 						for (int x = 0; x < this.partitions; x++) {
 							if (x == this.partitionID) {
-								this.mSQLStatements.add(new SQLQuery(sql, i, true, this.partitions, this.partitionID));
+								this.mSQLStatements.add(parseIncremental(new SQLQuery(sql, i, true, this.partitions,
+										this.partitionID)));
 							}
 						}
 					else
-
-						this.mSQLStatements.add(new SQLQuery(sql, i,
-								this.mSQLStatements.size() % this.partitions == this.partitionID));
-
+						this.mSQLStatements.add(parseIncremental(new SQLQuery(sql, i, this.mSQLStatements.size()
+								% this.partitions == this.partitionID)));
 				}
 			}
 
@@ -569,6 +638,19 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 			throw new KETLThreadException(e, this);
 		}
 		return this.mSQLStatements;
+	}
+
+	private SQLQuery parseIncremental(SQLQuery query) throws ParseException, KETLThreadException {
+		String parameterListName = this.maParameters.get(query.getParameterListID()).getName();
+
+		if (parameterListName == null)
+			throw new KETLThreadException(
+					"The parameter list name could not be determined, incremental reading requires a metadata connection",
+					this);
+		for (ParameterColumnMapping param : query.replaceIncremental(parameterListName)) {
+			param.setValue(this.getParameterValue(query.getParameterListID(), param.getParameterName()));
+		}
+		return query;
 	}
 
 	/*
@@ -584,8 +666,14 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 			for (int pos = 0; pos < sql.size(); pos++) {
 				SQLQuery p = (SQLQuery) sql.get(pos);
 
-				if (p.getParameterListID() != -1 && p.getSQL() == null)
+				if (p.getParameterListID() != -1 && p.getSQL() == null) {
 					p.setSQL(this.getParameterValue(p.getParameterListID(), ETLStep.SQL_ATTRIB));
+					try {
+						parseIncremental(p);
+					} catch (ParseException e) {
+						throw new KETLThreadException(e, this);
+					}
+				}
 
 			}
 		}
@@ -614,7 +702,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		this.mFetchSize = XMLHelper.getAttributeAsInt(xmlSourceNode.getAttributes(), "FETCHSIZE", this.batchSize * 2);
 		this.mSQLSample = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(), JDBCReader.SQL_SAMPLE_ATTRIB,
 				"");
-		
+
 		this.instantiateHelper(xmlSourceNode);
 
 		// remove the queries not destined for this partition
@@ -622,7 +710,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		this.mSQLStatements.clear();
 		for (Object element : items) {
 			if (((SQLQuery) element).executeQuery())
-				this.mSQLStatements.add((SQLQuery)element);
+				this.mSQLStatements.add((SQLQuery) element);
 		}
 		return 0;
 	}
@@ -672,13 +760,13 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 					throw new KETLThreadException(e, this);
 				}
 
-				String mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
+				String mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData()
+						.getDatabaseProductName());
 
+				SQLQuery query = aSQLStatement[0];
 				sql = this.getStepTemplate(mDBType, "GETCOLUMNS", true);
-				sql = EngineConstants.replaceParameterV2(sql, "QUERY", aSQLStatement[0].getSQL());
-
+				sql = EngineConstants.replaceParameterV2(sql, "QUERY", query.getNonIncrementalSQL());
 				PreparedStatement mStmt = mcDBConnection.prepareStatement(sql);
-
 				mStmt.execute();
 
 				// Log executing sql to feed result record object with single object reference
@@ -702,7 +790,9 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 						Element newOut = this.getXMLConfig().getOwnerDocument().createElement(ETLStep.OUT_TAG);
 
 						newOut.setAttribute("NAME", rm.getColumnName(i));
-						newOut.setAttribute("DATATYPE", this.getJavaType(rm.getColumnType(i), JDBCReader.getColumnDisplaySize(rm, i), JDBCReader.getPrecision(rm, i), JDBCReader.getScale(rm, i)));
+						String type = this.getJavaType(rm.getColumnType(i), JDBCReader.getColumnDisplaySize(rm, i),
+								JDBCReader.getPrecision(rm, i), JDBCReader.getScale(rm, i));
+						newOut.setAttribute("DATATYPE", type);
 						newOut.setAttribute("CHANNEL", channel);
 						this.getXMLConfig()
 								.appendChild(this.getXMLConfig().getOwnerDocument().importNode(newOut, true));
@@ -716,7 +806,8 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 								"Output columns does not match number of columns in source query", this);
 
 					for (int i = 0; i < cols; i++) {
-						String type = this.getJavaType(rm.getColumnType(i + 1), JDBCReader.getColumnDisplaySize(rm, i + 1), JDBCReader.getPrecision(rm, i + 1), JDBCReader.getScale(rm, i + 1));
+						String type = this.getJavaType(rm.getColumnType(i + 1), JDBCReader.getColumnDisplaySize(rm,
+								i + 1), JDBCReader.getPrecision(rm, i + 1), JDBCReader.getScale(rm, i + 1));
 						String definedType = XMLHelper.getAttributeAsString(nl[i].getAttributes(), "DATATYPE", null);
 
 						// update type
@@ -767,26 +858,23 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		return tmp;
 	}
 
-	public static int getPrecision(ResultSetMetaData resultSetMetaData,
-			int column) throws SQLException {
+	public static int getPrecision(ResultSetMetaData resultSetMetaData, int column) throws SQLException {
 		try {
 			return resultSetMetaData.getPrecision(column);
-		} catch(NumberFormatException e){
+		} catch (NumberFormatException e) {
 			return -1;
 		}
 	}
 
-	public static int getScale(ResultSetMetaData resultSetMetaData, int column)
-			throws SQLException {
+	public static int getScale(ResultSetMetaData resultSetMetaData, int column) throws SQLException {
 		try {
 			return resultSetMetaData.getScale(column);
-		} catch(NumberFormatException e){
+		} catch (NumberFormatException e) {
 			return -1;
 		}
 	}
 
-	public static int getColumnDisplaySize(ResultSetMetaData resultSetMetaData,
-			int column) throws SQLException {
+	public static int getColumnDisplaySize(ResultSetMetaData resultSetMetaData, int column) throws SQLException {
 		return resultSetMetaData.getColumnDisplaySize(column);
 	}
 
@@ -872,17 +960,11 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 
 		// allow the user to specify the sql in the parameter list if need be
 		// if found use it else use first IN
-		String strSQLToExecute = null;
+
 		int paramList = 0;
 
-		if ((this.mSQLStatements != null) && (this.mSQLStatements.size() > 0)) {
-			SQLQuery p = (SQLQuery) this.mSQLStatements.remove(0);
-
-			strSQLToExecute = p.getSQL() + " " + this.mSQLSample;
-
-		}
-
 		try {
+			this.currentQuery = this.mSQLStatements.remove(0);
 			this.mcDBConnection = this.getConnection(paramList);
 
 			this.mStmt = null;
@@ -890,15 +972,33 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 
 			// Run the query...
 			this.executePreStatements();
-			this.mStmt = this.mcDBConnection.createStatement();
+
+			this.mstrExecutingSQL = currentQuery.getFinalSQL(this.mSQLSample);
+
+			if (currentQuery.hasIncrementalParameters())
+				this.mStmt = this.mcDBConnection.prepareStatement(this.mstrExecutingSQL);
+			else
+				this.mStmt = this.mcDBConnection.createStatement();
 
 			this.mStmt.setFetchSize(this.mFetchSize);
 			this.mStmt.setFetchDirection(ResultSet.FETCH_FORWARD);
 
 			// Log executing sql to feed result record object with single object reference
-			this.mstrExecutingSQL = strSQLToExecute;
 			this.setWaiting("source query to execute");
-			this.mrsDBResultSet = this.getResultSet(this.mStmt, strSQLToExecute);
+
+			if (currentQuery.hasIncrementalParameters()) {
+				PreparedStatement pstmt = (PreparedStatement) this.mStmt;
+				for (ParameterColumnMapping param : currentQuery.getIncrementalMappings()) {
+					JDBCReaderETLOutPort port = (JDBCReaderETLOutPort) this.getOutPort(param.getColumnName());
+					port.hasIncrementalMapping = true;
+					port.addMapping(param);
+					param.setClass(port.getPortClass());
+				}
+				currentQuery.setIncrementalParameters(pstmt);
+				this.mrsDBResultSet = pstmt.executeQuery();
+			} else
+				this.mrsDBResultSet = this.mStmt.executeQuery(this.mstrExecutingSQL);
+
 			this.setWaiting(null);
 			this.mColMetadata = null;
 			this.maxCharLength = this.mcDBConnection.getMetaData().getMaxCharLiteralLength();
@@ -919,8 +1019,8 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 				this.mrsDBResultSet.setFetchSize(this.mintFetchSize);
 			}
 		} catch (Exception e) {
-			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to execute query '" + strSQLToExecute
-					+ "': " + e.toString());
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to execute query '"
+					+ currentQuery.getFinalSQL(this.mSQLSample) + "': " + e.toString());
 
 			return false;
 		}
@@ -930,20 +1030,4 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 		return true;
 	}
 
-	/**
-	 * Gets the result set.
-	 * 
-	 * @param pStatement
-	 *            the statement
-	 * @param pSQLToExecute
-	 *            the SQL to execute
-	 * 
-	 * @return the result set
-	 * 
-	 * @throws SQLException
-	 *             the SQL exception
-	 */
-	protected ResultSet getResultSet(Statement pStatement, String pSQLToExecute) throws SQLException {
-		return pStatement.executeQuery(pSQLToExecute);
-	}
 }

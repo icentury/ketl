@@ -402,7 +402,7 @@ public class EngineConstants {
     public static final String[] PARAMETER_DATE = { "DATE", "TIMESTAMP", "TIME" };
     
     /** The Constant PARAMETER_DATE_FORMAT. */
-    public static final String[] PARAMETER_DATE_FORMAT = { "dd-MM-yyyy", "dd-MM-yyyy HH:mm:ss", "HH:mm:ss" };
+    public static final String[] PARAMETER_DATE_FORMAT = { "dd-MM-yyyy", "yyyyMMdd_HHmmss", "HH:mm:ss" };
     
     /** The Constant JOB_PERSISTENCE. */
     public static final int JOB_PERSISTENCE = 0;
@@ -449,6 +449,8 @@ public class EngineConstants {
 
 	private static long loadTime;
 
+	private static boolean DISABLESYSTEMCACHE = false;
+
     /**
      * EngineConstants constructor comment.
      */
@@ -488,6 +490,11 @@ public class EngineConstants {
                             + EngineConstants.VERSION + ", ©" + Calendar.getInstance().get(Calendar.YEAR)
                             + " Kinetic Networks Inc.");
                     // End of section
+                }
+
+                e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "DISABLESYSTEMCACHE");
+                if (e != null) {
+                    EngineConstants.DISABLESYSTEMCACHE  = Boolean.parseBoolean(XMLHelper.getTextContent(e));
                 }
 
                 e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "CACHEMEMRATIO");
@@ -720,10 +727,14 @@ public class EngineConstants {
      * @return the system XML
      */
     public static synchronized Document getSystemXML() {
-        if (EngineConstants.zmSystemXML == null) {
+    	
+    	if(DISABLESYSTEMCACHE){
+    		return loadSystemXML();
+    	} else if (EngineConstants.zmSystemXML == null) {
             EngineConstants.zmSystemXML = EngineConstants._getSystemXML();
             loadTime = System.currentTimeMillis();
-        } else if(loadTime - System.currentTimeMillis() > 60000){
+        } else if((System.currentTimeMillis() - loadTime) > 60000){
+        	ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "Reloading system.xml");        	
         	loadTime = System.currentTimeMillis();
         	EngineConstants.zmSystemXML = loadSystemXML();
         }

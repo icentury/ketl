@@ -71,6 +71,16 @@ public class DestinationFieldDefinition {
 
 	public String alwaysEscape = null;
 
+	public boolean fileNamePort = false;
+
+	public boolean skip = false;
+
+	public boolean subPartitionPort = false;
+
+	public String quoteString = null;
+
+	public Boolean quoteEnabled;
+
 	/**
 	 * SourceFieldDefinition constructor comment.
 	 * 

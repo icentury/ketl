@@ -38,316 +38,349 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ParameterList {
 
-    /** The hm parameter list. */
-    protected HashMap hmParameterList = null;
-    
-    /** The path. */
-    private String mPath = "";
+	/** The hm parameter list. */
+	protected HashMap hmParameterList = null;
 
-    /**
-     * Instantiates a new parameter list.
-     * 
-     * @param strPath the str path
-     */
-    public ParameterList(String strPath) {
-        super();
-        this.mPath = strPath;
-    }
+	/** The path. */
+	private String mPath = "";
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        if (this.hmParameterList == null)
-            return this.mPath + "<Empty>";
+	private String mName;
 
-        StringBuilder sb = new StringBuilder();
-        for (Object o : this.hmParameterList.entrySet()) {
-            if (sb.length() > 0)
-                sb.append(", ");
+	/**
+	 * Instantiates a new parameter list.
+	 * 
+	 * @param strPath
+	 *            the str path
+	 * @param strPath2
+	 */
+	public ParameterList(String strName, String strPath) {
+		super();
+		this.mName = strName;
+		this.mPath = strPath;
+	}
 
-            sb.append(((Map.Entry) o).getKey());
-            sb.append(":");
-            sb.append(((Map.Entry) o).getValue());
-        }
-        return this.mPath + ":" + sb.toString();
-    }
+	public String getName() {
+		return this.mName;
+	}
 
-    /**
-     * Insert the method's description here. Creation date: (5/8/2002 4:31:46 PM)
-     * 
-     * @param oName the o name
-     * 
-     * @return java.lang.Object
-     */
-    public Object getParameter(Object oName) {
-        if (this.hmParameterList == null) {
-            return null;
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		if (this.hmParameterList == null)
+			return this.mPath + "<Empty>";
 
-        return this.hmParameterList.get(oName);
-    }
-    
-    public Map getParameters() {
-    	return java.util.Collections.unmodifiableMap(this.hmParameterList);
-    }
+		StringBuilder sb = new StringBuilder();
+		for (Object o : this.hmParameterList.entrySet()) {
+			if (sb.length() > 0)
+				sb.append(", ");
 
-    /**
-     * Insert the method's description here. Creation date: (5/8/2002 4:33:44 PM)
-     * 
-     * @param oName java.lang.Object
-     * @param oValue java.lang.Object
-     */
-    public void setParameter(Object oName, Object oValue) {
-        if (this.hmParameterList == null) {
-            this.hmParameterList = new HashMap();
-        }
+			sb.append(((Map.Entry) o).getKey());
+			sb.append(":");
+			sb.append(((Map.Entry) o).getValue());
+		}
+		return this.mPath + ":" + sb.toString();
+	}
 
-        this.hmParameterList.put(oName, oValue);
-    }
+	/**
+	 * Insert the method's description here. Creation date: (5/8/2002 4:31:46 PM)
+	 * 
+	 * @param oName
+	 *            the o name
+	 * 
+	 * @return java.lang.Object
+	 */
+	public Object getParameter(Object oName) {
+		if (this.hmParameterList == null) {
+			return null;
+		}
 
-    /**
-     * Recurse parameter list.
-     * 
-     * @param xmlSourceNode the xml source node
-     * @param strParameterListName the str parameter list name
-     * 
-     * @return the array list
-     */
-    static public ArrayList recurseParameterList(Node xmlSourceNode, String strParameterListName) {
-        return ParameterList.recurseParameterList(xmlSourceNode, strParameterListName, new HashMap(), new HashSet(),
-                new ArrayList(), null);
-    }
+		return this.hmParameterList.get(oName);
+	}
 
-    /**
-     * Recurse parameter list.
-     * 
-     * @param strParameterListName the str parameter list name
-     * 
-     * @return the array list
-     */
-    static public ArrayList recurseParameterList(String strParameterListName) {
-        return ParameterList.recurseParameterList(strParameterListName, new HashMap(), new HashSet(), new ArrayList(),
-                null);
-    }
+	public Map getParameters() {
+		return java.util.Collections.unmodifiableMap(this.hmParameterList);
+	}
 
-    /**
-     * Copy parameter values list.
-     * 
-     * @param newParameterValuesList the new parameter values list
-     * 
-     * @return the hash map
-     */
-    static private HashMap copyParameterValuesList(HashMap newParameterValuesList) {
-        // duplicate hashmap but don't use same underlying parameter objects
-        HashMap newMap = new HashMap();
-        for (Object param : newParameterValuesList.entrySet()) {
-            String tmp = (String) ((Map.Entry) param).getValue();
+	/**
+	 * Insert the method's description here. Creation date: (5/8/2002 4:33:44 PM)
+	 * 
+	 * @param oName
+	 *            java.lang.Object
+	 * @param oValue
+	 *            java.lang.Object
+	 */
+	public void setParameter(Object oName, Object oValue) {
+		if (this.hmParameterList == null) {
+			this.hmParameterList = new HashMap();
+		}
 
-            if (tmp != null) {
-                newMap.put(((Map.Entry) param).getKey(), tmp);
-            }
-        }
+		this.hmParameterList.put(oName, oValue);
+	}
 
-        return newMap;
-    }
+	/**
+	 * Recurse parameter list.
+	 * 
+	 * @param xmlSourceNode
+	 *            the xml source node
+	 * @param strParameterListName
+	 *            the str parameter list name
+	 * 
+	 * @return the array list
+	 */
+	static public ArrayList recurseParameterList(Node xmlSourceNode, String strParameterListName) {
+		return ParameterList.recurseParameterList(xmlSourceNode, strParameterListName, new HashMap(), new HashSet(),
+				new ArrayList(), null);
+	}
 
-    /**
-     * Recurse parameter list.
-     * 
-     * @param xmlSourceNode the xml source node
-     * @param strParameterListName the str parameter list name
-     * @param aParameterValuesList the a parameter values list
-     * @param aParentParameterLists the a parent parameter lists
-     * @param aParameterStore the a parameter store
-     * @param strPath the str path
-     * 
-     * @return the array list
-     */
-    static private ArrayList recurseParameterList(Node xmlSourceNode, String strParameterListName,
-            HashMap aParameterValuesList, HashSet aParentParameterLists, ArrayList aParameterStore, String strPath) {
+	/**
+	 * Recurse parameter list.
+	 * 
+	 * @param strParameterListName
+	 *            the str parameter list name
+	 * 
+	 * @return the array list
+	 */
+	static public ArrayList recurseParameterList(String strParameterListName) {
+		return ParameterList.recurseParameterList(strParameterListName, new HashMap(), new HashSet(), new ArrayList(),
+				null);
+	}
 
-        if (strPath == null)
-            strPath = strParameterListName;
-        else
-            strPath = strPath + "->" + strParameterListName;
+	/**
+	 * Copy parameter values list.
+	 * 
+	 * @param newParameterValuesList
+	 *            the new parameter values list
+	 * 
+	 * @return the hash map
+	 */
+	static private HashMap copyParameterValuesList(HashMap newParameterValuesList) {
+		// duplicate hashmap but don't use same underlying parameter objects
+		HashMap newMap = new HashMap();
+		for (Object param : newParameterValuesList.entrySet()) {
+			String tmp = (String) ((Map.Entry) param).getValue();
 
-        // Duplicate list and add current parameter list
-        // this helps protect against loops
-        HashMap newParameterValuesList = ParameterList.copyParameterValuesList(aParameterValuesList);
-        boolean hasSub = false;
-        aParentParameterLists = new HashSet(aParentParameterLists);
+			if (tmp != null) {
+				newMap.put(((Map.Entry) param).getKey(), tmp);
+			}
+		}
 
-        // get a list of all the parameters in the parameter list
-        String[] parametersInList = XMLHelper.getDistinctParameterNames(xmlSourceNode, strParameterListName);
+		return newMap;
+	}
 
-        if (parametersInList != null) {
+	/**
+	 * Recurse parameter list.
+	 * 
+	 * @param xmlSourceNode
+	 *            the xml source node
+	 * @param strParameterListName
+	 *            the str parameter list name
+	 * @param aParameterValuesList
+	 *            the a parameter values list
+	 * @param aParentParameterLists
+	 *            the a parent parameter lists
+	 * @param aParameterStore
+	 *            the a parameter store
+	 * @param strPath
+	 *            the str path
+	 * 
+	 * @return the array list
+	 */
+	static private ArrayList recurseParameterList(Node xmlSourceNode, String strParameterListName,
+			HashMap aParameterValuesList, HashSet aParentParameterLists, ArrayList aParameterStore, String strPath) {
 
-            for (String element : parametersInList) {
-                if (newParameterValuesList.containsKey(element) == false) {
-                    newParameterValuesList.put(element, null);
-                }
-            }
+		if (strPath == null)
+			strPath = strParameterListName;
+		else
+			strPath = strPath + "->" + strParameterListName;
 
-            for (Object param : newParameterValuesList.entrySet()) {
-                // get parameter value
-                ((Map.Entry) param).setValue(XMLHelper.getParameterValueAsString(xmlSourceNode, strParameterListName,
-                        (String) ((Map.Entry) param).getKey(), (String) ((Map.Entry) param).getValue()));
+		// Duplicate list and add current parameter list
+		// this helps protect against loops
+		HashMap newParameterValuesList = ParameterList.copyParameterValuesList(aParameterValuesList);
+		boolean hasSub = false;
+		aParentParameterLists = new HashSet(aParentParameterLists);
 
-            }
+		// get a list of all the parameters in the parameter list
+		String[] parametersInList = XMLHelper.getDistinctParameterNames(xmlSourceNode, strParameterListName);
 
-            for (Object param : newParameterValuesList.entrySet()) {
-                // get sub parameter lists
-                String[] subs = XMLHelper.getSubParameterListNames(xmlSourceNode, strParameterListName,
-                        (String) ((Map.Entry) param).getKey());
+		if (parametersInList != null) {
 
-                if (subs != null) {
-                    hasSub = true;
+			for (String element : parametersInList) {
+				if (newParameterValuesList.containsKey(element) == false) {
+					newParameterValuesList.put(element, null);
+				}
+			}
 
-                    for (String element : subs) {
+			for (Object param : newParameterValuesList.entrySet()) {
+				// get parameter value
+				((Map.Entry) param).setValue(XMLHelper.getParameterValueAsString(xmlSourceNode, strParameterListName,
+						(String) ((Map.Entry) param).getKey(), (String) ((Map.Entry) param).getValue()));
 
-                        if (aParentParameterLists.contains(element)) {
-                            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-                                    "Loop exists in sub parameter list(" + strParameterListName
-                                            + ") pointing to itself at a lower level,"
-                                            + " no more sub parameter lists will be searched in this branch.");
+			}
 
-                        }
-                        else {
-                            aParentParameterLists.add(element);
-                            ParameterList.recurseParameterList(xmlSourceNode, element, newParameterValuesList,
-                                    aParentParameterLists, aParameterStore, strPath);
-                        }
-                    }
-                }
-            }
+			for (Object param : newParameterValuesList.entrySet()) {
+				// get sub parameter lists
+				String[] subs = XMLHelper.getSubParameterListNames(xmlSourceNode, strParameterListName,
+						(String) ((Map.Entry) param).getKey());
 
-        }
+				if (subs != null) {
+					hasSub = true;
 
-        if (hasSub == false) {
-            ParameterList.storeParameterSet(newParameterValuesList, aParameterStore, strPath);
-        }
+					for (String element : subs) {
 
-        return aParameterStore;
-    }
+						if (aParentParameterLists.contains(element)) {
+							ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+									"Loop exists in sub parameter list(" + strParameterListName
+											+ ") pointing to itself at a lower level,"
+											+ " no more sub parameter lists will be searched in this branch.");
 
-    /**
-     * Path.
-     * 
-     * @return the string
-     */
-    public String path() {
-        return this.mPath;
-    }
+						} else {
+							aParentParameterLists.add(element);
+							ParameterList.recurseParameterList(xmlSourceNode, element, newParameterValuesList,
+									aParentParameterLists, aParameterStore, strPath);
+						}
+					}
+				}
+			}
 
-    /**
-     * Store parameter set.
-     * 
-     * @param aParametersAndValues the a parameters and values
-     * @param aParameterStore the a parameter store
-     * @param strPath the str path
-     * 
-     * @return the int
-     */
-    static final protected int storeParameterSet(HashMap aParametersAndValues, ArrayList aParameterStore, String strPath) {
-        ParameterList parametersToStore = new ParameterList(strPath);
+		}
 
-        // parse values for any parameter substitution
-        for (Object o : aParametersAndValues.entrySet()) {
-            String reqs[] = EngineConstants.getParametersFromText((String) ((Map.Entry) o).getValue());
+		if (hasSub == false) {
+			ParameterList.storeParameterSet(newParameterValuesList, aParameterStore, strPath, strParameterListName);
+		}
 
-            if (reqs != null)
-                for (String element : reqs)
-                    ((Map.Entry) o).setValue(EngineConstants.replaceParameter((String) ((Map.Entry) o).getValue(),
-                            element, (String) aParametersAndValues.get(element)));
+		return aParameterStore;
+	}
 
-            parametersToStore.setParameter(((Map.Entry) o).getKey(), ((Map.Entry) o).getValue());
-        }
+	/**
+	 * Path.
+	 * 
+	 * @return the string
+	 */
+	public String path() {
+		return this.mPath;
+	}
 
-        aParameterStore.add(parametersToStore);
+	/**
+	 * Store parameter set.
+	 * 
+	 * @param aParametersAndValues
+	 *            the a parameters and values
+	 * @param aParameterStore
+	 *            the a parameter store
+	 * @param strPath
+	 *            the str path
+	 * @param strParameterListName
+	 * 
+	 * @return the int
+	 */
+	static final protected int storeParameterSet(HashMap aParametersAndValues, ArrayList aParameterStore,
+			String strPath, String strParameterListName) {
+		ParameterList parametersToStore = new ParameterList(strParameterListName, strPath);
 
-        return 1;
-    }
+		// parse values for any parameter substitution
+		for (Object o : aParametersAndValues.entrySet()) {
+			String reqs[] = EngineConstants.getParametersFromText((String) ((Map.Entry) o).getValue());
 
-    /**
-     * Recurse parameter list.
-     * 
-     * @param strParameterListName the str parameter list name
-     * @param aParameterValuesList the a parameter values list
-     * @param aParentParameterLists the a parent parameter lists
-     * @param aParameterStore the a parameter store
-     * @param strPath the str path
-     * 
-     * @return the array list
-     */
-    static private ArrayList recurseParameterList(String strParameterListName, HashMap aParameterValuesList,
-            HashSet aParentParameterLists, ArrayList aParameterStore, String strPath) {
+			if (reqs != null)
+				for (String element : reqs) {
+					// only set if found
+					if (aParametersAndValues.containsKey(element))
+						((Map.Entry) o).setValue(EngineConstants.replaceParameter((String) ((Map.Entry) o).getValue(),
+								element, (String) aParametersAndValues.get(element)));
+					}
 
-        if (strPath == null)
-            strPath = strParameterListName;
-        else
-            strPath = strPath + "->" + strParameterListName;
+			parametersToStore.setParameter(((Map.Entry) o).getKey(), ((Map.Entry) o).getValue());
+		}
 
-        // Duplicate list and add current parameter list
-        // this helps protect against loops
-        HashMap newParameterValuesList = ParameterList.copyParameterValuesList(aParameterValuesList);
-        boolean hasSub = false;
-        aParentParameterLists = new HashSet(aParentParameterLists);
+		aParameterStore.add(parametersToStore);
 
-        // get a list of all the parameters in the parameter list
-        String[] parametersInList = XMLHelper.getDistinctParameterNames(null, strParameterListName);
+		return 1;
+	}
 
-        if (parametersInList != null) {
+	/**
+	 * Recurse parameter list.
+	 * 
+	 * @param strParameterListName
+	 *            the str parameter list name
+	 * @param aParameterValuesList
+	 *            the a parameter values list
+	 * @param aParentParameterLists
+	 *            the a parent parameter lists
+	 * @param aParameterStore
+	 *            the a parameter store
+	 * @param strPath
+	 *            the str path
+	 * 
+	 * @return the array list
+	 */
+	static private ArrayList recurseParameterList(String strParameterListName, HashMap aParameterValuesList,
+			HashSet aParentParameterLists, ArrayList aParameterStore, String strPath) {
 
-            for (String element : parametersInList) {
-                if (newParameterValuesList.containsKey(element) == false) {
-                    newParameterValuesList.put(element, null);
-                }
-            }
+		if (strPath == null)
+			strPath = strParameterListName;
+		else
+			strPath = strPath + "->" + strParameterListName;
 
-            for (Object param : newParameterValuesList.entrySet()) {
-                // get parameter value
-                ((Map.Entry) param).setValue(XMLHelper.getParameterValueAsString(null, strParameterListName,
-                        (String) ((Map.Entry) param).getKey(), (String) ((Map.Entry) param).getValue()));
+		// Duplicate list and add current parameter list
+		// this helps protect against loops
+		HashMap newParameterValuesList = ParameterList.copyParameterValuesList(aParameterValuesList);
+		boolean hasSub = false;
+		aParentParameterLists = new HashSet(aParentParameterLists);
 
-            }
+		// get a list of all the parameters in the parameter list
+		String[] parametersInList = XMLHelper.getDistinctParameterNames(null, strParameterListName);
 
-            for (Object param : newParameterValuesList.entrySet()) {
-                // get sub parameter lists
-                String[] subs = XMLHelper.getSubParameterListNames(null, strParameterListName,
-                        (String) ((Map.Entry) param).getKey());
+		if (parametersInList != null) {
 
-                if (subs != null) {
-                    hasSub = true;
+			for (String element : parametersInList) {
+				if (newParameterValuesList.containsKey(element) == false) {
+					newParameterValuesList.put(element, null);
+				}
+			}
 
-                    for (String element : subs) {
+			for (Object param : newParameterValuesList.entrySet()) {
+				// get parameter value
+				((Map.Entry) param).setValue(XMLHelper.getParameterValueAsString(null, strParameterListName,
+						(String) ((Map.Entry) param).getKey(), (String) ((Map.Entry) param).getValue()));
 
-                        if (aParentParameterLists.contains(element)) {
-                            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-                                    "Loop exists in sub parameter list(" + strParameterListName
-                                            + ") pointing to itself at a lower level,"
-                                            + " no more sub parameter lists will be searched in this branch.");
+			}
 
-                        }
-                        else {
-                            aParentParameterLists.add(element);
-                            ParameterList.recurseParameterList(element, newParameterValuesList, aParentParameterLists,
-                                    aParameterStore, strPath);
-                        }
-                    }
-                }
-            }
+			for (Object param : newParameterValuesList.entrySet()) {
+				// get sub parameter lists
+				String[] subs = XMLHelper.getSubParameterListNames(null, strParameterListName,
+						(String) ((Map.Entry) param).getKey());
 
-        }
+				if (subs != null) {
+					hasSub = true;
 
-        if (hasSub == false) {
-            ParameterList.storeParameterSet(newParameterValuesList, aParameterStore, strPath);
-        }
+					for (String element : subs) {
 
-        return aParameterStore;
-    }
+						if (aParentParameterLists.contains(element)) {
+							ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+									"Loop exists in sub parameter list(" + strParameterListName
+											+ ") pointing to itself at a lower level,"
+											+ " no more sub parameter lists will be searched in this branch.");
+
+						} else {
+							aParentParameterLists.add(element);
+							ParameterList.recurseParameterList(element, newParameterValuesList, aParentParameterLists,
+									aParameterStore, strPath);
+						}
+					}
+				}
+			}
+
+		}
+
+		if (hasSub == false) {
+			ParameterList.storeParameterSet(newParameterValuesList, aParameterStore, strPath, strParameterListName);
+		}
+
+		return aParameterStore;
+	}
 
 }
