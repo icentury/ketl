@@ -32,8 +32,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.CharsetEncoder;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -113,8 +111,6 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	private static final String ESCAPE_WHEN_QUOTED = "ESCAPEWHENQUOTED";
 
 	private static final String ZIP_ATTRIB = "ZIP";
-
-	private static final String FLOATFORMAT_ATTRIB = "FLOATFORMAT";
 
 	/** The DEFAUL t_ VALUE. */
 	private static String DEFAULT_VALUE = "DEFAULTVALUE";
@@ -253,7 +249,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 		 * 
 		 * @param filePath
 		 *            the file path
-		 * @throws IOException
+		 * @throws IOException 
 		 */
 		void open(String filePath) throws IOException {
 			this.stream = new FileOutputStream(filePath);
@@ -297,7 +293,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	 * 
 	 * @param filePath
 	 *            the file path
-	 * @throws IOException
+	 * @throws IOException 
 	 */
 	void createOutputFile(String filePath) throws IOException {
 		// add file streams to parallel stream parser
@@ -325,7 +321,6 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 				null);
 
 		this.mZip = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), NIOFileWriter.ZIP_ATTRIB, false);
-		this.floatFormat = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.FLOATFORMAT_ATTRIB,this.floatFormat);
 
 		if (nmAttrs == null) {
 			return 2;
@@ -493,10 +488,6 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
 	private boolean escapeEvenWhenQuoted = false;
 
-	private DecimalFormat dfFormatter;
-
-	private String floatFormat = "#0.0###########################";
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -547,16 +538,10 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 								data), this.mDestFieldDefinitions[i].Delimiter,
 								!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape,
 								this.mDestFieldDefinitions[i].quoteEnabled);
-					} else if (this.mInPorts[i].getPortClass() == Double.class
-							|| this.mInPorts[i].getPortClass() == Float.class) {
-						if (dfFormatter == null)
-							dfFormatter = new DecimalFormat(floatFormat );
-						data = this.dfFormatter.format(data);
-					}
-
-					outData = this.escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter,
-							!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape,
-							this.mDestFieldDefinitions[i].quoteEnabled);
+					} else
+						outData = this.escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter,
+								!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape,
+								this.mDestFieldDefinitions[i].quoteEnabled);
 				}
 
 				// get max length of item to place inoutput buffer
