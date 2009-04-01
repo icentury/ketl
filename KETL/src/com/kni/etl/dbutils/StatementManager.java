@@ -31,6 +31,7 @@ import org.w3c.dom.NodeList;
 
 import com.kni.etl.ketl.DBConnection;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.smp.ETLWorker;
 import com.kni.etl.util.XMLHelper;
 
 // TODO: Auto-generated Javadoc
@@ -69,7 +70,7 @@ public class StatementManager {
         }
         if (debug)
             ResourcePool.LogMessage(parent, ResourcePool.DEBUG_MESSAGE, "Executing statement: " + curSQL);
-
+        
         stmt.executeUpdate(curSQL);
 
         if (debug)

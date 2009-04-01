@@ -192,6 +192,7 @@ public class SQLQuery {
 		return sql;
 	}
 
+	private enum IncrementalType {DATE,NUMBER,STRING,UNKNOWN} 
 	public Collection<ParameterColumnMapping> replaceIncremental(String parameterListName) throws ParseException {
 		Pattern p = Pattern.compile("(" + THIS_GET_INCREMENTAL.replace(".", "\\.").replace("(", "\\(") + ").*\\)");
 		Matcher m = p.matcher(sql);
@@ -204,11 +205,18 @@ public class SQLQuery {
 				function = function.replace(THIS_GET_INCREMENTAL, "");
 				String param = function.substring(0, function.length() - 1).trim();
 				String[] vals = param.split(",");
+				IncrementalType type = null;
+				if(vals.length ==4 )
+					this.offSet = Integer.parseInt(vals[3].trim());
+				
+				if(vals.length == 3){
+					type  =					IncrementalType.valueOf(vals[2].trim());					
+				} else
+					type= IncrementalType.UNKNOWN;
 				incrementalParameters
-						.add(new ParameterColumnMapping(parameterListName, vals[1].trim(), vals[0].trim()));
+						.add(new ParameterColumnMapping(parameterListName, vals[1].trim(), vals[0].trim(),type));
 			}
-
-			nonIncSQL = code.replace("${INCPARAM}", "NULL");
+			
 			sql = code.replace("${INCPARAM}", "?");
 
 			return incrementalParameters;
@@ -223,11 +231,14 @@ public class SQLQuery {
 	}
 
 	public class ParameterColumnMapping {
-		public ParameterColumnMapping(String parameterListName, String parameter, String column) {
+		private IncrementalType columnType;
+
+		public ParameterColumnMapping(String parameterListName, String parameter, String column, IncrementalType type) {
 			super();
 			this.parameterListName = parameterListName;
 			this.parameter = parameter;
 			this.column = column;
+			this.columnType = type;
 		}
 
 		String parameter;
@@ -340,6 +351,7 @@ public class SQLQuery {
 		return this.getSQL() + " " + sample;
 	}
 
+	private int offSet = 0;
 	public void setIncrementalParameters(PreparedStatement pstmt) throws SQLException {
 
 		for (int i = 0; i < this.incrementalParameters.size(); i++) {
@@ -347,7 +359,7 @@ public class SQLQuery {
 			String paramValue = param.value;
 			Class cls = param.type;
 			if (Number.class.isAssignableFrom(cls)) {
-				BigDecimal bd = paramValue == null ? new BigDecimal(Integer.MIN_VALUE) : new BigDecimal(paramValue);
+				BigDecimal bd = paramValue == null ? new BigDecimal(Integer.MIN_VALUE) : new BigDecimal(paramValue).add(new BigDecimal(offSet));
 				pstmt.setBigDecimal(i + 1, bd);				
 				previousValue = bd.toString();
 			} else if (CharSequence.class.isAssignableFrom(cls)) {
@@ -356,7 +368,7 @@ public class SQLQuery {
 				previousValue = paramValue;
 			} else if (java.util.Date.class.isAssignableFrom(cls)) {
 				paramValue = paramValue == null ? "0" : paramValue;
-				Timestamp dt = new java.sql.Timestamp(Long.parseLong(paramValue));
+				Timestamp dt = new java.sql.Timestamp(Long.parseLong(paramValue)+offSet);
 				pstmt.setTimestamp(i + 1, dt);
 
 				previousValue = dt.toString();
@@ -370,12 +382,27 @@ public class SQLQuery {
 		}
 	}
 
-	public String getNonIncrementalSQL() {
-		return nonIncSQL;
-	}
-
 	public List<ParameterColumnMapping> getIncrementalMappings() {
 		return this.incrementalParameters;
+	}
+
+	public void setIncrementalBlankParameters(PreparedStatement stmt) throws SQLException {
+		for (int i = 0; i < this.incrementalParameters.size(); i++) {
+			ParameterColumnMapping param = this.incrementalParameters.get(i);
+			switch(param.columnType)
+			{ case DATE:
+				stmt.setNull(i+1,java.sql.Types.DATE);
+				break;
+			case NUMBER:
+				stmt.setNull(i+1,java.sql.Types.NUMERIC);
+				break;
+			case STRING:
+			default:
+				stmt.setNull(i+1,java.sql.Types.VARCHAR);
+				break;
+			}
+		}
+		
 	}
 
 }

@@ -73,8 +73,10 @@ public class ETLOutPort extends ETLPort {
         if (this.isConstant() == false && this.containsCode() == false) {
             ETLPort port = this.getAssociatedInPort();
 
-            if (this.mstrName == null && port != null)
+            if (this.mstrName == null && port != null) {
                 (this.getXMLConfig()).setAttribute("NAME", port.mstrName);
+                this.mstrName = port.mstrName;
+            }
         }
 
         return this.mstrName;

@@ -22,16 +22,9 @@
  */
 package com.kni.etl.ketl.writer;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.CharsetEncoder;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -39,7 +32,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.w3c.dom.NamedNodeMap;
@@ -54,25 +46,6 @@ import com.kni.etl.ketl.smp.DefaultWriterCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 
-// TODO: Auto-generated Javadoc
-/**
- * <p>
- * Title: JDBCWriter
- * </p>
- * <p>
- * Description: Writes a DataItem array to a JDBC datasource, based on ETLWriter
- * </p>
- * <p>
- * Copyright: Copyright (c) 2002
- * </p>
- * <p>
- * Company: Kinetic Networks
- * </p>
- * .
- * 
- * @author Nicholas Wakefield
- * @version 1.0
- */
 public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
 	/**
@@ -98,23 +71,21 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	/** The Constant DEFAULT_BUFFER_SIZE. */
 	static final int DEFAULT_BUFFER_SIZE = 65536;
 
-	private static final String SKIP = "SKIP";
+	static final String SKIP = "SKIP";
 
-	private static final String FILE_NAME = "FILENAME";
+	static final String FILE_NAME = "FILENAME";
 
-	private static final String SUB_PARTITION = "SUBPARTITION";
+	static final String SUB_PARTITION = "SUBPARTITION";
 
-	private static final String FILENAME_FORMAT = "FILENAMEFORMAT";
+	static final String FILENAME_FORMAT = "FILENAMEFORMAT";
 
-	private static final String FILEPATH_FORMAT = "FILEPATHFORMAT";
+	static final String FILEPATH_FORMAT = "FILEPATHFORMAT";
 
 	private static final String QUOTES = "QUOTE";
 
 	private static final String ESCAPE_WHEN_QUOTED = "ESCAPEWHENQUOTED";
 
-	private static final String ZIP_ATTRIB = "ZIP";
-
-	private static final String FLOATFORMAT_ATTRIB = "FLOATFORMAT";
+	static final String ZIP_ATTRIB = "ZIP";
 
 	/** The DEFAUL t_ VALUE. */
 	private static String DEFAULT_VALUE = "DEFAULTVALUE";
@@ -156,7 +127,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	private static String WRITE_BUFFER = "WRITEBUFFER";
 
 	/** The FILEPATH. */
-	private static String FILEPATH = "FILEPATH";
+	static String FILEPATH = "FILEPATH";
 
 	/** The linefeed. */
 	private String mLinefeed;
@@ -168,7 +139,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	private DestinationFieldDefinition[] mDestFieldDefinitions = null;
 
 	/** The mi output buffer size. */
-	private int miOutputBufferSize = 65536;
+	int miOutputBufferSize = 65536;
 
 	/** The ms default delimiter. */
 	private String msDefaultDelimiter = null;
@@ -177,7 +148,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	private int miDestFieldArrayLength = -1;
 
 	/** The char set. */
-	private String mCharSet = null;
+	String mCharSet = null;
 
 	/** The ms required tags. */
 	String[] msRequiredTags = { NIOFileWriter.FILEPATH };
@@ -201,7 +172,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
 	private String mQuoteStrings;
 
-	private boolean mZip;
+	boolean mZip;
 
 	/*
 	 * (non-Javadoc)
@@ -229,70 +200,6 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	}
 
 	/**
-	 * The Class OutputFile.
-	 */
-	class OutputFile {
-
-		/** The stream. */
-		FileOutputStream stream;
-
-		/** The channel. */
-		FileChannel channel;
-
-		/** The writer. */
-		Writer writer;
-
-		private OutputStream os;
-
-		private BufferedOutputStream bos;
-
-		private GZIPOutputStream zos;
-
-		/**
-		 * Open.
-		 * 
-		 * @param filePath
-		 *            the file path
-		 * @throws IOException
-		 */
-		void open(String filePath) throws IOException {
-			this.stream = new FileOutputStream(filePath);
-			this.channel = this.stream.getChannel();
-			CharsetEncoder charSet = (NIOFileWriter.this.mCharSet == null ? java.nio.charset.Charset.defaultCharset()
-					.newEncoder() : java.nio.charset.Charset.forName(NIOFileWriter.this.mCharSet).newEncoder());
-
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Writing to file " + filePath
-					+ ", character set " + charSet.charset().displayName());
-
-			os = java.nio.channels.Channels.newOutputStream(this.channel);
-			bos = new BufferedOutputStream(os, NIOFileWriter.this.miOutputBufferSize);
-			zos = mZip ? new GZIPOutputStream(bos) : null;
-			this.writer = new OutputStreamWriter(mZip ? zos : os, charSet);
-		}
-
-		/**
-		 * Close.
-		 * 
-		 * @throws IOException
-		 *             Signals that an I/O exception has occurred.
-		 */
-		void close() throws IOException {
-			this.writer.flush();
-			this.writer.close();
-			if (mZip) {
-				zos.flush();
-				zos.close();
-			}
-			bos.flush();
-			bos.close();
-			os.flush();
-			os.close();
-			this.channel.close();
-			this.stream.close();
-		}
-	}
-
-	/**
 	 * Creates the output file.
 	 * 
 	 * @param filePath
@@ -301,7 +208,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	 */
 	void createOutputFile(String filePath) throws IOException {
 		// add file streams to parallel stream parser
-		OutputFile out = new OutputFile();
+		OutputFile out = new OutputFile(this.mCharSet,this.mZip,this.miOutputBufferSize);
 		out.open(filePath);
 		this.mWriterList.add(out);
 	}
@@ -325,8 +232,6 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 				null);
 
 		this.mZip = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), NIOFileWriter.ZIP_ATTRIB, false);
-		this.floatFormat = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(),
-				NIOFileWriter.FLOATFORMAT_ATTRIB, this.floatFormat);
 
 		if (nmAttrs == null) {
 			return 2;
@@ -494,10 +399,6 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
 	private boolean escapeEvenWhenQuoted = false;
 
-	private DecimalFormat dfFormatter;
-
-	private String floatFormat = "#0.0###########################";
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -550,9 +451,11 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 								this.mDestFieldDefinitions[i].quoteEnabled);
 					} else if (this.mInPorts[i].getPortClass() == Double.class
 							|| this.mInPorts[i].getPortClass() == Float.class) {
-						if (dfFormatter == null)
-							dfFormatter = new DecimalFormat(floatFormat);
-						data = this.dfFormatter.format(data);
+						Double val = (Double) data;
+						if (val > Long.MAX_VALUE || val < Long.MIN_VALUE || val - val.longValue() != 0)
+							data = val.toString();
+						else
+							data = val.longValue();
 					}
 
 					outData = this.escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter,
@@ -624,7 +527,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	}
 
 	private OutputFile createNewWriterMap(String fileName, String subPartition) throws KETLWriteException, IOException {
-		OutputFile out = new OutputFile();
+		OutputFile out = new OutputFile(this.mCharSet,this.mZip,this.miOutputBufferSize);
 
 		String path = "";
 		if (this.targetFilePath != null)

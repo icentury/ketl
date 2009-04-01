@@ -1121,7 +1121,8 @@ public class Console {
 			// EngineConstants.getSystemXML();
 			this.xmlConfig = Metadata.LoadConfigFile(null, configFile);
 
-			System.out.println(Console.displayVersionInfo());
+			Console.displayVersionInfo();
+			ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.INFO_MESSAGE,"Console");
 
 			String[] quickCommand = null;
 			int command = 0;

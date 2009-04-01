@@ -1229,7 +1229,7 @@ abstract public class ETLWorker implements Runnable {
 	 */
 	final void postSourceConnectedInitialize() throws KETLThreadException {
 
-		ArrayList al = new ArrayList();
+		List<ETLPort> al = new ArrayList<ETLPort>();
 		Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "OUT", "*", "*");
 		if (nl != null) {
 			for (Node element : nl) {

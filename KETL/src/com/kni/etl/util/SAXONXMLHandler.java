@@ -63,7 +63,7 @@ public class SAXONXMLHandler extends XMLHandler {
                     "net.sf.saxon.dom.DocumentBuilderFactoryImpl").newInstance();
             this.db = dmf.newDocumentBuilder();
             XMLHandler.configureDocumentBuilderFactory(dmf, validate, nameSpaceAware);
-            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "DOM engine - "
+            ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "DOM engine - "
                     + dmf.getClass().getCanonicalName());
         }
 

@@ -106,12 +106,12 @@ public class ETLThreadGroup {
             if (srcGrp != null && srcGrp.mETLWorkers.length > 1) {
                 if (srcGrp.mETLWorkers.length != partitions) {
                     com.kni.etl.dbutils.ResourcePool
-                            .LogMessage(this, com.kni.etl.dbutils.ResourcePool.INFO_MESSAGE,
+                            .LogMessage(Thread.currentThread(), com.kni.etl.dbutils.ResourcePool.INFO_MESSAGE,
                                     "Source thread group is already partitioned, matching source partition count and switching to pipelined parrallism");
                     partitions = srcGrp.mETLWorkers.length;
                 }
                 else {
-                    com.kni.etl.dbutils.ResourcePool.LogMessage(this, com.kni.etl.dbutils.ResourcePool.INFO_MESSAGE,
+                    com.kni.etl.dbutils.ResourcePool.LogMessage(Thread.currentThread(), com.kni.etl.dbutils.ResourcePool.INFO_MESSAGE,
                             "Source thread group is already partitioned, switching to pipelined parrallism");
                 }
                 iType = PIPELINE;

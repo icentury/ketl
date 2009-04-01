@@ -759,33 +759,6 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		return iNumPaths;
 	}
 
-	/**
-	 * The Class FileToRead.
-	 */
-	class FileToRead {
-
-		/** The file path. */
-		String filePath;
-
-		/** The param list ID. */
-		int paramListID;
-
-		/**
-		 * Instantiates a new file to read.
-		 * 
-		 * @param name
-		 *            the name
-		 * @param paramListID
-		 *            the param list ID
-		 */
-		public FileToRead(String name, int paramListID) {
-			super();
-			this.filePath = name;
-			this.paramListID = paramListID;
-		}
-
-	}
-
 	public String getFilePath() {
 		return this.mCurrentFileChannel.file.getAbsolutePath();
 	}

@@ -1210,19 +1210,17 @@ public class ETLJob {
 	private void closeLog() {
 		if (this.mLoggerFailed == false && this.moDump != null) {
 			try {
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Job details logged to "
+						+ this.mDumpFile);
+
 				if (this.moDump != null) {
-					this.mDumpWriter.flush();
+					this.flushLog();
 					this.mDumpWriter.close();
 					this.moDumpBuffer.close();
 					this.moDump.close();
 					this.moDump = null;
 				}
-				if (this.isSuccessful()) {
-					File fDel = new File(this.mDumpFile);
-					fDel.delete();
-				} else
-					ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Job details logged to "
-							+ this.mDumpFile);
+				
 			} catch (IOException e) {
 				this.mLoggerFailed = true;
 				ResourcePool.logError("Job logging failed: " + e.toString());
@@ -1265,7 +1263,8 @@ public class ETLJob {
 				((Error) obj).printStackTrace(this.mDumpWriter);
 			else
 				this.mDumpWriter.println(obj.toString());
-
+			
+			this.mDumpWriter.flush();
 		} catch (IOException e) {
 			this.mLoggerFailed = true;
 			ResourcePool.logError("Job logging failed: " + e.toString());

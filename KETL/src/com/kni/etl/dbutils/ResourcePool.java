@@ -48,6 +48,7 @@ import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.KETLJobExecutor;
 import com.kni.etl.ketl.RegisteredLookup;
 import com.kni.etl.ketl.smp.ETLCore;
+import com.kni.etl.ketl.smp.Step;
 import com.kni.etl.ketl.writer.ForcedException;
 
 // TODO: Auto-generated Javadoc
@@ -192,6 +193,11 @@ public class ResourcePool {
 		ETLStep eStep = null;
 		ETLJob eJob = null;
 
+		// gets around people passing the wrong source in.
+		if (!(oSource instanceof ETLCore || oSource instanceof ETLPort || oSource instanceof Step || oSource instanceof ETLStep || oSource instanceof KETLJobExecutor || oSource instanceof ETLJob)){
+			oSource = Thread.currentThread();
+		}
+		
 		// some messages contain an extra carriage return, strip this off.
 		if (strMessage != null && strMessage.charAt(strMessage.length() - 1) == '\n')
 			strMessage = strMessage.substring(0, strMessage.length() - 1);
@@ -210,6 +216,8 @@ public class ResourcePool {
 			eJob = ((KETLJobExecutor) oSource).getCurrentETLJob();
 		} else if (oSource instanceof ETLJob) {
 			eJob = (ETLJob) oSource;
+		} else {
+			eJob = mThreadToJobMap.get(Thread.currentThread());
 		}
 
 		if (eStep != null && eStep.debug() == false && iLevel == ResourcePool.DEBUG_MESSAGE) {
@@ -228,7 +236,7 @@ public class ResourcePool {
 			if (eStep != null)
 				sourceDesc.append(eStep.toString());
 			else
-				sourceDesc.append(oSource.toString());
+				sourceDesc.append(oSource instanceof Thread?((Thread)oSource).getName():oSource.toString());
 
 			String lvl = ResourcePool.getAlertLevelName(iLevel);
 
@@ -273,8 +281,7 @@ public class ResourcePool {
 				if (eStep != null) {
 					eStep.recordToLog("[" + lvl + "]" + " - [" + sourceDesc.toString() + "] " + strMessage,
 							iLevel == ResourcePool.INFO_MESSAGE || iLevel == ResourcePool.UNKNOWN_MESSAGE_LEVEL);
-				} else if (eJob != null
-						&& !(iLevel == ResourcePool.INFO_MESSAGE || iLevel == ResourcePool.UNKNOWN_MESSAGE_LEVEL)) {
+				} else if (eJob != null) {
 					eJob.logJobMessage("[" + lvl + "]" + new java.util.Date().toString() + " - ["
 							+ sourceDesc.toString() + "] " + strMessage);
 				}
@@ -653,6 +660,7 @@ public class ResourcePool {
 	/** The lookups. */
 	private static HashMap<String, RegisteredLookup> mLookups;
 
+	private static Map<Thread,ETLJob> mThreadToJobMap = java.util.Collections.synchronizedMap(new HashMap<Thread,ETLJob>());
 	/**
 	 * _get lookup.
 	 * 
@@ -923,5 +931,13 @@ public class ResourcePool {
 			ResourcePool.logger.error(msg);
 		else
 			System.err.println(msg);
+	}
+
+	public static void setThreadToJobMap(Thread th, ETLJob job) {
+		mThreadToJobMap.put(th, job);
+	}
+
+	public static void clearThreadToJobMap(Thread th) {
+		mThreadToJobMap.remove(th);		
 	}
 }

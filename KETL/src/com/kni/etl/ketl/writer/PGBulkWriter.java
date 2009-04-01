@@ -365,9 +365,11 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
      * @see com.kni.etl.ketl.smp.WriterBatchManager#finishBatch(int)
      */
     public int finishBatch(int len) throws KETLWriteException {
+    	int result = 0;
         if (this.recordsInBatch == this.batchSize || (this.recordsInBatch > 0 && len == BatchManager.LASTBATCH)) {
             try {
                 this.stmt.executeBatch();
+            	result = len;
                 this.executePostBatchStatements();
                 this.executePreBatchStatements();
             } catch (Exception e) {
@@ -375,7 +377,7 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
             }
             this.recordsInBatch = 0;
         }
-        return len;
+        return result;
     }
 
     /* (non-Javadoc)

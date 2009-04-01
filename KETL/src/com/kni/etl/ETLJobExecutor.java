@@ -279,8 +279,7 @@ public abstract class ETLJobExecutor extends Thread {
 
 		// declare job name override
 		String jobName = null, jobID = null;
-		
-		
+
 		ArrayList overrideParameters = new ArrayList();
 		String[] ignoreQAs = null;
 		String server = null;
@@ -298,7 +297,8 @@ public abstract class ETLJobExecutor extends Thread {
 				fileName = ArgumentParserUtil.extractArguments(element, "FILE=");
 			}
 			if (element.indexOf("ENABLETRIGGERS=") != -1) {
-				pETLJobExecutor.setTriggersOn(Boolean.parseBoolean(ArgumentParserUtil.extractArguments(element, "ENABLETRIGGERS=")));
+				pETLJobExecutor.setTriggersOn(Boolean.parseBoolean(ArgumentParserUtil.extractArguments(element,
+						"ENABLETRIGGERS=")));
 			}
 			if ((jobName == null) && (element.indexOf("JOB_NAME=") != -1)) {
 				jobName = ArgumentParserUtil.extractArguments(element, "JOB_NAME=");
@@ -396,122 +396,129 @@ public abstract class ETLJobExecutor extends Thread {
 					ETLJob kj = eJob != null ? eJob : je.getNewJob();
 
 					kj.setLoadID(iLoadID);
-
-					kj.setGlobalParameterListName(node, XMLHelper.getAttributeAsString(node.getAttributes(),
-							EngineConstants.PARAMETER_LIST, null));
-
-					ArrayList ar = new ArrayList();
-					je.aesIgnoreQAs = ignoreQAs;
-					je.aesOverrideParameters = overrideParameters;
-
-					// add parameter lists from root
-					for (int x = 0; x < nlp.getLength(); x++) {
-						Node o = nlp.item(x);
-
-						if ((o != null) && (o.getNodeType() == Node.ELEMENT_NODE)) {
-							ar.add(o);
-						}
-					}
-
-					// add qa'sa from root
-					for (int x = 0; x < nlq.getLength(); x++) {
-						Node o = nlq.item(x);
-
-						if ((o != null) && (o.getNodeType() == Node.ELEMENT_NODE)) {
-							ar.add(o);
-						}
-					}
-
-					for (int x = 0; x < ar.size(); x++) {
-						node.appendChild((Node) ar.get(x));
-					}
-
-					// build parameter override tag
-					je.msXMLOverride = "<" + XMLHelper.PARAMETER_LIST_TAG + " " + XMLHelper.PARAMETER_OVERRIDE_ATTRIB
-							+ "=\"TRUE\">\n";
-
-					// add parameter overrides if any
-					for (int x = 0; x < je.aesOverrideParameters.size(); x++) {
-						String[] str = (String[]) je.aesOverrideParameters.get(x);
-
-						if (str != null) {
-							if (str.length == 2) {
-								if ((str[0] == null) || (str[1] == null)) {
-									ResourcePool.logMessage("ERROR: Badly formed parameter override ParameterName="
-											+ str[0] + ", ParameterValue=" + str[1]);
-									return ETLJobExecutor.exit(
-											com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
-											pExitCleanly);
-								}
-							}
-
-							if (str.length == 3) {
-								if ((str[0] == null) || (str[1] == null) || (str[2] == null)) {
-									ResourcePool
-											.logMessage("ERROR: Badly formed parameter override ParameterListName = "
-													+ str[0] + " ParameterName=" + str[1] + ", ParameterValue="
-													+ str[2]);
-									return ETLJobExecutor.exit(
-											com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
-											pExitCleanly);
-								}
-							}
-
-							if (str.length == 2) {
-								je.msXMLOverride = je.msXMLOverride + "\t<" + XMLHelper.PARAMETER_TAG + " "
-										+ XMLHelper.NAME_TAG + "=\"" + str[0] + "\">" + str[1] + "</"
-										+ XMLHelper.PARAMETER_TAG + ">\n";
-							} else if (str.length == 3) {
-								je.msXMLOverride = je.msXMLOverride + "\t<" + XMLHelper.PARAMETER_TAG + " "
-										+ XMLHelper.PARAMETER_LIST_TAG + "=\"" + str[0] + "\" " + XMLHelper.NAME_TAG
-										+ "=\"" + str[1] + "\">" + str[2] + "</" + XMLHelper.PARAMETER_TAG + ">\n";
-							}
-						}
-					}
-
-					// close parameter override tag
-					je.msXMLOverride = je.msXMLOverride + "</" + XMLHelper.PARAMETER_LIST_TAG + ">\n";
-
-					// build temp DOM to generate nodes
-					Document tmpXMLDOM = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-							new InputSource(new StringReader(je.msXMLOverride)));
-
-					// import nodes into main document
-					Node newNode = xmlDOM.importNode(tmpXMLDOM.getFirstChild(), true);
-
-					// append new nodes to the job
-					node.appendChild(newNode);
-
-					kj.setAction(XMLHelper.outputXML(node));
-
-					if (jobName == null) {
-						kj.setJobID(XMLHelper.getAttributeAsString(node.getAttributes(), "ID", XMLHelper
-								.getAttributeAsString(node.getAttributes(), "NAME", null)));
-					} else {
-						kj.setJobID(jobName);
-					}
-
-					lStartTime = System.currentTimeMillis();
-					kj.getStatus().setStatusCode(ETLJobStatus.EXECUTING);
-					boolean bSuccess = je.executeJob(kj);
-					lEndTime = System.currentTimeMillis();
-
 					try {
-						kj.cleanup();
-					} catch (Exception e) {
-					}
+						ResourcePool.setThreadToJobMap(Thread.currentThread(), kj);
+						kj.setGlobalParameterListName(node, XMLHelper.getAttributeAsString(node.getAttributes(),
+								EngineConstants.PARAMETER_LIST, null));
 
-					if (kj.getStatus().getStatusCode() == ETLJobStatus.EXECUTING
-							|| kj.getStatus().getStatusCode() == ETLJobStatus.ATTEMPT_CANCEL) {
-						if (kj.isCancelSuccessfull()) {
-							kj.getStatus().setStatusCode(ETLJobStatus.CANCELLED);
-						} else if (bSuccess) {
-							kj.getStatus().setStatusCode(ETLJobStatus.SUCCESSFUL);
-						} else {
-							kj.getStatus().setStatusCode(ETLJobStatus.FAILED);
+						ArrayList ar = new ArrayList();
+						je.aesIgnoreQAs = ignoreQAs;
+						je.aesOverrideParameters = overrideParameters;
+
+						// add parameter lists from root
+						for (int x = 0; x < nlp.getLength(); x++) {
+							Node o = nlp.item(x);
+
+							if ((o != null) && (o.getNodeType() == Node.ELEMENT_NODE)) {
+								ar.add(o);
+							}
 						}
-					}
 
+						// add qa'sa from root
+						for (int x = 0; x < nlq.getLength(); x++) {
+							Node o = nlq.item(x);
+
+							if ((o != null) && (o.getNodeType() == Node.ELEMENT_NODE)) {
+								ar.add(o);
+							}
+						}
+
+						for (int x = 0; x < ar.size(); x++) {
+							node.appendChild((Node) ar.get(x));
+						}
+
+						// build parameter override tag
+						je.msXMLOverride = "<" + XMLHelper.PARAMETER_LIST_TAG + " "
+								+ XMLHelper.PARAMETER_OVERRIDE_ATTRIB + "=\"TRUE\">\n";
+
+						// add parameter overrides if any
+						for (int x = 0; x < je.aesOverrideParameters.size(); x++) {
+							String[] str = (String[]) je.aesOverrideParameters.get(x);
+
+							if (str != null) {
+								if (str.length == 2) {
+									if ((str[0] == null) || (str[1] == null)) {
+										ResourcePool.logMessage("ERROR: Badly formed parameter override ParameterName="
+												+ str[0] + ", ParameterValue=" + str[1]);
+										return ETLJobExecutor.exit(
+												com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
+												pExitCleanly);
+									}
+								}
+
+								if (str.length == 3) {
+									if ((str[0] == null) || (str[1] == null) || (str[2] == null)) {
+										ResourcePool
+												.logMessage("ERROR: Badly formed parameter override ParameterListName = "
+														+ str[0]
+														+ " ParameterName="
+														+ str[1]
+														+ ", ParameterValue="
+														+ str[2]);
+										return ETLJobExecutor.exit(
+												com.kni.etl.EngineConstants.BADLY_FORMED_ARGUMENT_EXIT_CODE, null,
+												pExitCleanly);
+									}
+								}
+
+								if (str.length == 2) {
+									je.msXMLOverride = je.msXMLOverride + "\t<" + XMLHelper.PARAMETER_TAG + " "
+											+ XMLHelper.NAME_TAG + "=\"" + str[0] + "\">" + str[1] + "</"
+											+ XMLHelper.PARAMETER_TAG + ">\n";
+								} else if (str.length == 3) {
+									je.msXMLOverride = je.msXMLOverride + "\t<" + XMLHelper.PARAMETER_TAG + " "
+											+ XMLHelper.PARAMETER_LIST_TAG + "=\"" + str[0] + "\" "
+											+ XMLHelper.NAME_TAG + "=\"" + str[1] + "\">" + str[2] + "</"
+											+ XMLHelper.PARAMETER_TAG + ">\n";
+								}
+							}
+						}
+
+						// close parameter override tag
+						je.msXMLOverride = je.msXMLOverride + "</" + XMLHelper.PARAMETER_LIST_TAG + ">\n";
+
+						// build temp DOM to generate nodes
+						Document tmpXMLDOM = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+								new InputSource(new StringReader(je.msXMLOverride)));
+
+						// import nodes into main document
+						Node newNode = xmlDOM.importNode(tmpXMLDOM.getFirstChild(), true);
+
+						// append new nodes to the job
+						node.appendChild(newNode);
+
+						kj.setAction(XMLHelper.outputXML(node));
+
+						if (jobName == null) {
+							kj.setJobID(XMLHelper.getAttributeAsString(node.getAttributes(), "ID", XMLHelper
+									.getAttributeAsString(node.getAttributes(), "NAME", null)));
+						} else {
+							kj.setJobID(jobName);
+						}
+
+						lStartTime = System.currentTimeMillis();
+						kj.getStatus().setStatusCode(ETLJobStatus.EXECUTING);
+						boolean bSuccess = je.executeJob(kj);
+						lEndTime = System.currentTimeMillis();
+
+						try {
+							kj.cleanup();
+						} catch (Exception e) {
+						}
+
+						if (kj.getStatus().getStatusCode() == ETLJobStatus.EXECUTING
+								|| kj.getStatus().getStatusCode() == ETLJobStatus.ATTEMPT_CANCEL) {
+							if (kj.isCancelSuccessfull()) {
+								kj.getStatus().setStatusCode(ETLJobStatus.CANCELLED);
+							} else if (bSuccess) {
+								kj.getStatus().setStatusCode(ETLJobStatus.SUCCESSFUL);
+							} else {
+								kj.getStatus().setStatusCode(ETLJobStatus.FAILED);
+							}
+						}
+					} finally {
+						ResourcePool.clearThreadToJobMap(Thread.currentThread());
+					}
 					if (kj.getStatus().getErrorCode() != 0) {
 						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Job failed ("
 								+ kj.getStatus().getErrorCode() + ") : " + kj.getStatus().getErrorMessage());
@@ -524,6 +531,7 @@ public abstract class ETLJobExecutor extends Thread {
 					ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Total execution time: "
 							+ ((lEndTime - lStartTime) / 1000.0) + " seconds");
 					ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Job complete.");
+
 				}
 			}
 
@@ -626,7 +634,7 @@ public abstract class ETLJobExecutor extends Thread {
 
 	private String getLabel() {
 		if (this.llPendingQueue.size() > 0)
-			return this.msType + " - " + this.pool + " " +  this.llPendingQueue.toString();
+			return this.msType + " - " + this.pool + " " + this.llPendingQueue.toString();
 		ETLJob job;
 		if ((job = this.getCurrentETLJob()) != null)
 			return this.msType + " - " + this.pool + " [" + job.toString() + "]";
@@ -785,66 +793,68 @@ public abstract class ETLJobExecutor extends Thread {
 	}
 
 	public void setPool(String pool) {
-		this.pool = pool;		
+		this.pool = pool;
 	}
-	
-	public void setTriggersOn(boolean enableTriggers){
+
+	public void setTriggersOn(boolean enableTriggers) {
 		this.triggersEnabled = enableTriggers;
 	}
-	
-	private static enum TRIGGER_CMD {EXEC,SETSTATUS};
-	
-	protected void fireJobTriggers(int currentLoadId, String triggers, String value) throws Exception  {
-		if(triggers == null || triggersEnabled == false)
+
+	private static enum TRIGGER_CMD {
+		EXEC, SETSTATUS
+	};
+
+	protected void fireJobTriggers(int currentLoadId, String triggers, String value) throws Exception {
+		if (triggers == null || triggersEnabled == false)
 			return;
-		
+
 		String tmp[] = triggers.split(";");
-		
-		if(tmp == null || tmp.length == 0) {
-			ResourcePool.logMessage("Check trigger format <VALUE>=(exec|setStatus)(..);..., current definition "  + triggers);
+
+		if (tmp == null || tmp.length == 0) {
+			ResourcePool.logMessage("Check trigger format <VALUE>=(exec|setStatus)(..);..., current definition "
+					+ triggers);
 			throw new Exception("Trigger error");
 		}
-		
-		for(String trigger : tmp){
+
+		for (String trigger : tmp) {
 			String[] parts = trigger.split("=");
-			if(parts[0].equalsIgnoreCase(value)){
-				
+			if (parts[0].equalsIgnoreCase(value)) {
+
 				// trim out
-				
+
 				String command = parts[1];
-				
-				
-				if(command.startsWith("exec(")){
-				int loadId;
-				
-				String[] params =  command.replace("exec(", "").replace(")","").split(",");
-				
-				if ((loadId = ResourcePool.getMetadata().executeJob(Integer.parseInt(params[0].trim()),
+
+				if (command.startsWith("exec(")) {
+					int loadId;
+
+					String[] params = command.replace("exec(", "").replace(")", "").split(",");
+
+					if ((loadId = ResourcePool.getMetadata().executeJob(Integer.parseInt(params[0].trim()),
 							params[1].trim(), params.length < 3 ? false : Boolean.parseBoolean(params[2].trim()),
 							params.length < 4 ? false : Boolean.parseBoolean(params[3].trim()))) == -1) {
 						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
 								"Job trigger did not fire job, check trigger and previous errors - " + trigger);
 					} else {
 						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
-								"Job triggered load " + loadId + ", for job " + params[1].trim());						
+								"Job triggered load " + loadId + ", for job " + params[1].trim());
 					}
 				} else if (command.startsWith("setStatus(")) {
 					String[] params = command.replace("setStatus(", "").replace(")", "").split(",");
 
 					ETLJob j = ResourcePool.getMetadata().getJob(params[0].trim(), currentLoadId,
-							ResourcePool.getMetadata().getJobExecutionIdByLoadId(params[0].trim(), currentLoadId));					 							
+							ResourcePool.getMetadata().getJobExecutionIdByLoadId(params[0].trim(), currentLoadId));
 
 					if (j == null)
-						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
-								"Job " + j.getJobID() + " could not be found");
+						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Job "
+								+ j.getJobID() + " could not be found");
 					else if (j.getStatus() == null || j.iJobExecutionID == 0)
-						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
-								"Job " + j.getJobID() + " is not current in the job queue");					
+						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Job "
+								+ j.getJobID() + " is not current in the job queue");
 					else {
-						String toStatus = params[1].trim();	
-						
+						String toStatus = params[1].trim();
+
 						int status_id = -1;
-						
+
 						if (toStatus.equalsIgnoreCase("PAUSE"))
 							status_id = ETLJobStatus.PAUSED;
 						else if (toStatus.equalsIgnoreCase("RESUME"))
@@ -862,8 +872,8 @@ public abstract class ETLJobExecutor extends Thread {
 						else {
 							j.getStatus().setStatusCode(status_id);
 							ResourcePool.getMetadata().setJobStatus(j);
-							ResourcePool
-									.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Status changed for job " + j.getJobID());
+							ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
+									"Status changed for job " + j.getJobID());
 						}
 					}
 				} else {
@@ -873,6 +883,5 @@ public abstract class ETLJobExecutor extends Thread {
 			}
 		}
 	}
-
 
 }
