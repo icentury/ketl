@@ -126,7 +126,7 @@ public class NetezzaELTWriter extends BulkLoaderELTWriter {
      * @see com.kni.etl.ketl.writer.DatabaseELTWriter#close(boolean)
      */
     @Override
-    protected void close(boolean success) {
+    protected void close(boolean success, boolean jobFailed) {
         if (success == false && this.isLastThreadToEnterCompletePhase()
                 && ((BulkLoaderStatementWrapper) this.stmt).loaderExecuted()) {
             // run nzreclaim
@@ -141,7 +141,7 @@ public class NetezzaELTWriter extends BulkLoaderELTWriter {
                 e.printStackTrace();
             }
         }
-        super.close(success);
+        super.close(success, jobFailed);
     }
 
 }

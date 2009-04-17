@@ -2169,7 +2169,7 @@ abstract public class DatabaseELTWriter extends ETLWriter implements DefaultWrit
 	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
 	 */
 	@Override
-	protected void close(boolean success) {
+	protected void close(boolean success, boolean jobFailed) {
 		try {
 
 			if (this.mcDBConnection != null && this.mIncrementalCommit == false && success == false

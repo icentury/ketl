@@ -340,7 +340,7 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
      * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
      */
     @Override
-    protected void close(boolean success) {
+    protected void close(boolean success, boolean jobFailed) {
         if (this.lookupLocked)
             ((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
 

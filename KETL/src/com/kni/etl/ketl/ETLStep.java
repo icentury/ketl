@@ -309,8 +309,8 @@ public abstract class ETLStep extends ETLWorker {
 	 * @see com.kni.etl.ketl.smp.ETLWorker#closeStep(boolean)
 	 */
 	@Override
-	public void closeStep(boolean success) {
-		super.closeStep(success);
+	public void closeStep(boolean success,boolean jobSuccess) {
+		super.closeStep(success,jobSuccess);
 		if (this.mLoggerFailed == false && this.moDump != null) {
 			try {
 				this.mDumpWriter.flush();

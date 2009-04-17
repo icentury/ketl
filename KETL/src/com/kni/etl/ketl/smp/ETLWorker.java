@@ -1708,17 +1708,19 @@ abstract public class ETLWorker implements Runnable {
 	 * 
 	 * @param success
 	 *            the success
+	 * @param jobFailed TODO
 	 */
-	protected abstract void close(boolean success);
+	protected abstract void close(boolean success, boolean jobFailed);
 
 	/**
 	 * Close step.
 	 * 
 	 * @param success
 	 *            the success
+	 * @param jobSuccess 
 	 */
-	public void closeStep(boolean success) {
-		this.close(success);
+	public void closeStep(boolean success, boolean jobSuccess) {
+		this.close(success, jobSuccess);
 	}
 
 	/**

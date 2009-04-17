@@ -1281,7 +1281,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
 	 */
 	@Override
-	protected void close(boolean success) {
+	protected void close(boolean success, boolean jobFailed) {
 
 		if (this.mvReadyFiles == null)
 			return;

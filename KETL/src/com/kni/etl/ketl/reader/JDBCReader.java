@@ -284,9 +284,9 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
 	 */
 	@Override
-	protected void close(boolean success) {
+	protected void close(boolean success, boolean jobSuccess) {
 
-		if (success) {
+		if (jobSuccess) {
 			for (ParameterColumnMapping param : this.pendingMappings) {
 				try {
 					param.writeBackParameter();

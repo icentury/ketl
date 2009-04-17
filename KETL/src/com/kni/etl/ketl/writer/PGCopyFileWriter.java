@@ -252,7 +252,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
 	 */
 	@Override
-	protected void close(boolean success) {
+	protected void close(boolean success, boolean jobFailed) {
 
 		for (PostgresCopyFileWriter wr : this.mWriterList) {
 			try {

@@ -66,7 +66,7 @@ public class JDBCDeleter extends ETLWriter implements DefaultWriterCore, DBConne
      * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
      */
     @Override
-    protected void close(boolean success) {
+    protected void close(boolean success, boolean jobFailed) {
         try {
             if (this.mStmt != null)
                 this.mStmt.close();

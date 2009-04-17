@@ -420,7 +420,7 @@ public class PGBulkWriter extends ETLWriter implements DefaultWriterCore, Writer
      * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
      */
     @Override
-    protected void close(boolean success) {
+    protected void close(boolean success, boolean jobFailed) {
 
         try {
             if (this.stmt != null)

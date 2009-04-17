@@ -387,7 +387,6 @@ public class ETLThreadManager {
 		StringBuilder sb = new StringBuilder();
 		boolean errorsOccured = false;
 		Throwable cause = this.mkjExecutor.getCurrentETLJob().getStatus().getException();
-
 		if (cause != null) {
 			sb.append("\n\nCause: " + cause.toString() + "\n" + ETLThreadManager.getStackTrace(cause));
 			sb.append("\n\nTrace\n------\n");
@@ -398,7 +397,7 @@ public class ETLThreadManager {
 
 			if (wt.step != null) {
 
-				wt.step.closeStep(wt.step.success());
+				wt.step.closeStep(wt.step.success(),cause == null);
 
 				// if errors occured log them to the db and send out an email
 				if (!wt.step.success()) {

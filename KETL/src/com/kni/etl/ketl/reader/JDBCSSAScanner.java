@@ -1022,7 +1022,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
 	 */
 	@Override
-	protected void close(boolean success) {
+	protected void close(boolean success, boolean jobFailed) {
 		if (this.mcDBConnection != null) {
 			ResourcePool.releaseConnection(this.mcDBConnection);
 			this.mcDBConnection = null;

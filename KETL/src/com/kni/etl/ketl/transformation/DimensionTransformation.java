@@ -595,7 +595,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
      * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
      */
     @Override
-    protected void close(boolean success) {
+    protected void close(boolean success, boolean jobFailed) {
 
         try {
 
