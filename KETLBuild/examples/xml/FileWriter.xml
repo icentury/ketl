@@ -20,18 +20,27 @@
 	
        <JOB ID="FileWrite" PARRALLISM="2" NAME="FileWrite" PROJECT="TEST" TYPE="KETL">
             <ACTION>
-                  <STEP NAME="Status" ALLOWDUPLICATES="TRUE" SAMPLEEVERY="1" IOBUFFER="8196" CLASS="com.kni.etl.ketl.reader.NIOFileReader" CHARACTERSET="UTF-8" DELIMITER="," PARAMETER_LIST="testData">
-                         <OUT NAME="int" DATATYPE="INTEGER"/>
-                         <OUT NAME="double" DATATYPE="DOUBLE"/>
-                         <OUT NAME="string" DATATYPE="STRING"/>
-                         <OUT NAME="date" DATATYPE="DATE" FORMATSTRING="dd/MM/yyyy" NULLIF="10/14/2005"/>
-                         <OUT NAME="timestamp" DATATYPE="DATE" FORMATSTRING="dd/MM/yyyy HH:mm:ss"/>
+                  <STEP NAME="Status" ALLOWDUPLICATES="TRUE" SAMPLEEVERY="1" IOBUFFER="8196" CLASS="com.kni.etl.ketl.reader.NIOFileReader" CHARACTERSET="UTF-8" DELIMITER="," PARAMETER_LIST="search1">
+                         <OUT NAME="myInt" DATATYPE="INTEGER"/>
+                         <OUT NAME="myDouble" DATATYPE="DOUBLE"/>
+                         <OUT NAME="myString" DATATYPE="STRING"/>
+                         <OUT NAME="myDate" DATATYPE="DATE" FORMATSTRING="dd/MM/yyyy" NULLIF="10/14/2005"/>
+                         <OUT NAME="myTimestamp" DATATYPE="DATE" FORMATSTRING="dd/MM/yyyy HH:mm:ss"/>
                    </STEP>
+                   <STEP NAME="Transform" CLASS="com.kni.etl.ketl.transformation.DynamicTransformation">
+                   		<IN>Status.*</IN>
+                   		<OUT>${myInt}</OUT>
+                   		<OUT>${myDouble}</OUT>
+                   		<OUT NAME="myString" DATATYPE="STRING">${myString}.concat("abc")</OUT>
+                   		<OUT NAME="myDate">new SimpleDateFormat${myDate}</OUT>
+                   		<OUT>${myTimestamp}</OUT>
+                   </STEP>
+                   
 
-                   <STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.FileWriter" FLOWTYPE="FANIN" DELIMITER="," PARAMETER_LIST="destination">
-                        <IN FIXEDWIDTH="TRUE" MAXIMUMLENGTH="20">Status.double</IN> 
-                        <IN>Status.timestamp</IN>                        
-                        <IN MAXIMUMLENGTH="3" >Status.string</IN>                        
+                   <STEP NAME="Target" CLASS="com.kni.etl.ketl.writer.ConsoleWriter" FLOWTYPE="FANIN" DELIMITER="," PARAMETER_LIST="destination">
+                        <IN FIXEDWIDTH="TRUE" MAXIMUMLENGTH="20">Transform.myString</IN> 
+                        <IN>Transform.myDouble</IN>     
+                        <IN>Transform.myDate</IN>                    
                   </STEP>
             </ACTION>
       </JOB>
