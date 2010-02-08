@@ -47,7 +47,7 @@ import com.kni.etl.util.XMLHelper;
 public class EngineConstants {
 
 	private enum DBType {
-		POSTGRESQL, ORACLE, MYSQL, HSQLDB, H2, TERADATA, SQLSERVER, NCLUSTER
+		POSTGRESQL, ORACLE, MYSQL, HSQLDB, H2, TERADATA, SQLSERVER, NCLUSTER, DEFAULT
 	};
 
 	/** The Constant SESSION_BROWSER. */
@@ -233,14 +233,22 @@ public class EngineConstants {
 	public static String PARTITION_PATH = "partitions";
 
 	/** The Constant OBJECT_TYPES. */
-	private final static String[] OBJECT_TYPES = { null, EngineConstants.IP_ADDRESS_STR, EngineConstants.IN_COOKIE_STR,
-			EngineConstants.OUT_COOKIE_STR, EngineConstants.GET_REQUEST_STR, EngineConstants.BROWSER_STR,
-			EngineConstants.HTML_ERROR_CODE_STR, EngineConstants.OTHER_STR, EngineConstants.HIT_DATE_TIME_STR, null,
-			null, null, null, null, EngineConstants.BYTES_SENT_STR, EngineConstants.SERVE_TIME_STR,
-			EngineConstants.CANONICAL_PORT_STR, EngineConstants.REFERRER_URL_STR, EngineConstants.REQUEST_PROTOCOL_STR,
-			null, EngineConstants.SERVER_NAME_STR, EngineConstants.REMOTE_USER_STR, EngineConstants.REQUEST_METHOD_STR,
-			EngineConstants.QUERY_STRING_STR, EngineConstants.REQUEST_STRING_STR, EngineConstants.CUSTOM_FIELD_1_STR,
-			EngineConstants.CUSTOM_FIELD_2_STR, EngineConstants.CUSTOM_FIELD_3_STR };
+	private final static String[] OBJECT_TYPES = { null,
+			EngineConstants.IP_ADDRESS_STR, EngineConstants.IN_COOKIE_STR,
+			EngineConstants.OUT_COOKIE_STR, EngineConstants.GET_REQUEST_STR,
+			EngineConstants.BROWSER_STR, EngineConstants.HTML_ERROR_CODE_STR,
+			EngineConstants.OTHER_STR, EngineConstants.HIT_DATE_TIME_STR, null,
+			null, null, null, null, EngineConstants.BYTES_SENT_STR,
+			EngineConstants.SERVE_TIME_STR, EngineConstants.CANONICAL_PORT_STR,
+			EngineConstants.REFERRER_URL_STR,
+			EngineConstants.REQUEST_PROTOCOL_STR, null,
+			EngineConstants.SERVER_NAME_STR, EngineConstants.REMOTE_USER_STR,
+			EngineConstants.REQUEST_METHOD_STR,
+			EngineConstants.QUERY_STRING_STR,
+			EngineConstants.REQUEST_STRING_STR,
+			EngineConstants.CUSTOM_FIELD_1_STR,
+			EngineConstants.CUSTOM_FIELD_2_STR,
+			EngineConstants.CUSTOM_FIELD_3_STR };
 
 	/**
 	 * Resolve object name to ID.
@@ -257,7 +265,8 @@ public class EngineConstants {
 
 		for (int i = 0; i < EngineConstants.OBJECT_TYPES.length; i++) {
 			if ((EngineConstants.OBJECT_TYPES[i] != null)
-					&& psObjectName.equalsIgnoreCase(EngineConstants.OBJECT_TYPES[i])) {
+					&& psObjectName
+							.equalsIgnoreCase(EngineConstants.OBJECT_TYPES[i])) {
 				return i;
 			}
 		}
@@ -274,7 +283,8 @@ public class EngineConstants {
 	 * @return the string
 	 */
 	public final static String resolveObjectIDToName(int psObjectType) {
-		if ((psObjectType >= 0) && (psObjectType < EngineConstants.OBJECT_TYPES.length)) {
+		if ((psObjectType >= 0)
+				&& (psObjectType < EngineConstants.OBJECT_TYPES.length)) {
 			return EngineConstants.OBJECT_TYPES[psObjectType];
 		}
 
@@ -282,7 +292,8 @@ public class EngineConstants {
 	}
 
 	/** The Constant CONSTANTS. */
-	private final static Object[][] CONSTANTS = { { "ASC", "1" }, { "DESC", "0" } };
+	private final static Object[][] CONSTANTS = { { "ASC", "1" },
+			{ "DESC", "0" } };
 
 	/**
 	 * Resolve value from constant.
@@ -294,13 +305,15 @@ public class EngineConstants {
 	 * 
 	 * @return the int
 	 */
-	public final static int resolveValueFromConstant(String psConstantName, int piDefault) {
+	public final static int resolveValueFromConstant(String psConstantName,
+			int piDefault) {
 		if (psConstantName == null) {
 			return piDefault;
 		}
 
 		for (Object[] o : EngineConstants.CONSTANTS) {
-			if ((o != null) && (o.length == 2) && (o[0] != null) && psConstantName.equalsIgnoreCase((String) o[0])) {
+			if ((o != null) && (o.length == 2) && (o[0] != null)
+					&& psConstantName.equalsIgnoreCase((String) o[0])) {
 				if (o[1] != null) {
 					try {
 						return Integer.parseInt((String) o[1]);
@@ -349,8 +362,10 @@ public class EngineConstants {
 		} else if (psWebServerName.equalsIgnoreCase(EngineConstants.APACHE_STR)
 				|| psWebServerName.equalsIgnoreCase(EngineConstants.IIS_STR)) {
 			return EngineConstants.APACHE;
-		} else if (psWebServerName.equalsIgnoreCase(EngineConstants.IPLANET_STR)
-				|| psWebServerName.equalsIgnoreCase(EngineConstants.NETSCAPE_STR)) {
+		} else if (psWebServerName
+				.equalsIgnoreCase(EngineConstants.IPLANET_STR)
+				|| psWebServerName
+						.equalsIgnoreCase(EngineConstants.NETSCAPE_STR)) {
 			return EngineConstants.NETSCAPE;
 		} else {
 			return EngineConstants.APACHE;
@@ -397,7 +412,8 @@ public class EngineConstants {
 	public static String VARIABLE_PARAMETER_END = "#@!";
 
 	/** The Constant PARAMETER_JOB_EXECUTION_ID. */
-	public static final String[] PARAMETER_JOB_EXECUTION_ID = { "DM_LOAD_ID", "JOB_EXEC_ID" };
+	public static final String[] PARAMETER_JOB_EXECUTION_ID = { "DM_LOAD_ID",
+			"JOB_EXEC_ID" };
 
 	/** The Constant PARAMETER_LOAD_ID. */
 	public static final String[] PARAMETER_LOAD_ID = { "LOAD_ID" };
@@ -406,7 +422,8 @@ public class EngineConstants {
 	public static final String[] PARAMETER_DATE = { "DATE", "TIMESTAMP", "TIME" };
 
 	/** The Constant PARAMETER_DATE_FORMAT. */
-	public static final String[] PARAMETER_DATE_FORMAT = { "dd-MM-yyyy", "yyyyMMdd_HHmmss", "HH:mm:ss" };
+	public static final String[] PARAMETER_DATE_FORMAT = { "dd-MM-yyyy",
+			"yyyyMMdd_HHmmss", "HH:mm:ss" };
 
 	/** The Constant JOB_PERSISTENCE. */
 	public static final int JOB_PERSISTENCE = 0;
@@ -475,38 +492,51 @@ public class EngineConstants {
 			doc = loadSystemXML(false);
 			// get all plugins
 
-			EngineConstants.globals = (Element) XMLHelper.findElementByName(doc, "GLOBAL", null, null);
+			EngineConstants.globals = (Element) XMLHelper.findElementByName(
+					doc, "GLOBAL", null, null);
 			if (EngineConstants.globals != null) {
-				Element e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME",
+				Element e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
 						"PARAMETERSTART");
 				if (e != null) {
-					EngineConstants.VARIABLE_PARAMETER_START = XMLHelper.getTextContent(e);
+					EngineConstants.VARIABLE_PARAMETER_START = XMLHelper
+							.getTextContent(e);
 				}
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "VERSION");
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME", "VERSION");
 				if (e != null) {
 					EngineConstants.VERSION = XMLHelper.getTextContent(e);
-					// Respectfully do not modify the following line of code without prior written permission from
+					// Respectfully do not modify the following line of code
+					// without prior written permission from
 					// Kinetic Networks Inc.
-					ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "KETL Version "
-							+ EngineConstants.VERSION + ", ©" + Calendar.getInstance().get(Calendar.YEAR)
-							+ " Kinetic Networks Inc.");
+					ResourcePool.LogMessage(Thread.currentThread(),
+							ResourcePool.INFO_MESSAGE, "KETL Version "
+									+ EngineConstants.VERSION + ", ©"
+									+ Calendar.getInstance().get(Calendar.YEAR)
+									+ " Kinetic Networks Inc.");
 					// End of section
 				}
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME",
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
 						"DISABLESYSTEMCACHE");
 				if (e != null) {
-					EngineConstants.DISABLESYSTEMCACHE = Boolean.parseBoolean(XMLHelper.getTextContent(e));
+					EngineConstants.DISABLESYSTEMCACHE = Boolean
+							.parseBoolean(XMLHelper.getTextContent(e));
 				}
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "CACHEMEMRATIO");
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
+						"CACHEMEMRATIO");
 				if (e != null) {
-					EngineConstants.CACHEMEMRATIO = Double.parseDouble(XMLHelper.getTextContent(e));
+					EngineConstants.CACHEMEMRATIO = Double
+							.parseDouble(XMLHelper.getTextContent(e));
 				}
 
-				e = (Element) XMLHelper
-						.getElementByName(EngineConstants.globals, "OPTION", "NAME", "INMEMORYCACHESIZE");
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
+						"INMEMORYCACHESIZE");
 				if (e != null) {
 					String tmp = XMLHelper.getTextContent(e);
 
@@ -516,25 +546,35 @@ public class EngineConstants {
 					try {
 						NumberFormatter.convertToBytes(tmp);
 					} catch (Exception e2) {
-						ResourcePool.logError("Default in memory cache size invalid: " + tmp + ", defaulting to 64k");
+						ResourcePool
+								.logError("Default in memory cache size invalid: "
+										+ tmp + ", defaulting to 64k");
 						tmp = "64k";
 					}
 					EngineConstants.DEFAULTCACHESIZE = tmp;
 				} else
 					EngineConstants.DEFAULTCACHESIZE = "64k";
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "LOOKUPCLASS");
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
+						"LOOKUPCLASS");
 
 				boolean lookForAlternative = false;
 				if (e != null) {
 					String tmp = XMLHelper.getTextContent(e);
 					try {
 						Class.forName(tmp);
-						EngineConstants.LOOKUPCLASS = XMLHelper.getTextContent(e);
+						EngineConstants.LOOKUPCLASS = XMLHelper
+								.getTextContent(e);
 					} catch (Throwable e1) {
 						lookForAlternative = true;
-						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "LOOKUPCLASS "
-								+ tmp + " could not be found, looking for alternative");
+						ResourcePool
+								.LogMessage(
+										Thread.currentThread(),
+										ResourcePool.ERROR_MESSAGE,
+										"LOOKUPCLASS "
+												+ tmp
+												+ " could not be found, looking for alternative");
 					}
 
 				}
@@ -542,8 +582,10 @@ public class EngineConstants {
 				if (EngineConstants.LOOKUPCLASS == null) {
 					// try for perst
 					String[][] lookupsOptions = {
-							{ "com.kni.etl.ketl.lookup.RawPerstIndexedMap", "org.garret.perst.Persistent" },
-							{ "com.kni.etl.ketl.lookup.HSQLDBIndexedMap", "org.hsqldb.Database" } };
+							{ "com.kni.etl.ketl.lookup.RawPerstIndexedMap",
+									"org.garret.perst.Persistent" },
+							{ "com.kni.etl.ketl.lookup.HSQLDBIndexedMap",
+									"org.hsqldb.Database" } };
 					for (String[] element : lookupsOptions) {
 						try {
 							Class.forName(element[0]);
@@ -552,54 +594,70 @@ public class EngineConstants {
 							EngineConstants.LOOKUPCLASS = element[0];
 
 							if (lookForAlternative)
-								ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-										"LOOKUPCLASS defaulted to " + EngineConstants.LOOKUPCLASS);
+								ResourcePool.LogMessage(Thread.currentThread(),
+										ResourcePool.WARNING_MESSAGE,
+										"LOOKUPCLASS defaulted to "
+												+ EngineConstants.LOOKUPCLASS);
 							break;
 						} catch (Exception e1) {
 
 						}
 					}
 					if (EngineConstants.LOOKUPCLASS == null) {
-						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+						ResourcePool.LogMessage(Thread.currentThread(),
+								ResourcePool.WARNING_MESSAGE,
 								"No cache engine found");
 					}
 
 				}
 
-				if (EngineConstants.LOOKUPCLASS != null && lookForAlternative == false)
-					ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Cache engine "
-							+ EngineConstants.LOOKUPCLASS);
+				if (EngineConstants.LOOKUPCLASS != null
+						&& lookForAlternative == false)
+					ResourcePool.LogMessage(Thread.currentThread(),
+							ResourcePool.INFO_MESSAGE, "Cache engine "
+									+ EngineConstants.LOOKUPCLASS);
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "PARAMETEREND");
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
+						"PARAMETEREND");
 				if (e != null) {
 					XMLHelper.getTextContent(e);
-					EngineConstants.VARIABLE_PARAMETER_END = XMLHelper.getTextContent(e);
+					EngineConstants.VARIABLE_PARAMETER_END = XMLHelper
+							.getTextContent(e);
 				}
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME",
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
 						"MAXERRORMESSAGELENGTH");
 				if (e != null) {
 					try {
-						EngineConstants.MAX_ERROR_MESSAGE_LENGTH = Integer.parseInt(XMLHelper.getTextContent(e));
+						EngineConstants.MAX_ERROR_MESSAGE_LENGTH = Integer
+								.parseInt(XMLHelper.getTextContent(e));
 					} catch (Exception e1) {
 
 					}
 				}
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "BADRECORDPATH");
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
+						"BADRECORDPATH");
 				if (e != null) {
 					try {
-						EngineConstants.BAD_RECORD_PATH = XMLHelper.getTextContent(e);
+						EngineConstants.BAD_RECORD_PATH = XMLHelper
+								.getTextContent(e);
 					} catch (Exception e1) {
 					}
 				}
 
 				checkPath(EngineConstants.BAD_RECORD_PATH, "bad record path");
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "PARTITIONPATH");
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
+						"PARTITIONPATH");
 				if (e != null) {
 					try {
-						EngineConstants.PARTITION_PATH = XMLHelper.getTextContent(e);
+						EngineConstants.PARTITION_PATH = XMLHelper
+								.getTextContent(e);
 
 					} catch (Exception e1) {
 
@@ -608,20 +666,25 @@ public class EngineConstants {
 
 				checkPath(EngineConstants.PARTITION_PATH, "partition path");
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "MONITORPATH");
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME",
+						"MONITORPATH");
 				if (e != null) {
 					try {
-						EngineConstants.MONITORPATH = XMLHelper.getTextContent(e);
+						EngineConstants.MONITORPATH = XMLHelper
+								.getTextContent(e);
 					} catch (Exception e1) {
 					}
 				}
 
 				checkPath(EngineConstants.MONITORPATH, "monitor path");
 
-				e = (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME", "CACHEPATH");
+				e = (Element) XMLHelper.getElementByName(
+						EngineConstants.globals, "OPTION", "NAME", "CACHEPATH");
 				if (e != null) {
 					try {
-						EngineConstants.CACHE_PATH = XMLHelper.getTextContent(e);
+						EngineConstants.CACHE_PATH = XMLHelper
+								.getTextContent(e);
 					} catch (Exception e1) {
 
 					}
@@ -630,8 +693,11 @@ public class EngineConstants {
 				checkPath(EngineConstants.CACHE_PATH, "cache path");
 			}
 		} catch (Exception e) {
-			ResourcePool.LogMessage("System file not found or readable, expected location " + Metadata.getKETLPath()
-					+ File.separator + Metadata.SYSTEM_FILE);
+			ResourcePool
+					.LogMessage("System file not found or readable, expected location "
+							+ Metadata.getKETLPath()
+							+ File.separator
+							+ Metadata.SYSTEM_FILE);
 
 		}
 
@@ -640,79 +706,114 @@ public class EngineConstants {
 	}
 
 	private static void loadPlugins(Document doc) {
-		File dir = new File(Metadata.getKETLPath() + File.separator + "xml" + File.separator + "plugins");
+		File dir = new File(Metadata.getKETLPath() + File.separator + "xml"
+				+ File.separator + "plugins");
 
 		if (dir.isDirectory()) {
 			String[] children = dir.list();
 			if (children == null) {
-				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "0 plugins found");
+				ResourcePool.LogMessage(Thread.currentThread(),
+						ResourcePool.INFO_MESSAGE, "0 plugins found");
 			} else {
 				for (String element : children) {
 					// Get filename of file or directory
-					if (element.endsWith(".xml") && new File(dir, element).isFile()) {
+					if (element.endsWith(".xml")
+							&& new File(dir, element).isFile()) {
 						try {
-							Document pluginDoc = XMLHelper.readXMLFromFile(dir.getAbsolutePath() + File.separator
-									+ element);
+							Document pluginDoc = XMLHelper.readXMLFromFile(dir
+									.getAbsolutePath()
+									+ File.separator + element);
 
-							Node[] node = XMLHelper.findElementsByName(pluginDoc, "STEP", null, null);
+							Node[] node = XMLHelper.findElementsByName(
+									pluginDoc, "STEP", null, null);
 							for (Node element0 : node) {
-								String pluginName = XMLHelper.getAttributeAsString(element0.getAttributes(), "CLASS",
-										null);
+								String pluginName = XMLHelper
+										.getAttributeAsString(element0
+												.getAttributes(), "CLASS", null);
 								if (pluginName == null) {
-									ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
-											"Plugin in file " + element + " does not have a name.");
+									ResourcePool.LogMessage(Thread
+											.currentThread(),
+											ResourcePool.ERROR_MESSAGE,
+											"Plugin in file " + element
+													+ " does not have a name.");
 								} else {
 									try {
 										Class.forName(pluginName);
-										ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
-												"Plugin " + pluginName + " enabled.");
-										doc.getFirstChild().appendChild(doc.importNode(element0, true));
+										ResourcePool.LogMessage(Thread
+												.currentThread(),
+												ResourcePool.INFO_MESSAGE,
+												"Plugin " + pluginName
+														+ " enabled.");
+										doc.getFirstChild().appendChild(
+												doc.importNode(element0, true));
 									} catch (Exception e) {
-										ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
-												"Plugin " + pluginName + " failed to initialize: " + e.toString());
+										ResourcePool
+												.LogMessage(
+														Thread.currentThread(),
+														ResourcePool.ERROR_MESSAGE,
+														"Plugin "
+																+ pluginName
+																+ " failed to initialize: "
+																+ e.toString());
 
 									} catch (Throwable e) {
-										ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
-												"Plugin " + pluginName + " failed to initialize: " + e.toString());
+										ResourcePool
+												.LogMessage(
+														Thread.currentThread(),
+														ResourcePool.ERROR_MESSAGE,
+														"Plugin "
+																+ pluginName
+																+ " failed to initialize: "
+																+ e.toString());
 
 									}
 								}
 							}
 						} catch (Exception e) {
-							ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, e
-									.getMessage());
+							ResourcePool.LogMessage(Thread.currentThread(),
+									ResourcePool.WARNING_MESSAGE, e
+											.getMessage());
 						}
 					}
 
 				}
 			}
 		} else if (dir.exists()) {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
-					"Plugins directory is not a directory, any installed plugins will not be enabled");
+			ResourcePool
+					.LogMessage(
+							Thread.currentThread(),
+							ResourcePool.ERROR_MESSAGE,
+							"Plugins directory is not a directory, any installed plugins will not be enabled");
 		}
 	}
 
 	private static void reLoadPlugins(Document doc) {
-		File dir = new File(Metadata.getKETLPath() + File.separator + "xml" + File.separator + "plugins");
+		File dir = new File(Metadata.getKETLPath() + File.separator + "xml"
+				+ File.separator + "plugins");
 
 		if (dir.isDirectory()) {
 			String[] children = dir.list();
 			if (children != null) {
 				for (String element : children) {
 					// Get filename of file or directory
-					if (element.endsWith(".xml") && new File(dir, element).isFile()) {
+					if (element.endsWith(".xml")
+							&& new File(dir, element).isFile()) {
 						try {
-							Document pluginDoc = XMLHelper.readXMLFromFile(dir.getAbsolutePath() + File.separator
-									+ element);
+							Document pluginDoc = XMLHelper.readXMLFromFile(dir
+									.getAbsolutePath()
+									+ File.separator + element);
 
-							Node[] node = XMLHelper.findElementsByName(pluginDoc, "STEP", null, null);
+							Node[] node = XMLHelper.findElementsByName(
+									pluginDoc, "STEP", null, null);
 							for (Node element0 : node) {
-								String pluginName = XMLHelper.getAttributeAsString(element0.getAttributes(), "CLASS",
-										null);
+								String pluginName = XMLHelper
+										.getAttributeAsString(element0
+												.getAttributes(), "CLASS", null);
 								if (pluginName != null) {
 									try {
 										Class.forName(pluginName);
-										doc.getFirstChild().appendChild(doc.importNode(element0, true));
+										doc.getFirstChild().appendChild(
+												doc.importNode(element0, true));
 									} catch (Exception e) {
 									}
 								}
@@ -729,7 +830,8 @@ public class EngineConstants {
 	private static Document loadSystemXML(boolean reload) {
 		// get system xml
 		try {
-			Document doc = XMLHelper.readXMLFromFile(Metadata.getKETLPath() + File.separator + Metadata.SYSTEM_FILE);
+			Document doc = XMLHelper.readXMLFromFile(Metadata.getKETLPath()
+					+ File.separator + Metadata.SYSTEM_FILE);
 
 			if (reload)
 				reLoadPlugins(doc);
@@ -737,8 +839,11 @@ public class EngineConstants {
 				loadPlugins(doc);
 			return doc;
 		} catch (Exception e) {
-			ResourcePool.LogMessage("System file not found or readable, expected location " + Metadata.getKETLPath()
-					+ File.separator + Metadata.SYSTEM_FILE);
+			ResourcePool
+					.LogMessage("System file not found or readable, expected location "
+							+ Metadata.getKETLPath()
+							+ File.separator
+							+ Metadata.SYSTEM_FILE);
 			throw new RuntimeException(e);
 
 		}
@@ -747,13 +852,18 @@ public class EngineConstants {
 	private static void checkPath(String path, String name) {
 		File f = new File(path);
 		if (f.exists() == false) {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Creating " + name
-					+ " directory " + f.getAbsolutePath());
+			ResourcePool.LogMessage(Thread.currentThread(),
+					ResourcePool.INFO_MESSAGE, "Creating " + name
+							+ " directory " + f.getAbsolutePath());
 			f.mkdir();
 		} else if (f.exists() && f.isDirectory() == false) {
-			System.err.println("Cannot initialize " + name
-					+ " directory, as it is currently a file and not a directory: " + f.getAbsolutePath());
-			ResourcePool.logError("Please move this file or rename it: " + f.getAbsolutePath());
+			System.err
+					.println("Cannot initialize "
+							+ name
+							+ " directory, as it is currently a file and not a directory: "
+							+ f.getAbsolutePath());
+			ResourcePool.logError("Please move this file or rename it: "
+					+ f.getAbsolutePath());
 		}
 	}
 
@@ -770,7 +880,8 @@ public class EngineConstants {
 			EngineConstants.zmSystemXML = EngineConstants._getSystemXML();
 			loadTime = System.currentTimeMillis();
 		} else if ((System.currentTimeMillis() - loadTime) > 60000) {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "Reloading system.xml");
+			ResourcePool.LogMessage(Thread.currentThread(),
+					ResourcePool.DEBUG_MESSAGE, "Reloading system.xml");
 			loadTime = System.currentTimeMillis();
 			EngineConstants.zmSystemXML = loadSystemXML(true);
 		}
@@ -779,7 +890,8 @@ public class EngineConstants {
 	}
 
 	public static synchronized void clearSystemXML() {
-		ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
+		ResourcePool.LogMessage(Thread.currentThread(),
+				ResourcePool.WARNING_MESSAGE,
 				"Reloading system.xml, clear requested");
 		EngineConstants.zmSystemXML = loadSystemXML(true);
 	}
@@ -796,18 +908,25 @@ public class EngineConstants {
 	 * 
 	 * @return the string
 	 */
-	public static String replaceParameter(String strAction, String pParameterToLookFor, String pNewValue) {
+	public static String replaceParameter(String strAction,
+			String pParameterToLookFor, String pNewValue) {
 		int loadIDPos = 0;
 
 		while (loadIDPos != -1) {
-			loadIDPos = strAction.indexOf(EngineConstants.VARIABLE_PARAMETER_START + pParameterToLookFor
-					+ EngineConstants.VARIABLE_PARAMETER_END);
+			loadIDPos = strAction
+					.indexOf(EngineConstants.VARIABLE_PARAMETER_START
+							+ pParameterToLookFor
+							+ EngineConstants.VARIABLE_PARAMETER_END);
 
 			if (loadIDPos != -1) {
 				strAction = strAction.substring(0, loadIDPos)
 						+ pNewValue
-						+ strAction.substring(loadIDPos + EngineConstants.VARIABLE_PARAMETER_START.length()
-								+ pParameterToLookFor.length() + EngineConstants.VARIABLE_PARAMETER_END.length());
+						+ strAction.substring(loadIDPos
+								+ EngineConstants.VARIABLE_PARAMETER_START
+										.length()
+								+ pParameterToLookFor.length()
+								+ EngineConstants.VARIABLE_PARAMETER_END
+										.length());
 			}
 		}
 
@@ -841,27 +960,32 @@ public class EngineConstants {
 	 * @throws Throwable
 	 *             the throwable
 	 */
-	final public static PersistentMap getInstanceOfPersistantMap(String className, String pName, int pSize,
-			Integer pPersistanceID, String pCacheDir, Class[] pKeyTypes, Class[] pValueTypes, String[] pValueFields,
-			boolean pPurgeCache) throws Throwable {
+	final public static PersistentMap getInstanceOfPersistantMap(
+			String className, String pName, int pSize, Integer pPersistanceID,
+			String pCacheDir, Class[] pKeyTypes, Class[] pValueTypes,
+			String[] pValueFields, boolean pPurgeCache) throws Throwable {
 		Class cl = Class.forName(className);
 
-		Constructor con = cl.getConstructor(new Class[] { String.class, int.class, Integer.class, String.class,
-				Class[].class, Class[].class, String[].class, boolean.class });
+		Constructor con = cl.getConstructor(new Class[] { String.class,
+				int.class, Integer.class, String.class, Class[].class,
+				Class[].class, String[].class, boolean.class });
 		PersistentMap pm;
 
 		try {
-			pm = (PersistentMap) con.newInstance(new Object[] { pName, pSize, pPersistanceID, pCacheDir, pKeyTypes,
-					pValueTypes, pValueFields, pPurgeCache });
+			pm = (PersistentMap) con.newInstance(new Object[] { pName, pSize,
+					pPersistanceID, pCacheDir, pKeyTypes, pValueTypes,
+					pValueFields, pPurgeCache });
 		} catch (InvocationTargetException e) {
 			throw e.getTargetException();
 		}
 		if (EngineConstants.getDefaultCacheSize().equals("0") || pSize <= 0) {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE,
+			ResourcePool.LogMessage(Thread.currentThread(),
+					ResourcePool.DEBUG_MESSAGE,
 					"Creating direct lookup, no level 1 in memory cache");
 			return pm;
 		} else {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE,
+			ResourcePool.LogMessage(Thread.currentThread(),
+					ResourcePool.DEBUG_MESSAGE,
 					"Creating lookup with associated level 1 in memory cache");
 			return new CachedIndexedMap(pm);
 		}
@@ -880,7 +1004,8 @@ public class EngineConstants {
 	 * 
 	 * @return the string
 	 */
-	public static String replaceParameterV2(String strAction, String pParameterToLookFor, String pNewValue) {
+	public static String replaceParameterV2(String strAction,
+			String pParameterToLookFor, String pNewValue) {
 		int loadIDPos = 0;
 
 		String st = "${";
@@ -889,8 +1014,10 @@ public class EngineConstants {
 			loadIDPos = strAction.indexOf(st + pParameterToLookFor + ed);
 
 			if (loadIDPos != -1) {
-				strAction = strAction.substring(0, loadIDPos) + pNewValue
-						+ strAction.substring(loadIDPos + st.length() + pParameterToLookFor.length() + ed.length());
+				strAction = strAction.substring(0, loadIDPos)
+						+ pNewValue
+						+ strAction.substring(loadIDPos + st.length()
+								+ pParameterToLookFor.length() + ed.length());
 			}
 		}
 
@@ -913,30 +1040,38 @@ public class EngineConstants {
 	 * 
 	 * @return the string
 	 */
-	public static String replaceParameter(String strAction, String pParameterToLookFor, String[] pNewValueFormat,
+	public static String replaceParameter(String strAction,
+			String pParameterToLookFor, String[] pNewValueFormat,
 			String[] pNewValue, String defaultValue) {
 		int loadIDPos = 0;
 
 		if ((pNewValueFormat == null) || (pNewValueFormat.length == 0)) {
-			return EngineConstants.replaceParameter(strAction, pParameterToLookFor, defaultValue);
+			return EngineConstants.replaceParameter(strAction,
+					pParameterToLookFor, defaultValue);
 		}
 
 		if ((pNewValue == null) || (pNewValueFormat.length != pNewValue.length)) {
-			ResourcePool.LogMessage(Thread.currentThread().getName(), ResourcePool.ERROR_MESSAGE,
-					"Parameter formats and parameters value mismatch, parameter parsing");
+			ResourcePool
+					.LogMessage(Thread.currentThread().getName(),
+							ResourcePool.ERROR_MESSAGE,
+							"Parameter formats and parameters value mismatch, parameter parsing");
 
 			return strAction;
 		}
 
 		for (int i = 0; i < pNewValue.length; i++) {
 			while (loadIDPos != -1) {
-				loadIDPos = strAction.indexOf(EngineConstants.VARIABLE_PARAMETER_START + pParameterToLookFor + "("
-						+ pNewValueFormat[i] + ")" + EngineConstants.VARIABLE_PARAMETER_END);
+				loadIDPos = strAction
+						.indexOf(EngineConstants.VARIABLE_PARAMETER_START
+								+ pParameterToLookFor + "("
+								+ pNewValueFormat[i] + ")"
+								+ EngineConstants.VARIABLE_PARAMETER_END);
 
 				if (loadIDPos != -1) {
 					String value;
 
-					if ((pNewValue == null) || (i > (pNewValue.length - 1)) || (pNewValue[i].length() == 0)) {
+					if ((pNewValue == null) || (i > (pNewValue.length - 1))
+							|| (pNewValue[i].length() == 0)) {
 						value = defaultValue;
 					} else {
 						value = pNewValue[i];
@@ -944,9 +1079,15 @@ public class EngineConstants {
 
 					strAction = strAction.substring(0, loadIDPos)
 							+ value
-							+ strAction.substring(loadIDPos + EngineConstants.VARIABLE_PARAMETER_START.length()
-									+ pParameterToLookFor.length() + 1 + pNewValueFormat[i].length() + 1
-									+ EngineConstants.VARIABLE_PARAMETER_END.length());
+							+ strAction.substring(loadIDPos
+									+ EngineConstants.VARIABLE_PARAMETER_START
+											.length()
+									+ pParameterToLookFor.length()
+									+ 1
+									+ pNewValueFormat[i].length()
+									+ 1
+									+ EngineConstants.VARIABLE_PARAMETER_END
+											.length());
 				}
 			}
 		}
@@ -964,26 +1105,31 @@ public class EngineConstants {
 	 * 
 	 * @return the parameter parameters
 	 */
-	public static String[] getParameterParameters(String strAction, String pParameterToLookFor) {
+	public static String[] getParameterParameters(String strAction,
+			String pParameterToLookFor) {
 		int loadIDPos = 0;
 
 		ArrayList res = new ArrayList();
 
 		while (loadIDPos != -1) {
-			loadIDPos = strAction.indexOf(EngineConstants.VARIABLE_PARAMETER_START + pParameterToLookFor + "(",
-					loadIDPos);
+			loadIDPos = strAction.indexOf(
+					EngineConstants.VARIABLE_PARAMETER_START
+							+ pParameterToLookFor + "(", loadIDPos);
 
 			if (loadIDPos == -1) {
 				continue;
 			}
 
-			loadIDPos = loadIDPos + EngineConstants.VARIABLE_PARAMETER_START.length() + pParameterToLookFor.length()
-					+ 1;
+			loadIDPos = loadIDPos
+					+ EngineConstants.VARIABLE_PARAMETER_START.length()
+					+ pParameterToLookFor.length() + 1;
 
-			int paramEnd = strAction.indexOf(")" + EngineConstants.VARIABLE_PARAMETER_END, loadIDPos);
+			int paramEnd = strAction.indexOf(")"
+					+ EngineConstants.VARIABLE_PARAMETER_END, loadIDPos);
 
 			if (paramEnd == -1) {
-				ResourcePool.LogMessage(Thread.currentThread().getName(), ResourcePool.ERROR_MESSAGE,
+				ResourcePool.LogMessage(Thread.currentThread().getName(),
+						ResourcePool.ERROR_MESSAGE,
 						"End of parameter not found");
 
 				return null;
@@ -1025,14 +1171,16 @@ public class EngineConstants {
 		int lastParamPos = -2;
 		boolean paramExists = true;
 		while (paramExists) {
-			paramPos = strText.indexOf(EngineConstants.VARIABLE_PARAMETER_START, paramPos);
+			paramPos = strText.indexOf(
+					EngineConstants.VARIABLE_PARAMETER_START, paramPos);
 
 			if (paramPos == -1) {
 				paramExists = false;
 				continue;
 			}
 
-			int paramEndPos = strText.indexOf(EngineConstants.VARIABLE_PARAMETER_END, paramPos);
+			int paramEndPos = strText.indexOf(
+					EngineConstants.VARIABLE_PARAMETER_END, paramPos);
 
 			if (paramEndPos == -1) {
 				if (paramPos == lastParamPos)
@@ -1043,7 +1191,8 @@ public class EngineConstants {
 				continue;
 			}
 
-			String paramName = strText.substring(paramPos + EngineConstants.VARIABLE_PARAMETER_START.length(),
+			String paramName = strText.substring(paramPos
+					+ EngineConstants.VARIABLE_PARAMETER_START.length(),
 					paramEndPos);
 
 			paramPos++;
@@ -1098,10 +1247,13 @@ public class EngineConstants {
 		return EngineConstants.DEFAULTCACHESIZE;
 	}
 
-	/* determines the database type from the product name, as not all drivers return the same product name */
+	/*
+	 * determines the database type from the product name, as not all drivers
+	 * return the same product name
+	 */
 	public static String cleanseDatabaseName(String name) throws Exception {
 		if (name == null)
-			throw new Exception("Could not determine database type from name, name is null");
+			return DBType.DEFAULT.name();
 
 		for (DBType dbType : DBType.values()) {
 
@@ -1109,6 +1261,7 @@ public class EngineConstants {
 				return dbType.name();
 		}
 
-		throw new Exception("Could not determine database type from name: " + name);
+		return DBType.DEFAULT.name();
+
 	}
 }

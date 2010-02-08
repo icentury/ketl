@@ -309,6 +309,8 @@ public class QueryRunner extends ETLWriter implements DefaultWriterCore,
 			}
 			this.mStmt.execute(query);
 
+			this.mStmt.getConnection().commit();
+
 			this.miInCount++;
 
 			this.miBatchCount++;
