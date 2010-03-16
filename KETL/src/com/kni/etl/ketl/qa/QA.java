@@ -42,10 +42,10 @@ import com.kni.etl.ketl.exceptions.KETLThreadException;
 public abstract class QA {
 
     /** The n QA definition. */
-    Node nQADefinition;
+    private Node nQADefinition;
     
     /** The step. */
-    ETLStep step = null;
+    private ETLStep step = null;
 
     /**
      * Initialize.
@@ -56,9 +56,25 @@ public abstract class QA {
      * @throws KETLThreadException the KETL thread exception
      */
     public void initialize(ETLStep eStep, Node nXMLConfig) throws KETLThreadException {
-        this.step = eStep;
-        this.nQADefinition = nXMLConfig;
+        this.setStep(eStep);
+        this.setQADefinition(nXMLConfig);
 
     }
+
+	public void setQADefinition(Node nQADefinition) {
+		this.nQADefinition = nQADefinition;
+	}
+
+	public Node getQADefinition() {
+		return nQADefinition;
+	}
+
+	public void setStep(ETLStep step) {
+		this.step = step;
+	}
+
+	public ETLStep getStep() {
+		return step;
+	}
 
 }

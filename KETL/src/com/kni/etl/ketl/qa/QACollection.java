@@ -71,8 +71,8 @@ public class QACollection extends QA {
     public QACollection(ETLStep eStep, Node nXMLConfig) {
         super();
 
-        this.nQADefinition = nXMLConfig;
-        this.step = eStep;
+        this.setQADefinition(nXMLConfig);
+        this.setStep(eStep);
 
         // inialize all objects
         // get Step QA items
@@ -113,7 +113,7 @@ public class QACollection extends QA {
                 continue;
             }
 
-            String sQAClass = this.step.getQAClass(n.getNodeName());
+            String sQAClass = this.getStep().getQAClass(n.getNodeName());
 
             if (sQAClass == null) {
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Step does not support QA type of "
@@ -125,7 +125,7 @@ public class QACollection extends QA {
                     Class cStepClass = Class.forName(sQAClass);
                     QAItemLevelEventGenerator qaObject = (QAItemLevelEventGenerator) cStepClass.newInstance();
 
-                    qaObject.initialize(this.step, eiItem, n);
+                    qaObject.initialize(this.getStep(), eiItem, n);
 
                     if (qaObject != null) {
                         if (this.aItemsToCheck == null) {
@@ -192,7 +192,7 @@ public class QACollection extends QA {
                 continue;
             }
 
-            String sQAClass = this.step.getQAClass(n.getNodeName());
+            String sQAClass = this.getStep().getQAClass(n.getNodeName());
 
             if (sQAClass == null) {
                 ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Step does not support QA type of "
@@ -204,7 +204,7 @@ public class QACollection extends QA {
                     Class cStepClass = Class.forName(sQAClass);
                     QAEventGenerator qaObject = (QAEventGenerator) cStepClass.newInstance();
 
-                    qaObject.initialize(this.step, n);
+                    qaObject.initialize(this.getStep(), n);
 
                     if (qaObject != null) {
                         if (qaObject instanceof QAInitializeLevelEventGenerator) {
@@ -262,7 +262,7 @@ public class QACollection extends QA {
 
         // get QA nodes <ETL><QA></QA></ETL>
         Node[] aQANodes = XMLHelper
-                .findElementsByName(this.nQADefinition, QACollection.QA, ETLStep.NAME_ATTRIB, QAName);
+                .findElementsByName(this.getQADefinition(), QACollection.QA, ETLStep.NAME_ATTRIB, QAName);
 
         if (aQANodes == null) {
             ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Could not locate QA item " + QAName);
@@ -369,8 +369,8 @@ public class QACollection extends QA {
      */
     final boolean recordHistory(Metadata md, QAEventGenerator qa) {
         if ((qa.getXMLHistory() != null) && qa.recordHistory()) {
-            return md.recordQAHistory(this.step.getJobExecutor().getCurrentETLJob().getJobID(), this.step.toString(),
-                    qa.mstrQAName, qa.getQAType(), this.step.getJobExecutor().getCurrentETLJob().getCreationDate(), qa
+            return md.recordQAHistory(this.getStep().getJobExecutor().getCurrentETLJob().getJobID(), this.getStep().toString(),
+                    qa.getQAName(), qa.getQAType(), this.getStep().getJobExecutor().getCurrentETLJob().getCreationDate(), qa
                             .getXMLHistory());
         }
 
@@ -382,7 +382,7 @@ public class QACollection extends QA {
      */
     @Override
     public String toString() {
-        return ("QA Collection for step " + this.step);
+        return ("QA Collection for step " + this.getStep());
     }
 
     /**

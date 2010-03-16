@@ -45,47 +45,53 @@ import com.kni.etl.ketl.writer.ETLWriter;
  */
 public abstract class QARecordLevelEventGenerator extends QAEventGenerator {
 
-    /** The Constant SUCCESS. */
-    public static final int SUCCESS = 0;
-    
-    /** The Constant ERROR. */
-    public static final int ERROR = -1;
+	/** The Constant SUCCESS. */
+	public static final int SUCCESS = 0;
 
-    /**
-     * Instantiates a new QA record level event generator.
-     */
-    public QARecordLevelEventGenerator() {
-        super();
-    }
+	/** The Constant ERROR. */
+	public static final int ERROR = -1;
 
-    /**
-     * Complete check.
-     * 
-     * @return the ETL event
-     */
-    abstract ETLEvent completeCheck();
+	/**
+	 * Instantiates a new QA record level event generator.
+	 */
+	public QARecordLevelEventGenerator() {
+		super();
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.qa.QAEventGenerator#initialize(com.kni.etl.ketl.ETLStep, org.w3c.dom.Node)
-     */
-    @Override
-    public void initialize(ETLStep eStep, Node nXMLConfig) throws KETLThreadException {
+	/**
+	 * Complete check.
+	 * 
+	 * @return the ETL event
+	 */
+	abstract protected ETLEvent completeCheck();
 
-        if (!(eStep instanceof ETLReader || eStep instanceof ETLWriter || eStep instanceof ETLTransformation))
-            throw new KETLThreadException("QA test does not support class " + this.getClass().getCanonicalName(), eStep);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.qa.QAEventGenerator#initialize(com.kni.etl.ketl.ETLStep,
+	 * org.w3c.dom.Node)
+	 */
+	@Override
+	public void initialize(ETLStep eStep, Node nXMLConfig) throws KETLThreadException {
 
-        super.initialize(eStep, nXMLConfig);
+		if (!(eStep instanceof ETLReader || eStep instanceof ETLWriter || eStep instanceof ETLTransformation))
+			throw new KETLThreadException("QA test does not support class " + this.getClass().getCanonicalName(), eStep);
 
-    }
+		super.initialize(eStep, nXMLConfig);
 
-    /**
-     * Record check.
-     * 
-     * @param rr the rr
-     * @param e the e
-     * 
-     * @return the ETL event
-     */
-    abstract ETLEvent recordCheck(Object[] rr, Exception e);
+	}
+
+	/**
+	 * Record check.
+	 * 
+	 * @param rr
+	 *            the rr
+	 * @param e
+	 *            the e
+	 * 
+	 * @return the ETL event
+	 */
+	abstract protected ETLEvent recordCheck(Object[] rr, Exception e);
 
 }

@@ -46,73 +46,84 @@ import com.kni.etl.ketl.writer.ETLWriter;
  */
 public abstract class QAItemLevelEventGenerator extends QAEventGenerator {
 
-    /** The associatet port. */
-    protected ETLPort mAssociatetPort = null;
+	/** The associatet port. */
+	protected ETLPort mAssociatetPort = null;
 
-    /**
-     * The Constructor.
-     */
-    public QAItemLevelEventGenerator() {
-        super();
-    }
+	/**
+	 * The Constructor.
+	 */
+	public QAItemLevelEventGenerator() {
+		super();
+	}
 
-    /**
-     * Item check.
-     * 
-     * @param di the di
-     * @param exception the exception
-     * 
-     * @return the ETL event
-     */
-    final ETLEvent itemCheck(Object[] di, Exception exception) {
-        return this.itemCheck(di[this.mAssociatetPort.getPortIndex()], exception, this.mAssociatetPort.getPortClass());
-    }
+	/**
+	 * Item check.
+	 * 
+	 * @param di
+	 *            the di
+	 * @param exception
+	 *            the exception
+	 * 
+	 * @return the ETL event
+	 */
+	final ETLEvent itemCheck(Object[] di, Exception exception) {
+		return this.itemCheck(di[this.mAssociatetPort.getPortIndex()], exception, this.mAssociatetPort.getPortClass());
+	}
 
-    /**
-     * Item check.
-     * 
-     * @param di the di
-     * @param exception the exception
-     * @param expectedClass the expected class
-     * 
-     * @return the ETL event
-     */
-    abstract ETLEvent itemCheck(Object di, Exception exception, Class expectedClass);
+	/**
+	 * Item check.
+	 * 
+	 * @param di
+	 *            the di
+	 * @param exception
+	 *            the exception
+	 * @param expectedClass
+	 *            the expected class
+	 * 
+	 * @return the ETL event
+	 */
+	abstract protected ETLEvent itemCheck(Object di, Exception exception, Class expectedClass);
 
-    /**
-     * Initialize.
-     * 
-     * @param eStep the e step
-     * @param pPort the port
-     * @param pConfig the config
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public void initialize(ETLStep eStep, ETLPort pPort, Node pConfig) throws KETLThreadException {
+	/**
+	 * Initialize.
+	 * 
+	 * @param eStep
+	 *            the e step
+	 * @param pPort
+	 *            the port
+	 * @param pConfig
+	 *            the config
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public void initialize(ETLStep eStep, ETLPort pPort, Node pConfig) throws KETLThreadException {
 
-        if (!(eStep instanceof ETLReader || eStep instanceof ETLWriter || eStep instanceof ETLTransformation))
-            throw new KETLThreadException("QA test does not support class " + this.getClass().getCanonicalName(), eStep);
+		if (!(eStep instanceof ETLReader || eStep instanceof ETLWriter || eStep instanceof ETLTransformation))
+			throw new KETLThreadException("QA test does not support class " + this.getClass().getCanonicalName(), eStep);
 
-        this.mAssociatetPort = pPort;
-        super.initialize(eStep, pConfig);
-    }
+		this.mAssociatetPort = pPort;
+		super.initialize(eStep, pConfig);
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.qa.QAEventGenerator#setQAName()
-     */
-    @Override
-    protected String setQAName() throws KETLThreadException {
-        super.setQAName();
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.qa.QAEventGenerator#setQAName()
+	 */
+	@Override
+	protected String setQAName() throws KETLThreadException {
+		super.setQAName();
 
-        if (this.mAssociatetPort != null)
-            this.mstrQAName = this.mstrQAName + "-" + this.mAssociatetPort.getPortName();
-        return this.mstrHistoryXML;
-    }
+		if (this.mAssociatetPort != null)
+			this.mstrQAName = this.mstrQAName + "-" + this.mAssociatetPort.getPortName();
+		return this.getHistoryXML();
+	}
 
-    /**
-     * Complete check.
-     * 
-     * @return the ETL event
-     */
-    abstract ETLEvent completeCheck();
+	/**
+	 * Complete check.
+	 * 
+	 * @return the ETL event
+	 */
+	abstract protected ETLEvent completeCheck();
 }

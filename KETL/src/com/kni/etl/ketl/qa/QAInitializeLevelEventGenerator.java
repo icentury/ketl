@@ -39,20 +39,21 @@ import com.kni.etl.ketl.exceptions.KETLThreadException;
  */
 public abstract class QAInitializeLevelEventGenerator extends QAEventGenerator {
 
-    /**
-     * The Constructor.
-     */
-    public QAInitializeLevelEventGenerator() {
-        super();
-    }
+	/**
+	 * The Constructor.
+	 */
+	public QAInitializeLevelEventGenerator() {
+		super();
+	}
 
-    /**
-     * Initialize check.
-     * 
-     * @return the ETL event
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    abstract ETLEvent InitializeCheck() throws KETLThreadException;
+	/**
+	 * Initialize check.
+	 * 
+	 * @return the ETL event
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	abstract protected ETLEvent InitializeCheck() throws KETLThreadException;
 
 }
