@@ -40,56 +40,76 @@ import java.util.Properties;
  */
 public class PooledConnection {
 
-    /** The TIMEOUT. */
-    private static long TIMEOUT = 60 * 1000; // 60 seconds
-    
-    /** The connection. */
-    Connection mConnection;
-    
-    /** The in use. */
-    private boolean mInUse = false;
-    
-    /** The allow reuse. */
-    boolean mAllowReuse = true;
-    
-    /** The driver class. */
-    String mDriverClass;
-    
-    /** The URL. */
-    String mURL;
-        
-    /** The pre SQL. */
-    String mPreSQL;
-    
-    /** The used. */
-    int mUsed = 1;
-    
-    /** The last activity. */
-    java.util.Date mLastActivity = null;
+	private static final String RETRY_ATTEMPTS = "RETRYATTEMPTS";
 
-	private Properties pProperties;
+	/** The TIMEOUT. */
+	private static long TIMEOUT = 60 * 1000; // 60 seconds
 
-    /**
-     * The Constructor.
-     * 
-     * @param pDriverClass the driver class
-     * @param pURL the URL
-     * @param pUserName the user name
-     * @param pPassword the password
-     * @param pPreSQL the pre SQL
-     * @param pAllowReuse the allow reuse
-     * @param properties 
-     * 
-     * @throws ClassNotFoundException the class not found exception
-     * @throws SQLException the SQL exception
-     */
-    public PooledConnection(String pDriverClass, String pURL, String pUserName, String pPassword, String pPreSQL,
-            boolean pAllowReuse, Properties properties) throws ClassNotFoundException, SQLException {
-        super();
+	/** The connection. */
+	Connection mConnection;
 
-        this.mAllowReuse = pAllowReuse;
+	/** The in use. */
+	private boolean mInUse = false;
 
-        this.mDriverClass = pDriverClass;
+	/** The allow reuse. */
+	boolean mAllowReuse = true;
+
+	/** The driver class. */
+	String mDriverClass;
+
+	/** The URL. */
+	String mURL;
+
+	/** The pre SQL. */
+	String mPreSQL;
+
+	/** The used. */
+	int mUsed = 1;
+
+	/** The last activity. */
+	java.util.Date mLastActivity = null;
+
+	private final Properties pProperties;
+
+	/**
+	 * The Constructor.
+	 * 
+	 * @param pDriverClass
+	 *            the driver class
+	 * @param pURL
+	 *            the URL
+	 * @param pUserName
+	 *            the user name
+	 * @param pPassword
+	 *            the password
+	 * @param pPreSQL
+	 *            the pre SQL
+	 * @param pAllowReuse
+	 *            the allow reuse
+	 * @param properties
+	 * 
+	 * @throws ClassNotFoundException
+	 *             the class not found exception
+	 * @throws SQLException
+	 *             the SQL exception
+	 */
+	public PooledConnection(String pDriverClass, String pURL, String pUserName, String pPassword, String pPreSQL, boolean pAllowReuse, Properties properties)
+			throws ClassNotFoundException, SQLException {
+		super();
+
+		this.mAllowReuse = pAllowReuse;
+
+		int retryAttempts = 0;
+		if (properties.containsKey(RETRY_ATTEMPTS)) {
+			try {
+				retryAttempts = Integer.parseInt(properties.getProperty(RETRY_ATTEMPTS));
+				properties.remove(RETRY_ATTEMPTS);
+			} catch (Exception e) {
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Error processing retry attempts: " + e.getMessage());
+			}
+		}
+
+		this.mDriverClass = pDriverClass;
 		this.mURL = pURL;
 		this.pProperties = properties;
 		this.mUserName = pUserName;
@@ -102,125 +122,143 @@ public class PooledConnection {
 			pPreSQL = PooledConnection.NULL;
 		}
 
-        this.mPreSQL = pPreSQL;
+		this.mPreSQL = pPreSQL;
 
-        // create new connection and mark element as in use.
-        Class.forName(pDriverClass);
-        this.mConnection = DriverManager.getConnection(pURL, this.pProperties);
+		// create new connection and mark element as in use.
+		Class.forName(pDriverClass);
+		int attempts = 0;
+		while (this.mConnection == null) {
+			try {
+				attempts++;
+				this.mConnection = DriverManager.getConnection(pURL, this.pProperties);
+			} catch (SQLException e) {
+				if (attempts > retryAttempts)
+					throw e;
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, "Retrying connectin to " + pURL + ", current attempt return " + e.getMessage());
+				this.mConnection = null;
+			}
+		}
 
-        if (pPreSQL != PooledConnection.NULL) {
-            Statement stmt = this.mConnection.createStatement();
-            try {
-            stmt.execute(pPreSQL);
-            } catch(SQLException e) {
-                ResourcePool.LogMessage(this,ResourcePool.ERROR_MESSAGE,"Pre SQL setting for connection failed");
-                stmt.close();
-                this.mConnection.close();
-                throw e;
-            }
-        }
-             
-        try {
-            this.setInUse(false);
-        } catch (SQLException e) {
-            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Error getting connection");
-            this.mConnection.close();
-            throw e;
-        }
-    }
+		if (pPreSQL != PooledConnection.NULL) {
+			Statement stmt = this.mConnection.createStatement();
+			try {
+				stmt.execute(pPreSQL);
+			} catch (SQLException e) {
+				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Pre SQL setting for connection failed");
+				stmt.close();
+				this.mConnection.close();
+				throw e;
+			}
+		}
 
-    /**
-     * Timeout.
-     * 
-     * @param pCurrentDate the current date
-     * 
-     * @return true, if successful
-     * 
-     * @throws Exception the exception
-     */
-    public boolean timeout(java.util.Date pCurrentDate) throws Exception {
-        if ((this.mLastActivity == null) || ((pCurrentDate.getTime() - this.mLastActivity.getTime()) > PooledConnection.TIMEOUT)) {
-            if (this.mConnection != null) {
-                this.mConnection.close();
-            }
+		try {
+			this.setInUse(false);
+		} catch (SQLException e) {
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Error getting connection");
+			this.mConnection.close();
+			throw e;
+		}
+	}
 
-            return true;
-        }
+	/**
+	 * Timeout.
+	 * 
+	 * @param pCurrentDate
+	 *            the current date
+	 * 
+	 * @return true, if successful
+	 * 
+	 * @throws Exception
+	 *             the exception
+	 */
+	public boolean timeout(java.util.Date pCurrentDate) throws Exception {
+		if ((this.mLastActivity == null) || ((pCurrentDate.getTime() - this.mLastActivity.getTime()) > PooledConnection.TIMEOUT)) {
+			if (this.mConnection != null) {
+				this.mConnection.close();
+			}
 
-        return false;
-    }
+			return true;
+		}
 
-    /** The owner. */
-    private Thread owner=null;
+		return false;
+	}
 
-	private Object mUserName;
-    
-    /**
-     * Sets the in use.
-     * 
-     * @param pInUse the new in use
-     * 
-     * @throws SQLException the SQL exception
-     */
-    public void setInUse(boolean pInUse) throws SQLException {
-        if (pInUse) {
-            this.mLastActivity = new java.util.Date();
-            this.mConnection.setAutoCommit(false);
-            this.owner = Thread.currentThread();
-        }
-        else {
-            this.mConnection.setAutoCommit(true);
-            this.owner = null;
-        }
+	/** The owner. */
+	private Thread owner = null;
 
-        this.mInUse = pInUse;
-    }
+	private final Object mUserName;
 
-    /**
-     * In use.
-     * 
-     * @return true, if successful
-     */
-    public boolean inUse() {
-        if(this.owner!=null &&this.owner.isAlive()==false){
-            ResourcePool.LogMessage(this,ResourcePool.WARNING_MESSAGE,"Connection is in use by a thread that is not alive, please report to technical support - Thread: " + this.owner.getName());
-            this.owner = null;
-        }
-        
-        
-        return this.mInUse;
-    }
+	/**
+	 * Sets the in use.
+	 * 
+	 * @param pInUse
+	 *            the new in use
+	 * 
+	 * @throws SQLException
+	 *             the SQL exception
+	 */
+	public void setInUse(boolean pInUse) throws SQLException {
+		if (pInUse) {
+			this.mLastActivity = new java.util.Date();
+			this.mConnection.setAutoCommit(false);
+			this.owner = Thread.currentThread();
+		} else {
+			this.mConnection.setAutoCommit(true);
+			this.owner = null;
+		}
 
-    /** The Constant NULL. */
-    private static final String NULL = "";
+		this.mInUse = pInUse;
+	}
 
-    /**
-     * Match.
-     * 
-     * @param pDriverClass the driver class
-     * @param pURL the URL
-     * @param pUserName the user name
-     * @param pPassword the password
-     * @param pPreSQL the pre SQL
-     * @param pAllowReuse the allow reuse
-     * 
-     * @return true, if successful
-     */
-    public boolean match(String pDriverClass, String pURL, String pUserName, String pPassword, String pPreSQL,
-            boolean pAllowReuse) {
-        if (pPreSQL == null) {
-            pPreSQL = PooledConnection.NULL;
-        }
+	/**
+	 * In use.
+	 * 
+	 * @return true, if successful
+	 */
+	public boolean inUse() {
+		if (this.owner != null && this.owner.isAlive() == false) {
+			ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Connection is in use by a thread that is not alive, please report to technical support - Thread: "
+					+ this.owner.getName());
+			this.owner = null;
+		}
 
-        if (this.mAllowReuse == false) {
-            return false;
-        }
+		return this.mInUse;
+	}
 
-        if (pDriverClass.equals(this.mDriverClass) && pURL.equals(this.mURL) && pUserName.equals(this.mUserName)
-                &&  pPreSQL.equals(this.mPreSQL)) {
-            return true;
-        }
+	/** The Constant NULL. */
+	private static final String NULL = "";
 
-        return false;
-    }
+	/**
+	 * Match.
+	 * 
+	 * @param pDriverClass
+	 *            the driver class
+	 * @param pURL
+	 *            the URL
+	 * @param pUserName
+	 *            the user name
+	 * @param pPassword
+	 *            the password
+	 * @param pPreSQL
+	 *            the pre SQL
+	 * @param pAllowReuse
+	 *            the allow reuse
+	 * 
+	 * @return true, if successful
+	 */
+	public boolean match(String pDriverClass, String pURL, String pUserName, String pPassword, String pPreSQL, boolean pAllowReuse) {
+		if (pPreSQL == null) {
+			pPreSQL = PooledConnection.NULL;
+		}
+
+		if (this.mAllowReuse == false) {
+			return false;
+		}
+
+		if (pDriverClass.equals(this.mDriverClass) && pURL.equals(this.mURL) && pUserName.equals(this.mUserName) && pPreSQL.equals(this.mPreSQL)) {
+			return true;
+		}
+
+		return false;
+	}
 }
