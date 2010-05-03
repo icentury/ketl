@@ -299,7 +299,7 @@ public class ETLThreadManager {
 	 * @return the string
 	 */
 	public String finalStatus(ETLJobStatus jsJobStatus) {
-		int recordWriterCount = 0, recordReaderCount = 0, recordReadErrorCount = 0, recordWriteErrorCount = 0;
+		long recordWriterCount = 0, recordReaderCount = 0, recordReadErrorCount = 0, recordWriteErrorCount = 0;
 		long currentTime = System.currentTimeMillis();
 
 		for (WorkerThread o : this.threads) {
@@ -318,7 +318,7 @@ public class ETLThreadManager {
 		long allTimeDiff = currentTime - this.startTime;
 		long prevTimeDiff = currentTime - this.previousTime;
 		StringBuilder sb = new StringBuilder("Final Throughput Statistics(Records Per Second)\n");
-		int recordDiff = recordReaderCount - this.previousReaderRecords;
+		long recordDiff = recordReaderCount - this.previousReaderRecords;
 		sb.append("\tOverall Read: " + recordReaderCount / ((allTimeDiff / 1000) + 1) + "\n");
 
 		jsJobStatus.setStats(recordReaderCount, recordWriterCount, recordReadErrorCount, recordWriteErrorCount,

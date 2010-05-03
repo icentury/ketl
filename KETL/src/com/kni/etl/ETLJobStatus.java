@@ -173,8 +173,8 @@ public class ETLJobStatus extends ETLStatus {
      * @param recordWriteErrorCount the record write error count
      * @param timing the timing
      */
-    public void setStats(String name, int partitions, int partitionID, int recordReaderCount, int recordWriterCount,
-            int recordReadErrorCount, int recordWriteErrorCount, long timing) {
+    public void setStats(String name, int partitions, int partitionID, long recordReaderCount, long recordWriterCount,
+            long recordReadErrorCount, long recordWriteErrorCount, long timing) {
         Element e = this.getStatsNode();
 
         Element step = (Element) XMLHelper.getElementByName(e, "STEP", "NAME", name);
@@ -190,10 +190,10 @@ public class ETLJobStatus extends ETLStatus {
         step.appendChild(partition);
 
         partition.setAttribute("PARTITION", Integer.toString(partitionID));
-        partition.setAttribute("READ", Integer.toString(recordReaderCount));
-        partition.setAttribute("WRITE", Integer.toString(recordWriterCount));
-        partition.setAttribute("READERROR", Integer.toString(recordReadErrorCount));
-        partition.setAttribute("WRITEERROR", Integer.toString(recordWriteErrorCount));
+        partition.setAttribute("READ", Long.toString(recordReaderCount));
+        partition.setAttribute("WRITE", Long.toString(recordWriterCount));
+        partition.setAttribute("READERROR", Long.toString(recordReadErrorCount));
+        partition.setAttribute("WRITEERROR", Long.toString(recordWriteErrorCount));
         partition.setAttribute("TIMING", Long.toString(timing));
 
     }
@@ -207,14 +207,14 @@ public class ETLJobStatus extends ETLStatus {
      * @param recordWriteErrorCount the record write error count
      * @param executionTime the execution time
      */
-    public void setStats(int recordReaderCount, int recordWriterCount, int recordReadErrorCount,
-            int recordWriteErrorCount, long executionTime) {
+    public void setStats(long recordReaderCount, long recordWriterCount, long recordReadErrorCount,
+            long recordWriteErrorCount, long executionTime) {
         Element e = this.getStatsNode();
 
-        e.setAttribute("READ", Integer.toString(recordReaderCount));
-        e.setAttribute("WRITE", Integer.toString(recordWriterCount));
-        e.setAttribute("READERROR", Integer.toString(recordReadErrorCount));
-        e.setAttribute("WRITEERROR", Integer.toString(recordWriteErrorCount));
+        e.setAttribute("READ", Long.toString(recordReaderCount));
+        e.setAttribute("WRITE", Long.toString(recordWriterCount));
+        e.setAttribute("READERROR", Long.toString(recordReadErrorCount));
+        e.setAttribute("WRITEERROR", Long.toString(recordWriteErrorCount));
         e.setAttribute("TIMING", Long.toString(executionTime));
 
     }

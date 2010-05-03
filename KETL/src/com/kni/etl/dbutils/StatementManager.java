@@ -23,12 +23,21 @@
 package com.kni.etl.dbutils;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.kni.etl.EngineConstants;
+import com.kni.etl.Metadata;
+import com.kni.etl.SQLJob;
 import com.kni.etl.ketl.DBConnection;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.smp.ETLWorker;
@@ -56,12 +65,12 @@ public class StatementManager {
      * Wrap execution.
      * 
      * @param parent the parent
+     * @param node TODO
      * @param stmt the stmt
      * @param curSQL the cur SQL
-     * 
      * @throws SQLException the SQL exception
      */
-    private static void wrapExecution(Object parent, Statement stmt, String curSQL) throws SQLException {
+    private static void wrapExecution(Object parent, Node node, Statement stmt, String curSQL) throws SQLException {
         long start = (System.currentTimeMillis() - 1);
         boolean debug = false;
         if (parent instanceof ETLStep) {
@@ -71,6 +80,11 @@ public class StatementManager {
         if (debug)
             ResourcePool.LogMessage(parent, ResourcePool.DEBUG_MESSAGE, "Executing statement: " + curSQL);
         
+        if(node != null){
+        String paramName = XMLHelper.getAttributeAsString(node.getAttributes(),
+				SQLJob.WRITEBACK_PARAMETER, null);
+        }
+       
         stmt.executeUpdate(curSQL);
 
         if (debug)
@@ -110,7 +124,7 @@ public class StatementManager {
                     if (sql.contains(StatementManager.COMMIT)) {
                         sql = sql.replace(StatementManager.COMMIT, "");
                         try {
-                            StatementManager.wrapExecution(pParent, stmt, sql);
+                            StatementManager.wrapExecution(pParent, null, stmt, sql);
                             connection.commit();
                         } catch (SQLException e) {
                             if (!pIgnoreErrors)
@@ -120,7 +134,7 @@ public class StatementManager {
                     }
                     else {
                         try {
-                            StatementManager.wrapExecution(pParent, stmt, sql);
+                            StatementManager.wrapExecution(pParent, null, stmt, sql);
 
                         } catch (SQLException e) {
                             if (!pIgnoreErrors)
@@ -138,7 +152,7 @@ public class StatementManager {
                         sql = sql.replace(StatementManager.COMMIT, "");
                         sb.append(sql).append(pStatementSeperator + "\n");
                         sql = sb.toString();
-                        StatementManager.wrapExecution(pParent, stmt, sql);
+                        StatementManager.wrapExecution(pParent, null, stmt, sql);
 
                         sb = new StringBuilder();
                         connection.commit();
@@ -152,7 +166,7 @@ public class StatementManager {
                 if (sb.length() > 0) {
                     sql = sb.toString();
                     try {
-                        StatementManager.wrapExecution(pParent, stmt, sql);
+                        StatementManager.wrapExecution(pParent, null, stmt, sql);
 
                     } catch (SQLException e) {
                         if (!pIgnoreErrors)
@@ -248,6 +262,7 @@ public class StatementManager {
                             && node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().compareTo(pTag) == 0) {
                         sql = XMLHelper.getTextContent(node);
                         
+                        
                         if(sql == null || sql.length()==0){
                             ResourcePool
                             .LogMessage(step, ResourcePool.WARNING_MESSAGE,
@@ -269,11 +284,11 @@ public class StatementManager {
 
                         if (runQueryPerPartition || canRun) {
                             if (XMLHelper.getAttributeAsBoolean(node.getAttributes(), "CRITICAL", true)) {
-                                StatementManager.wrapExecution(step, stmt, sql);
+                                StatementManager.wrapExecution(step, node, stmt, sql);
                             }
                             else {
                                 try {
-                                    StatementManager.wrapExecution(step, stmt, sql);
+                                    StatementManager.wrapExecution(step, node, stmt, sql);
 
                                 } catch (SQLException e) {
                                     ResourcePool
@@ -319,4 +334,8 @@ public class StatementManager {
         return 0;
     }
 
+    
+   
+	
+    
 }
