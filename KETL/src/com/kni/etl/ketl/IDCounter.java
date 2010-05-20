@@ -120,7 +120,9 @@ public class IDCounter {
                 	
                 	this.previousBatchFetchTime = System.currentTimeMillis();
                 	
-                		
+                	if(this.batchSize <= 0)
+                		this.batchSize = 10;
+                	
                     this.id = this.md.getBatchOfIDValues(this.IDName, this.batchSize);
 
                     // System.out.println("IDS " + Thread.currentThread().getName() + ": ID out " + id + " batchsize:" +
