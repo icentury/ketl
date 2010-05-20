@@ -3443,7 +3443,7 @@ public class Metadata {
 				if (m_rs != null) {
 					m_rs.close();
 				}
-
+				System.out.println("MaxID: " +maxID);
 				if (m_stmt != null) {
 					m_stmt.close();
 				}
