@@ -95,7 +95,8 @@ CREATE TABLE job (
     "action" text,
     old_action2 bytea,
     last_update_date timestamp without time zone,
-	pool text
+	pool text,
+    priority integer 
 );
 
 
