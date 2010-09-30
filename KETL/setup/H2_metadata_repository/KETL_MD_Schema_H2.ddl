@@ -97,6 +97,8 @@ CREATE TABLE job (
        retry_attempts       NUMERIC,
        seconds_before_retry NUMERIC,
        disable_alerting     VARCHAR(1),
+       pool 				VARCHAR(100),
+       priority				NUMERIC,
        last_update_date     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 CONSTRAINT job_parameter_list_fk FOREIGN KEY (parameter_list_id)
        REFERENCES parameter_list (parameter_list_id),
