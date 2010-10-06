@@ -1,0 +1,97 @@
+    <!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
+    <!-- Package stuff into JARs and so forth.                          -->
+    <!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
+    <target name="package"
+            depends="build"
+            unless="jarIsCurrent"
+            description="Performs all compilation steps, then packages the results.">
+  
+	 	<jar destfile="lib/KETLDQP.jar">
+            <manifest>
+                <attribute name="Main-Class" value=""/>
+                <attribute name="Implementation-Vendor" value="Kinetic Networks Inc"/>
+                <attribute name="Implementation-Version" value="$$Name:  $$"/>
+                <attribute name="Implementation-Title" value="KETL DQP Plug-in"/>
+            </manifest>
+
+           <fileset dir="build" >
+			    <include name="**/QA*"/>
+            </fileset>
+        </jar>
+
+        
+        <jar destfile="lib/KETLEntEnable.jar">
+            <manifest>
+                <attribute name="Main-Class" value=""/>
+                <attribute name="Implementation-Vendor" value="Kinetic Networks Inc"/>
+                <attribute name="Implementation-Version" value="$$Name:  $$"/>
+                <attribute name="Implementation-Title" value="KETL Batch Optimizer Plugin"/>
+            </manifest>
+
+           <fileset dir="build" >
+			    <include name="**/ETLBatch*"/>
+            </fileset>
+
+        </jar>     
+      <jar destfile="lib/KETLLinkedIn.jar">
+            <manifest>
+                <attribute name="Main-Class" value=""/>
+                <attribute name="Implementation-Vendor" value="Kinetic Networks Inc"/>
+                <attribute name="Implementation-Version" value="$$Name:  $$"/>
+                <attribute name="Implementation-Title" value="KETL LinkedIn Plugin"/>
+            </manifest>
+
+           <fileset dir="build" >
+			    <include name="**/LinkedIn*"/>
+			    <include name="**/Li.*"/>
+            </fileset>
+
+        </jar>     
+        
+        <jar destfile="lib/KETLJMS.jar">
+            <manifest>
+                <attribute name="Main-Class" value=""/>
+                <attribute name="Implementation-Vendor" value="Kinetic Networks Inc"/>
+                <attribute name="Implementation-Version" value="$$Name:  $$"/>
+                <attribute name="Implementation-Title" value="KETL JMS Support"/>
+            </manifest>
+
+           <fileset dir="build" >
+			    <include name="**/JMS*"/>
+            </fileset>
+
+        </jar> 
+        
+        <jar destfile="lib/KETLRaxa.jar">
+            <manifest>
+                <attribute name="Main-Class" value=""/>
+                <attribute name="Implementation-Vendor" value="Kinetic Networks Inc"/>
+                <attribute name="Implementation-Version" value="$$Name:  $$"/>
+                <attribute name="Implementation-Title" value="KETL JMS Support"/>
+            </manifest>
+
+           <fileset dir="build" >
+			    <include name="**/raxa/**"/>
+            </fileset>
+
+        </jar>    
+        
+         <jar destfile="lib/KETLAster.jar">
+            <manifest>
+                <attribute name="Main-Class" value=""/>
+                <attribute name="Implementation-Vendor" value="Kinetic Networks Inc"/>
+                <attribute name="Implementation-Version" value="$$Name:  $$"/>
+                <attribute name="Implementation-Title" value="KETL Aster Support"/>
+            </manifest>
+
+           <fileset dir="build" >
+			    <include name="**/asterdata/**"/>
+			    <include name="**/Aster*"/>
+            </fileset>
+
+        </jar>        
+        
+    </target>
+
+
+
