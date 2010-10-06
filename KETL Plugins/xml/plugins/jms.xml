@@ -1,0 +1,21 @@
+<KETL>
+	<!--  This is a work in progress, that will eventually contain all the valid options for each step -->
+
+
+	<STEP CLASS="com.kni.etl.ketl.reader.jms.JMSReader">
+		<PARAMETERS>
+			<PARAMETER NAME="USER" REQUIRED="FALSE" />
+			<PARAMETER NAME="PASSWORD" REQUIRED="FALSE" />
+			<PARAMETER NAME="URL" REQUIRED="TRUE" />
+			<PARAMETER NAME="SOURCE" REQUIRED="TRUE" />
+			<PARAMETER NAME="TYPE" REQUIRED="TRUE" />
+		</PARAMETERS>
+		<ATTRIBUTES>
+			<ATTRIBUTE NAME="PROVIDER" DATATYPE="STRING"/>
+		</ATTRIBUTES>
+		<PORTS>
+			<OUT />
+		</PORTS>
+		<TEMPLATES />
+	</STEP>
+</KETL>
