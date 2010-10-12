@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/KETL"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry exported="true" kind="lib" path="lib/KETLDQP.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/KETLEntEnable.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/KETLJMS.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/KETLLinkedIn.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
+	<classpathentry kind="lib" path="/Users/nwakefie/Downloads/noarch-ncluster-jdbc-driver.jar"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>
