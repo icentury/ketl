@@ -81,7 +81,7 @@ public class CopyManager implements CopyManagerInterface {
 	 * .lang.String, java.io.InputStream)
 	 */
 	public void copyInQuery(String query, InputStream is) throws SQLException {
-		this.pgConnection.getCopyAPI().copyIntoDB(query, is);// ,
+		this.pgConnection.getCopyAPI().copyIntoDB(query, is, this.bufferSize);// ,
 		// this.bufferSize);
 		// this.pgConnection.commit();
 
