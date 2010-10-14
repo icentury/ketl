@@ -177,6 +177,12 @@ public class JDBCItemHelper {
 			else {
 				pPreparedStatement.setBlob(parameterIndex, (java.sql.Blob) pDataItem);
 			}
+		} else if (pClass == Byte.class) {
+			if (pDataItem == null)
+				pPreparedStatement.setNull(parameterIndex, java.sql.Types.TINYINT);
+			else {
+				pPreparedStatement.setByte(parameterIndex, (Byte) pDataItem);
+			}
 		} else if (pDataItem == null) {
 			pPreparedStatement.setNull(parameterIndex, java.sql.Types.JAVA_OBJECT);
 		} else
@@ -263,6 +269,8 @@ public class JDBCItemHelper {
 			result = pRS.getBlob(columnIndex);
 		} else if (pClass == java.sql.Array.class) {
 			result = pRS.getArray(columnIndex);
+		} else if (pClass == Byte.class) {
+			result = pRS.getByte(columnIndex);
 		} else {
 			result = pRS.getObject(columnIndex);
 
