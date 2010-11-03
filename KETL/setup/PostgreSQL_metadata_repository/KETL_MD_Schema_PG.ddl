@@ -1234,3 +1234,6 @@ CREATE TRIGGER moddate
   FOR EACH ROW
   EXECUTE PROCEDURE moddate();
  
+CREATE FUNCTION nvl(anyelement, anyelement) RETURNS anyelement AS '
+    SELECT COALESCE($1, $2);
+    ' LANGUAGE SQL;

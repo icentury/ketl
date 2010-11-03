@@ -268,11 +268,13 @@ public class OSJobExecutor extends ETLJobExecutor {
 				jsJobStatus.setErrorCode(2); // BRIAN: NEED TO SET UP OS JOB
 				// ERROR CODES
 				jsJobStatus.setErrorMessage("Error in process: " + e.getMessage());
-				return false;
+				bSuccess = false;
 			}
 		} finally {
 			this.stage = Stage.Completed;
 			this.monitor.alive = false;
+			if( this.monitor.process != null )
+				this.monitor.process.destroy();
 			this.ojJob = null;
 		}
 
