@@ -24,6 +24,8 @@ package com.kni.etl.ketl.dbutils.asterdata;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -32,7 +34,6 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -40,6 +41,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.zip.GZIPInputStream;
 
 import com.kni.etl.dbutils.ResourcePool;
@@ -51,6 +53,8 @@ import com.kni.etl.ketl.writer.OutputFile;
  */
 final public class AsterCopyWriter {
 
+	private static final Object DONE = new Object();
+
 	class StreamReader extends Thread {
 
 		private final CopyManagerInterface copyMngr;
@@ -58,6 +62,8 @@ final public class AsterCopyWriter {
 		private Exception exception;
 
 		private PipedInputStream is;
+
+		private LinkedBlockingQueue dataFeed;
 
 		private final String loadCommand;
 
@@ -67,27 +73,64 @@ final public class AsterCopyWriter {
 
 		private BufferedOutputStream bos;
 
-		private final Thread parent;
-
 		private final int bufferSize;
+
+		private boolean useDataFeed = false;
 
 		private BufferedInputStream bis;
 
-		public StreamReader(CopyManagerInterface copyMngr, String loadCommand, int bufferSize, Thread parentThread) {
+		private ByteArrayOutputStream mByteArrayOutputStream;
+
+		private int flushSize = 1024 * 1024 * 5;
+
+		public StreamReader(CopyManagerInterface copyMngr, String loadCommand, int bufferSize, Thread parentThread, boolean useDataFeed, int flushSize) {
 			super();
 			this.copyMngr = copyMngr;
 			this.copyMngr.setCopyBufferSize(bufferSize);
 			this.loadCommand = loadCommand;
-			this.parent = parentThread;
 			this.bufferSize = bufferSize;
+			this.flushSize = 1024 * 1024 * flushSize;
 			this.setName(parentThread.getName() + " - CopyWriter");
+			this.useDataFeed = useDataFeed;
+			if (this.useDataFeed)
+				this.dataFeed = new LinkedBlockingQueue(2);
 		}
 
 		@Override
 		public void run() {
+			if (useDataFeed)
+				useDataFeed();
+			else
+				useStream();
+
+		}
+
+		public void useDataFeed() {
+			Object o;
+			try {
+				while ((o = dataFeed.take()) != DONE) {
+					byte[] data = (byte[]) o;
+					ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
+					copyMngr.copyInQuery(loadCommand, byteStream);
+				}
+			} catch (Exception e) {
+				this.exception = e;
+				try {
+					while ((o = dataFeed.take()) != DONE) {
+						// absorb incoming data until writer notices error
+					}
+				} catch (InterruptedException e1) {
+					this.exception = e;
+				}
+
+			}
+
+		}
+
+		private void useStream() {
 			try {
 				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "loadCommand " + loadCommand);
-				copyMngr.copyInQuery(loadCommand, bis);
+				copyMngr.copyInQuery(loadCommand, is);
 				bis.close();
 				is.close();
 				is = null;
@@ -112,13 +155,18 @@ final public class AsterCopyWriter {
 
 		public void close() throws SQLException {
 			try {
-				this.writer.flush();
-				this.writer.close();
-				bos.flush();
-				bos.close();
-				pos.flush();
-				pos.close();
 
+				if (this.useDataFeed) {
+					this.flush(true);
+					this.dataFeed.put(DONE);
+				} else {
+					this.writer.flush();
+					this.writer.close();
+					bos.flush();
+					bos.close();
+					pos.flush();
+					pos.close();
+				}
 				while (this.isAlive()) {
 					Thread.sleep(1000);
 				}
@@ -129,22 +177,39 @@ final public class AsterCopyWriter {
 		}
 
 		public Writer getWriter() throws IOException {
-			String encoding = copyMngr.getEncoding();
-			CharsetEncoder charSet = (encoding == null ? java.nio.charset.Charset.defaultCharset().newEncoder() : java.nio.charset.Charset.forName(encoding).newEncoder());
 
-			is = new PipedInputStream();
-			bis = new BufferedInputStream(is, bufferSize);
-			pos = new PipedOutputStream(is);
-			bos = new BufferedOutputStream(pos, bufferSize);
-			this.writer = new OutputStreamWriter(bos, charSet);
-
+			if (this.useDataFeed) {
+				mByteArrayOutputStream = new ByteArrayOutputStream(1024 * 1024);
+				this.writer = new OutputStreamWriter(mByteArrayOutputStream,Charset.forName("UTF8"));
+			} else {
+				is = new PipedInputStream();
+				bis = new BufferedInputStream(is, bufferSize);
+				pos = new PipedOutputStream(is);
+				bos = new BufferedOutputStream(pos, bufferSize);
+				this.writer = new OutputStreamWriter(bos,Charset.forName("UTF8"));
+			}
 			return this.writer;
 		}
 
+		public byte[] getData() {
+			return this.mByteArrayOutputStream.toByteArray();
+		}
+
+		public boolean flush(boolean force) throws Exception {
+			if (force || (this.useDataFeed && this.mByteArrayOutputStream.size() > this.flushSize)) {
+				writer.flush();
+				this.mByteArrayOutputStream.flush();
+				this.dataFeed.put(this.mByteArrayOutputStream.toByteArray());
+				this.mByteArrayOutputStream.reset();
+				return true;
+			}
+
+			return false;
+		}
 	}
 
 	/** The Constant dataEnd. */
-	private static final String dataEnd = "\\.\n";
+	// private static final String dataEnd = "\\.\n";
 
 	/** The Constant mDelimiter. */
 	private final static String mDelimiter = "|";
@@ -211,7 +276,7 @@ final public class AsterCopyWriter {
 	private int rowsInThisBatch = 0;
 
 	/** The sb. */
-	StringBuilder sb = new StringBuilder();
+	private final StringBuilder tmpStringBuilder = new StringBuilder();
 
 	private int[] scales;
 
@@ -264,8 +329,14 @@ final public class AsterCopyWriter {
 
 	private Integer partitionID;
 
+	private int flushMB = 5;
+
 	public void setReplaceInvalid(String arg0) {
 		this.replace0 = arg0;
+	}
+
+	public void setFlushMB(int mb) {
+		this.flushMB = mb;
 	}
 
 	/**
@@ -282,7 +353,7 @@ final public class AsterCopyWriter {
 
 		if (this.streaming) {
 			if (this.streamReader == null) {
-				this.streamReader = new StreamReader(this.copy, this.loadCommand(), getDefaultCopyBufferSize(), Thread.currentThread());
+				this.streamReader = new StreamReader(this.copy, this.loadCommand(), getDefaultCopyBufferSize(), Thread.currentThread(), true, this.flushMB);
 				this.writer = this.streamReader.getWriter();
 				this.streamReader.start();
 			} else
@@ -290,25 +361,30 @@ final public class AsterCopyWriter {
 		} else if (spool == null) {
 			this.spool = createSpool();
 		}
-		StringBuilder sb = new StringBuilder();
+
+		this.tmpStringBuilder.setLength(0);
 
 		for (int i = 0; i < this.mColumns; i++) {
 			if (i > 0) {
-				writer.append(AsterCopyWriter.mDelimiter);
-				sb.append(AsterCopyWriter.mDelimiter);
+				tmpStringBuilder.append(AsterCopyWriter.mDelimiter);
 			}
-
-			writer.append(this.mDatums[i]);
-			sb.append(this.mDatums[i]);
+			tmpStringBuilder.append(this.mDatums[i]);
 
 			this.mDatums[i] = null;
 		}
+		writer.append(tmpStringBuilder.toString());
 		// ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
 		// "RECORD---- " + sb.toString());
 		writer.append(AsterCopyWriter.rowEnd);
 
 		this.rowsInThisBatch++;
 
+		if (this.streaming)
+			try {
+				this.streamReader.flush(false);
+			} catch (Exception e) {
+				throw new IOException(e);
+			}
 		return true;
 	}
 
@@ -353,7 +429,7 @@ final public class AsterCopyWriter {
 			if (this.copyBufferSize != null)
 				copyMngr.setCopyBufferSize(this.copyBufferSize);
 
-			// map input stream arround array.
+			// map input stream around array.
 			FileInputStream fos = new FileInputStream(file);
 			BufferedInputStream bos = new BufferedInputStream(fos, getDefaultCopyBufferSize());
 			GZIPInputStream zos = null;
@@ -437,7 +513,7 @@ final public class AsterCopyWriter {
 		// escape string if needed
 		int len = mString.length();
 
-		this.sb.setLength(0);
+		this.tmpStringBuilder.setLength(0);
 
 		for (int i = 0; i < len; i++) {
 			char c = mString.charAt(i);
@@ -445,33 +521,33 @@ final public class AsterCopyWriter {
 			switch (c) {
 			case 0:
 				if (this.replace0 != null)
-					this.sb.append(this.replace0);
+					this.tmpStringBuilder.append(this.replace0);
 				break;
 			case '\f':
-				this.sb.append("\\f");
+				this.tmpStringBuilder.append("\\f");
 				break;
 			case '\b':
-				this.sb.append("\\b");
+				this.tmpStringBuilder.append("\\b");
 				break;
 			case '\t':
-				this.sb.append("\\t");
+				this.tmpStringBuilder.append("\\t");
 				break;
 			case '\r':
-				this.sb.append("\\r");
+				this.tmpStringBuilder.append("\\r");
 				break;
 			case '\n':
-				this.sb.append("\\n");
+				this.tmpStringBuilder.append("\\n");
 				break;
 			case '\\':
 			case '|':
-				this.sb.append("\\");
+				this.tmpStringBuilder.append("\\");
 
 			default:
-				this.sb.append(c);
+				this.tmpStringBuilder.append(c);
 			}
 		}
 
-		return this.sb.toString();
+		return this.tmpStringBuilder.toString();
 	}
 
 	public void executeBatch() throws IOException, SQLException {

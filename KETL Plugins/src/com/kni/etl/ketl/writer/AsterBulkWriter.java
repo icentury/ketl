@@ -220,6 +220,8 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 
 	private static final String AUTOPARTITION_ATTRIB = "AUTOPARTITION";
 
+	private static final String FLUSHMB_ATTRIB = "FLUSHMB";
+
 	private String[] cols;
 
 	private HashMap<String, ColumnExtDetail> columnMap;
@@ -322,6 +324,8 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 	private int mSkewFixThreshold;
 
 	private int miGroupWaitTime;
+
+	private int flushMB;
 
 	/**
 	 * Instantiates a new PG bulk writer.
@@ -470,6 +474,7 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 			try {
 				wr = new AsterCopyWriter(ResourcePool.getConnection(this.strDriverClass, this.loaderURL, this.strUserName, this.strPassword, this.strPreSQL, true, this
 						.getDatabaseProperties()), true);
+				wr.setFlushMB(this.flushMB);
 			} catch (ClassNotFoundException e) {
 				throw new SQLException(e);
 			}
@@ -706,14 +711,20 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 
 		// Pull the commit size...
 		this.batchSize = XMLHelper.getAttributeAsInt(nmAttrs, AsterBulkWriter.COMMITSIZE_ATTRIB, this.batchSize);
+		this.flushMB = XMLHelper.getAttributeAsInt(nmAttrs, AsterBulkWriter.FLUSHMB_ATTRIB, 5);
 		this.mAutoPartition = XMLHelper.getAttributeAsBoolean(nmAttrs, AUTOPARTITION_ATTRIB, false);
 		this.replace0 = XMLHelper.getAttributeAsString(nmAttrs, REPLACEINVALID_ATTRIB, null);
 		this.compress = XMLHelper.getAttributeAsBoolean(nmAttrs, AsterBulkWriter.COMPRESS_ATTRIB, this.compress);
 		this.copyBufferSize = XMLHelper.getAttributeAsInt(nmAttrs, BUFFERSIZE_ATTRIB, -1);
 		this.useFile = XMLHelper.getAttributeAsBoolean(nmAttrs, AsterBulkWriter.USEFILE_ATTRIB, this.useFile);
 		this.fileDump = XMLHelper.getAttributeAsBoolean(nmAttrs, AsterBulkWriter.FILEDUMP_ATTRIB, this.fileDump);
-		if (this.fileDump == false)
+		if (this.fileDump == false) {
 			this.streaming = XMLHelper.getAttributeAsBoolean(nmAttrs, AsterBulkWriter.STREAM_ATTRIB, this.streaming);
+			// / if (this.streaming)
+			// ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE,
+			// "Streaming has been disabled due to driver issues, fix is being worked on");
+		}
+		// this.streaming = false;
 
 		this.createScript = XMLHelper.getAttributeAsBoolean(nmAttrs, AsterBulkWriter.SCRIPT, this.createScript);
 		if (this.createScript)
