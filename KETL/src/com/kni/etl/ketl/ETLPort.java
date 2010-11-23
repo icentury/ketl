@@ -23,6 +23,7 @@
 package com.kni.etl.ketl;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -51,6 +52,8 @@ public abstract class ETLPort {
 	/** The Constant OBJECT_TYPE_ATTRIB. */
 	public static final String OBJECT_TYPE_ATTRIB = "OBJECTTYPE";
 
+	private static final String METHOD_ATTRIB = "METHOD";
+
 	/** The mstr name. */
 	public String mstrName;
 
@@ -71,6 +74,8 @@ public abstract class ETLPort {
 
 	/** The ma QA event generators. */
 	QAItemLevelEventGenerator[] maQAEventGenerators = null;
+
+	private Method method;
 
 	/**
 	 * Generate code.
@@ -107,8 +112,9 @@ public abstract class ETLPort {
 	 *             the KETL thread exception
 	 */
 	public void used(boolean arg0) throws KETLThreadException {
-		//ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Port: " + this.getPortName()
-		//		+ (arg0 ? " enabled" : " disabled"));
+		// ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Port: " +
+		// this.getPortName()
+		// + (arg0 ? " enabled" : " disabled"));
 		this.mUsed = arg0;
 	}
 
@@ -141,8 +147,7 @@ public abstract class ETLPort {
 	 * @return true, if is object type
 	 */
 	public boolean isObjectType(String pObjectTypeName) {
-		if ((pObjectTypeName != null) && (this.mObjectType != null)
-				&& this.mObjectType.equalsIgnoreCase(pObjectTypeName)) {
+		if ((pObjectTypeName != null) && (this.mObjectType != null) && this.mObjectType.equalsIgnoreCase(pObjectTypeName)) {
 			return true;
 		}
 
@@ -162,7 +167,8 @@ public abstract class ETLPort {
 		this.mesSrcStep = esSrcStep;
 	}
 
-	// Initializes the basic attributes and checks the child nodes to relate to other steps via the HashMap.
+	// Initializes the basic attributes and checks the child nodes to relate to
+	// other steps via the HashMap.
 	/**
 	 * Initialize.
 	 * 
@@ -182,6 +188,15 @@ public abstract class ETLPort {
 		this.mstrName = this.getPortName();
 		this.setPortClass();
 
+		String methodName = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), ETLPort.METHOD_ATTRIB, null);
+
+		if (methodName != null) {
+			try {
+				this.method = this.getClass().getMethod(methodName, new Class[0]);
+			} catch (Exception e) {
+				throw new KETLThreadException(e, this);
+			}
+		}
 		if (this.isConstant() && this.constantValue == null) {
 			this.instantiateConstant();
 		}
@@ -190,9 +205,10 @@ public abstract class ETLPort {
 			this.mbQAItemsExist = true;
 		}
 
-		//ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Creating "
-		//		+ (this instanceof ETLInPort ? "IN" : "OUT") + " port " + this.mesStep.getName() + "."
-		//		+ this.getPortName());
+		// ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Creating "
+		// + (this instanceof ETLInPort ? "IN" : "OUT") + " port " +
+		// this.mesStep.getName() + "."
+		// + this.getPortName());
 		return 0;
 	}
 
@@ -233,8 +249,7 @@ public abstract class ETLPort {
 			if (id == -1) {
 				if (dType.endsWith("[]")) {
 					this.isArray = true;
-					this.mDataType = java.lang.reflect.Array.newInstance(
-							Class.forName(dType.substring(0, dType.length() - 2)), 0).getClass();
+					this.mDataType = java.lang.reflect.Array.newInstance(Class.forName(dType.substring(0, dType.length() - 2)), 0).getClass();
 				} else
 					this.mDataType = Class.forName(dType);
 			} else {
@@ -242,10 +257,8 @@ public abstract class ETLPort {
 			}
 		} else if (dType == null && this.isConstant()) {
 			if (dType == null) {
-				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, "Defaulting port "
-						+ this.mesStep.getName() + "."
-						+ XMLHelper.getAttributeAsString(this.mNode.getAttributes(), "NAME", null)
-						+ " datatype to java.lang.String");
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, "Defaulting port " + this.mesStep.getName() + "."
+						+ XMLHelper.getAttributeAsString(this.mNode.getAttributes(), "NAME", null) + " datatype to java.lang.String");
 				dType = "java.lang.String";
 				this.mDataType = String.class;
 				this.defaultTypeUsed = true;
@@ -307,6 +320,9 @@ public abstract class ETLPort {
 	 */
 	final public boolean isConstant() {
 
+		if (this.method != null)
+			return true;
+
 		if (this.constant == null) {
 			this.constant = ETLPort.containsConstant(XMLHelper.getTextContent(this.getXMLConfig()));
 		}
@@ -349,12 +365,11 @@ public abstract class ETLPort {
 
 		String content = XMLHelper.getTextContent(this.getXMLConfig());
 
-		if (content == null
-				|| content.trim().length() == 0
-				)
+		if (content == null || content.trim().length() == 0)
 			return null;
-		else if ((content.trim().startsWith(com.kni.etl.EngineConstants.VARIABLE_PARAMETER_START) && content.trim()
-						.endsWith(com.kni.etl.EngineConstants.VARIABLE_PARAMETER_END)) && EngineConstants.getParametersFromText(content).length==1)			
+		else if ((content.trim().startsWith(com.kni.etl.EngineConstants.VARIABLE_PARAMETER_START) && content.trim().endsWith(
+				com.kni.etl.EngineConstants.VARIABLE_PARAMETER_END))
+				&& EngineConstants.getParametersFromText(content).length == 1)
 			return null;
 
 		return content;
@@ -371,20 +386,19 @@ public abstract class ETLPort {
 	public ETLPort getAssociatedInPort() throws KETLThreadException {
 		if (this.getCode() != null)
 			throw new KETLThreadException("Port " + this.mesStep.getName() + "." + this.getPortName()
-					+ " does not contain a valid mapping, make sure datatype is declared for ports containing code",
-					this);
+					+ " does not contain a valid mapping, make sure datatype is declared for ports containing code", this);
 
 		String[] port = EngineConstants.getParametersFromText(XMLHelper.getTextContent(this.getXMLConfig()));
 
 		if (port == null || port.length != 1)
-			throw new KETLThreadException("Port " + this.mesStep.getName() + "." + this.getPortName()
-					+ " does not contain a valid mapping, see XML: " + XMLHelper.outputXML(this.getXMLConfig()), this);
+			throw new KETLThreadException("Port " + this.mesStep.getName() + "." + this.getPortName() + " does not contain a valid mapping, see XML: "
+					+ XMLHelper.outputXML(this.getXMLConfig()), this);
 
 		ETLInPort p = this.mesStep.getInPort(port[0]);
 
 		if (p == null)
-			throw new KETLThreadException("Port " + this.mesStep.getName() + ", see XML: "
-					+ XMLHelper.outputXML(this.getXMLConfig()) + " contains an invalid in port name " + port[0], this);
+			throw new KETLThreadException("Port " + this.mesStep.getName() + ", see XML: " + XMLHelper.outputXML(this.getXMLConfig())
+					+ " contains an invalid in port name " + port[0], this);
 
 		return p;
 	}
@@ -437,7 +451,12 @@ public abstract class ETLPort {
 	 *             the KETL thread exception
 	 */
 	public void instantiateConstant() throws KETLThreadException {
+
+		if (this.method != null)
+			return;
+
 		try {
+
 			String txt = this.getXMLConfig().getTextContent().trim();
 			txt = txt.substring(1, txt.length() - 1);
 			Constructor con = this.getPortClass().getConstructor(new Class[] { String.class });
@@ -453,6 +472,14 @@ public abstract class ETLPort {
 	 * @return the constant value
 	 */
 	final public Object getConstantValue() {
+
+		if (this.method != null)
+			try {
+				return this.method.invoke(this, new Object[0]);
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+
 		return this.constantValue;
 	}
 
