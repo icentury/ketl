@@ -36,6 +36,7 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -113,6 +114,8 @@ final public class AsterCopyWriter {
 					ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
 					copyMngr.copyInQuery(loadCommand, byteStream);
 				}
+
+				copyMngr.commit();
 			} catch (Exception e) {
 				this.exception = e;
 				try {
@@ -134,6 +137,7 @@ final public class AsterCopyWriter {
 				bis.close();
 				is.close();
 				is = null;
+				copyMngr.commit();
 			} catch (Exception e) {
 				exception = e;
 				try {
@@ -180,13 +184,13 @@ final public class AsterCopyWriter {
 
 			if (this.useDataFeed) {
 				mByteArrayOutputStream = new ByteArrayOutputStream(1024 * 1024);
-				this.writer = new OutputStreamWriter(mByteArrayOutputStream,Charset.forName("UTF8"));
+				this.writer = new OutputStreamWriter(mByteArrayOutputStream, Charset.forName("UTF8"));
 			} else {
 				is = new PipedInputStream();
 				bis = new BufferedInputStream(is, bufferSize);
 				pos = new PipedOutputStream(is);
 				bos = new BufferedOutputStream(pos, bufferSize);
-				this.writer = new OutputStreamWriter(bos,Charset.forName("UTF8"));
+				this.writer = new OutputStreamWriter(bos, Charset.forName("UTF8"));
 			}
 			return this.writer;
 		}
@@ -438,7 +442,7 @@ final public class AsterCopyWriter {
 
 			// send command
 			copyMngr.copyInQuery(this.msLoadCommand, this.compress ? zos : bos);
-
+			copyMngr.commit();
 			if (this.compress)
 				zos.close();
 			bos.close();
@@ -564,6 +568,9 @@ final public class AsterCopyWriter {
 	}
 
 	private CopyManagerInterface newCopyManager(Connection con) throws SQLException {
+		Statement stmt = con.createStatement();
+		stmt.execute("begin");
+
 		return new CopyManager(con);
 	}
 

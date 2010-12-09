@@ -144,4 +144,9 @@ public class CopyManager implements CopyManagerInterface {
 		this.bufferSize = arg0;
 	}
 
+	@Override
+	public void commit() throws SQLException {
+		this.pgConnection.commit();
+	}
+
 }
