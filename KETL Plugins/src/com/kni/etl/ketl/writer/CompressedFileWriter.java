@@ -24,6 +24,11 @@ import com.kni.etl.util.XMLHelper;
 
 public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore {
 
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
+
 	/**
 	 * Instantiates a new NIO file writer.
 	 * 
@@ -39,8 +44,7 @@ public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public CompressedFileWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-			throws KETLThreadException {
+	public CompressedFileWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -137,7 +141,8 @@ public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore
 	 */
 	@Override
 	public int complete() throws KETLThreadException {
-		// If there were no input rows, then we won't even have an upsert object...
+		// If there were no input rows, then we won't even have an upsert
+		// object...
 		if (this.mWriters == null) {
 			ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "No records processed.");
 
@@ -186,14 +191,11 @@ public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore
 
 			this.channel = java.nio.channels.Channels.newChannel(this.stream);
 
-			CharsetEncoder charSet = (CompressedFileWriter.this.mCharSet == null ? java.nio.charset.Charset
-					.defaultCharset().newEncoder() : java.nio.charset.Charset.forName(
+			CharsetEncoder charSet = (CompressedFileWriter.this.mCharSet == null ? java.nio.charset.Charset.defaultCharset().newEncoder() : java.nio.charset.Charset.forName(
 					CompressedFileWriter.this.mCharSet).newEncoder());
 
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Writing to file " + filePath
-					+ ", character set " + charSet.charset().displayName());
-			this.writer = java.nio.channels.Channels.newWriter(this.channel, charSet,
-					CompressedFileWriter.this.miOutputBufferSize);
+			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Writing to file " + filePath + ", character set " + charSet.charset().displayName());
+			this.writer = java.nio.channels.Channels.newWriter(this.channel, charSet, CompressedFileWriter.this.miOutputBufferSize);
 
 		}
 
@@ -247,8 +249,7 @@ public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore
 		}
 
 		if (this.maParameters == null) {
-			throw new KETLThreadException("No complete parameter sets found, check that the following exist:\n"
-					+ this.getRequiredTagsMessage(), this);
+			throw new KETLThreadException("No complete parameter sets found, check that the following exist:\n" + this.getRequiredTagsMessage(), this);
 		}
 
 		ArrayList files = new ArrayList();
@@ -272,7 +273,8 @@ public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore
 			throw new KETLThreadException(e, this);
 		}
 
-		// If this is our first call to upsert, we'll need to initialize it now that we know it's types...
+		// If this is our first call to upsert, we'll need to initialize it now
+		// that we know it's types...
 		if (this.mWriters == null || files.size() == 0) {
 			throw new KETLThreadException("No output files specified", this);
 		}
@@ -282,17 +284,12 @@ public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore
 
 		NodeList nl = xmlDestNode.getChildNodes();
 
-		boolean AppendLineFeed = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(),
-				CompressedFileWriter.ENABLE_LINEFEED, true);
-		this.mbDelimiterAtEnd = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(),
-				CompressedFileWriter.DELIMITER_AT_END, false);
-		this.msDefaultDelimiter = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(),
-				CompressedFileWriter.DELIMITER, "\t");
-		this.msEscapeChar = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(),
-				CompressedFileWriter.ESCAPE_CHARACTER_STRING, "\\");
+		boolean AppendLineFeed = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), CompressedFileWriter.ENABLE_LINEFEED, true);
+		this.mbDelimiterAtEnd = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), CompressedFileWriter.DELIMITER_AT_END, false);
+		this.msDefaultDelimiter = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), CompressedFileWriter.DELIMITER, "\t");
+		this.msEscapeChar = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), CompressedFileWriter.ESCAPE_CHARACTER_STRING, "\\");
 
-		String tmpLineFeed = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(),
-				CompressedFileWriter.LINEFEED_CHARACTER, "DOS");
+		String tmpLineFeed = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), CompressedFileWriter.LINEFEED_CHARACTER, "DOS");
 
 		if (tmpLineFeed.compareTo("DOS") == 0) {
 			this.mLinefeed = new String("\r\n");
@@ -300,10 +297,8 @@ public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore
 			this.mLinefeed = new String("\n");
 		}
 
-		this.mCompressionBufferSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(),
-				CompressedFileWriter.COMRPESSION_BUFFER, 512);
-		this.miOutputBufferSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(),
-				CompressedFileWriter.WRITE_BUFFER, this.miOutputBufferSize);
+		this.mCompressionBufferSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(), CompressedFileWriter.COMRPESSION_BUFFER, 512);
+		this.miOutputBufferSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(), CompressedFileWriter.WRITE_BUFFER, this.miOutputBufferSize);
 
 		if (this.miOutputBufferSize == 0) {
 			this.miOutputBufferSize = NIOFileWriter.DEFAULT_BUFFER_SIZE;
@@ -316,17 +311,12 @@ public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore
 				nmAttrs = nl.item(i).getAttributes();
 				nmAttrs.getNamedItem(CompressedFileWriter.NAME);
 
-				destFieldDefinition.MaxLength = XMLHelper.getAttributeAsInt(nmAttrs,
-						CompressedFileWriter.MAXIMUM_LENGTH, destFieldDefinition.MaxLength);
-				destFieldDefinition.FixedWidth = XMLHelper.getAttributeAsBoolean(nmAttrs,
-						CompressedFileWriter.FIXEDWIDTH, false);
+				destFieldDefinition.MaxLength = XMLHelper.getAttributeAsInt(nmAttrs, CompressedFileWriter.MAXIMUM_LENGTH, destFieldDefinition.MaxLength);
+				destFieldDefinition.FixedWidth = XMLHelper.getAttributeAsBoolean(nmAttrs, CompressedFileWriter.FIXEDWIDTH, false);
 
-				destFieldDefinition.Delimiter = XMLHelper.getAttributeAsString(nmAttrs, CompressedFileWriter.DELIMITER,
-						this.msDefaultDelimiter);
-				destFieldDefinition.FormatString = XMLHelper.getAttributeAsString(nmAttrs,
-						CompressedFileWriter.FORMAT_STRING, destFieldDefinition.FormatString);
-				destFieldDefinition.DefaultValue = XMLHelper.getAttributeAsString(nmAttrs,
-						CompressedFileWriter.DEFAULT_VALUE, destFieldDefinition.DefaultValue);
+				destFieldDefinition.Delimiter = XMLHelper.getAttributeAsString(nmAttrs, CompressedFileWriter.DELIMITER, this.msDefaultDelimiter);
+				destFieldDefinition.FormatString = XMLHelper.getAttributeAsString(nmAttrs, CompressedFileWriter.FORMAT_STRING, destFieldDefinition.FormatString);
+				destFieldDefinition.DefaultValue = XMLHelper.getAttributeAsString(nmAttrs, CompressedFileWriter.DEFAULT_VALUE, destFieldDefinition.DefaultValue);
 
 				destFieldDefinitions.add(destFieldDefinition);
 			}
@@ -360,39 +350,35 @@ public class CompressedFileWriter extends ETLWriter implements DefaultWriterCore
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
 	 */
-	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
-			throws KETLWriteException {
+	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 
 		// Read record and write to output buffer.
 		for (int i = 0; i < pRecordWidth; i++) {
 			int pos = this.sb.length();
 			// if record exists
 			try {
-				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue()
-						: pInputRecords[this.mInPorts[i].getSourcePortIndex()];
+				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : pInputRecords[this.mInPorts[i].getSourcePortIndex()];
 
 				// if byte array is null then apply default value
 				if (data == null) {
 					if (this.mDestFieldDefinitions[i].DefaultValue != null) {
-						this.sb.append(this.escape(this.mDestFieldDefinitions[i].DefaultValue,
-								this.mDestFieldDefinitions[i].Delimiter, !this.mDestFieldDefinitions[i].FixedWidth));
+						this.sb.append(this.escape(this.mDestFieldDefinitions[i].DefaultValue, this.mDestFieldDefinitions[i].Delimiter, !this.mDestFieldDefinitions[i].FixedWidth));
 					}
 				} else {
 					if (this.mDestFieldDefinitions[i].FormatString != null) {
 						int idx = this.mInPorts[i].getSourcePortIndex();
-						this.sb.append(this.escape(this.mDestFieldDefinitions[i].getFormat(pExpectedDataTypes[idx])
-								.format(data), this.mDestFieldDefinitions[i].Delimiter,
+						this.sb.append(this.escape(this.mDestFieldDefinitions[i].getFormat(pExpectedDataTypes[idx]).format(data), this.mDestFieldDefinitions[i].Delimiter,
 								!this.mDestFieldDefinitions[i].FixedWidth));
 					} else
-						this.sb.append(this.escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter,
-								!this.mDestFieldDefinitions[i].FixedWidth));
+						this.sb.append(this.escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter, !this.mDestFieldDefinitions[i].FixedWidth));
 				}
 
 				// get max length of item to place inoutput buffer
-				if ((this.mDestFieldDefinitions[i].MaxLength != -1)
-						&& (this.sb.length() - pos > this.mDestFieldDefinitions[i].MaxLength)) {
+				if ((this.mDestFieldDefinitions[i].MaxLength != -1) && (this.sb.length() - pos > this.mDestFieldDefinitions[i].MaxLength)) {
 					this.sb.setLength(pos + this.mDestFieldDefinitions[i].MaxLength);
 				} else if (this.mDestFieldDefinitions[i].FixedWidth) {
 					int rem = (pos + this.mDestFieldDefinitions[i].MaxLength) - this.sb.length();

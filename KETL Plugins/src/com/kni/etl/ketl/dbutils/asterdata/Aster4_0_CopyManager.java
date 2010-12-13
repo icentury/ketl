@@ -24,8 +24,9 @@ import com.asterdata.ncluster.util.NClusterWarning;
 import com.asterdata.ncluster.util.ServerErrorMessage;
 
 /**
- * Implement COPY support in the JDBC driver. This requires a 7.4 server and a connection with the V3 protocol. Previous
- * versions could not recover from errors and the connection had to be abandoned which was not acceptable.
+ * Implement COPY support in the JDBC driver. This requires a 7.4 server and a
+ * connection with the V3 protocol. Previous versions could not recover from
+ * errors and the connection had to be abandoned which was not acceptable.
  */
 
 public class Aster4_0_CopyManager implements CopyManagerInterface {
@@ -65,37 +66,56 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#setCopyBufferSize(int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#setCopyBufferSize
+	 * (int)
 	 */
 	public void setCopyBufferSize(int arg0) {
 		this.bufSize = arg0;
 		buf = new byte[this.bufSize];
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#encodeString(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#encodeString(
+	 * java.lang.String)
 	 */
 	public byte[] encodeString(String arg0) throws IOException {
 		return this.encoder.encode(arg0);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#getEncoding()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#getEncoding()
 	 */
 	public String getEncoding() {
 		return this.encoder.name();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#copyIn(java.lang.String, java.io.InputStream)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#copyIn(java.lang
+	 * .String, java.io.InputStream)
 	 */
 	public void copyIn(String table, InputStream is) throws SQLException {
 		copyInQuery("COPY " + table + " FROM STDIN", is);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#copyInQuery(java.lang.String, java.io.InputStream)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#copyInQuery(java
+	 * .lang.String, java.io.InputStream)
 	 */
 	public void copyInQuery(String query, InputStream is) throws SQLException {
 
@@ -112,15 +132,23 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#copyOut(java.lang.String, java.io.OutputStream)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#copyOut(java.
+	 * lang.String, java.io.OutputStream)
 	 */
 	public void copyOut(String table, OutputStream os) throws SQLException {
 		copyOutQuery("COPY " + table + " TO STDOUT", os);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#copyOutQuery(java.lang.String, java.io.OutputStream)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#copyOutQuery(
+	 * java.lang.String, java.io.OutputStream)
 	 */
 	public void copyOutQuery(String query, OutputStream os) throws SQLException {
 		synchronized (pgStream) {
@@ -134,15 +162,21 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#getWarnings()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#getWarnings()
 	 */
 	public synchronized SQLWarning getWarnings() {
 		return this.warnings;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#clearWarnings()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.dbutils.asterdata.CopyManagerInterface#clearWarnings()
 	 */
 	public synchronized void clearWarnings() {
 		warnings = null;
@@ -191,13 +225,16 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 	}
 
 	/**
-	 * After the copy query has been go through the possible responses. The flag which tells us whether we are doing
-	 * copy in or out is simply where the InputStream or OutputStream is null. This is much like the loop in
-	 * QueryExecutor, it could be merged into that, but it would require some generalization of its current specific
-	 * tasks. Right now it has its query in m_binds[] form and expects to return a ResultSet. A more pluggable network
-	 * layer would be nice so we could support the V2 and V3 protocols more cleanly and consider a SPI based layer for
-	 * an in server pl/java. In general I think it's a bad idea for PGStream to be seen anywhere outside of the
-	 * QueryExecutor.
+	 * After the copy query has been go through the possible responses. The flag
+	 * which tells us whether we are doing copy in or out is simply where the
+	 * InputStream or OutputStream is null. This is much like the loop in
+	 * QueryExecutor, it could be merged into that, but it would require some
+	 * generalization of its current specific tasks. Right now it has its query
+	 * in m_binds[] form and expects to return a ResultSet. A more pluggable
+	 * network layer would be nice so we could support the V2 and V3 protocols
+	 * more cleanly and consider a SPI based layer for an in server pl/java. In
+	 * general I think it's a bad idea for PGStream to be seen anywhere outside
+	 * of the QueryExecutor.
 	 */
 	private void copyResultLoop(InputStream is, OutputStream os) throws SQLException, IOException {
 
@@ -281,8 +318,7 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 			pgStream.SendChar(0);
 			pgStream.flush();
 		} catch (IOException ioe) {
-			throw new NClusterException("postgresql.copy.ioerror", NClusterState.CONNECTION_FAILURE_DURING_TRANSACTION,
-					ioe);
+			throw new NClusterException("postgresql.copy.ioerror", NClusterState.CONNECTION_FAILURE_DURING_TRANSACTION, ioe);
 		}
 	}
 
@@ -297,8 +333,7 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 					absorb += read;
 				}
 			} catch (IOException ioe) {
-				throw new NClusterException("postgresql.copy.inputsource, check data at byte position " + charIndex,
-						NClusterState.DATA_ERROR, ioe);
+				throw new NClusterException("postgresql.copy.inputsource, check data at byte position " + charIndex, NClusterState.DATA_ERROR, ioe);
 			}
 
 			if (absorb > 0) {
@@ -308,9 +343,8 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 					pgStream.SendInteger4(messageSize);
 					pgStream.Send(buf, absorb);
 					charIndex += absorb;
-				} catch (IOException ioe) {					
-					throw new NClusterException("postgresql.copy.ioerror, check data at byte position " + charIndex,
-							NClusterState.CONNECTION_FAILURE_DURING_TRANSACTION, ioe);
+				} catch (IOException ioe) {
+					throw new NClusterException("postgresql.copy.ioerror, check data at byte position " + charIndex, NClusterState.CONNECTION_FAILURE_DURING_TRANSACTION, ioe);
 				}
 			}
 		}
@@ -321,13 +355,13 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 			pgStream.SendInteger4(4);
 			pgStream.flush();
 		} catch (IOException ioe) {
-			throw new NClusterException("postgresql.copy.ioerror", NClusterState.CONNECTION_FAILURE_DURING_TRANSACTION,
-					ioe);
+			throw new NClusterException("postgresql.copy.ioerror", NClusterState.CONNECTION_FAILURE_DURING_TRANSACTION, ioe);
 		}
 	}
 
 	/**
-	 * CopyInResponse and CopyOutResponse have the same field layouts and we simply discard the results.
+	 * CopyInResponse and CopyOutResponse have the same field layouts and we
+	 * simply discard the results.
 	 */
 	private void receiveCopyInOutResponse() throws SQLException {
 		try {
@@ -339,8 +373,7 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 				int copyColumnFormat = pgStream.ReceiveInteger2();
 			}
 		} catch (IOException ex) {
-			throw new NClusterException("postgresql.copy.ioerror", NClusterState.CONNECTION_FAILURE_DURING_TRANSACTION,
-					ex);
+			throw new NClusterException("postgresql.copy.ioerror", NClusterState.CONNECTION_FAILURE_DURING_TRANSACTION, ex);
 		}
 	}
 
@@ -352,6 +385,12 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 		} catch (IOException ioe) {
 			throw new NClusterException("postgresql.copy.outputsource", NClusterState.DATA_ERROR, ioe);
 		}
+	}
+
+	@Override
+	public void commit() throws SQLException {
+		// TODO Auto-generated method stub
+
 	}
 
 }
