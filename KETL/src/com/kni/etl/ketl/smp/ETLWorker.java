@@ -470,7 +470,9 @@ abstract public class ETLWorker implements Runnable {
 		// USE_CHECK_POINT,
 		// false);
 
-		ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, this.getVersion().replace("$LastChangedRevision", "Version"));
+		if (this.getVersion() != null)
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Using " + this.getClass().getName() + " - "
+					+ this.getVersion().replace("$LastChangedRevision: ", "v.").replace("$", ""));
 
 		try {
 			Class cl = Class.forName("com.kni.etl.ketl.smp.ETLBatchOptimizer");
