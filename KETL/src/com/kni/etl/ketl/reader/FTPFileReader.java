@@ -45,309 +45,325 @@ import com.kni.util.net.ftp.FTPReply;
  */
 public class FTPFileReader extends FileReader {
 
-    /**
-     * Close FTP connections.
-     */
-    private void closeFTPConnections() {
-        if (this.ftpClients == null) {
-            return;
-        }
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-        for (Object element : this.ftpClients) {
-            if (((FTPClient) element).isConnected()) {
-                try {
-                    ((FTPClient) element).disconnect();
-                } catch (IOException f) {
-                    // do nothing
-                }
-            }
-        }
-    }
+	/**
+	 * Close FTP connections.
+	 */
+	private void closeFTPConnections() {
+		if (this.ftpClients == null) {
+			return;
+		}
 
-    /** The USER. */
-    static String USER = "USER";
-    
-    /** The PASSWORD. */
-    static String PASSWORD = "PASSWORD";
-    
-    /** The TRANSFE r_ TYPE. */
-    static String TRANSFER_TYPE = "TRANSFER_TYPE";
-    
-    /** The BINARY. */
-    static String BINARY = "BINARY";
-    
-    /** The ASCII. */
-    static String ASCII = "ASCII";
-    
-    /** The SERVER. */
-    static String SERVER = "SERVER";
-    
-    /** The ftp clients. */
-    private Object[] ftpClients = null;
-    
-    /** The FILENAM e_ POS. */
-    static int FILENAME_POS = 0;
-    
-    /** The PARAMLIS t_ I d_ POS. */
-    static int PARAMLIST_ID_POS = 1;
+		for (Object element : this.ftpClients) {
+			if (((FTPClient) element).isConnected()) {
+				try {
+					((FTPClient) element).disconnect();
+				} catch (IOException f) {
+					// do nothing
+				}
+			}
+		}
+	}
 
-    /**
-     * Instantiates a new FTP file reader.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public FTPFileReader(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	/** The USER. */
+	static String USER = "USER";
 
-    /**
-     * Gets the FTP filenames.
-     * 
-     * @param iParamList The param list
-     * 
-     * @return the FTP filenames
-     */
-    public Object[][] getFTPFilenames(int iParamList) {
-        Object[][] result = null;
+	/** The PASSWORD. */
+	static String PASSWORD = "PASSWORD";
 
-        boolean binaryTransfer = true;
+	/** The TRANSFE r_ TYPE. */
+	static String TRANSFER_TYPE = "TRANSFER_TYPE";
 
-        String searchString = this.getParameterValue(iParamList, NIOFileReader.SEARCHPATH);
+	/** The BINARY. */
+	static String BINARY = "BINARY";
 
-        if (searchString == null) {
-            return null;
-        }
+	/** The ASCII. */
+	static String ASCII = "ASCII";
 
-        String tmp = this.getParameterValue(iParamList, FTPFileReader.TRANSFER_TYPE);
+	/** The SERVER. */
+	static String SERVER = "SERVER";
 
-        if ((tmp != null) && tmp.equalsIgnoreCase(FTPFileReader.ASCII)) {
-            binaryTransfer = false;
-        }
+	/** The ftp clients. */
+	private Object[] ftpClients = null;
 
-        FTPClient ftp = this.getFTPConnection(this.getParameterValue(iParamList, FTPFileReader.USER), this.getParameterValue(iParamList,
-                FTPFileReader.PASSWORD), this.getParameterValue(iParamList, FTPFileReader.SERVER), binaryTransfer, "Directory listing connection.");
+	/** The FILENAM e_ POS. */
+	static int FILENAME_POS = 0;
 
-        if (ftp == null) {
-            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not connect to server.");
+	/** The PARAMLIS t_ I d_ POS. */
+	static int PARAMLIST_ID_POS = 1;
 
-            return null;
-        }
+	/**
+	 * Instantiates a new FTP file reader.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public FTPFileReader(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-        FTPFile[] fList;
+	/**
+	 * Gets the FTP filenames.
+	 * 
+	 * @param iParamList
+	 *            The param list
+	 * 
+	 * @return the FTP filenames
+	 */
+	public Object[][] getFTPFilenames(int iParamList) {
+		Object[][] result = null;
 
-        try {
-            fList = ftp.listFiles(new DefaultFTPFileListParser(), searchString);
+		boolean binaryTransfer = true;
 
-            char pathSeperator = '\\';
-            String pathName = null;
-            int endOfPath = searchString.lastIndexOf(pathSeperator);
+		String searchString = this.getParameterValue(iParamList, NIOFileReader.SEARCHPATH);
 
-            if (endOfPath == -1) {
-                pathSeperator = '/';
-                endOfPath = searchString.lastIndexOf(pathSeperator);
-            }
+		if (searchString == null) {
+			return null;
+		}
 
-            if (endOfPath != -1) {
-                pathName = searchString.substring(0, endOfPath);
-            }
+		String tmp = this.getParameterValue(iParamList, FTPFileReader.TRANSFER_TYPE);
 
-            if (fList != null) {
-                ArrayList res = new ArrayList();
+		if ((tmp != null) && tmp.equalsIgnoreCase(FTPFileReader.ASCII)) {
+			binaryTransfer = false;
+		}
 
-                for (FTPFile element : fList) {
-                    Object[] o = new Object[2];
-                    o[FTPFileReader.PARAMLIST_ID_POS] = new Integer(iParamList);
+		FTPClient ftp = this.getFTPConnection(this.getParameterValue(iParamList, FTPFileReader.USER), this.getParameterValue(iParamList, FTPFileReader.PASSWORD), this
+				.getParameterValue(iParamList, FTPFileReader.SERVER), binaryTransfer, "Directory listing connection.");
 
-                    if (pathName != null) {
-                        o[FTPFileReader.FILENAME_POS] = pathName + pathSeperator + element.getName();
+		if (ftp == null) {
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not connect to server.");
 
-                        res.add(o);
-                    }
-                    else {
-                        o[FTPFileReader.FILENAME_POS] = element.getName();
-                        res.add(o);
-                    }
-                }
+			return null;
+		}
 
-                if (res.size() > 0) {
-                    result = new Object[res.size()][];
-                    res.toArray(result);
-                }
-            }
-        } catch (IOException e1) {
-            ResourcePool.LogException(e1, this);
-            ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, searchString + " caused IO Exception, file will be ignored");
-        }
+		FTPFile[] fList;
 
-        if (ftp.isConnected()) {
-            try {
-                ftp.disconnect();
-            } catch (IOException f) {
-                // do nothing
-            }
-        }
+		try {
+			fList = ftp.listFiles(new DefaultFTPFileListParser(), searchString);
 
-        return result;
-    }
+			char pathSeperator = '\\';
+			String pathName = null;
+			int endOfPath = searchString.lastIndexOf(pathSeperator);
 
-    /** The tmp FTP clients. */
-    ArrayList tmpFTPClients = new ArrayList();
+			if (endOfPath == -1) {
+				pathSeperator = '/';
+				endOfPath = searchString.lastIndexOf(pathSeperator);
+			}
 
-    /** The connection cnt. */
-    int connectionCnt = 1;
+			if (endOfPath != -1) {
+				pathName = searchString.substring(0, endOfPath);
+			}
 
-    // Returns the number of actually opened paths...
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.reader.NIOFileReader#getFileChannels(com.kni.etl.ketl.reader.NIOFileReader.FileToRead[])
-     */
-    @Override
-    int getFileChannels(FileToRead[] astrPaths) throws Exception {
-        int iNumPaths = 0;
-        FTPClient ftp = null;
-        boolean binaryTransfer = true;
+			if (fList != null) {
+				ArrayList res = new ArrayList();
 
-        if (astrPaths == null) {
-            return 0;
-        }
+				for (FTPFile element : fList) {
+					Object[] o = new Object[2];
+					o[FTPFileReader.PARAMLIST_ID_POS] = new Integer(iParamList);
 
-        if (this.mAllowDuplicates == false) {
-            this.maFiles = NIOFileReader.dedupFileList(this.maFiles);
-        }
+					if (pathName != null) {
+						o[FTPFileReader.FILENAME_POS] = pathName + pathSeperator + element.getName();
 
-        for (FileToRead element : astrPaths) {
+						res.add(o);
+					} else {
+						o[FTPFileReader.FILENAME_POS] = element.getName();
+						res.add(o);
+					}
+				}
 
-            InputStream tmpStream;
+				if (res.size() > 0) {
+					result = new Object[res.size()][];
+					res.toArray(result);
+				}
+			}
+		} catch (IOException e1) {
+			ResourcePool.LogException(e1, this);
+			ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, searchString + " caused IO Exception, file will be ignored");
+		}
 
-            try {
-                if (ftp == null) {
-                    String tmp = this.getParameterValue(element.paramListID, FTPFileReader.TRANSFER_TYPE);
+		if (ftp.isConnected()) {
+			try {
+				ftp.disconnect();
+			} catch (IOException f) {
+				// do nothing
+			}
+		}
 
-                    if ((tmp != null) && tmp.equalsIgnoreCase(FTPFileReader.ASCII)) {
-                        binaryTransfer = false;
-                    }
+		return result;
+	}
 
-                    ftp = this.getFTPConnection(this.getParameterValue(element.paramListID, FTPFileReader.USER), this
-                            .getParameterValue(element.paramListID, FTPFileReader.PASSWORD), this.getParameterValue(
-                            element.paramListID, FTPFileReader.SERVER), binaryTransfer, "Parallel connection "
-                            + ++this.connectionCnt);
-                }
+	/** The tmp FTP clients. */
+	ArrayList tmpFTPClients = new ArrayList();
 
-                if (ftp == null) {
-                    ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "FTP: Could not connect to server.");
+	/** The connection cnt. */
+	int connectionCnt = 1;
 
-                    if (this.tmpFTPClients.size() > 0) {
-                        this.ftpClients = this.tmpFTPClients.toArray();
-                        this.closeFTPConnections();
-                    }
+	// Returns the number of actually opened paths...
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.reader.NIOFileReader#getFileChannels(com.kni.etl.ketl
+	 * .reader.NIOFileReader.FileToRead[])
+	 */
+	@Override
+	int getFileChannels(FileToRead[] astrPaths) throws Exception {
+		int iNumPaths = 0;
+		FTPClient ftp = null;
+		boolean binaryTransfer = true;
 
-                    return -1;
-                }
+		if (astrPaths == null) {
+			return 0;
+		}
 
-                tmpStream = ftp.retrieveFileStream(element.filePath);
+		if (this.mAllowDuplicates == false) {
+			this.maFiles = NIOFileReader.dedupFileList(this.maFiles);
+		}
 
-                this.openChannels++;
+		for (FileToRead element : astrPaths) {
 
-                ManagedFastInputChannel rf = new ManagedFastInputChannel();
-                rf.mfChannel = java.nio.channels.Channels.newChannel(tmpStream);
-                rf.mPath = element.filePath;
-                this.mvReadyFiles.add(rf);
-                this.maFiles.add(element);
-                iNumPaths++;
-            } catch (Exception e) {
-                while (this.mvReadyFiles.size() > 0) {
-                    ManagedFastInputChannel fs = this.mvReadyFiles.remove(0);
-                    this.close(fs, NIOFileReader.OK_RECORD);
-                }
-                throw new Exception("Failed to open file: " + e.toString());
-            }
+			InputStream tmpStream;
 
-        }
+			try {
+				if (ftp == null) {
+					String tmp = this.getParameterValue(element.paramListID, FTPFileReader.TRANSFER_TYPE);
 
-        return iNumPaths;
-    }
+					if ((tmp != null) && tmp.equalsIgnoreCase(FTPFileReader.ASCII)) {
+						binaryTransfer = false;
+					}
 
-    /**
-     * Gets the FTP connection.
-     * 
-     * @param strUser the str user
-     * @param strPassword the str password
-     * @param strServer the str server
-     * @param binaryTransfer the binary transfer
-     * @param connectionNote the connection note
-     * 
-     * @return the FTP connection
-     */
-    private FTPClient getFTPConnection(String strUser, String strPassword, String strServer, boolean binaryTransfer,
-            String connectionNote) {
-        FTPClient ftp = new FTPClient();
+					ftp = this.getFTPConnection(this.getParameterValue(element.paramListID, FTPFileReader.USER), this
+							.getParameterValue(element.paramListID, FTPFileReader.PASSWORD), this.getParameterValue(element.paramListID, FTPFileReader.SERVER), binaryTransfer,
+							"Parallel connection " + ++this.connectionCnt);
+				}
 
-        try {
-            int reply;
-            ftp.connect(strServer);
-            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Connected to " + strServer + ", " + connectionNote);
+				if (ftp == null) {
+					ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "FTP: Could not connect to server.");
 
-            // After connection attempt, you should check the reply code to verify
-            // success.
-            reply = ftp.getReplyCode();
+					if (this.tmpFTPClients.size() > 0) {
+						this.ftpClients = this.tmpFTPClients.toArray();
+						this.closeFTPConnections();
+					}
 
-            if (!FTPReply.isPositiveCompletion(reply)) {
-                ftp.disconnect();
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "FTP server refused connection.");
+					return -1;
+				}
 
-                return null;
-            }
-        } catch (IOException e) {
-            if (ftp.isConnected()) {
-                try {
-                    ftp.disconnect();
-                } catch (IOException f) {
-                    return null;
-                }
-            }
+				tmpStream = ftp.retrieveFileStream(element.filePath);
 
-            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "FTP Could not connect to server.");
-            ResourcePool.LogException(e, this);
+				this.openChannels++;
 
-            return null;
-        }
+				ManagedFastInputChannel rf = new ManagedFastInputChannel();
+				rf.mfChannel = java.nio.channels.Channels.newChannel(tmpStream);
+				rf.mPath = element.filePath;
+				this.mvReadyFiles.add(rf);
+				this.maFiles.add(element);
+				iNumPaths++;
+			} catch (Exception e) {
+				while (this.mvReadyFiles.size() > 0) {
+					ManagedFastInputChannel fs = this.mvReadyFiles.remove(0);
+					this.close(fs, NIOFileReader.OK_RECORD);
+				}
+				throw new Exception("Failed to open file: " + e.toString());
+			}
 
-        try {
-            if (!ftp.login(strUser, strPassword)) {
-                ftp.logout();
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE,"FTP login failed.");
+		}
 
-                return null;
-            }
+		return iNumPaths;
+	}
 
-            ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Remote system is " + ftp.getSystemName() + ", " + connectionNote);
+	/**
+	 * Gets the FTP connection.
+	 * 
+	 * @param strUser
+	 *            the str user
+	 * @param strPassword
+	 *            the str password
+	 * @param strServer
+	 *            the str server
+	 * @param binaryTransfer
+	 *            the binary transfer
+	 * @param connectionNote
+	 *            the connection note
+	 * 
+	 * @return the FTP connection
+	 */
+	private FTPClient getFTPConnection(String strUser, String strPassword, String strServer, boolean binaryTransfer, String connectionNote) {
+		FTPClient ftp = new FTPClient();
 
-            if (binaryTransfer) {
-                ftp.setFileType(FTP.BINARY_FILE_TYPE);
-            }
-            else {
-                ftp.setFileType(FTP.ASCII_FILE_TYPE);
-            }
+		try {
+			int reply;
+			ftp.connect(strServer);
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Connected to " + strServer + ", " + connectionNote);
 
-            // Use passive mode as default because most of us are
-            // behind firewalls these days.
-            ftp.enterLocalPassiveMode();
-        } catch (FTPConnectionClosedException e) {
-            ResourcePool.LogMessage(this,ResourcePool.ERROR_MESSAGE, "Server closed connection.");
-            ResourcePool.LogException(e, this);
+			// After connection attempt, you should check the reply code to
+			// verify
+			// success.
+			reply = ftp.getReplyCode();
 
-            return null;
-        } catch (IOException e) {
-            ResourcePool.LogException(e, this);
+			if (!FTPReply.isPositiveCompletion(reply)) {
+				ftp.disconnect();
+				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "FTP server refused connection.");
 
-            return null;
-        }
+				return null;
+			}
+		} catch (IOException e) {
+			if (ftp.isConnected()) {
+				try {
+					ftp.disconnect();
+				} catch (IOException f) {
+					return null;
+				}
+			}
 
-        return ftp;
-    }
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "FTP Could not connect to server.");
+			ResourcePool.LogException(e, this);
+
+			return null;
+		}
+
+		try {
+			if (!ftp.login(strUser, strPassword)) {
+				ftp.logout();
+				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "FTP login failed.");
+
+				return null;
+			}
+
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Remote system is " + ftp.getSystemName() + ", " + connectionNote);
+
+			if (binaryTransfer) {
+				ftp.setFileType(FTP.BINARY_FILE_TYPE);
+			} else {
+				ftp.setFileType(FTP.ASCII_FILE_TYPE);
+			}
+
+			// Use passive mode as default because most of us are
+			// behind firewalls these days.
+			ftp.enterLocalPassiveMode();
+		} catch (FTPConnectionClosedException e) {
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Server closed connection.");
+			ResourcePool.LogException(e, this);
+
+			return null;
+		} catch (IOException e) {
+			ResourcePool.LogException(e, this);
+
+			return null;
+		}
+
+		return ftp;
+	}
 }
