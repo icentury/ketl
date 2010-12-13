@@ -75,6 +75,8 @@ import com.kni.util.FileTools;
 
 public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, WriterBatchManager, DBConnection, PrePostSQL {
 
+	static final String VERSION = "$Id:$";
+
 	public class AsterBulkETLInPort extends ETLInPort {
 
 		private static final String PARTITIONKEY_ATTRIB = "ASTERKEY";
