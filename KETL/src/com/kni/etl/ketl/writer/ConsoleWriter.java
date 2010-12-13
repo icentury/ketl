@@ -53,6 +53,11 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
+
 	private enum Type {
 		NORMAL, FULL
 	};
@@ -74,8 +79,7 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public ConsoleWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-			throws KETLThreadException {
+	public ConsoleWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -83,17 +87,19 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 	private boolean listHeaders = true;
 
 	/** The osw. */
-	private OutputStreamWriter osw = new OutputStreamWriter(System.out);
+	private final OutputStreamWriter osw = new OutputStreamWriter(System.out);
 
 	/** The pw. */
-	private PrintWriter pw = new PrintWriter(this.osw, true);
+	private final PrintWriter pw = new PrintWriter(this.osw, true);
 
 	private int recordCount = 1;
 
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
 	 */
 	public int putNextRecord(Object[] o, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 
@@ -102,8 +108,7 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 				for (int i = 0; i < this.mInPorts.length; i++) {
 					if (i > 0)
 						this.pw.print(';');
-					this.pw.print(this.mInPorts[i].mstrName + "(" + this.mInPorts[i].getPortClass().getCanonicalName()
-							+ ")");
+					this.pw.print(this.mInPorts[i].mstrName + "(" + this.mInPorts[i].getPortClass().getCanonicalName() + ")");
 				}
 				this.pw.println();
 				this.listHeaders = false;
@@ -112,8 +117,7 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 				if (i > 0)
 					this.pw.print(';');
 
-				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : o[this.mInPorts[i]
-						.getSourcePortIndex()];
+				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : o[this.mInPorts[i].getSourcePortIndex()];
 
 				if (data == null)
 					this.pw.print("[NULL]");
@@ -129,8 +133,7 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 			this.pw.println(this.getName() + " - Record: " + this.recordCount++);
 			for (int i = 0; i < this.mInPorts.length; i++) {
 				try {
-					this.pw.println("\t" + this.mInPorts[i].getPortName() + ": "
-							+ o[this.mInPorts[i].getSourcePortIndex()]);
+					this.pw.println("\t" + this.mInPorts[i].getPortName() + ": " + o[this.mInPorts[i].getSourcePortIndex()]);
 				} catch (KETLThreadException e) {
 					throw new KETLWriteException(e);
 				}

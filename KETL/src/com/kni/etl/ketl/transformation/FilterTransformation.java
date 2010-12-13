@@ -52,60 +52,73 @@ import com.kni.etl.util.XMLHelper;
  */
 public class FilterTransformation extends ETLTransformation {
 
-    /**
-     * Instantiates a new filter transformation.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public FilterTransformation(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLTransform#getRecordExecuteMethodHeader()
-     */
-    @Override
-    protected String getRecordExecuteMethodHeader() throws KETLThreadException {
-        StringBuilder sb = new StringBuilder(super.getRecordExecuteMethodHeader());
+	/**
+	 * Instantiates a new filter transformation.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public FilterTransformation(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-        Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "FILTER", "*", "*");
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLTransform#getRecordExecuteMethodHeader()
+	 */
+	@Override
+	protected String getRecordExecuteMethodHeader() throws KETLThreadException {
+		StringBuilder sb = new StringBuilder(super.getRecordExecuteMethodHeader());
 
-        if (nl != null) {
-            for (Node element : nl) {
+		Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "FILTER", "*", "*");
 
-                String code = XMLHelper.getTextContent(element);
+		if (nl != null) {
+			for (Node element : nl) {
 
-                if (code == null || code.length() == 0)
-                    throw new KETLThreadException("Filter tag requires an expression", this);
+				String code = XMLHelper.getTextContent(element);
 
-                String[] parms = EngineConstants.getParametersFromText(code);
+				if (code == null || code.length() == 0)
+					throw new KETLThreadException("Filter tag requires an expression", this);
 
-                for (String element0 : parms) {
-                    ETLInPort port = this.getInPort(element0);
-                    code = EngineConstants.replaceParameter(code, element0, port.generateReference());
-                }
+				String[] parms = EngineConstants.getParametersFromText(code);
 
-                sb.append("if(!(" + code + ")) return SKIP_RECORD;");
+				for (String element0 : parms) {
+					ETLInPort port = this.getInPort(element0);
+					code = EngineConstants.replaceParameter(code, element0, port.generateReference());
+				}
 
-            }
-        }
+				sb.append("if(!(" + code + ")) return SKIP_RECORD;");
 
-        return sb.toString();
-    }
+			}
+		}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
-     */
-    @Override
-    protected void close(boolean success, boolean jobFailed) {
-        // TODO Auto-generated method stub
+		return sb.toString();
+	}
 
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success, boolean jobFailed) {
+		// TODO Auto-generated method stub
+
+	}
 
 }

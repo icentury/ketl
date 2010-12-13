@@ -52,6 +52,11 @@ import com.kni.etl.util.XMLHelper;
  */
 public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
+
 	/**
 	 * Instantiates a new sequence generator.
 	 * 
@@ -67,8 +72,7 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public SequenceGenerator(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-			throws KETLThreadException {
+	public SequenceGenerator(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -115,14 +119,12 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 
 			this.counter = new Counter();
 
-			int type = DataItemHelper.getDataTypeIDbyName(XMLHelper.getAttributeAsString(this.getXMLConfig()
-					.getAttributes(), SequenceGenerator.DATATYPE, "STRING"));
+			int type = DataItemHelper.getDataTypeIDbyName(XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), SequenceGenerator.DATATYPE, "STRING"));
 
 			this.counter.type = type;
 
 			String startValue = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "STARTVALUE", null);
-			String incrementValue = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "INCREMENT",
-					null);
+			String incrementValue = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "INCREMENT", null);
 			if (this.isConstant() == false) {
 				switch (type) {
 				case DataItemHelper.STRING:
@@ -140,11 +142,9 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 					this.counter.mIncrement = incrementValue == null ? new Float(1) : Float.parseFloat(incrementValue);
 					break;
 				case DataItemHelper.DATE:
-					String fmtStr = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "FORMATSTRING",
-							null);
+					String fmtStr = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "FORMATSTRING", null);
 
-					DateFormat fm = (fmtStr == null ? DateFormat.getTimeInstance(DateFormat.LONG)
-							: new FastSimpleDateFormat(fmtStr));
+					DateFormat fm = (fmtStr == null ? DateFormat.getTimeInstance(DateFormat.LONG) : new FastSimpleDateFormat(fmtStr));
 					try {
 						this.counter.mItem = startValue == null ? new Date() : fm.parse(startValue);
 						this.counter.mIncrement = new DateAdd(incrementValue == null ? "1dy" : incrementValue);
@@ -154,8 +154,7 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 					break;
 				case DataItemHelper.DOUBLE:
 					this.counter.mItem = startValue == null ? new Double(0) : Double.parseDouble(startValue);
-					this.counter.mIncrement = incrementValue == null ? new Double(1) : Double
-							.parseDouble(incrementValue);
+					this.counter.mIncrement = incrementValue == null ? new Double(1) : Double.parseDouble(incrementValue);
 
 					break;
 				case DataItemHelper.CHAR:
@@ -164,8 +163,7 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 
 					break;
 				default:
-					throw new KETLThreadException(this.getPortClass().getCanonicalName()
-							+ "  not supported for sequence generator", this);
+					throw new KETLThreadException(this.getPortClass().getCanonicalName() + "  not supported for sequence generator", this);
 				}
 			}
 			return 0;
@@ -260,10 +258,11 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.DefaultReaderCore#getNextRecord(java.lang.Object[], java.lang.Class[], int)
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultReaderCore#getNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
 	 */
-	public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes, int pRecordWidth)
-			throws KETLReadException {
+	public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLReadException {
 
 		if (this.mValueCounter++ < this.mValuesRequested) {
 			for (int i = 0; i < this.mOutPorts.length; i++) {
@@ -283,7 +282,8 @@ public class SequenceGenerator extends ETLReader implements DefaultReaderCore {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
 	 */
 	@Override
 	protected ETLOutPort getNewOutPort(ETLStep srcStep) {

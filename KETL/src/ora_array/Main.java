@@ -12,7 +12,7 @@ import oracle.sql.ArrayDescriptor;
 
 /**
  * @author Yan Pujante
- * @version $Revision: 1.1 $
+ * @version $Revision$
  */
 public class Main
 {

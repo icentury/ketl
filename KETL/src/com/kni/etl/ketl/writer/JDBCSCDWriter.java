@@ -40,12 +40,15 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
  * Title: JDBCELTWriter
  * </p>
  * <p>
- * Description: Similar functionality to JDBC writer but the data is bulk loaded into a new table in the database then
- * joined to the destination table to create a final table. This code is beta and the following items still need to be
- * addressed. 1. Extra row created - bug 2. Support for slowly changing dimensions 3. Total index recreation 4. Support
- * for DB specific bulk loader API's, such as COPY in PgSQL 5. Support for roll and archive of new and old table 6.
- * Support for partition swapping 7. Support for lookups direclty in the db 8. Support for partitioning key in temp
- * table Once this is done this approach to loading will leverage the database for greater performance
+ * Description: Similar functionality to JDBC writer but the data is bulk loaded
+ * into a new table in the database then joined to the destination table to
+ * create a final table. This code is beta and the following items still need to
+ * be addressed. 1. Extra row created - bug 2. Support for slowly changing
+ * dimensions 3. Total index recreation 4. Support for DB specific bulk loader
+ * API's, such as COPY in PgSQL 5. Support for roll and archive of new and old
+ * table 6. Support for partition swapping 7. Support for lookups direclty in
+ * the db 8. Support for partitioning key in temp table Once this is done this
+ * approach to loading will leverage the database for greater performance
  * </p>
  * 
  * @author Brian Sullivan
@@ -53,61 +56,78 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
  */
 public class JDBCSCDWriter extends SCDWriter {
 
-    /**
-     * Instantiates a new JDBCSCD writer.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public JDBCSCDWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.writer.SCDWriter#prepareStatementWrapper(java.sql.Connection, java.lang.String, com.kni.etl.dbutils.JDBCItemHelper)
-     */
-    @Override
-    StatementWrapper prepareStatementWrapper(Connection Connection, String sql, JDBCItemHelper jdbcHelper)
-            throws SQLException {
-        return JDBCStatementWrapper.prepareStatement(Connection, sql, jdbcHelper);
-    }
+	/**
+	 * Instantiates a new JDBCSCD writer.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public JDBCSCDWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.writer.SCDWriter#instantiateHelper(java.lang.String)
-     */
-    @Override
-    protected JDBCItemHelper instantiateHelper(String hdl) throws KETLThreadException {
-        if (hdl == null)
-            return new JDBCItemHelper();
-        else {
-            try {
-                Class cl = Class.forName(hdl);
-                return (JDBCItemHelper) cl.newInstance();
-            } catch (Exception e) {
-                throw new KETLThreadException("HANDLER class not found", e, this);
-            }
-        }
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.writer.SCDWriter#prepareStatementWrapper(java.sql.Connection
+	 * , java.lang.String, com.kni.etl.dbutils.JDBCItemHelper)
+	 */
+	@Override
+	StatementWrapper prepareStatementWrapper(Connection Connection, String sql, JDBCItemHelper jdbcHelper) throws SQLException {
+		return JDBCStatementWrapper.prepareStatement(Connection, sql, jdbcHelper);
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.writer.SCDWriter#buildInBatchSQL(java.lang.String)
-     */
-    @Override
-    protected String buildInBatchSQL(String pTable) throws Exception {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.writer.SCDWriter#instantiateHelper(java.lang.String)
+	 */
+	@Override
+	protected JDBCItemHelper instantiateHelper(String hdl) throws KETLThreadException {
+		if (hdl == null)
+			return new JDBCItemHelper();
+		else {
+			try {
+				Class cl = Class.forName(hdl);
+				return (JDBCItemHelper) cl.newInstance();
+			} catch (Exception e) {
+				throw new KETLThreadException("HANDLER class not found", e, this);
+			}
+		}
+	}
 
-        String template = this.getStepTemplate(this.mDBType, "INSERT", true);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.writer.SCDWriter#buildInBatchSQL(java.lang.String)
+	 */
+	@Override
+	protected String buildInBatchSQL(String pTable) throws Exception {
 
-        template = EngineConstants.replaceParameterV2(template, "DEDUPECOLUMN", ",seqcol");
-        template = EngineConstants.replaceParameterV2(template, "DESTINATIONTABLENAME", pTable);
-        template = EngineConstants.replaceParameterV2(template, "DESTINATIONCOLUMNS", this.getAllColumns());
-        template = EngineConstants.replaceParameterV2(template, "VALUES", this.getInsertValues());
+		String template = this.getStepTemplate(this.mDBType, "INSERT", true);
 
-        return template;
-    }
+		template = EngineConstants.replaceParameterV2(template, "DEDUPECOLUMN", ",seqcol");
+		template = EngineConstants.replaceParameterV2(template, "DESTINATIONTABLENAME", pTable);
+		template = EngineConstants.replaceParameterV2(template, "DESTINATIONCOLUMNS", this.getAllColumns());
+		template = EngineConstants.replaceParameterV2(template, "VALUES", this.getInsertValues());
+
+		return template;
+	}
 
 }

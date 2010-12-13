@@ -65,6 +65,11 @@ import com.kni.util.Arrays;
  */
 public class Sessionizer extends ETLSplit {
 
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
+
 	/** The Constant CASESENSITIVE. */
 	private static final String CASESENSITIVE = "CASESENSITIVE";
 
@@ -227,8 +232,7 @@ public class Sessionizer extends ETLSplit {
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public Sessionizer(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-			throws KETLThreadException {
+	public Sessionizer(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -244,16 +248,13 @@ public class Sessionizer extends ETLSplit {
 		if (res != 0)
 			return res;
 
-		this.miPeakSessionsAnHour = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(),
-				Sessionizer.PEAKSESSIONSANHOUR, 1800);
-		this.miWebServerType = EngineConstants.resolveWebServerNameToID(XMLHelper.getAttributeAsString(xmlConfig
-				.getAttributes(), Sessionizer.WEBSERVERTYPE, null));
+		this.miPeakSessionsAnHour = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), Sessionizer.PEAKSESSIONSANHOUR, 1800);
+		this.miWebServerType = EngineConstants.resolveWebServerNameToID(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), Sessionizer.WEBSERVERTYPE, null));
 		this.miTimeOut = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), Sessionizer.TIMEOUT, 1800);
 		this.mRestartSessions = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), Sessionizer.RESTART, false);
 		this.mbPagesOnly = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), Sessionizer.PAGESONLY, false);
 
-		this.mStoreOpenSessionsAtEnd = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(),
-				Sessionizer.STOREOPENSESSIONS, true);
+		this.mStoreOpenSessionsAtEnd = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), Sessionizer.STOREOPENSESSIONS, true);
 
 		// get sub details
 		NodeList nl = xmlConfig.getChildNodes();
@@ -279,8 +280,7 @@ public class Sessionizer extends ETLSplit {
 		this.mCompleteSessionList = new ArrayList<Session>();
 		// check for existance of restart file if reload sessions enabled
 		if (this.mRestartSessions && ((this.mAnalyzePageview = this.restartJob()) != null)) {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
-					"Reloading non-final sessions from last run.");
+			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Reloading non-final sessions from last run.");
 		} else {
 			this.mAnalyzePageview = null;
 		}
@@ -290,13 +290,9 @@ public class Sessionizer extends ETLSplit {
 		}
 
 		if (this.mRestartSessions)
-			this.mAnalyzePageview
-					.setCloseOutMode(this.mStoreOpenSessionsAtEnd ? AnalyzePageview.RESTART_SESSIONS_AND_STORE
-							: AnalyzePageview.RESTART_SESSIONS_NO_STORE);
+			this.mAnalyzePageview.setCloseOutMode(this.mStoreOpenSessionsAtEnd ? AnalyzePageview.RESTART_SESSIONS_AND_STORE : AnalyzePageview.RESTART_SESSIONS_NO_STORE);
 		else
-			this.mAnalyzePageview
-					.setCloseOutMode(this.mStoreOpenSessionsAtEnd ? AnalyzePageview.DISABLE_RESTART_AND_STORE
-							: AnalyzePageview.DISABLE_RESTART_NO_STORE);
+			this.mAnalyzePageview.setCloseOutMode(this.mStoreOpenSessionsAtEnd ? AnalyzePageview.DISABLE_RESTART_AND_STORE : AnalyzePageview.DISABLE_RESTART_NO_STORE);
 
 		this.mItemMap = new int[this.mInPorts.length];
 		for (Object o : this.mInPorts) {
@@ -304,8 +300,8 @@ public class Sessionizer extends ETLSplit {
 			this.mItemMap[port.getSourcePortIndex()] = port.miObjectType;
 		}
 
-		this.mAnalyzePageview.configure(idCounter, this.createSessionDefinition(), this.createPageParserParameters(),
-				this.mbPagesOnly, this.mbHitsNeeded, this.mItemMap, this.mCompleteSessionList);
+		this.mAnalyzePageview.configure(idCounter, this.createSessionDefinition(), this.createPageParserParameters(), this.mbPagesOnly, this.mbHitsNeeded, this.mItemMap,
+				this.mCompleteSessionList);
 
 		return 0;
 	}
@@ -325,8 +321,7 @@ public class Sessionizer extends ETLSplit {
 			return null;
 		}
 
-		Node node = XMLHelper.getElementByName(this.mnPageParameterSets, Sessionizer.PAGE_PARAMETER_SET,
-				Sessionizer.NAME, parameterSetName);
+		Node node = XMLHelper.getElementByName(this.mnPageParameterSets, Sessionizer.PAGE_PARAMETER_SET, Sessionizer.NAME, parameterSetName);
 
 		if (node == null) {
 			return null;
@@ -341,13 +336,10 @@ public class Sessionizer extends ETLSplit {
 				PageParserPageParameter pageParameter = new PageParserPageParameter();
 
 				pageParameter.setParameterName(XMLHelper.getAttributeAsString(nmAttrs, Sessionizer.NAME, null));
-				pageParameter.setParameterRequired(XMLHelper
-						.getAttributeAsBoolean(nmAttrs, Sessionizer.REQUIRED, false));
+				pageParameter.setParameterRequired(XMLHelper.getAttributeAsBoolean(nmAttrs, Sessionizer.REQUIRED, false));
 				pageParameter.setParameterValue(XMLHelper.getAttributeAsString(nmAttrs, Sessionizer.VALUE, null));
-				pageParameter.setRemoveParameterValue(XMLHelper.getAttributeAsBoolean(nmAttrs,
-						Sessionizer.REMOVE_VALUE, false));
-				pageParameter.setRemoveParameter(XMLHelper.getAttributeAsBoolean(nmAttrs, Sessionizer.REMOVE_PARAMETER,
-						false));
+				pageParameter.setRemoveParameterValue(XMLHelper.getAttributeAsBoolean(nmAttrs, Sessionizer.REMOVE_VALUE, false));
+				pageParameter.setRemoveParameter(XMLHelper.getAttributeAsBoolean(nmAttrs, Sessionizer.REMOVE_PARAMETER, false));
 				pageParameter.setValueSeperator(XMLHelper.getAttributeAsString(nmAttrs, Sessionizer.SEPERATOR, null));
 
 				apDefs.add(pageParameter);
@@ -392,8 +384,7 @@ public class Sessionizer extends ETLSplit {
 				pDef.setValidPage(XMLHelper.getAttributeAsBoolean(n.getAttributes(), Sessionizer.VALID, true));
 				pDef.setID(XMLHelper.getAttributeAsInt(n.getAttributes(), Sessionizer.ID, 0));
 
-				String parameterSetName = XMLHelper.getAttributeAsString(n.getAttributes(),
-						Sessionizer.PAGE_PARAMETER_SET, null);
+				String parameterSetName = XMLHelper.getAttributeAsString(n.getAttributes(), Sessionizer.PAGE_PARAMETER_SET, null);
 
 				pDef.setValidPageParameters(this.createPageParameters(parameterSetName));
 
@@ -439,15 +430,12 @@ public class Sessionizer extends ETLSplit {
 				NodeList nlIdentifiers = n.getChildNodes();
 
 				String type = XMLHelper.getAttributeAsString(n.getAttributes(), Sessionizer.TYPE, null);
-				boolean enableFallBack = XMLHelper.getAttributeAsBoolean(n.getAttributes(), Sessionizer.ENABLEFALLBACK,
-						false);
+				boolean enableFallBack = XMLHelper.getAttributeAsBoolean(n.getAttributes(), Sessionizer.ENABLEFALLBACK, false);
 
-				boolean expireWhenBetterMatch = XMLHelper.getAttributeAsBoolean(n.getAttributes(),
-						Sessionizer.EXPIREWHENBETTERMATCH, false);
+				boolean expireWhenBetterMatch = XMLHelper.getAttributeAsBoolean(n.getAttributes(), Sessionizer.EXPIREWHENBETTERMATCH, false);
 
 				int priority = XMLHelper.getAttributeAsInt(n.getAttributes(), Sessionizer.PRIORITY, 0);
-				int timeOut = XMLHelper.getAttributeAsInt(n.getAttributes(), Sessionizer.TIMEOUT,
-						srcSessionDefinition.TimeOut);
+				int timeOut = XMLHelper.getAttributeAsInt(n.getAttributes(), Sessionizer.TIMEOUT, srcSessionDefinition.TimeOut);
 
 				int DestinationObjectType = -1;
 
@@ -492,8 +480,7 @@ public class Sessionizer extends ETLSplit {
 					if (nlIdentifiers.item(idx).getNodeName().compareTo(Sessionizer.IDENTIFIER) == 0) {
 						SessionIdentifier sId = new SessionIdentifier();
 						Node nlIdentifier = nlIdentifiers.item(idx);
-						String objectType = XMLHelper.getAttributeAsString(nlIdentifier.getAttributes(),
-								Sessionizer.OBJECTTYPE, null);
+						String objectType = XMLHelper.getAttributeAsString(nlIdentifier.getAttributes(), Sessionizer.OBJECTTYPE, null);
 						sId.ObjectType = EngineConstants.resolveObjectNameToID(objectType);
 
 						if ((DestinationObjectType == -1) && (sId.ObjectType == EngineConstants.IP_ADDRESS)) {
@@ -504,9 +491,8 @@ public class Sessionizer extends ETLSplit {
 							sId.DestinationObjectType = DestinationObjectType;
 						}
 
-						sId.setVariableName(XMLHelper.getAttributeAsString(nlIdentifier.getAttributes(),
-								Sessionizer.VARIABLENAME, null), XMLHelper.getAttributeAsBoolean(nlIdentifier
-								.getAttributes(), Sessionizer.CASESENSITIVE, false));
+						sId.setVariableName(XMLHelper.getAttributeAsString(nlIdentifier.getAttributes(), Sessionizer.VARIABLENAME, null), XMLHelper.getAttributeAsBoolean(
+								nlIdentifier.getAttributes(), Sessionizer.CASESENSITIVE, false));
 
 						sId.Weight = priority;
 
@@ -560,8 +546,7 @@ public class Sessionizer extends ETLSplit {
 	 */
 	protected String getRestartFilenaname() {
 
-		return EngineConstants.CACHE_PATH + File.separator + "KETL.Sessionizer." + this.getName() + "."
-				+ this.getJobExecutor().getCurrentETLJob().getJobID() + ".restart";
+		return EngineConstants.CACHE_PATH + File.separator + "KETL.Sessionizer." + this.getName() + "." + this.getJobExecutor().getCurrentETLJob().getJobID() + ".restart";
 	}
 
 	/**
@@ -583,8 +568,7 @@ public class Sessionizer extends ETLSplit {
 			if (res != 0)
 				return res;
 
-			this.miObjectType = EngineConstants.resolveObjectNameToID(XMLHelper.getAttributeAsString(xmlConfig
-					.getAttributes(), Sessionizer.OBJECTTYPE, null));
+			this.miObjectType = EngineConstants.resolveObjectNameToID(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), Sessionizer.OBJECTTYPE, null));
 
 			return 0;
 		}
@@ -606,7 +590,8 @@ public class Sessionizer extends ETLSplit {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
 	 */
 	@Override
 	protected ETLOutPort getNewOutPort(ETLStep srcStep) {
@@ -616,7 +601,8 @@ public class Sessionizer extends ETLSplit {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.ETLWorker#getNewInPort(com.kni.etl.ketl.ETLStep)
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewInPort(com.kni.etl.ketl.ETLStep)
 	 */
 	@Override
 	protected ETLInPort getNewInPort(ETLStep srcStep) {
@@ -681,8 +667,7 @@ public class Sessionizer extends ETLSplit {
 			if (type.equalsIgnoreCase("SESSION")) {
 				if (this.mObjectType != null) {
 					this.miSource = Arrays.searchArray(Sessionizer.ValidSessionColumnNames, this.mObjectType);
-					this.getXMLConfig().setAttribute("DATATYPE",
-							Sessionizer.ValidSessionColumnTypes[this.miSource].getCanonicalName());
+					this.getXMLConfig().setAttribute("DATATYPE", Sessionizer.ValidSessionColumnTypes[this.miSource].getCanonicalName());
 				}
 				this.miType = Sessionizer.SESSION;
 				if (this.miSource == Sessionizer.HITS)
@@ -690,8 +675,7 @@ public class Sessionizer extends ETLSplit {
 			} else if (type.equalsIgnoreCase("HIT")) {
 				if (this.mObjectType != null) {
 					this.miSource = Arrays.searchArray(Sessionizer.ValidHitColumnNames, this.mObjectType);
-					this.getXMLConfig().setAttribute("DATATYPE",
-							Sessionizer.ValidHitColumnTypes[this.miSource].getCanonicalName());
+					this.getXMLConfig().setAttribute("DATATYPE", Sessionizer.ValidHitColumnTypes[this.miSource].getCanonicalName());
 				}
 				this.miType = Sessionizer.HIT;
 
@@ -712,32 +696,30 @@ public class Sessionizer extends ETLSplit {
 		public String generateCode(int portReferenceIndex) throws KETLThreadException {
 
 			if (this.miType == Sessionizer.SESSION && this.miSource == -1)
-				throw new KETLThreadException(
-						"SESSION channel can only contain attributes with a valid OBJECTTYPE attribute", this);
+				throw new KETLThreadException("SESSION channel can only contain attributes with a valid OBJECTTYPE attribute", this);
 
 			if (this.miSource == -1 || this.isConstant() || this.isUsed() == false)
 				return super.generateCode(portReferenceIndex);
 
-			return this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this) + "] = (("
-					+ this.mesStep.getClass().getCanonicalName() + ")this.getOwner()).getValue(" + this.miType + ","
-					+ this.miSource + ")";
+			return this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this) + "] = ((" + this.mesStep.getClass().getCanonicalName()
+					+ ")this.getOwner()).getValue(" + this.miType + "," + this.miSource + ")";
 
 		}
 
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.kni.etl.ketl.ETLPort#setDataTypeFromPort(com.kni.etl.ketl.ETLPort)
+		 * @see
+		 * com.kni.etl.ketl.ETLPort#setDataTypeFromPort(com.kni.etl.ketl.ETLPort
+		 * )
 		 */
 		@Override
 		final public void setDataTypeFromPort(ETLPort in) throws KETLThreadException, ClassNotFoundException {
 			if (this.miSource != -1) {
 				if (this.miType == Sessionizer.SESSION)
-					(this.getXMLConfig()).setAttribute(SessionizerETLOutPort.DATATYPE,
-							Sessionizer.ValidSessionColumnTypes[this.miSource].getCanonicalName());
+					(this.getXMLConfig()).setAttribute(SessionizerETLOutPort.DATATYPE, Sessionizer.ValidSessionColumnTypes[this.miSource].getCanonicalName());
 				else if (this.miType == Sessionizer.HIT)
-					(this.getXMLConfig()).setAttribute(SessionizerETLOutPort.DATATYPE,
-							Sessionizer.ValidHitColumnTypes[this.miSource].getCanonicalName());
+					(this.getXMLConfig()).setAttribute(SessionizerETLOutPort.DATATYPE, Sessionizer.ValidHitColumnTypes[this.miSource].getCanonicalName());
 
 				this.setPortClass();
 			} else
@@ -776,8 +758,7 @@ public class Sessionizer extends ETLSplit {
 		@Override
 		public String getPortName() throws DOMException, KETLThreadException {
 			if (this.mstrName == null && this.mObjectType != null) {
-				this.mstrName = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(),
-						ETLPort.NAME_ATTRIB, this.mObjectType);
+				this.mstrName = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), ETLPort.NAME_ATTRIB, this.mObjectType);
 				this.getXMLConfig().setAttribute("NAME", this.mstrName);
 			}
 
@@ -793,8 +774,7 @@ public class Sessionizer extends ETLSplit {
 	 */
 	@Override
 	protected String getRecordExecuteMethodHeader() throws KETLThreadException {
-		return super.getRecordExecuteMethodHeader() + "if(pOutPath==0) ((" + this.getClass().getCanonicalName()
-				+ ")this.getOwner()).loadValue(pInputRecords);";
+		return super.getRecordExecuteMethodHeader() + "if(pOutPath==0) ((" + this.getClass().getCanonicalName() + ")this.getOwner()).loadValue(pInputRecords);";
 	}
 
 	/** The skip record. */
@@ -887,24 +867,20 @@ public class Sessionizer extends ETLSplit {
 	 * @see com.kni.etl.sessionizer.DatabaseWriterRoot#resolveColumnMaps()
 	 */
 	/** The Constant ValidHitColumnNames. */
-	public static final String[] ValidHitColumnNames = { "TEMP_SESSION_ID", "ACTIVITY_DATE_TIME", "GET_REQUEST",
-			"HTML_ERROR_CODE", "REFERRER_URL", "CLEANSED", "CLEANSED_ID", "SERVER_NAME", "PAGE_SEQUENCE",
-			"ASSOCIATED_HITS" };
+	public static final String[] ValidHitColumnNames = { "TEMP_SESSION_ID", "ACTIVITY_DATE_TIME", "GET_REQUEST", "HTML_ERROR_CODE", "REFERRER_URL", "CLEANSED", "CLEANSED_ID",
+			"SERVER_NAME", "PAGE_SEQUENCE", "ASSOCIATED_HITS" };
 
 	/** The Constant ValidHitColumnTypes. */
-	public static final Class[] ValidHitColumnTypes = { Long.class, java.util.Date.class, String.class, Short.class,
-			String.class, Short.class, Integer.class, Integer.class, String.class, Short.class };
+	public static final Class[] ValidHitColumnTypes = { Long.class, java.util.Date.class, String.class, Short.class, String.class, Short.class, Integer.class, Integer.class,
+			String.class, Short.class };
 
 	/** The Constant ValidSessionColumnNames. */
-	public static final String[] ValidSessionColumnNames = { "TEMP_SESSION_ID", "FIRST_CLICK_SESSION_IDENTIFIER",
-			"PERSISTANT_IDENTIFIER", "MAIN_SESSION_IDENTIFIER", "IP_ADDRESS", "REFERRER", "FIRST_SESSION_ACTIVITY",
-			"LAST_SESSION_ACTIVITY", "BROWSER", "REPEAT_VISITOR", "HITS", "PAGEVIEWS", "KEEP_VARIABLES",
-			"START_PERSISTANT_IDENTIFIER" };
+	public static final String[] ValidSessionColumnNames = { "TEMP_SESSION_ID", "FIRST_CLICK_SESSION_IDENTIFIER", "PERSISTANT_IDENTIFIER", "MAIN_SESSION_IDENTIFIER", "IP_ADDRESS",
+			"REFERRER", "FIRST_SESSION_ACTIVITY", "LAST_SESSION_ACTIVITY", "BROWSER", "REPEAT_VISITOR", "HITS", "PAGEVIEWS", "KEEP_VARIABLES", "START_PERSISTANT_IDENTIFIER" };
 
 	/** The Constant ValidSessionColumnTypes. */
-	public static final Class[] ValidSessionColumnTypes = { Long.class, String.class, String.class, String.class,
-			String.class, String.class, java.util.Date.class, java.util.Date.class, String.class, Boolean.class,
-			Short.class, Short.class, String.class, String.class, String.class };
+	public static final Class[] ValidSessionColumnTypes = { Long.class, String.class, String.class, String.class, String.class, String.class, java.util.Date.class,
+			java.util.Date.class, String.class, Boolean.class, Short.class, Short.class, String.class, String.class, String.class };
 
 	/** The analyze pageview. */
 	private AnalyzePageview mAnalyzePageview;
@@ -1034,8 +1010,7 @@ public class Sessionizer extends ETLSplit {
 				}
 
 				for (int i = res.CookieKeepVariables.length - 1; i >= 0; i--) {
-					this.sBuf.append(res.CookieKeepVariables[i][0]).append('=').append(res.CookieKeepVariables[i][1])
-							.append(';');
+					this.sBuf.append(res.CookieKeepVariables[i][0]).append('=').append(res.CookieKeepVariables[i][1]).append(';');
 				}
 				return this.sBuf.toString();
 			case START_PERSISTANT_IDENTIFIER:

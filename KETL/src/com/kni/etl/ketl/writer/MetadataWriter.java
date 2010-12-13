@@ -48,8 +48,8 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
  * Title: ETLWriter
  * </p>
  * <p>
- * Description: Loads metadata parameters. {orts must be names PARAMETER_LIST, PARAMETER_NAME, PARAMETER_VALUE and
- * SUB_PARAMETER_LIST(Optional).
+ * Description: Loads metadata parameters. {orts must be names PARAMETER_LIST,
+ * PARAMETER_NAME, PARAMETER_VALUE and SUB_PARAMETER_LIST(Optional).
  * </p>
  * <p>
  * Copyright: Copyright (c) 2006
@@ -63,166 +63,167 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
  */
 public class MetadataWriter extends ETLWriter implements DefaultWriterCore {
 
-    /**
-     * Instantiates a new metadata writer.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public MetadataWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.ETLStep#getRequiredTags()
-     */
-    @Override
-    protected String[] getRequiredTags() {
-        return null;
-    }
+	/**
+	 * Instantiates a new metadata writer.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public MetadataWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-    /** The metadata. */
-    private Metadata mMetadata;
-    
-    /** The document. */
-    private Document mDocument;
-    
-    /** The parameter. */
-    private Element mParamList, mParameter;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.ETLStep#getRequiredTags()
+	 */
+	@Override
+	protected String[] getRequiredTags() {
+		return null;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.writer.ETLWriter#initialize(org.w3c.dom.Node)
-     */
-    @Override
-    public int initialize(Node pConfig) throws KETLThreadException {
-        int res;
+	/** The metadata. */
+	private Metadata mMetadata;
 
-        if ((res = super.initialize(pConfig)) != 0)
-            return res;
+	/** The document. */
+	private Document mDocument;
 
-        this.mMetadata = ResourcePool.getMetadata();
+	/** The parameter. */
+	private Element mParamList, mParameter;
 
-        if (this.mMetadata == null) {
-            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "The " + this.getName()
-                    + " component requires a connection to the metadata");
-            return -2;
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.writer.ETLWriter#initialize(org.w3c.dom.Node)
+	 */
+	@Override
+	public int initialize(Node pConfig) throws KETLThreadException {
+		int res;
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder;
-        try {
-            builder = factory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, e.getMessage());
-            return -3;
-        }
-        this.mDocument = builder.newDocument(); // Create from whole cloth
-        this.mParamList = this.mDocument.createElement(EngineConstants.PARAMETER_LIST);
-        this.mParameter = this.mDocument.createElement(EngineConstants.PARAMETER);
-        this.mDocument.appendChild(this.mParamList);
-        this.mParamList.appendChild(this.mParameter);
+		if ((res = super.initialize(pConfig)) != 0)
+			return res;
 
-        HashSet hs = new HashSet();
+		this.mMetadata = ResourcePool.getMetadata();
 
-        java.util.Collections.addAll(hs, new Object[] { "PARAMETER_NAME", "PARAMETER_LIST", "PARAMETER_VALUE",
-                "SUB_PARAMETER_LIST" });
+		if (this.mMetadata == null) {
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "The " + this.getName() + " component requires a connection to the metadata");
+			return -2;
+		}
 
-        for (int i = 0; i < this.mInPorts.length; i++) {
-            if (hs.contains(this.mInPorts[i].mstrName) == false) {
-                ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Invalid input name of "
-                        + this.mInPorts[i].mstrName + " will be ignored, it has to be one of "
-                        + java.util.Arrays.toString(hs.toArray()));
-            }
-            this.mInputNameMap.put(this.mInPorts[i].mstrName, i);
-        }
-        return res;
-    }
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder;
+		try {
+			builder = factory.newDocumentBuilder();
+		} catch (ParserConfigurationException e) {
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, e.getMessage());
+			return -3;
+		}
+		this.mDocument = builder.newDocument(); // Create from whole cloth
+		this.mParamList = this.mDocument.createElement(EngineConstants.PARAMETER_LIST);
+		this.mParameter = this.mDocument.createElement(EngineConstants.PARAMETER);
+		this.mDocument.appendChild(this.mParamList);
+		this.mParamList.appendChild(this.mParameter);
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
-     */
-    public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
-            throws KETLWriteException {
+		HashSet hs = new HashSet();
 
-        String paramName = null, paramList = null, subParamList = null, paramValue = null;
+		java.util.Collections.addAll(hs, new Object[] { "PARAMETER_NAME", "PARAMETER_LIST", "PARAMETER_VALUE", "SUB_PARAMETER_LIST" });
 
-        Integer pNamePos = (Integer) this.mInputNameMap.get("PARAMETER_NAME");
-        Integer pListPos = (Integer) this.mInputNameMap.get("PARAMETER_LIST");
-        Integer pParamValuePos = (Integer) this.mInputNameMap.get("PARAMETER_VALUE");
-        Integer pSubListPort = (Integer) this.mInputNameMap.get("SUB_PARAMETER_LIST");
+		for (int i = 0; i < this.mInPorts.length; i++) {
+			if (hs.contains(this.mInPorts[i].mstrName) == false) {
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Invalid input name of " + this.mInPorts[i].mstrName + " will be ignored, it has to be one of "
+						+ java.util.Arrays.toString(hs.toArray()));
+			}
+			this.mInputNameMap.put(this.mInPorts[i].mstrName, i);
+		}
+		return res;
+	}
 
-        if (pNamePos != null) {
-            paramName = (String) (this.mInPorts[pNamePos].isConstant() ? this.mInPorts[pNamePos].getConstantValue()
-                    : pInputRecords[this.mInPorts[pNamePos].getSourcePortIndex()]);
-        }
-        else if (pListPos != null) {
-            paramList = (String) (this.mInPorts[pListPos].isConstant() ? this.mInPorts[pListPos].getConstantValue()
-                    : pInputRecords[this.mInPorts[pListPos].getSourcePortIndex()]);
-        }
-        else if (pParamValuePos != null) {
-            paramValue = (String) (this.mInPorts[pParamValuePos].isConstant() ? this.mInPorts[pParamValuePos]
-                    .getConstantValue() : pInputRecords[this.mInPorts[pParamValuePos].getSourcePortIndex()]);
-        }
-        else if (pSubListPort != null) {
-            subParamList = (String) (this.mInPorts[pSubListPort].isConstant() ? this.mInPorts[pSubListPort]
-                    .getConstantValue() : pInputRecords[this.mInPorts[pSubListPort].getSourcePortIndex()]);
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
+	 */
+	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 
-        if (paramList == null || paramName == null || paramValue == null) {
-            throw new KETLWriteException(
-                    "IN tags named PARAMETER_LIST,VALUE and NAME required; SUB_PARAMETER_LIST optional");
-        }
+		String paramName = null, paramList = null, subParamList = null, paramValue = null;
 
-        this.mParameter.setAttribute(ETLStep.NAME_ATTRIB, paramName);
-        this.mParameter.setTextContent(paramValue);
-        this.mParamList.setAttribute(ETLStep.NAME_ATTRIB, paramList);
+		Integer pNamePos = (Integer) this.mInputNameMap.get("PARAMETER_NAME");
+		Integer pListPos = (Integer) this.mInputNameMap.get("PARAMETER_LIST");
+		Integer pParamValuePos = (Integer) this.mInputNameMap.get("PARAMETER_VALUE");
+		Integer pSubListPort = (Integer) this.mInputNameMap.get("SUB_PARAMETER_LIST");
 
-        if (subParamList == null) {
-            this.mParameter.removeAttribute(EngineConstants.PARAMETER_LIST);
-        }
-        else {
-            int id = this.mMetadata.getParameterListID(subParamList);
+		if (pNamePos != null) {
+			paramName = (String) (this.mInPorts[pNamePos].isConstant() ? this.mInPorts[pNamePos].getConstantValue() : pInputRecords[this.mInPorts[pNamePos].getSourcePortIndex()]);
+		} else if (pListPos != null) {
+			paramList = (String) (this.mInPorts[pListPos].isConstant() ? this.mInPorts[pListPos].getConstantValue() : pInputRecords[this.mInPorts[pListPos].getSourcePortIndex()]);
+		} else if (pParamValuePos != null) {
+			paramValue = (String) (this.mInPorts[pParamValuePos].isConstant() ? this.mInPorts[pParamValuePos].getConstantValue() : pInputRecords[this.mInPorts[pParamValuePos]
+					.getSourcePortIndex()]);
+		} else if (pSubListPort != null) {
+			subParamList = (String) (this.mInPorts[pSubListPort].isConstant() ? this.mInPorts[pSubListPort].getConstantValue() : pInputRecords[this.mInPorts[pSubListPort]
+					.getSourcePortIndex()]);
+		}
 
-            if (id < 0) {
-                throw new KETLWriteException("Sub paramter list \"" + subParamList + "\" does not exist");
+		if (paramList == null || paramName == null || paramValue == null) {
+			throw new KETLWriteException("IN tags named PARAMETER_LIST,VALUE and NAME required; SUB_PARAMETER_LIST optional");
+		}
 
-            }
-            else if (id == this.mMetadata.getParameterListID(paramList)) {
-                throw new KETLWriteException(
-                        "Loop not allowed, parameter list calls sub parameter list with same name - \"" + subParamList
-                                + "\"");
+		this.mParameter.setAttribute(ETLStep.NAME_ATTRIB, paramName);
+		this.mParameter.setTextContent(paramValue);
+		this.mParamList.setAttribute(ETLStep.NAME_ATTRIB, paramList);
 
-            }
+		if (subParamList == null) {
+			this.mParameter.removeAttribute(EngineConstants.PARAMETER_LIST);
+		} else {
+			int id = this.mMetadata.getParameterListID(subParamList);
 
-            this.mParameter.setAttribute(EngineConstants.PARAMETER_LIST, subParamList);
-        }
+			if (id < 0) {
+				throw new KETLWriteException("Sub paramter list \"" + subParamList + "\" does not exist");
 
-        try {
-            this.mMetadata.importParameterList(this.mParamList);
-        } catch (Exception e) {
-            throw new KETLWriteException(e);
-        }
+			} else if (id == this.mMetadata.getParameterListID(paramList)) {
+				throw new KETLWriteException("Loop not allowed, parameter list calls sub parameter list with same name - \"" + subParamList + "\"");
 
-        return 1;
-    }
+			}
 
-    /** The input name map. */
-    private HashMap mInputNameMap = new HashMap();
+			this.mParameter.setAttribute(EngineConstants.PARAMETER_LIST, subParamList);
+		}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
-     */
-    @Override
-    protected void close(boolean success, boolean jobFailed) {
-    }
+		try {
+			this.mMetadata.importParameterList(this.mParamList);
+		} catch (Exception e) {
+			throw new KETLWriteException(e);
+		}
+
+		return 1;
+	}
+
+	/** The input name map. */
+	private final HashMap mInputNameMap = new HashMap();
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success, boolean jobFailed) {
+	}
 
 }

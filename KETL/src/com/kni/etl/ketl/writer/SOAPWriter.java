@@ -54,304 +54,315 @@ import com.kni.etl.util.XMLHelper;
  */
 public class SOAPWriter extends ETLWriter implements DefaultWriterCore, SOAPConnection {
 
-    /** The call. */
-    Call call = null;
-    
-    /** The call msg. */
-    Object callMsg[];
-    
-    /** The dumped params. */
-    boolean dumpedParams = false;
-    
-    /** The default port. */
-    QName mDefaultPort = null;
-    
-    /** The method. */
-    String mMethod;
-    
-    /** The namespace. */
-    String mNamespace;
-    
-    /** The original hostname verifier. */
-    javax.net.ssl.HostnameVerifier mOriginalHostnameVerifier = null;
-    
-    /** The service. */
-    Service mService;
-    
-    /** The SOAP type. */
-    int mSOAPType;
-    
-    /** The URL. */
-    URL mURL;
-    
-    /** The parameter types. */
-    Class[] parameterTypes;
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-    /**
-     * Instantiates a new SOAP writer.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public SOAPWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	/** The call. */
+	Call call = null;
 
-    /**
-     * Authenticate call.
-     * 
-     * @throws MalformedURLException the malformed URL exception
-     * @throws ServiceException the service exception
-     * @throws AxisFault the axis fault
-     * @throws RemoteException the remote exception
-     */
-    protected void authenticateCall() throws MalformedURLException, ServiceException, AxisFault, RemoteException {
-        String user = this.getParameterValue(0, SOAPConnection.USER_ATTRIB);
-        String password = this.getParameterValue(0, SOAPConnection.PASSWORD_ATTRIB);
+	/** The call msg. */
+	Object callMsg[];
 
-        if (user != null) {
-            this.call.setUsername(user);
-            this.call.setPassword(password);
-        }
-    }
+	/** The dumped params. */
+	boolean dumpedParams = false;
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.ETLStep#complete()
-     */
-    @Override
-    public int complete() throws KETLThreadException {
+	/** The default port. */
+	QName mDefaultPort = null;
 
-        int res = super.complete();
+	/** The method. */
+	String mMethod;
 
-        if (this.mOriginalHostnameVerifier != null) {
-            HttpsURLConnection.setDefaultHostnameVerifier(this.mOriginalHostnameVerifier);
-        }
+	/** The namespace. */
+	String mNamespace;
 
-        return res;
-    }
+	/** The original hostname verifier. */
+	javax.net.ssl.HostnameVerifier mOriginalHostnameVerifier = null;
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
-     */
-    @Override
-    protected int initialize(Node xmlConfig) throws KETLThreadException {
+	/** The service. */
+	Service mService;
 
-        int res = super.initialize(xmlConfig);
-        if (res != 0)
-            return res;
+	/** The SOAP type. */
+	int mSOAPType;
 
-        try {
-            this.setupService();
-        } catch (Exception e) {
-            throw new KETLThreadException(e, this);
-        }
+	/** The URL. */
+	URL mURL;
 
-        this.parameterTypes = new Class[this.mInPorts.length];
-        for (int x = 0; x < this.mInPorts.length; x++) {
+	/** The parameter types. */
+	Class[] parameterTypes;
 
-            QName param = this.mNamespace == null ? new QName(this.mInPorts[x].mstrName) : new QName(this.mNamespace,
-                    this.mInPorts[x].mstrName);
+	/**
+	 * Instantiates a new SOAP writer.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public SOAPWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-            ParameterDesc pd = this.call.getOperation().getParamByQName(param);
-            if (pd == null) {
-                ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Parameter " + this.mInPorts[x].mstrName
-                        + " not in service definition and will be ignored");
-                if (this.dumpedParams == false) {
-                    ArrayList params = this.call.getOperation().getParameters();
+	/**
+	 * Authenticate call.
+	 * 
+	 * @throws MalformedURLException
+	 *             the malformed URL exception
+	 * @throws ServiceException
+	 *             the service exception
+	 * @throws AxisFault
+	 *             the axis fault
+	 * @throws RemoteException
+	 *             the remote exception
+	 */
+	protected void authenticateCall() throws MalformedURLException, ServiceException, AxisFault, RemoteException {
+		String user = this.getParameterValue(0, SOAPConnection.USER_ATTRIB);
+		String password = this.getParameterValue(0, SOAPConnection.PASSWORD_ATTRIB);
 
-                    String str = "Expected parameters:\n";
-                    for (int i = 0; i < params.size(); i++) {
-                        ParameterDesc p = (ParameterDesc) params.get(i);
-                        if (i > 0) {
-                            str += "\n";
-                        }
-                        if (p != null)
-                            str += p.toString();
-                    }
-                    ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, str);
-                    this.dumpedParams = true;
-                }
-            }
-            else
-                this.parameterTypes[x] = pd.getJavaType();
-        }
+		if (user != null) {
+			this.call.setUsername(user);
+			this.call.setPassword(password);
+		}
+	}
 
-        this.callMsg = new Object[this.mInPorts.length];
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.ETLStep#complete()
+	 */
+	@Override
+	public int complete() throws KETLThreadException {
 
-        return 0;
-    }
+		int res = super.complete();
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
-     */
-    public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
-            throws KETLWriteException {
-        for (int x = 0; x < pRecordWidth; x++) {
-            if (this.parameterTypes[x] != null)
-                this.callMsg[x] = this.mInPorts[x].isConstant() ? this.mInPorts[x].getConstantValue()
-                        : pInputRecords[this.mInPorts[x].getSourcePortIndex()];
-        }
+		if (this.mOriginalHostnameVerifier != null) {
+			HttpsURLConnection.setDefaultHostnameVerifier(this.mOriginalHostnameVerifier);
+		}
 
-        try {
-            Object resp = this.call.invoke(this.callMsg);
+		return res;
+	}
 
-            if (resp instanceof java.rmi.RemoteException) {
-                throw new KETLWriteException((Exception) resp);
-            }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
+	 */
+	@Override
+	protected int initialize(Node xmlConfig) throws KETLThreadException {
 
-            try {
-                List ls = this.call.getOutputValues();
+		int res = super.initialize(xmlConfig);
+		if (res != 0)
+			return res;
 
-                if (ls != null) {
-                    Object[] items = ls.toArray();
+		try {
+			this.setupService();
+		} catch (Exception e) {
+			throw new KETLThreadException(e, this);
+		}
 
-                    if (items != null && items.length > 0) {
-                        ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "SOAP call returned " + items.length
-                                + " value(s) " + java.util.Arrays.toString(items));
-                    }
-                }
+		this.parameterTypes = new Class[this.mInPorts.length];
+		for (int x = 0; x < this.mInPorts.length; x++) {
 
-            } catch (Exception e) {
-            }
+			QName param = this.mNamespace == null ? new QName(this.mInPorts[x].mstrName) : new QName(this.mNamespace, this.mInPorts[x].mstrName);
 
-        } catch (AxisFault e) {
-            String req = "N/A", res = "N/A";
-            try {
-                req = this.call.getMessageContext().getRequestMessage().getSOAPPartAsString();
-            } catch (Exception e1) {
-            }
-            try {
-                res = this.call.getMessageContext().getCurrentMessage().getSOAPPartAsString();
-            } catch (Exception e1) {
-            }
+			ParameterDesc pd = this.call.getOperation().getParamByQName(param);
+			if (pd == null) {
+				ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Parameter " + this.mInPorts[x].mstrName + " not in service definition and will be ignored");
+				if (this.dumpedParams == false) {
+					ArrayList params = this.call.getOperation().getParameters();
 
-            throw new KETLWriteException(
-                    "SOAP web service call failed\n\tCode:" + e.getFaultCode() + "\n\tActor:" + e.getFaultActor()
-                            + "\n\tReason:" + e.getFaultReason() + "\n\tRole:" + e.getFaultRole() + "\n\tNode:"
-                            + e.getFaultNode() + "\n\tXML SOAP request: " + req + "\n\tXML SOAP response: " + res, e);
+					String str = "Expected parameters:\n";
+					for (int i = 0; i < params.size(); i++) {
+						ParameterDesc p = (ParameterDesc) params.get(i);
+						if (i > 0) {
+							str += "\n";
+						}
+						if (p != null)
+							str += p.toString();
+					}
+					ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, str);
+					this.dumpedParams = true;
+				}
+			} else
+				this.parameterTypes[x] = pd.getJavaType();
+		}
 
-        } catch (Exception e) {
-            throw new KETLWriteException(e);
-        }
+		this.callMsg = new Object[this.mInPorts.length];
 
-        return 1;
-    }
+		return 0;
+	}
 
-    /**
-     * Setup service.
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     * @throws MalformedURLException the malformed URL exception
-     * @throws ServiceException the service exception
-     * @throws AxisFault the axis fault
-     * @throws RemoteException the remote exception
-     */
-    protected void setupService() throws KETLThreadException, MalformedURLException, ServiceException, AxisFault,
-            RemoteException {
-        // startup code
-        try {
-            this.mURL = new URL(this.getParameterValue(0, SOAPConnection.SOAPURL_ATTRIB));
-        } catch (MalformedURLException e) {
-            throw new KETLThreadException("Could not connect to URL "
-                    + this.getParameterValue(0, SOAPConnection.SOAPURL_ATTRIB), e, this);
-        }
-        this.mNamespace = this.getParameterValue(0, SOAPConnection.NAMESPACE_ATTRIB);
-        this.mMethod = this.getParameterValue(0, SOAPConnection.METHOD_ATTRIB);
-        String wsdl = this.getParameterValue(0, SOAPConnection.WSDL_ATTRIB);
-        if (XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), SOAPConnection.TYPE_ATTRIB,
-                SOAPConnection.SOAP_TYPES[SOAPConnection.SOAP_RPC]).equalsIgnoreCase(
-                SOAPConnection.SOAP_TYPES[SOAPConnection.SOAP_RPC])) {
-            this.mSOAPType = SOAPConnection.SOAP_RPC;
-        }
-        else
-            this.mSOAPType = SOAPConnection.SOAP_DOC;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
+	 */
+	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
+		for (int x = 0; x < pRecordWidth; x++) {
+			if (this.parameterTypes[x] != null)
+				this.callMsg[x] = this.mInPorts[x].isConstant() ? this.mInPorts[x].getConstantValue() : pInputRecords[this.mInPorts[x].getSourcePortIndex()];
+		}
 
-        if (XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(),
-                SOAPConnection.DISABLEHOSTNAME_VERIFICATION_ATTRIB, false)) {
-            class MyHostnameVerifier implements javax.net.ssl.HostnameVerifier {
+		try {
+			Object resp = this.call.invoke(this.callMsg);
 
-                public boolean verify(String arg0, SSLSession arg1) {
-                    ResourcePool.logMessage("Warning: URL Host: " + arg0 + " vs. " + arg1.getPeerHost());
-                    return true;
-                }
+			if (resp instanceof java.rmi.RemoteException) {
+				throw new KETLWriteException((Exception) resp);
+			}
 
-            }
+			try {
+				List ls = this.call.getOutputValues();
 
-            this.mOriginalHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+				if (ls != null) {
+					Object[] items = ls.toArray();
 
-            HttpsURLConnection.setDefaultHostnameVerifier(new MyHostnameVerifier());
+					if (items != null && items.length > 0) {
+						ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "SOAP call returned " + items.length + " value(s) " + java.util.Arrays.toString(items));
+					}
+				}
 
-        }
+			} catch (Exception e) {
+			}
 
-        String targetNamespace = this.getParameterValue(0, SOAPConnection.TARGET_NAMESPACE_ATTRIB);
-        QName service = targetNamespace == null ? new QName(this
-                .getParameterValue(0, SOAPConnection.SERVICENAME_ATTRIB)) : new QName(targetNamespace, this
-                .getParameterValue(0, SOAPConnection.SERVICENAME_ATTRIB));
+		} catch (AxisFault e) {
+			String req = "N/A", res = "N/A";
+			try {
+				req = this.call.getMessageContext().getRequestMessage().getSOAPPartAsString();
+			} catch (Exception e1) {
+			}
+			try {
+				res = this.call.getMessageContext().getCurrentMessage().getSOAPPartAsString();
+			} catch (Exception e1) {
+			}
 
-        this.mService = new Service(new URL(wsdl), service);
-        Iterator it = this.mService.getPorts();
-        StringBuilder sb = new StringBuilder();
-        boolean multiplePorts = false;
-        while (it.hasNext()) {
-            if (this.mDefaultPort == null) {
-                this.mDefaultPort = (QName) it.next();
-                sb.append(this.mDefaultPort.toString());
-            }
-            else {
-                multiplePorts = true;
-                sb.append(',');
-                sb.append(it.next().toString());
-            }
-        }
+			throw new KETLWriteException("SOAP web service call failed\n\tCode:" + e.getFaultCode() + "\n\tActor:" + e.getFaultActor() + "\n\tReason:" + e.getFaultReason()
+					+ "\n\tRole:" + e.getFaultRole() + "\n\tNode:" + e.getFaultNode() + "\n\tXML SOAP request: " + req + "\n\tXML SOAP response: " + res, e);
 
-        if (multiplePorts) {
-            throw new KETLThreadException("ERROR: Multiple web service ports found, please specify one: "
-                    + sb.toString(), this);
-        }
+		} catch (Exception e) {
+			throw new KETLWriteException(e);
+		}
 
-        // generate SOAP call
-        QName method = this.mNamespace == null ? new QName(this.mMethod) : new QName(this.mNamespace, this.mMethod);
+		return 1;
+	}
 
-        this.call = (Call) this.mService.createCall(this.mDefaultPort, method);
+	/**
+	 * Setup service.
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 * @throws MalformedURLException
+	 *             the malformed URL exception
+	 * @throws ServiceException
+	 *             the service exception
+	 * @throws AxisFault
+	 *             the axis fault
+	 * @throws RemoteException
+	 *             the remote exception
+	 */
+	protected void setupService() throws KETLThreadException, MalformedURLException, ServiceException, AxisFault, RemoteException {
+		// startup code
+		try {
+			this.mURL = new URL(this.getParameterValue(0, SOAPConnection.SOAPURL_ATTRIB));
+		} catch (MalformedURLException e) {
+			throw new KETLThreadException("Could not connect to URL " + this.getParameterValue(0, SOAPConnection.SOAPURL_ATTRIB), e, this);
+		}
+		this.mNamespace = this.getParameterValue(0, SOAPConnection.NAMESPACE_ATTRIB);
+		this.mMethod = this.getParameterValue(0, SOAPConnection.METHOD_ATTRIB);
+		String wsdl = this.getParameterValue(0, SOAPConnection.WSDL_ATTRIB);
+		if (XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), SOAPConnection.TYPE_ATTRIB, SOAPConnection.SOAP_TYPES[SOAPConnection.SOAP_RPC]).equalsIgnoreCase(
+				SOAPConnection.SOAP_TYPES[SOAPConnection.SOAP_RPC])) {
+			this.mSOAPType = SOAPConnection.SOAP_RPC;
+		} else
+			this.mSOAPType = SOAPConnection.SOAP_DOC;
 
-        ResourcePool.LogMessage(this.toString(), ResourcePool.INFO_MESSAGE, "Found web service "
-                + this.call.getOperationName());
+		if (XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), SOAPConnection.DISABLEHOSTNAME_VERIFICATION_ATTRIB, false)) {
+			class MyHostnameVerifier implements javax.net.ssl.HostnameVerifier {
 
-        this.call.setTargetEndpointAddress(this.mURL);
-        this.call.setOperationStyle(SOAPConnection.SOAP_TYPES[this.mSOAPType]);
+				public boolean verify(String arg0, SSLSession arg1) {
+					ResourcePool.logMessage("Warning: URL Host: " + arg0 + " vs. " + arg1.getPeerHost());
+					return true;
+				}
 
-        this.authenticateCall();
-    }
+			}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
-     */
-    @Override
-    protected void close(boolean success, boolean jobFailed) {
+			this.mOriginalHostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
 
-    }
+			HttpsURLConnection.setDefaultHostnameVerifier(new MyHostnameVerifier());
 
-    /**
-     * Gets the call.
-     * 
-     * @return the call
-     */
-    final protected Call getCall() {
-        return this.call;
-    }
+		}
 
-    /**
-     * Gets the namespace.
-     * 
-     * @return the namespace
-     */
-    final public String getNamespace() {
-        return this.mNamespace;
-    }
+		String targetNamespace = this.getParameterValue(0, SOAPConnection.TARGET_NAMESPACE_ATTRIB);
+		QName service = targetNamespace == null ? new QName(this.getParameterValue(0, SOAPConnection.SERVICENAME_ATTRIB)) : new QName(targetNamespace, this.getParameterValue(0,
+				SOAPConnection.SERVICENAME_ATTRIB));
+
+		this.mService = new Service(new URL(wsdl), service);
+		Iterator it = this.mService.getPorts();
+		StringBuilder sb = new StringBuilder();
+		boolean multiplePorts = false;
+		while (it.hasNext()) {
+			if (this.mDefaultPort == null) {
+				this.mDefaultPort = (QName) it.next();
+				sb.append(this.mDefaultPort.toString());
+			} else {
+				multiplePorts = true;
+				sb.append(',');
+				sb.append(it.next().toString());
+			}
+		}
+
+		if (multiplePorts) {
+			throw new KETLThreadException("ERROR: Multiple web service ports found, please specify one: " + sb.toString(), this);
+		}
+
+		// generate SOAP call
+		QName method = this.mNamespace == null ? new QName(this.mMethod) : new QName(this.mNamespace, this.mMethod);
+
+		this.call = (Call) this.mService.createCall(this.mDefaultPort, method);
+
+		ResourcePool.LogMessage(this.toString(), ResourcePool.INFO_MESSAGE, "Found web service " + this.call.getOperationName());
+
+		this.call.setTargetEndpointAddress(this.mURL);
+		this.call.setOperationStyle(SOAPConnection.SOAP_TYPES[this.mSOAPType]);
+
+		this.authenticateCall();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success, boolean jobFailed) {
+
+	}
+
+	/**
+	 * Gets the call.
+	 * 
+	 * @return the call
+	 */
+	final protected Call getCall() {
+		return this.call;
+	}
+
+	/**
+	 * Gets the namespace.
+	 * 
+	 * @return the namespace
+	 */
+	final public String getNamespace() {
+		return this.mNamespace;
+	}
 
 }

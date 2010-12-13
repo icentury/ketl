@@ -61,8 +61,12 @@ import com.kni.etl.ketl.smp.WriterBatchManager;
  * @author Brian Sullivan
  * @version 1.0
  */
-public class QueryRunner extends ETLWriter implements DefaultWriterCore,
-		DBConnection, WriterBatchManager, PrePostSQL {
+public class QueryRunner extends ETLWriter implements DefaultWriterCore, DBConnection, WriterBatchManager, PrePostSQL {
+
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -97,17 +101,14 @@ public class QueryRunner extends ETLWriter implements DefaultWriterCore,
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public QueryRunner(Node pXMLConfig, int pPartitionID, int pPartition,
-			ETLThreadManager pThreadManager) throws KETLThreadException {
+	public QueryRunner(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
 	public static final String QUERY_ATTRIB = "QUERY";
 
 	/** The ms required tags. */
-	String[] msRequiredTags = { DBConnection.USER_ATTRIB,
-			DBConnection.PASSWORD_ATTRIB, DBConnection.URL_ATTRIB,
-			DBConnection.DRIVER_ATTRIB, QUERY_ATTRIB };
+	String[] msRequiredTags = { DBConnection.USER_ATTRIB, DBConnection.PASSWORD_ATTRIB, DBConnection.URL_ATTRIB, DBConnection.DRIVER_ATTRIB, QUERY_ATTRIB };
 
 	/** The mc DB connection. */
 	private Connection mcDBConnection;
@@ -206,10 +207,8 @@ public class QueryRunner extends ETLWriter implements DefaultWriterCore,
 		return this.mDatabaseProperties;
 	}
 
-	private void setDatabaseProperties(Map<String, Object> parameterListValues)
-			throws Exception {
-		this.mDatabaseProperties = JDBCItemHelper
-				.getProperties(parameterListValues);
+	private void setDatabaseProperties(Map<String, Object> parameterListValues) throws Exception {
+		this.mDatabaseProperties = JDBCItemHelper.getProperties(parameterListValues);
 	}
 
 	// Return 0 if success, otherwise error code...
@@ -247,9 +246,7 @@ public class QueryRunner extends ETLWriter implements DefaultWriterCore,
 		}
 
 		try {
-			this.setConnection(ResourcePool.getConnection(strDriverClass,
-					strURL, strUserName, strPassword, strPreSQL, true, this
-							.getDatabaseProperties()));
+			this.setConnection(ResourcePool.getConnection(strDriverClass, strURL, strUserName, strPassword, strPreSQL, true, this.getDatabaseProperties()));
 
 			this.executePreStatements();
 			this.mStmt = this.mcDBConnection.createStatement();
@@ -273,11 +270,7 @@ public class QueryRunner extends ETLWriter implements DefaultWriterCore,
 		// Close any existing connection...
 		if (this.mcDBConnection != null) {
 			try {
-				ResourcePool
-						.LogMessage(
-								this,
-								ResourcePool.WARNING_MESSAGE,
-								"Closing connection for unexpected reason, connection not returned to resource pool");
+				ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Closing connection for unexpected reason, connection not returned to resource pool");
 				ResourcePool.releaseConnection(this.mcDBConnection);
 			} catch (Exception e) {
 			} finally {
@@ -296,16 +289,11 @@ public class QueryRunner extends ETLWriter implements DefaultWriterCore,
 	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
 	 * java.lang.Class[], int)
 	 */
-	public int putNextRecord(Object[] pInputRecords,
-			Class[] pExpectedDataTypes, int pRecordWidth)
-			throws KETLWriteException {
+	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 		try {
 			String query = this.strQuery;
-			for (String param : EngineConstants
-					.getParametersFromText(this.strQuery)) {
-				query = EngineConstants.replaceParameter(query, param,
-						pInputRecords[this.getInPort(param)
-								.getSourcePortIndex()].toString());
+			for (String param : EngineConstants.getParametersFromText(this.strQuery)) {
+				query = EngineConstants.replaceParameter(query, param, pInputRecords[this.getInPort(param).getSourcePortIndex()].toString());
 			}
 			this.mStmt.execute(query);
 
@@ -327,8 +315,7 @@ public class QueryRunner extends ETLWriter implements DefaultWriterCore,
 	 * com.kni.etl.ketl.smp.WriterBatchManager#initializeBatch(java.lang.Object
 	 * [][], int)
 	 */
-	public Object[][] initializeBatch(Object[][] data, int len)
-			throws KETLWriteException {
+	public Object[][] initializeBatch(Object[][] data, int len) throws KETLWriteException {
 		try {
 			this.executePreBatchStatements();
 		} catch (SQLException e) {
@@ -343,8 +330,7 @@ public class QueryRunner extends ETLWriter implements DefaultWriterCore,
 	 * @see com.kni.etl.dbutils.PrePostSQL#executePostStatements()
 	 */
 	public void executePostStatements() throws SQLException {
-		StatementManager.executeStatements(this, this, "POSTSQL",
-				StatementManager.END);
+		StatementManager.executeStatements(this, this, "POSTSQL", StatementManager.END);
 	}
 
 	/*
@@ -353,8 +339,7 @@ public class QueryRunner extends ETLWriter implements DefaultWriterCore,
 	 * @see com.kni.etl.dbutils.PrePostSQL#executePreStatements()
 	 */
 	public void executePreStatements() throws SQLException {
-		StatementManager.executeStatements(this, this, "PRESQL",
-				StatementManager.START);
+		StatementManager.executeStatements(this, this, "PRESQL", StatementManager.START);
 	}
 
 	/*

@@ -60,298 +60,318 @@ import com.kni.etl.util.XMLHelper;
  */
 public class ExcelWriter extends ETLWriter implements DefaultWriterCore {
 
-    /** The tab port index. */
-    private int mTabPortIndex = -1;
-    
-    /** The xml out. */
-    private BufferedWriter xmlOut;
-    
-    /** The out. */
-    private PrintWriter out;
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
-     */
-    @Override
-    protected int initialize(Node xmlConfig) throws KETLThreadException {
-        // TODO Auto-generated method stub
-        int res = super.initialize(xmlConfig);
+	/** The tab port index. */
+	private int mTabPortIndex = -1;
 
-        if (res != 0)
-            return res;
+	/** The xml out. */
+	private BufferedWriter xmlOut;
 
-        for (int i = 0; i < this.mInPorts.length; i++) {
-            if (XMLHelper.getAttributeAsBoolean(this.mInPorts[i].getXMLConfig().getAttributes(), "TAB", false)) {
-                this.mTabPortIndex = i;
-            }
-        }
+	/** The out. */
+	private PrintWriter out;
 
-        String filePath = this.getParameterValue(0, "FILEPATH");
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
+	 */
+	@Override
+	protected int initialize(Node xmlConfig) throws KETLThreadException {
+		// TODO Auto-generated method stub
+		int res = super.initialize(xmlConfig);
 
-        File fn;
-        try {
-            fn = new File(filePath);
+		if (res != 0)
+			return res;
 
-            // stream the file to the browser for download
-            this.out = new PrintWriter(fn);
+		for (int i = 0; i < this.mInPorts.length; i++) {
+			if (XMLHelper.getAttributeAsBoolean(this.mInPorts[i].getXMLConfig().getAttributes(), "TAB", false)) {
+				this.mTabPortIndex = i;
+			}
+		}
 
-            this.xmlOut = new BufferedWriter(this.out);
+		String filePath = this.getParameterValue(0, "FILEPATH");
 
-            this.writeData("<?xml version=\"1.0\"?>\n" + "<?mso-application progid=\"Excel.Sheet\"?>"
-                    + "<ss:Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" "
-                    + "xmlns:o=\"urn:schemas-microsoft-com:office:office\" "
-                    + "xmlns:x=\"urn:schemas-microsoft-com:office:excel\"  "
-                    + "xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"  "
-                    + "xmlns:html=\"http://www.w3.org/TR/REC-html40\">");
-            this.writeData("<ss:Styles><Style ss:ID=\"Default\" ss:Name=\"Normal\"><Font ss:Size=\"8\"/>"
-                    + "</Style><ss:Style ss:ID=\"1\"><Borders><Border ss:Position=\"Bottom\""
-                    + " ss:LineStyle=\"Continuous\" ss:Weight=\"1\"/></Borders></ss:Style>"
-                    + "<Style ss:ID=\"s22\"><NumberFormat" + " ss:Format=\"m/d/yy\\ h:mm;@\"/>"
-                    + "</Style>\n</ss:Styles>");
+		File fn;
+		try {
+			fn = new File(filePath);
 
-            if (this.mTabPortIndex == -1)
-                this.createSheet("Results");
-        } catch (IOException e) {
-            throw new KETLThreadException(e, this);
-        }
-        return 0;
+			// stream the file to the browser for download
+			this.out = new PrintWriter(fn);
 
-    }
+			this.xmlOut = new BufferedWriter(this.out);
 
-    /**
-     * Instantiates a new excel writer.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public ExcelWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+			this.writeData("<?xml version=\"1.0\"?>\n" + "<?mso-application progid=\"Excel.Sheet\"?>" + "<ss:Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" "
+					+ "xmlns:o=\"urn:schemas-microsoft-com:office:office\" " + "xmlns:x=\"urn:schemas-microsoft-com:office:excel\"  "
+					+ "xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"  " + "xmlns:html=\"http://www.w3.org/TR/REC-html40\">");
+			this.writeData("<ss:Styles><Style ss:ID=\"Default\" ss:Name=\"Normal\"><Font ss:Size=\"8\"/>" + "</Style><ss:Style ss:ID=\"1\"><Borders><Border ss:Position=\"Bottom\""
+					+ " ss:LineStyle=\"Continuous\" ss:Weight=\"1\"/></Borders></ss:Style>" + "<Style ss:ID=\"s22\"><NumberFormat" + " ss:Format=\"m/d/yy\\ h:mm;@\"/>"
+					+ "</Style>\n</ss:Styles>");
 
-        if (pPartition > 1)
-            throw new KETLThreadException(
-                    "Excel writer cannot be executed in parallel, add FLOWTYPE=\"FANIN\" to step definition", this);
+			if (this.mTabPortIndex == -1)
+				this.createSheet("Results");
+		} catch (IOException e) {
+			throw new KETLThreadException(e, this);
+		}
+		return 0;
 
-    }
+	}
 
-    /** The current tab. */
-    private Object mCurrentTab = null;
+	/**
+	 * Instantiates a new excel writer.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public ExcelWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
-    /**
-     * Adds the headers.
-     * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    private void addHeaders() throws IOException {
-        this.writeData("<ss:Row ss:StyleID=\"1\">");
+		if (pPartition > 1)
+			throw new KETLThreadException("Excel writer cannot be executed in parallel, add FLOWTYPE=\"FANIN\" to step definition", this);
 
-        for (ETLInPort element : this.mInPorts) {
+	}
 
-            this.printCell(element.mstrName, String.class);
-        }
-        this.writeData("</ss:Row>");
+	/** The current tab. */
+	private Object mCurrentTab = null;
 
-    }
+	/**
+	 * Adds the headers.
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	private void addHeaders() throws IOException {
+		this.writeData("<ss:Row ss:StyleID=\"1\">");
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
-     */
-    public int putNextRecord(Object[] o, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
+		for (ETLInPort element : this.mInPorts) {
 
-        try {
-            if (this.mTabPortIndex != -1) {
+			this.printCell(element.mstrName, String.class);
+		}
+		this.writeData("</ss:Row>");
 
-                Object data = this.mInPorts[this.mTabPortIndex].isConstant() ? this.mInPorts[this.mTabPortIndex]
-                        .getConstantValue() : o[this.mInPorts[this.mTabPortIndex].getSourcePortIndex()];
-                if (this.mCurrentTab == null || this.mCurrentTab.equals(data) == false) {
+	}
 
-                    if (this.mCurrentTab != null) {
-                        this.closeSheet();
-                    }
-                    this.mCurrentTab = data;
-                    this.createSheet(data.toString());
-                }
-            }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
+	 */
+	public int putNextRecord(Object[] o, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 
-            this.writeData("<ss:Row>");
-            for (ETLInPort element : this.mInPorts) {
+		try {
+			if (this.mTabPortIndex != -1) {
 
-                Object data = element.isConstant() ? element.getConstantValue() : o[element.getSourcePortIndex()];
+				Object data = this.mInPorts[this.mTabPortIndex].isConstant() ? this.mInPorts[this.mTabPortIndex].getConstantValue() : o[this.mInPorts[this.mTabPortIndex]
+						.getSourcePortIndex()];
+				if (this.mCurrentTab == null || this.mCurrentTab.equals(data) == false) {
 
-                this.printCell(data, element.getPortClass());
-            }
+					if (this.mCurrentTab != null) {
+						this.closeSheet();
+					}
+					this.mCurrentTab = data;
+					this.createSheet(data.toString());
+				}
+			}
 
-            this.writeData("</ss:Row>");
-        } catch (IOException e) {
-            throw new KETLWriteException(e.getMessage());
-        }
+			this.writeData("<ss:Row>");
+			for (ETLInPort element : this.mInPorts) {
 
-        return 1;
-    }
+				Object data = element.isConstant() ? element.getConstantValue() : o[element.getSourcePortIndex()];
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
-     */
-    @Override
-    protected void close(boolean success, boolean jobFailed) {
-        try {
-            if (this.xmlOut != null) {
-                this.xmlOut.close();
-                this.xmlOut = null;
-            }
+				this.printCell(data, element.getPortClass());
+			}
 
-            if (this.out != null) {
-                this.out = null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+			this.writeData("</ss:Row>");
+		} catch (IOException e) {
+			throw new KETLWriteException(e.getMessage());
+		}
 
-    /**
-     * Write data.
-     * 
-     * @param pData the data
-     * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    void writeData(String pData) throws IOException {
-        this.xmlOut.write(pData);
-    }
+		return 1;
+	}
 
-    /**
-     * Creates the sheet.
-     * 
-     * @param pName the name
-     * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    void createSheet(String pName) throws IOException {
-        this.writeData("<ss:Worksheet ss:Name=\"" + this.checkAndEscapeXMLData(pName) + "\"><ss:Table>");
-        this.addHeaders();
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success, boolean jobFailed) {
+		try {
+			if (this.xmlOut != null) {
+				this.xmlOut.close();
+				this.xmlOut = null;
+			}
 
-    /** The custom date format. */
-    SimpleDateFormat customDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+			if (this.out != null) {
+				this.out = null;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-    /**
-     * Prints the cell.
-     * 
-     * @param pValue the value
-     * @param pClass the class
-     * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    void printCell(Object pValue, Class pClass) throws IOException {
+	/**
+	 * Write data.
+	 * 
+	 * @param pData
+	 *            the data
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	void writeData(String pData) throws IOException {
+		this.xmlOut.write(pData);
+	}
 
-        if (pValue == null)
-            this.writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
-        else if (pClass == String.class) {
-            this.writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
-            this.writeData(this.checkAndEscapeXMLData((String) pValue));
-        }
-        else if (pClass == BigDecimal.class) {
-            this.writeData("<ss:Cell><ss:Data ss:Type=\"Number\">");
-            this.writeData(this.checkAndEscapeXMLData(Double.toString(((BigDecimal) pValue).doubleValue())));
-        }
-        else if (pClass == Timestamp.class) {
-            this.writeData("<ss:Cell ss:StyleID=\"s22\"><ss:Data ss:Type=\"DateTime\">");
-            this.writeData(this.checkAndEscapeXMLData(this.customDateFormat.format((Timestamp) pValue)));
-        }
-        else {
-            this.writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
-            this.writeData(this.checkAndEscapeXMLData(pValue.toString()));
-        }
+	/**
+	 * Creates the sheet.
+	 * 
+	 * @param pName
+	 *            the name
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	void createSheet(String pName) throws IOException {
+		this.writeData("<ss:Worksheet ss:Name=\"" + this.checkAndEscapeXMLData(pName) + "\"><ss:Table>");
+		this.addHeaders();
+	}
 
-        this.writeData("</ss:Data></ss:Cell>");
-    }
+	/** The custom date format. */
+	SimpleDateFormat customDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
-    /**
-     * Pad null.
-     * 
-     * @param arg0 the arg0
-     * 
-     * @return the string
-     */
-    public static String padNull(String arg0) {
-        if (arg0 == null || arg0.length() == 1)
-            return "&nbsp;";
+	/**
+	 * Prints the cell.
+	 * 
+	 * @param pValue
+	 *            the value
+	 * @param pClass
+	 *            the class
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	void printCell(Object pValue, Class pClass) throws IOException {
 
-        return arg0;
-    }
+		if (pValue == null)
+			this.writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
+		else if (pClass == String.class) {
+			this.writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
+			this.writeData(this.checkAndEscapeXMLData((String) pValue));
+		} else if (pClass == BigDecimal.class) {
+			this.writeData("<ss:Cell><ss:Data ss:Type=\"Number\">");
+			this.writeData(this.checkAndEscapeXMLData(Double.toString(((BigDecimal) pValue).doubleValue())));
+		} else if (pClass == Timestamp.class) {
+			this.writeData("<ss:Cell ss:StyleID=\"s22\"><ss:Data ss:Type=\"DateTime\">");
+			this.writeData(this.checkAndEscapeXMLData(this.customDateFormat.format((Timestamp) pValue)));
+		} else {
+			this.writeData("<ss:Cell><ss:Data ss:Type=\"String\">");
+			this.writeData(this.checkAndEscapeXMLData(pValue.toString()));
+		}
 
-    /**
-     * Close sheet.
-     * 
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    void closeSheet() throws IOException {
-        this.writeData("</ss:Table></ss:Worksheet>");
-    }
+		this.writeData("</ss:Data></ss:Cell>");
+	}
 
-    /** The data length warning. */
-    private boolean mDataLengthWarning = true;
+	/**
+	 * Pad null.
+	 * 
+	 * @param arg0
+	 *            the arg0
+	 * 
+	 * @return the string
+	 */
+	public static String padNull(String arg0) {
+		if (arg0 == null || arg0.length() == 1)
+			return "&nbsp;";
 
-    /**
-     * Check and escape XML data.
-     * 
-     * @param pXML the XML
-     * 
-     * @return the string
-     */
-    private String checkAndEscapeXMLData(String pXML) {
+		return arg0;
+	}
 
-        if (pXML.length() > 255) {
-            pXML = pXML.substring(0, 254);
-            if (this.mDataLengthWarning) {
-                ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Data length over 255, actual length "
-                        + pXML.length());
-                this.mDataLengthWarning = false;
-            }
-        }
+	/**
+	 * Close sheet.
+	 * 
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	void closeSheet() throws IOException {
+		this.writeData("</ss:Table></ss:Worksheet>");
+	}
 
-        String str = pXML.replaceAll("&", "&amp;");
-        str = pXML.replaceAll("\"", "&quot;");
-        str = str.replaceAll("<", "&lt;");
-        str = str.replaceAll(">", "&gt;");
-        str = str.replaceAll("’", "&apos;");
+	/** The data length warning. */
+	private boolean mDataLengthWarning = true;
 
-        return str;
-    }
+	/**
+	 * Check and escape XML data.
+	 * 
+	 * @param pXML
+	 *            the XML
+	 * 
+	 * @return the string
+	 */
+	private String checkAndEscapeXMLData(String pXML) {
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.ETLStep#complete()
-     */
-    @Override
-    public int complete() throws KETLThreadException {
+		if (pXML.length() > 255) {
+			pXML = pXML.substring(0, 254);
+			if (this.mDataLengthWarning) {
+				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Data length over 255, actual length " + pXML.length());
+				this.mDataLengthWarning = false;
+			}
+		}
 
-        int res = super.complete();
+		String str = pXML.replaceAll("&", "&amp;");
+		str = pXML.replaceAll("\"", "&quot;");
+		str = str.replaceAll("<", "&lt;");
+		str = str.replaceAll(">", "&gt;");
+		str = str.replaceAll("’", "&apos;");
 
-        if (res != 0)
-            return res;
+		return str;
+	}
 
-        try {
-            this.closeSheet();
-            this.writeData("</ss:Workbook>");
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.ETLStep#complete()
+	 */
+	@Override
+	public int complete() throws KETLThreadException {
 
-            if (this.xmlOut != null) {
-                this.xmlOut.close();
-                this.xmlOut = null;
-            }
+		int res = super.complete();
 
-            if (this.out != null) {
-                this.out.flush();
-                this.out = null;
-            }
-        } catch (IOException e) {
-            throw new KETLThreadException(e, e.getMessage());
-        }
+		if (res != 0)
+			return res;
 
-        return 0;
-    }
+		try {
+			this.closeSheet();
+			this.writeData("</ss:Workbook>");
+
+			if (this.xmlOut != null) {
+				this.xmlOut.close();
+				this.xmlOut = null;
+			}
+
+			if (this.out != null) {
+				this.out.flush();
+				this.out = null;
+			}
+		} catch (IOException e) {
+			throw new KETLThreadException(e, e.getMessage());
+		}
+
+		return 0;
+	}
 
 }

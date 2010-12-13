@@ -40,98 +40,115 @@ import com.kni.etl.util.XMLHelper;
  */
 public class Merge extends ETLMerge {
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
-     */
-    @Override
-    protected ETLOutPort getNewOutPort(ETLStep srcStep) {
-        return new ETLMergePort(this, srcStep);
-    }
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-    /**
-     * The Class ETLMergePort.
-     */
-    class ETLMergePort extends ETLOutPort {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+	 */
+	@Override
+	protected ETLOutPort getNewOutPort(ETLStep srcStep) {
+		return new ETLMergePort(this, srcStep);
+	}
 
-        /* (non-Javadoc)
-         * @see com.kni.etl.ketl.ETLOutPort#generateCode(int)
-         */
-        @Override
-        public String generateCode(int portReferenceIndex) throws KETLThreadException {
+	/**
+	 * The Class ETLMergePort.
+	 */
+	class ETLMergePort extends ETLOutPort {
 
-            if (this.isUsed() == false)
-                return "";
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.kni.etl.ketl.ETLOutPort#generateCode(int)
+		 */
+		@Override
+		public String generateCode(int portReferenceIndex) throws KETLThreadException {
 
-            // must be pure code then do some replacing
-            String baseCode = XMLHelper.getTextContent(this.getXMLConfig());
+			if (this.isUsed() == false)
+				return "";
 
-            if (baseCode == null || baseCode.length() == 0)
-                baseCode = "null";
-            else {
-                String[] params = EngineConstants.getParametersFromText(baseCode);
+			// must be pure code then do some replacing
+			String baseCode = XMLHelper.getTextContent(this.getXMLConfig());
 
-                for (String element : params) {
-                    ETLInPort inport = this.mesStep.getInPort(element);
+			if (baseCode == null || baseCode.length() == 0)
+				baseCode = "null";
+			else {
+				String[] params = EngineConstants.getParametersFromText(baseCode);
 
-                    if (inport == null) {
-                        // get from parameter list
-                        throw new KETLThreadException("Source port " + element + " for step "
-                                + this.mesStep.getName() + " could not be found, has it been declared as an IN port", this);
-                    }
-                    else {
-                        baseCode = EngineConstants.replaceParameter(baseCode, element, inport.generateReference());
-                        return this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this)
-                                + "] = " + inport.getCodeGenerationReferenceObject() + "==null?null:" + baseCode;
-                    }
-                }
-            }
+				for (String element : params) {
+					ETLInPort inport = this.mesStep.getInPort(element);
 
-            return this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this) + "] = "
-                    + baseCode;
+					if (inport == null) {
+						// get from parameter list
+						throw new KETLThreadException("Source port " + element + " for step " + this.mesStep.getName() + " could not be found, has it been declared as an IN port",
+								this);
+					} else {
+						baseCode = EngineConstants.replaceParameter(baseCode, element, inport.generateReference());
+						return this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this) + "] = " + inport.getCodeGenerationReferenceObject()
+								+ "==null?null:" + baseCode;
+					}
+				}
+			}
 
-        }
+			return this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this) + "] = " + baseCode;
 
-        /**
-         * Instantiates a new ETL merge port.
-         * 
-         * @param esOwningStep the es owning step
-         * @param esSrcStep the es src step
-         */
-        public ETLMergePort(ETLStep esOwningStep, ETLStep esSrcStep) {
-            super(esOwningStep, esSrcStep);
-        }
+		}
 
-    }
+		/**
+		 * Instantiates a new ETL merge port.
+		 * 
+		 * @param esOwningStep
+		 *            the es owning step
+		 * @param esSrcStep
+		 *            the es src step
+		 */
+		public ETLMergePort(ETLStep esOwningStep, ETLStep esSrcStep) {
+			super(esOwningStep, esSrcStep);
+		}
 
-    /**
-     * Instantiates a new merge.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public Merge(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
-     */
-    @Override
-    protected void close(boolean success, boolean jobFailed) {
-    }
+	/**
+	 * Instantiates a new merge.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public Merge(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLMerge#getRecordExecuteMethodFooter()
-     */
-    @Override
-    protected String getRecordExecuteMethodFooter() {
-        return " return pLeftInputRecords!=null&&pRightInputRecords!=null?" + DefaultMergeCore.SUCCESS_ADVANCE_BOTH
-                + ":(pLeftInputRecords==null?" + DefaultMergeCore.SUCCESS_ADVANCE_RIGHT + ":"
-                + DefaultMergeCore.SUCCESS_ADVANCE_LEFT + ");}";
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success, boolean jobFailed) {
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLMerge#getRecordExecuteMethodFooter()
+	 */
+	@Override
+	protected String getRecordExecuteMethodFooter() {
+		return " return pLeftInputRecords!=null&&pRightInputRecords!=null?" + DefaultMergeCore.SUCCESS_ADVANCE_BOTH + ":(pLeftInputRecords==null?"
+				+ DefaultMergeCore.SUCCESS_ADVANCE_RIGHT + ":" + DefaultMergeCore.SUCCESS_ADVANCE_LEFT + ");}";
+	}
 }

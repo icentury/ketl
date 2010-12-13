@@ -44,170 +44,189 @@ import com.kni.etl.util.XMLHelper;
  */
 public class RegExFilterTransformation extends ETLTransformation {
 
-    /** The Constant REGEXPR_ATTRIB. */
-    private static final String REGEXPR_ATTRIB = "REGEXPR";
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-    /**
-     * Instantiates a new reg ex filter transformation.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public RegExFilterTransformation(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	/** The Constant REGEXPR_ATTRIB. */
+	private static final String REGEXPR_ATTRIB = "REGEXPR";
 
-    }
+	/**
+	 * Instantiates a new reg ex filter transformation.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public RegExFilterTransformation(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
-     */
-    @Override
-    protected ETLOutPort getNewOutPort(ETLStep srcStep) {
-        return new RegExFilterOutPort(this, srcStep);
-    }
+	}
 
-    /**
-     * The Class RegExFilterOutPort.
-     */
-    class RegExFilterOutPort extends ETLOutPort {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+	 */
+	@Override
+	protected ETLOutPort getNewOutPort(ETLStep srcStep) {
+		return new RegExFilterOutPort(this, srcStep);
+	}
 
-        /** The matcher. */
-        Matcher matcher;
-        
-        /** The null matches. */
-        boolean nullMatches = false;
+	/**
+	 * The Class RegExFilterOutPort.
+	 */
+	class RegExFilterOutPort extends ETLOutPort {
 
-        /* (non-Javadoc)
-         * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
-         */
-        @Override
-        public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
-            String regexID = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
-                    RegExFilterTransformation.REGEXPR_ATTRIB, null);
+		/** The matcher. */
+		Matcher matcher;
 
-            if (regexID != null) {
-                String regex = XMLHelper.getChildNodeValueAsString(xmlConfig.getParentNode(), "REGEXPR", "ID", regexID,
-                        null);
-                if (regex != null) {
+		/** The null matches. */
+		boolean nullMatches = false;
 
-                    this.nullMatches = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), "NULLMATCHES",
-                            this.nullMatches);
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
+		 */
+		@Override
+		public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
+			String regexID = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), RegExFilterTransformation.REGEXPR_ATTRIB, null);
 
-                    Pattern pattern = Pattern.compile(regex);
-                    this.matcher = pattern.matcher("");
-                }
-            }
+			if (regexID != null) {
+				String regex = XMLHelper.getChildNodeValueAsString(xmlConfig.getParentNode(), "REGEXPR", "ID", regexID, null);
+				if (regex != null) {
 
-            String tmp = XMLHelper.getTextContent(xmlConfig);
+					this.nullMatches = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), "NULLMATCHES", this.nullMatches);
 
-            if (tmp == null || tmp.length() == 0)
-                xmlConfig.setTextContent(EngineConstants.VARIABLE_PARAMETER_START
-                        + XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "NAME", null)
-                        + EngineConstants.VARIABLE_PARAMETER_END);
+					Pattern pattern = Pattern.compile(regex);
+					this.matcher = pattern.matcher("");
+				}
+			}
 
-            int res = super.initialize(xmlConfig);
+			String tmp = XMLHelper.getTextContent(xmlConfig);
 
-            return res;
+			if (tmp == null || tmp.length() == 0)
+				xmlConfig.setTextContent(EngineConstants.VARIABLE_PARAMETER_START + XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "NAME", null)
+						+ EngineConstants.VARIABLE_PARAMETER_END);
 
-        }
+			int res = super.initialize(xmlConfig);
 
-        /* (non-Javadoc)
-         * @see com.kni.etl.ketl.ETLOutPort#generateCode(int)
-         */
-        @Override
-        public String generateCode(int portReferenceIndex) throws KETLThreadException {
+			return res;
 
-            String tmp = super.generateCode(portReferenceIndex);
+		}
 
-            if (this.matcher == null)
-                return tmp;
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.kni.etl.ketl.ETLOutPort#generateCode(int)
+		 */
+		@Override
+		public String generateCode(int portReferenceIndex) throws KETLThreadException {
 
-            return tmp + ";if(((" + this.mesStep.getClass().getCanonicalName() + ")this.getOwner()).skipRecord("
-                    + this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this) + "],"
-                    + this.mesStep.getUsedPortIndex(this) + ")) return SKIP_RECORD";
-        }
+			String tmp = super.generateCode(portReferenceIndex);
 
-        /**
-         * Instantiates a new reg ex filter out port.
-         * 
-         * @param esOwningStep the es owning step
-         * @param esSrcStep the es src step
-         */
-        public RegExFilterOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
-            super(esOwningStep, esSrcStep);
-        }
+			if (this.matcher == null)
+				return tmp;
 
-    }
+			return tmp + ";if(((" + this.mesStep.getClass().getCanonicalName() + ")this.getOwner()).skipRecord(" + this.getCodeGenerationReferenceObject() + "["
+					+ this.mesStep.getUsedPortIndex(this) + "]," + this.mesStep.getUsedPortIndex(this) + ")) return SKIP_RECORD";
+		}
 
-    /**
-     * Skip record.
-     * 
-     * @param datum the datum
-     * @param portIdx the port idx
-     * 
-     * @return true, if successful
-     */
-    public boolean skipRecord(Object datum, int portIdx) {
+		/**
+		 * Instantiates a new reg ex filter out port.
+		 * 
+		 * @param esOwningStep
+		 *            the es owning step
+		 * @param esSrcStep
+		 *            the es src step
+		 */
+		public RegExFilterOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
+			super(esOwningStep, esSrcStep);
+		}
 
-        Matcher regex = ((RegExFilterOutPort) this.mOutPorts[portIdx]).matcher;
+	}
 
-        if (datum == null) {
-            if (((RegExFilterOutPort) this.mOutPorts[portIdx]).nullMatches == false)
-                return true;
+	/**
+	 * Skip record.
+	 * 
+	 * @param datum
+	 *            the datum
+	 * @param portIdx
+	 *            the port idx
+	 * 
+	 * @return true, if successful
+	 */
+	public boolean skipRecord(Object datum, int portIdx) {
 
-            return false;
-        }
-        regex.reset(datum.toString());
-        if (regex.find() == false)
-            return true;
+		Matcher regex = ((RegExFilterOutPort) this.mOutPorts[portIdx]).matcher;
 
-        return false;
-    }
+		if (datum == null) {
+			if (((RegExFilterOutPort) this.mOutPorts[portIdx]).nullMatches == false)
+				return true;
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLTransform#getRecordExecuteMethodHeader()
-     */
-    @Override
-    protected String getRecordExecuteMethodHeader() throws KETLThreadException {
-        StringBuilder sb = new StringBuilder(super.getRecordExecuteMethodHeader());
+			return false;
+		}
+		regex.reset(datum.toString());
+		if (regex.find() == false)
+			return true;
 
-        Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "FILTER", "*", "*");
+		return false;
+	}
 
-        if (nl != null) {
-            for (Node element : nl) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLTransform#getRecordExecuteMethodHeader()
+	 */
+	@Override
+	protected String getRecordExecuteMethodHeader() throws KETLThreadException {
+		StringBuilder sb = new StringBuilder(super.getRecordExecuteMethodHeader());
 
-                String code = XMLHelper.getTextContent(element);
+		Node[] nl = XMLHelper.getElementsByName(this.getXMLConfig(), "FILTER", "*", "*");
 
-                if (code == null || code.length() == 0)
-                    throw new KETLThreadException("Filter tag requires an expression", this);
+		if (nl != null) {
+			for (Node element : nl) {
 
-                String[] parms = EngineConstants.getParametersFromText(code);
+				String code = XMLHelper.getTextContent(element);
 
-                for (String element0 : parms) {
-                    ETLInPort port = this.getInPort(element0);
-                    code = EngineConstants.replaceParameter(code, element0, port.generateReference());
-                }
+				if (code == null || code.length() == 0)
+					throw new KETLThreadException("Filter tag requires an expression", this);
 
-                sb.append("if(!(" + code + ")) return SKIP_RECORD;");
+				String[] parms = EngineConstants.getParametersFromText(code);
 
-            }
-        }
+				for (String element0 : parms) {
+					ETLInPort port = this.getInPort(element0);
+					code = EngineConstants.replaceParameter(code, element0, port.generateReference());
+				}
 
-        return sb.toString();
-    }
+				sb.append("if(!(" + code + ")) return SKIP_RECORD;");
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
-     */
-    @Override
-    protected void close(boolean success, boolean jobFailed) {
-        // TODO Auto-generated method stub
+			}
+		}
 
-    }
+		return sb.toString();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success, boolean jobFailed) {
+		// TODO Auto-generated method stub
+
+	}
 
 }

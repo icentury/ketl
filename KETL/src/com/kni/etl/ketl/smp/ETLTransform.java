@@ -52,13 +52,16 @@ import com.kni.etl.util.aggregator.Direct;
 public abstract class ETLTransform extends ETLStep {
 
 	/** The aggregate out. */
-	private ArrayList aggregateOut = new ArrayList();
+	private final ArrayList aggregateOut = new ArrayList();
 
 	/** The aggregates. */
 	private Aggregator[] aggregates;
 
 	/** The core. */
-	private DefaultTransformCore core;
+	private DefaultTransformCore core = null;
+
+	/** alternate core that processes the batch differently */
+	private BatchTransformCore batchCore = null;
 
 	/** The sort data. */
 	private boolean mAggregate = false, mSortData = false;
@@ -112,18 +115,15 @@ public abstract class ETLTransform extends ETLStep {
 	 */
 	public ETLTransform(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-		
+
 		try {
-			this.mCheckpointStore  = new CheckPointStore(this);
+			this.mCheckpointStore = new CheckPointStore(this);
 		} catch (IOException e) {
 			throw new KETLThreadException("Unable to create check point store", e, this);
 		}
 	}
 
 	private CheckPointStore mCheckpointStore;
-
-	
-	
 
 	/**
 	 * Aggregate batch.
@@ -208,21 +208,18 @@ public abstract class ETLTransform extends ETLStep {
 		}
 
 		LinkedBlockingQueue<Object> queue;
-		
 
 		if (this.timing)
 			this.startTimeNano = System.nanoTime();
 
-		
 		queue = mCheckpointStore.processCheckPoint(this, this.getSourceQueue());
-		
+
 		if (this.timing)
 			this.totalTimeNano += System.nanoTime() - this.startTimeNano;
 
-		
 		if (this.mSortData) {
 			this.sortData(queue);
-			this.transformFromSort(); 
+			this.transformFromSort();
 		} else
 			this.transformFromQueue(queue);
 
@@ -494,7 +491,12 @@ public abstract class ETLTransform extends ETLStep {
 	 */
 	@Override
 	final void setCore(DefaultCore newCore) {
-		this.core = (DefaultTransformCore) newCore;
+
+		if (newCore instanceof BatchTransformCore)
+			this.batchCore = (BatchTransformCore) newCore;
+		else
+			this.core = (DefaultTransformCore) newCore;
+
 	}
 
 	/*
@@ -555,7 +557,7 @@ public abstract class ETLTransform extends ETLStep {
 	 *             Signals that an I/O exception has occurred.
 	 * @throws ClassNotFoundException
 	 *             the class not found exception
-	 * @throws KETLThreadException 
+	 * @throws KETLThreadException
 	 */
 	private void sortData(LinkedBlockingQueue queue) throws InterruptedException, IOException, ClassNotFoundException, KETLThreadException {
 
@@ -563,7 +565,8 @@ public abstract class ETLTransform extends ETLStep {
 		// instantiate sorter object
 		// int maxSortSize, int mergeSize, int readBufferSize, int
 		// maxIndividualReadBufferSize, int writeBufferSize
-		this.mExternalSort = new ExternalSort(this.getSortComparator(), this.getMaxSortSize(), this.getMergeSize(), this.getTotalReadBufferSize(), this.getReadBufferSize(), this.getWriteBufferSize());
+		this.mExternalSort = new ExternalSort(this.getSortComparator(), this.getMaxSortSize(), this.getMergeSize(), this.getTotalReadBufferSize(), this.getReadBufferSize(), this
+				.getWriteBufferSize());
 
 		ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Starting sort");
 
@@ -617,6 +620,10 @@ public abstract class ETLTransform extends ETLStep {
 		int outputArraySize = length;
 		boolean newDataArray = true;
 		Object[][] data = res;
+
+		if (this.batchCore != null) {
+			return this.batchCore.transform(res, length);
+		}
 
 		for (int i = 0; i < length; i++) {
 			Object[] result = new Object[this.mOutputRecordWidth];
@@ -695,7 +702,7 @@ public abstract class ETLTransform extends ETLStep {
 	 *             the interrupted exception
 	 * @throws KETLTransformException
 	 *             the KETL transform exception
-	 * @throws KETLThreadException 
+	 * @throws KETLThreadException
 	 */
 	final private void transformFromQueue(LinkedBlockingQueue queue) throws InterruptedException, KETLTransformException, KETLThreadException {
 
@@ -737,7 +744,6 @@ public abstract class ETLTransform extends ETLStep {
 			} else
 				this.queue.put(res);
 
-
 			this.updateThreadStats(res.length);
 
 		}
@@ -755,7 +761,7 @@ public abstract class ETLTransform extends ETLStep {
 	 *             the interrupted exception
 	 * @throws KETLTransformException
 	 *             the KETL transform exception
-	 * @throws KETLThreadException 
+	 * @throws KETLThreadException
 	 */
 	private void transformFromSort() throws IOException, ClassNotFoundException, InterruptedException, KETLTransformException, KETLThreadException {
 		boolean readData = true;

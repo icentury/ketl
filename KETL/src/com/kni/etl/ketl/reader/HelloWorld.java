@@ -46,138 +46,165 @@ import com.kni.etl.util.XMLHelper;
  */
 public class HelloWorld extends ETLReader implements DefaultReaderCore {
 
-    /**
-     * Instantiates a new hello world.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public HelloWorld(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-    /** The Constant VALUES. */
-    @Attribute(datatype = "INTEGER")
-    public static final String VALUES = "VALUES";
+	/**
+	 * Instantiates a new hello world.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public HelloWorld(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-    /** The Constant PHRASE. */
-    @Parameter()
-    public static final String PHRASE = "PHRASE";
+	/** The Constant VALUES. */
+	@Attribute(datatype = "INTEGER")
+	public static final String VALUES = "VALUES";
 
-    /** The value counter. */
-    private int mValueCounter = 0;
-    
-    /** The values requested. */
-    private int mValuesRequested;
-    
-    /** The phrase. */
-    private String mPhrase;
+	/** The Constant PHRASE. */
+	@Parameter()
+	public static final String PHRASE = "PHRASE";
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
-     */
-    @Override
-    public int initialize(Node pXmlConfig) throws KETLThreadException {
-        int res = super.initialize(pXmlConfig);
+	/** The value counter. */
+	private int mValueCounter = 0;
 
-        // how many rows to generator with Hello world in them
-        this.mValuesRequested = XMLHelper.getAttributeAsInt(pXmlConfig.getAttributes(), HelloWorld.VALUES, 1);
+	/** The values requested. */
+	private int mValuesRequested;
 
-        // there may exist multiple parameter lists per step, 0 references the first one and so on
-        this.mPhrase = this.getParameterValue(0, HelloWorld.PHRASE);
+	/** The phrase. */
+	private String mPhrase;
 
-        if (this.mPhrase == null) {
-            this.mPhrase = "Hello World";
-        }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
+	 */
+	@Override
+	public int initialize(Node pXmlConfig) throws KETLThreadException {
+		int res = super.initialize(pXmlConfig);
 
-        return res;
-    }
+		// how many rows to generator with Hello world in them
+		this.mValuesRequested = XMLHelper.getAttributeAsInt(pXmlConfig.getAttributes(), HelloWorld.VALUES, 1);
 
-    // this isn't needed here but if you need attributes at the port level then this is where you do them.
-    /**
-     * The Class HelloWorldOutPort.
-     */
-    class HelloWorldOutPort extends ETLOutPort {
-        
-        /* (non-Javadoc)
-         * @see com.kni.etl.ketl.ETLPort#containsCode()
-         */
-        @Override
-        public boolean containsCode() throws KETLThreadException {
-            return true;
-        }
-        
-        /* (non-Javadoc)
-         * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
-         */
-        @Override
-        public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
-            int res = super.initialize(xmlConfig);
-            if (res != 0)
-                return res;
-           
-            return 0;
-        }
-        
-        /**
-         * Instantiates a new hello world out port.
-         * 
-         * @param esOwningStep the es owning step
-         * @param esSrcStep the es src step
-         */
-        public HelloWorldOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
-            super(esOwningStep, esSrcStep);
-        }
+		// there may exist multiple parameter lists per step, 0 references the
+		// first one and so on
+		this.mPhrase = this.getParameterValue(0, HelloWorld.PHRASE);
 
-    }
+		if (this.mPhrase == null) {
+			this.mPhrase = "Hello World";
+		}
 
-    
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
-     */
-    @Override
-    protected ETLOutPort getNewOutPort(ETLStep srcStep) {
-        return new HelloWorldOutPort(this, srcStep);
-    }
-    
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.DefaultReaderCore#getNextRecord(java.lang.Object[], java.lang.Class[], int)
-     */
-    public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes, int pRecordWidth)
-            throws KETLReadException {
+		return res;
+	}
 
-        // as we are generating records not reading from a source we need to use a counter
-        if (this.mValueCounter++ < this.mValuesRequested) {
+	// this isn't needed here but if you need attributes at the port level then
+	// this is where you do them.
+	/**
+	 * The Class HelloWorldOutPort.
+	 */
+	class HelloWorldOutPort extends ETLOutPort {
 
-            // cycle through each port assigning the appropiate value if port used
-            for (int i = 0; i < this.mOutPorts.length; i++) {
-                if (this.mOutPorts[i].isUsed()) {
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.kni.etl.ketl.ETLPort#containsCode()
+		 */
+		@Override
+		public boolean containsCode() throws KETLThreadException {
+			return true;
+		}
 
-                    // if port contains constant then use constant
-                    if (this.mOutPorts[i].isConstant())
-                        pResultArray[i] = this.mOutPorts[i].getConstantValue();
-                    else
-                        pResultArray[i] = this.mPhrase;
-                }
-            }
-        }
-        else
-            return DefaultReaderCore.COMPLETE;
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
+		 */
+		@Override
+		public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
+			int res = super.initialize(xmlConfig);
+			if (res != 0)
+				return res;
 
-        // return row count, should always be one for a reader
-        return 1;
-    }
+			return 0;
+		}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
-     */
-    @Override
-    protected void close(boolean success, boolean jobFailed) {
-        // if true then succesfull
-    }
+		/**
+		 * Instantiates a new hello world out port.
+		 * 
+		 * @param esOwningStep
+		 *            the es owning step
+		 * @param esSrcStep
+		 *            the es src step
+		 */
+		public HelloWorldOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
+			super(esOwningStep, esSrcStep);
+		}
+
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+	 */
+	@Override
+	protected ETLOutPort getNewOutPort(ETLStep srcStep) {
+		return new HelloWorldOutPort(this, srcStep);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultReaderCore#getNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
+	 */
+	public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLReadException {
+
+		// as we are generating records not reading from a source we need to use
+		// a counter
+		if (this.mValueCounter++ < this.mValuesRequested) {
+
+			// cycle through each port assigning the appropiate value if port
+			// used
+			for (int i = 0; i < this.mOutPorts.length; i++) {
+				if (this.mOutPorts[i].isUsed()) {
+
+					// if port contains constant then use constant
+					if (this.mOutPorts[i].isConstant())
+						pResultArray[i] = this.mOutPorts[i].getConstantValue();
+					else
+						pResultArray[i] = this.mPhrase;
+				}
+			}
+		} else
+			return DefaultReaderCore.COMPLETE;
+
+		// return row count, should always be one for a reader
+		return 1;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success, boolean jobFailed) {
+		// if true then succesfull
+	}
 }

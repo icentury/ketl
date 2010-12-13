@@ -40,32 +40,45 @@ import com.kni.etl.util.XMLHelper;
  */
 public class JobExecutingTest extends ETLReader implements DefaultReaderCore {
 
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
+
 	/**
 	 * Instantiates a new job executing test.
 	 * 
-	 * @param pXMLConfig the XML config
-	 * @param pPartitionID the partition ID
-	 * @param pPartition the partition
-	 * @param pThreadManager the thread manager
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
 	 * 
-	 * @throws KETLThreadException the KETL thread exception
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
 	 */
-	public JobExecutingTest(Node pXMLConfig, int pPartitionID, int pPartition,
-			ETLThreadManager pThreadManager) throws KETLThreadException {
+	public JobExecutingTest(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
-		
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
 	 */
 	@Override
 	protected void close(boolean success, boolean jobFailed) {
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
 	 */
 	@Override
 	protected ETLOutPort getNewOutPort(com.kni.etl.ketl.ETLStep srcStep) {
@@ -80,14 +93,18 @@ public class JobExecutingTest extends ETLReader implements DefaultReaderCore {
 		/**
 		 * Instantiates a new JOBIDETL out port.
 		 * 
-		 * @param esOwningStep the es owning step
-		 * @param esSrcStep the es src step
+		 * @param esOwningStep
+		 *            the es owning step
+		 * @param esSrcStep
+		 *            the es src step
 		 */
 		public JOBIDETLOutPort(ETLStep esOwningStep, ETLStep esSrcStep) {
 			super(esOwningStep, esSrcStep);
 		}
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see com.kni.etl.ketl.ETLPort#containsCode()
 		 */
 		@Override
@@ -98,29 +115,32 @@ public class JobExecutingTest extends ETLReader implements DefaultReaderCore {
 		/** The job ID. */
 		String mJobID = null;
 
-		/* (non-Javadoc)
+		/*
+		 * (non-Javadoc)
+		 * 
 		 * @see com.kni.etl.ketl.ETLPort#initialize(org.w3c.dom.Node)
 		 */
 		@Override
-		public int initialize(Node xmlConfig) throws ClassNotFoundException,
-				KETLThreadException {
+		public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
 			int res = super.initialize(xmlConfig);
 			if (res != 0)
 				return res;
 
-			this.mJobID = XMLHelper.getAttributeAsString(this.getXMLConfig()
-					.getAttributes(), "JOBID", null);
+			this.mJobID = XMLHelper.getAttributeAsString(this.getXMLConfig().getAttributes(), "JOBID", null);
 
 			return 0;
 		}
 
 	}
 
-	/* (non-Javadoc)
-	 * @see com.kni.etl.ketl.smp.DefaultReaderCore#getNextRecord(java.lang.Object[], java.lang.Class[], int)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultReaderCore#getNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
 	 */
-	public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes,
-			int pRecordWidth) throws KETLReadException {
+	public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLReadException {
 
 		for (ETLOutPort element : this.mOutPorts) {
 			if (element.isUsed()) {
@@ -135,9 +155,7 @@ public class JobExecutingTest extends ETLReader implements DefaultReaderCore {
 								ResourcePool.getMetadata().getJobStatus(job);
 								if (job.getLoadID() > 0) {
 
-									throw new KETLReadException(
-											res
-													+ " Job executing, failure requested");
+									throw new KETLReadException(res + " Job executing, failure requested");
 								}
 							}
 						} catch (Exception e) {

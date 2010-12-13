@@ -55,7 +55,8 @@ import com.kni.etl.util.XMLHelper;
  * Title: JDBCReader
  * </p>
  * <p>
- * Description: Read an object array or ResultRecord from a JDBC datasource, based on ETLReader
+ * Description: Read an object array or ResultRecord from a JDBC datasource,
+ * based on ETLReader
  * </p>
  * <p>
  * Copyright: Copyright (c) 2002
@@ -63,12 +64,18 @@ import com.kni.etl.util.XMLHelper;
  * <p>
  * Company: Kinetic Networks
  * </p>
- * Produces an output TABLE SCHEMA OWNER COLUMN DATATYPE LENGTH DOV % NULL VALUES DISTINCT.
+ * Produces an output TABLE SCHEMA OWNER COLUMN DATATYPE LENGTH DOV % NULL
+ * VALUES DISTINCT.
  * 
  * @author Brian Sullivan
  * @version 1.0
  */
 public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBConnection {
+
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
 	/**
 	 * Instantiates a new JDBCSSA scanner.
@@ -84,8 +91,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public JDBCSSAScanner(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-			throws KETLThreadException {
+	public JDBCSSAScanner(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -125,7 +131,8 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
 	 */
 	@Override
 	protected ETLOutPort getNewOutPort(ETLStep srcStep) {
@@ -160,14 +167,11 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
 			String type = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "TYPE", null);
 			if (type != null) {
-				if (type.equalsIgnoreCase("TABLE_NAME") || type.equalsIgnoreCase("TABLE_SCHEMA")
-						|| type.equalsIgnoreCase("TABLE_TYPE") || type.equalsIgnoreCase("TABLE_CAT")
-						|| type.equalsIgnoreCase("COLUMN_NAME") || type.equalsIgnoreCase("TYPE_NAME")
-						|| type.equalsIgnoreCase("COLUMN_DEF") || type.equalsIgnoreCase("REMARKS")
-						|| type.equalsIgnoreCase("IS_NULLABLE") || type.equalsIgnoreCase("MAX_VALUE")
-						|| type.equalsIgnoreCase("MIN_VALUE") || type.equalsIgnoreCase("DOV")
-						|| type.equalsIgnoreCase("SAMPLE") || type.equalsIgnoreCase("COLUMNERRORMESSAGE")
-						|| type.equalsIgnoreCase("TABLEERRORMESSAGE") || type.equalsIgnoreCase("TABLE_COMPLETENESS")) {
+				if (type.equalsIgnoreCase("TABLE_NAME") || type.equalsIgnoreCase("TABLE_SCHEMA") || type.equalsIgnoreCase("TABLE_TYPE") || type.equalsIgnoreCase("TABLE_CAT")
+						|| type.equalsIgnoreCase("COLUMN_NAME") || type.equalsIgnoreCase("TYPE_NAME") || type.equalsIgnoreCase("COLUMN_DEF") || type.equalsIgnoreCase("REMARKS")
+						|| type.equalsIgnoreCase("IS_NULLABLE") || type.equalsIgnoreCase("MAX_VALUE") || type.equalsIgnoreCase("MIN_VALUE") || type.equalsIgnoreCase("DOV")
+						|| type.equalsIgnoreCase("SAMPLE") || type.equalsIgnoreCase("COLUMNERRORMESSAGE") || type.equalsIgnoreCase("TABLEERRORMESSAGE")
+						|| type.equalsIgnoreCase("TABLE_COMPLETENESS")) {
 					type = "STRING";
 				} else {
 					type = "INTEGER";
@@ -238,8 +242,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
 			this.mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
 		} catch (Exception e) {
-			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to get database type from metadata: "
-					+ e.toString());
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to get database type from metadata: " + e.toString());
 
 			return null;
 		}
@@ -278,17 +281,14 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 					cTable.mCatalog = mrsDBResultSet.getString("TABLE_CAT");
 
 					if (cTable.mSchema != null)
-						cTable.mFullTableAddress = this.idQuote + cTable.mSchema + this.idQuote + "." + this.idQuote
-								+ cTable.mTableName + this.idQuote;
+						cTable.mFullTableAddress = this.idQuote + cTable.mSchema + this.idQuote + "." + this.idQuote + cTable.mTableName + this.idQuote;
 					else if (cTable.mSchema == null && cTable.mCatalog != null)
-						cTable.mFullTableAddress = this.idQuote + cTable.mCatalog + this.idQuote + "." + this.idQuote
-								+ cTable.mTableName + this.idQuote;
+						cTable.mFullTableAddress = this.idQuote + cTable.mCatalog + this.idQuote + "." + this.idQuote + cTable.mTableName + this.idQuote;
 					else
 						cTable.mFullTableAddress = this.idQuote + cTable.mTableName + this.idQuote;
 
 					if (this.mstrFilter != null) {
-						cTable.mFullTableAddress = "(select * from " + cTable.mFullTableAddress + " where "
-								+ this.mstrFilter + ") drv";
+						cTable.mFullTableAddress = "(select * from " + cTable.mFullTableAddress + " where " + this.mstrFilter + ") drv";
 					}
 					res.add(cTable);
 				}
@@ -296,8 +296,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
 			mrsDBResultSet.close();
 		} catch (Exception e) {
-			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to get table information from metadata: "
-					+ e.toString());
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to get table information from metadata: " + e.toString());
 
 			return null;
 		}
@@ -417,8 +416,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 		try {
 			rs = this.mcDBConnection.getMetaData().getColumns(cTable.mCatalog, cTable.mSchema, cTable.mTableName, "%");
 		} catch (SQLException e) {
-			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not scan table: "
-					+ cTable.mFullTableAddress + ", cause " + e.getMessage());
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not scan table: " + cTable.mFullTableAddress + ", cause " + e.getMessage());
 			return this.getNextTable();
 		}
 
@@ -453,8 +451,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 		rs.close();
 
 		if (cTable.mColumnList.size() == 0) {
-			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not scan table "
-					+ cTable.mFullTableAddress + ", cause \"No columns found\"");
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not scan table " + cTable.mFullTableAddress + ", cause \"No columns found\"");
 			return this.getNextTable();
 		}
 
@@ -507,8 +504,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 				}
 
 			} catch (SQLException e) {
-				cTable.mErrorMessage.add("Unable to retrieve column info for table '" + cTable.mFullTableAddress
-						+ "' and column: " + col.mName);
+				cTable.mErrorMessage.add("Unable to retrieve column info for table '" + cTable.mFullTableAddress + "' and column: " + col.mName);
 				col.mErrorMessage.add(e.getMessage());
 				this.refreshConnection();
 			} finally {
@@ -584,8 +580,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 			}
 			return sb.toString();
 		} catch (SQLException e) {
-			col.mErrorMessage.add("Unable to retrieve dov for column " + col.mName + " in table"
-					+ col.mTable.mFullTableAddress + " " + e.toString());
+			col.mErrorMessage.add("Unable to retrieve dov for column " + col.mName + " in table" + col.mTable.mFullTableAddress + " " + e.toString());
 			try {
 				this.mcDBConnection.rollback();
 			} catch (Exception e1) {
@@ -643,8 +638,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 			}
 			return sb.toString();
 		} catch (SQLException e) {
-			col.mErrorMessage.add("ERROR: Unable to retrieve sample for column " + col.mName + " in table"
-					+ col.mTable.mFullTableAddress + " " + e.toString());
+			col.mErrorMessage.add("ERROR: Unable to retrieve sample for column " + col.mName + " in table" + col.mTable.mFullTableAddress + " " + e.toString());
 			try {
 				this.mcDBConnection.rollback();
 			} catch (Exception e1) {
@@ -691,8 +685,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 				iRowCount = rs.getInt(1);
 			}
 		} catch (SQLException e) {
-			tbl.mErrorMessage.add("ERROR: Unable to retrieve row count for table '" + tbl.mFullTableAddress + "': "
-					+ e.toString());
+			tbl.mErrorMessage.add("ERROR: Unable to retrieve row count for table '" + tbl.mFullTableAddress + "': " + e.toString());
 			try {
 				this.mcDBConnection.rollback();
 			} catch (Exception e1) {
@@ -736,7 +729,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
 		StringBuffer sb = new StringBuffer();
 		for (int i = 0; i < tbl.mColumnList.size(); i++) {
-			Column cl = (Column) tbl.mColumnList.get(i);
+			Column cl = tbl.mColumnList.get(i);
 
 			if (i > 0)
 				sb.append(" + ");
@@ -794,6 +787,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	 * 
 	 * @see com.kni.etl.ketl.ETLStep#initialize(org.w3c.dom.Node)
 	 */
+	@Override
 	public int initialize(Node xmlConfig) throws KETLThreadException {
 		int iReturnVal = 0;
 
@@ -832,10 +826,9 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 		try {
 			this.setDatabaseProperties(this.getParameterListValues(0));
 		} catch (Exception e1) {
-			throw new KETLThreadException(e1,this);
+			throw new KETLThreadException(e1, this);
 		}
-		this.mMaxDOVSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), JDBCSSAScanner.MAX_DOV_SIZE,
-				this.mMaxDOVSize);
+		this.mMaxDOVSize = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), JDBCSSAScanner.MAX_DOV_SIZE, this.mMaxDOVSize);
 
 		return 0;
 	}
@@ -844,11 +837,10 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 		return this.mDatabaseProperties;
 	}
 
-	private void setDatabaseProperties(Map<String, Object>  parameterListValues) throws Exception {
-		this.mDatabaseProperties = JDBCItemHelper.getProperties(parameterListValues);		
+	private void setDatabaseProperties(Map<String, Object> parameterListValues) throws Exception {
+		this.mDatabaseProperties = JDBCItemHelper.getProperties(parameterListValues);
 	}
-	
-	
+
 	// Opens a new connection with the given information.
 	/**
 	 * Open connection.
@@ -869,8 +861,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 
 			return this.mcDBConnection;
 		} catch (Exception e) {
-			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to connect to host '" + url + "': "
-					+ e.toString());
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to connect to host '" + url + "': " + e.toString());
 
 			this.mcDBConnection = null;
 
@@ -881,19 +872,19 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.DefaultReaderCore#getNextRecord(java.lang.Object[], java.lang.Class[], int)
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultReaderCore#getNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
 	 */
-	public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes, int pRecordWidth)
-			throws KETLReadException {
+	public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLReadException {
 
 		if (this.mTableList == null) {
 			if (this.partitionID == 0)
 				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Getting list of objects to scan");
 			this.mTableList = this.getTables();
 			if (this.partitionID == 0)
-				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
-						"List of tables fetched, Total number of objects "
-								+ (this.mTableList == null ? 0 : this.mTableList.size()));
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "List of tables fetched, Total number of objects "
+						+ (this.mTableList == null ? 0 : this.mTableList.size()));
 		}
 
 		if (this.mCurrentTable == null) {
@@ -903,15 +894,14 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 				if (this.mCurrentTable == null)
 					return DefaultReaderCore.COMPLETE;
 
-				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Scanning table "
-						+ this.mCurrentTable.mFullTableAddress);
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Scanning table " + this.mCurrentTable.mFullTableAddress);
 
 			} catch (Exception e) {
 				throw new KETLReadException(e);
 			}
 		}
 
-		Column col = (Column) this.mCurrentTable.mColumnList.remove(0);
+		Column col = this.mCurrentTable.mColumnList.remove(0);
 		if (this.mCurrentTable.mColumnList.size() == 0)
 			this.mCurrentTable = null;
 
@@ -966,8 +956,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 						} else if (type.equalsIgnoreCase("MIN_VALUE")) {
 							pResultArray[pos++] = (col.mMinValue);
 						} else if (type.equalsIgnoreCase("DOV")) {
-							if (col.mDistinctVals > 0 && col.mDistinctVals < 256
-									& col.mDistinctVals <= this.mMaxDOVSize)
+							if (col.mDistinctVals > 0 && col.mDistinctVals < 256 & col.mDistinctVals <= this.mMaxDOVSize)
 								try {
 									pResultArray[pos++] = (this.getDOV(col));
 								} catch (Exception e) {

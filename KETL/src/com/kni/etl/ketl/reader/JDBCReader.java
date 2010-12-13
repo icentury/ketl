@@ -79,6 +79,11 @@ import com.kni.etl.util.XMLHelper;
  */
 public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDBCReader, DBConnection, PrePostSQL {
 
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
+
 	/**
 	 * The Class JDBCReaderETLOutPort.
 	 */

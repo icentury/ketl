@@ -37,91 +37,106 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
 /**
  * The Class ExceptionWriter.
  * 
- * @author nwakefield To change the template for this generated type comment go to Window&gt;Preferences&gt;Java&gt;Code
- * Generation&gt;Code and Comments
+ * @author nwakefield To change the template for this generated type comment go
+ *         to Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and
+ *         Comments
  */
 public class ExceptionWriter extends ETLWriter implements DefaultWriterCore {
 
-    /**
-     * Instantiates a new exception writer.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public ExceptionWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
-        if (pPartition > 1) {
-            throw new KETLThreadException(
-                    "Exception writer cannot be run in parallel, or multiple exceptions will be generated, please set FLOWTYPE=\"FANIN\". Requested partitions: "
-                            + pPartition, this);
-        }
-    }
+	/**
+	 * Instantiates a new exception writer.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public ExceptionWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
-    /** The input name map. */
-    private HashMap mInputNameMap = new HashMap();
+		if (pPartition > 1) {
+			throw new KETLThreadException(
+					"Exception writer cannot be run in parallel, or multiple exceptions will be generated, please set FLOWTYPE=\"FANIN\". Requested partitions: " + pPartition,
+					this);
+		}
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.writer.OpenETLWriter#initialize(org.w3c.dom.Node, java.util.HashMap)
-     */
-    @Override
-    public int initialize(Node pXmlConfig) throws KETLThreadException {
-        int res = super.initialize(pXmlConfig);
+	/** The input name map. */
+	private final HashMap mInputNameMap = new HashMap();
 
-        if (res != 0)
-            return res;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.writer.OpenETLWriter#initialize(org.w3c.dom.Node,
+	 * java.util.HashMap)
+	 */
+	@Override
+	public int initialize(Node pXmlConfig) throws KETLThreadException {
+		int res = super.initialize(pXmlConfig);
 
-        HashSet hs = new HashSet();
+		if (res != 0)
+			return res;
 
-        hs.add("MESSAGE");
+		HashSet hs = new HashSet();
 
-        for (int i = 0; i < this.mInPorts.length; i++) {
-            if (hs.contains(this.mInPorts[i].mstrName) == false) {
-                com.kni.etl.dbutils.ResourcePool.LogMessage(this, com.kni.etl.dbutils.ResourcePool.INFO_MESSAGE,
-                        "Invalid input name of " + this.mInPorts[i].mstrName + " will be ignored, it has to be one of "
-                                + java.util.Arrays.toString(hs.toArray()));
-            }
-            this.mInputNameMap.put(this.mInPorts[i].mstrName, i);
-        }
+		hs.add("MESSAGE");
 
-        if (this.mInputNameMap.containsKey("MESSAGE") == false)
-            throw new KETLThreadException("MESSAGE input must be specified", this);
+		for (int i = 0; i < this.mInPorts.length; i++) {
+			if (hs.contains(this.mInPorts[i].mstrName) == false) {
+				com.kni.etl.dbutils.ResourcePool.LogMessage(this, com.kni.etl.dbutils.ResourcePool.INFO_MESSAGE, "Invalid input name of " + this.mInPorts[i].mstrName
+						+ " will be ignored, it has to be one of " + java.util.Arrays.toString(hs.toArray()));
+			}
+			this.mInputNameMap.put(this.mInPorts[i].mstrName, i);
+		}
 
-        return 0;
-    }
+		if (this.mInputNameMap.containsKey("MESSAGE") == false)
+			throw new KETLThreadException("MESSAGE input must be specified", this);
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
-     */
-    @Override
-    protected void close(boolean success, boolean jobFailed) {
+		return 0;
+	}
 
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success, boolean jobFailed) {
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
-     */
-    public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
-            throws KETLWriteException {
-        String strMessage;
+	}
 
-        ETLInPort port = this.mInPorts[(Integer) this.mInputNameMap.get("MESSAGE")];
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
+	 */
+	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
+		String strMessage;
 
-        Object o = port.isConstant() ? port.getConstantValue() : pInputRecords[port.getSourcePortIndex()];
+		ETLInPort port = this.mInPorts[(Integer) this.mInputNameMap.get("MESSAGE")];
 
-        if (o == null)
-            throw new KETLWriteException("MESSAGE cannot be NULL");
+		Object o = port.isConstant() ? port.getConstantValue() : pInputRecords[port.getSourcePortIndex()];
 
-        strMessage = o.toString();
+		if (o == null)
+			throw new KETLWriteException("MESSAGE cannot be NULL");
 
-        throw new ForcedException(strMessage);
-    }
+		strMessage = o.toString();
+
+		throw new ForcedException(strMessage);
+	}
 
 }

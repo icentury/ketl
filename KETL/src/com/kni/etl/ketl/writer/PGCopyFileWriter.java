@@ -65,15 +65,19 @@ import com.kni.etl.util.XMLHelper;
  * Title: PGBulkWriter
  * </p>
  * <p>
- * Description: Similar functionality to JDBC writer but the data is bulk loaded using a customized JDBC driver for
- * PostgreSQL.
+ * Description: Similar functionality to JDBC writer but the data is bulk loaded
+ * using a customized JDBC driver for PostgreSQL.
  * </p>
  * 
  * @author Brian Sullivan
  * @version 0.1
  */
-public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, WriterBatchManager, DBConnection,
-		PrePostSQL {
+public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, WriterBatchManager, DBConnection, PrePostSQL {
+
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
 	/**
 	 * The Class PGBulkETLInPort.
@@ -116,11 +120,12 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 
 				// Create a new column definition with the default properties...
 				dcdNewColumn = new DatabaseColumnDefinition(xmlConfig, "", 0);
-				dcdNewColumn.setProperty(DatabaseColumnDefinition.INSERT_COLUMN); // INSERT by default
+				dcdNewColumn.setProperty(DatabaseColumnDefinition.INSERT_COLUMN); // INSERT
+																					// by
+																					// default
 
 				// Get the column's target name...
-				dcdNewColumn.setColumnName(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
-						ETLStep.NAME_ATTRIB, null));
+				dcdNewColumn.setColumnName(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), ETLStep.NAME_ATTRIB, null));
 
 				PGCopyFileWriter.this.mvColumns.add(dcdNewColumn);
 			}
@@ -128,10 +133,9 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 			if (XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), NIOFileWriter.FILE_NAME, false)) {
 				PGCopyFileWriter.this.fileNameInPort = true;
 
-				PGCopyFileWriter.this.fileNameFormat = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
-						NIOFileWriter.FILENAME_FORMAT, "{FILENAME}.{PARTITION}{SUBPARTITION}");
-				PGCopyFileWriter.this.filePathFormat = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
-						NIOFileWriter.FILEPATH_FORMAT, targetFilePath);
+				PGCopyFileWriter.this.fileNameFormat = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), NIOFileWriter.FILENAME_FORMAT,
+						"{FILENAME}.{PARTITION}{SUBPARTITION}");
+				PGCopyFileWriter.this.filePathFormat = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), NIOFileWriter.FILEPATH_FORMAT, targetFilePath);
 				PGCopyFileWriter.this.fileNamePort = this;
 
 			}
@@ -176,23 +180,27 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.writer.SubComponentBatchRunnerThread#write(java.lang.Object)
+	 * @see
+	 * com.kni.etl.ketl.writer.SubComponentBatchRunnerThread#write(java.lang
+	 * .Object)
 	 */
 
 	/** The mstr table name. */
 	private String mstrTableName = null;
 
 	/** The mv columns. */
-	private List<DatabaseColumnDefinition> mvColumns = new ArrayList<DatabaseColumnDefinition>(); // for building the
+	private final List<DatabaseColumnDefinition> mvColumns = new ArrayList<DatabaseColumnDefinition>(); // for
+																										// building
+																										// the
 
 	// column list and
 	// later converting
 	// it into the array
 
 	/** The writer list. */
-	private List<PostgresCopyFileWriter> mWriterList = new ArrayList<PostgresCopyFileWriter>();
+	private final List<PostgresCopyFileWriter> mWriterList = new ArrayList<PostgresCopyFileWriter>();
 
-	private Map<String, PostgresCopyFileWriter> mWriterMap = new HashMap<String, PostgresCopyFileWriter>();
+	private final Map<String, PostgresCopyFileWriter> mWriterMap = new HashMap<String, PostgresCopyFileWriter>();
 
 	/** The writers. */
 	private PostgresCopyFileWriter[] mWriters;
@@ -241,8 +249,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public PGCopyFileWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-			throws KETLThreadException {
+	public PGCopyFileWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -311,8 +318,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 		return res;
 	}
 
-	private PostgresCopyFileWriter createNewWriterMap(String fileName, String subPartition) throws KETLWriteException,
-			IOException {
+	private PostgresCopyFileWriter createNewWriterMap(String fileName, String subPartition) throws KETLWriteException, IOException {
 
 		String path = "";
 		if (this.targetFilePath != null)
@@ -326,8 +332,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 			path = path.replace("{SUBPARTITION}", subPartition == null ? "" : subPartition);
 			File f = new File(path);
 			if (f.exists() == false) {
-				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Creating " + path
-						+ " directory " + f.getAbsolutePath());
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Creating " + path + " directory " + f.getAbsolutePath());
 				f.mkdir();
 			} else if (f.isDirectory() == false) {
 				throw new KETLWriteException("File path is invalid " + f.getAbsolutePath());
@@ -348,8 +353,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 	}
 
 	private PostgresCopyFileWriter createOutputFile(String fileName, String[] cols) throws IOException {
-		PostgresCopyFileWriter writer = new PostgresCopyFileWriter(this.mcDBConnection, this.mCharset, this.mZip,
-				this.mIOBufferSize, fileName);
+		PostgresCopyFileWriter writer = new PostgresCopyFileWriter(this.mcDBConnection, this.mCharset, this.mZip, this.mIOBufferSize, fileName);
 		writer.createLoadCommand(this.mstrTableName, cols);
 		ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Copy command: " + writer.loadCommand());
 		this.mWriterList.add(writer);
@@ -435,7 +439,8 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.ETLWorker#getNewInPort(com.kni.etl.ketl.ETLStep)
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewInPort(com.kni.etl.ketl.ETLStep)
 	 */
 	@Override
 	protected ETLInPort getNewInPort(ETLStep srcStep) {
@@ -477,7 +482,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 		}
 
 		// Convert the vector we've been building into a more common array...
-		this.madcdColumns = (DatabaseColumnDefinition[]) this.mvColumns.toArray(new DatabaseColumnDefinition[0]);
+		this.madcdColumns = this.mvColumns.toArray(new DatabaseColumnDefinition[0]);
 
 		if (res != 0)
 			return res;
@@ -487,8 +492,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 
 		// Pull the name of the table to be written to...
 		this.mstrTableName = XMLHelper.getAttributeAsString(nmAttrs, PGCopyFileWriter.TABLE_ATTRIB, null);
-		this.mCharset = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.CHARACTERSET_ATTRIB, Charset
-				.defaultCharset().name());
+		this.mCharset = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.CHARACTERSET_ATTRIB, Charset.defaultCharset().name());
 
 		this.mZip = XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileWriter.ZIP_ATTRIB, false);
 
@@ -503,23 +507,22 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 		}
 
 		try {
-			this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName,
-					this.strPassword, this.strPreSQL, true, this.getDatabaseProperties());
+			this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName, this.strPassword, this.strPreSQL, true, this
+					.getDatabaseProperties());
 
 			String template = null;
 			try {
-				String mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData()
-						.getDatabaseProductName());
+				String mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
 
 				template = this.getStepTemplate(mDBType, "SELECTCOLUMNDATATYPE", true);
 				template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrTableName);
-				template = EngineConstants.replaceParameterV2(template, "COLUMNS", java.util.Arrays.toString(cols)
-						.replace("[", "").replace("]", ""));
+				template = EngineConstants.replaceParameterV2(template, "COLUMNS", java.util.Arrays.toString(cols).replace("[", "").replace("]", ""));
 
 				Statement mStmt = mcDBConnection.createStatement();
 				ResultSet rs = mStmt.executeQuery(template);
 
-				// Log executing sql to feed result record object with single object reference
+				// Log executing sql to feed result record object with single
+				// object reference
 				ResultSetMetaData rm = rs.getMetaData();
 
 				String hdl = XMLHelper.getAttributeAsString(nmAttrs, "HANDLER", null);
@@ -538,9 +541,8 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 
 				for (int i = 1; i <= cols.length; i++) {
 
-					((AsterBulkETLInPort) this.getInPort(cols[i - 1])).targetClass = Class.forName(jdbcHelper
-							.getJavaType(rm.getColumnType(i), JDBCReader.getColumnDisplaySize(rm, i), JDBCReader
-									.getPrecision(rm, i), JDBCReader.getScale(rm, i)));
+					((AsterBulkETLInPort) this.getInPort(cols[i - 1])).targetClass = Class.forName(jdbcHelper.getJavaType(rm.getColumnType(i), JDBCReader.getColumnDisplaySize(rm,
+							i), JDBCReader.getPrecision(rm, i), JDBCReader.getScale(rm, i)));
 				}
 
 				rs.close();
@@ -548,8 +550,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 				mStmt.close();
 
 			} catch (Exception e1) {
-				throw new KETLThreadException("Problem executing fetch data type SQL \"" + template + "\"- "
-						+ e1.getMessage(), e1, this);
+				throw new KETLThreadException("Problem executing fetch data type SQL \"" + template + "\"- " + e1.getMessage(), e1, this);
 			}
 
 			this.executePreStatements();
@@ -568,7 +569,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 				try {
 					for (int i = 0; i < files.size(); i++) {
 						if (i % this.partitions == this.partitionID)
-							this.createOutputFile((String) files.get(i), cols);
+							this.createOutputFile(files.get(i), cols);
 					}
 
 					this.mWriters = new PostgresCopyFileWriter[this.mWriterList.size()];
@@ -577,7 +578,8 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 					throw new KETLThreadException(e, this);
 				}
 
-				// If this is our first call to upsert, we'll need to initialize it now that we know it's types...
+				// If this is our first call to upsert, we'll need to initialize
+				// it now that we know it's types...
 				if (this.mWriters == null || files.size() == 0) {
 					throw new KETLThreadException("No output files specified", this);
 				}
@@ -595,7 +597,9 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.WriterBatchManager#initializeBatch(java.lang.Object[][], int)
+	 * @see
+	 * com.kni.etl.ketl.smp.WriterBatchManager#initializeBatch(java.lang.Object
+	 * [][], int)
 	 */
 	public Object[][] initializeBatch(Object[][] data, int len) throws KETLWriteException {
 
@@ -605,10 +609,11 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
 	 */
-	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
-			throws KETLWriteException {
+	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 
 		String fileName = "NA";
 		Object subPartition = null;
@@ -674,8 +679,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 
 	}
 
-	private void writeRecord(PostgresCopyFileWriter stmt, Object[] pInputRecords, Class[] pExpectedDataTypes,
-			int pRecordWidth) throws KETLWriteException, IOException {
+	private void writeRecord(PostgresCopyFileWriter stmt, Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException, IOException {
 		for (int i = 0; i < pRecordWidth; i++) {
 
 			if (((AsterBulkETLInPort) this.mInPorts[i]).skip == false) {
@@ -683,8 +687,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 				Class cl = pExpectedDataTypes[this.mInPorts[i].getSourcePortIndex()];
 				Class tClass = ((AsterBulkETLInPort) this.mInPorts[i]).targetClass;
 
-				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue()
-						: pInputRecords[this.mInPorts[i].getSourcePortIndex()];
+				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : pInputRecords[this.mInPorts[i].getSourcePortIndex()];
 
 				if (data != null && Number.class.isAssignableFrom(cl)) {
 					if (tClass == Integer.class || tClass == Long.class) {
@@ -708,8 +711,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 					stmt.setLong(i + 1, (Long) data);
 				else if (cl == Float.class || cl == Float.class)
 					stmt.setFloat(i + 1, (Float) data);
-				else if (cl == java.util.Date.class || cl == java.sql.Timestamp.class || cl == java.sql.Time.class
-						|| cl == java.sql.Date.class)
+				else if (cl == java.util.Date.class || cl == java.sql.Timestamp.class || cl == java.sql.Time.class || cl == java.sql.Date.class)
 					stmt.setTimestamp(i + 1, (java.util.Date) data);
 				else if (cl == Boolean.class || cl == boolean.class)
 					stmt.setBoolean(i + 1, (Boolean) data);

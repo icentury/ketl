@@ -23,16 +23,11 @@
 package com.kni.etl.ketl.writer;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipOutputStream;
 
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -47,6 +42,11 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.XMLHelper;
 
 public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
+
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
 
 	/**
 	 * Instantiates a new NIO file writer.
@@ -63,8 +63,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public NIOFileWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-			throws KETLThreadException {
+	public NIOFileWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -181,7 +180,8 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	 */
 	@Override
 	public int complete() throws KETLThreadException {
-		// If there were no input rows, then we won't even have an upsert object...
+		// If there were no input rows, then we won't even have an upsert
+		// object...
 		if (this.mWriterList == null) {
 			ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "No records processed.");
 
@@ -208,7 +208,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	 */
 	void createOutputFile(String filePath) throws IOException {
 		// add file streams to parallel stream parser
-		OutputFile out = new OutputFile(this.mCharSet,this.mZip,this.miOutputBufferSize);
+		OutputFile out = new OutputFile(this.mCharSet, this.mZip, this.miOutputBufferSize);
 		out.open(filePath);
 		this.mWriterList.add(out);
 	}
@@ -228,8 +228,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
 		// Get the attributes
 		NamedNodeMap nmAttrs = xmlDestNode.getAttributes();
-		this.mCharSet = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.CHARACTERSET_ATTRIB,
-				null);
+		this.mCharSet = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.CHARACTERSET_ATTRIB, null);
 
 		this.mZip = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), NIOFileWriter.ZIP_ATTRIB, false);
 
@@ -238,8 +237,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 		}
 
 		if (this.maParameters == null) {
-			throw new KETLThreadException("No complete parameter sets found, check that the following exist:\n"
-					+ this.getRequiredTagsMessage(), this);
+			throw new KETLThreadException("No complete parameter sets found, check that the following exist:\n" + this.getRequiredTagsMessage(), this);
 		}
 
 		buildFieldDestinations(xmlDestNode);
@@ -257,7 +255,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 			try {
 				for (int i = 0; i < files.size(); i++) {
 					if (i % this.partitions == this.partitionID)
-						this.createOutputFile((String) files.get(i));
+						this.createOutputFile(files.get(i));
 				}
 
 				this.mWriters = new OutputFile[this.mWriterList.size()];
@@ -266,7 +264,8 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 				throw new KETLThreadException(e, this);
 			}
 
-			// If this is our first call to upsert, we'll need to initialize it now that we know it's types...
+			// If this is our first call to upsert, we'll need to initialize it
+			// now that we know it's types...
 			if (this.mWriters == null || files.size() == 0) {
 				throw new KETLThreadException("No output files specified", this);
 			}
@@ -285,22 +284,16 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
 		NodeList nl = xmlDestNode.getChildNodes();
 
-		boolean AppendLineFeed = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(),
-				NIOFileWriter.ENABLE_LINEFEED, true);
-		this.mbDelimiterAtEnd = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(),
-				NIOFileWriter.DELIMITER_AT_END, false);
-		this.escapeEvenWhenQuoted = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(),
-				NIOFileWriter.ESCAPE_WHEN_QUOTED, false);
+		boolean AppendLineFeed = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), NIOFileWriter.ENABLE_LINEFEED, true);
+		this.mbDelimiterAtEnd = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), NIOFileWriter.DELIMITER_AT_END, false);
+		this.escapeEvenWhenQuoted = XMLHelper.getAttributeAsBoolean(xmlDestNode.getAttributes(), NIOFileWriter.ESCAPE_WHEN_QUOTED, false);
 
 		this.mQuoteStrings = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.QUOTES, null);
 
-		this.msDefaultDelimiter = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.DELIMITER,
-				"\t");
-		this.msEscapeChar = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(),
-				NIOFileWriter.ESCAPE_CHARACTER_STRING, "\\");
+		this.msDefaultDelimiter = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.DELIMITER, "\t");
+		this.msEscapeChar = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.ESCAPE_CHARACTER_STRING, "\\");
 
-		String tmpLineFeed = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(),
-				NIOFileWriter.LINEFEED_CHARACTER, "DOS");
+		String tmpLineFeed = XMLHelper.getAttributeAsString(xmlDestNode.getAttributes(), NIOFileWriter.LINEFEED_CHARACTER, "DOS");
 
 		if (tmpLineFeed.compareTo("DOS") == 0) {
 			this.mLinefeed = new String("\r\n");
@@ -308,8 +301,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 			this.mLinefeed = new String("\n");
 		}
 
-		this.miOutputBufferSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(), NIOFileWriter.WRITE_BUFFER,
-				this.miOutputBufferSize);
+		this.miOutputBufferSize = XMLHelper.getAttributeAsInt(xmlDestNode.getAttributes(), NIOFileWriter.WRITE_BUFFER, this.miOutputBufferSize);
 
 		if (this.miOutputBufferSize == 0) {
 			this.miOutputBufferSize = NIOFileWriter.DEFAULT_BUFFER_SIZE;
@@ -331,29 +323,22 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 				else
 					destFieldDefinition.quoteString = this.mQuoteStrings;
 
-				destFieldDefinition.MaxLength = XMLHelper.getAttributeAsInt(nmAttrs, NIOFileWriter.MAXIMUM_LENGTH,
-						destFieldDefinition.MaxLength);
-				destFieldDefinition.FixedWidth = XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileWriter.FIXEDWIDTH,
-						false);
+				destFieldDefinition.MaxLength = XMLHelper.getAttributeAsInt(nmAttrs, NIOFileWriter.MAXIMUM_LENGTH, destFieldDefinition.MaxLength);
+				destFieldDefinition.FixedWidth = XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileWriter.FIXEDWIDTH, false);
 
-				destFieldDefinition.Delimiter = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.DELIMITER,
-						this.msDefaultDelimiter);
+				destFieldDefinition.Delimiter = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.DELIMITER, this.msDefaultDelimiter);
 
 				destFieldDefinition.alwaysEscape = destFieldDefinition.Delimiter;
 
-				destFieldDefinition.FormatString = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.FORMAT_STRING,
-						destFieldDefinition.FormatString);
-				destFieldDefinition.DefaultValue = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.DEFAULT_VALUE,
-						destFieldDefinition.DefaultValue);
+				destFieldDefinition.FormatString = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.FORMAT_STRING, destFieldDefinition.FormatString);
+				destFieldDefinition.DefaultValue = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.DEFAULT_VALUE, destFieldDefinition.DefaultValue);
 
 				if (XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileWriter.FILE_NAME, false)) {
 					this.fileNameInPort = true;
 					destFieldDefinition.fileNamePort = true;
 
-					this.fileNameFormat = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.FILENAME_FORMAT,
-							"{FILENAME}.{PARTITION}{SUBPARTITION}");
-					this.filePathFormat = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.FILEPATH_FORMAT,
-							targetFilePath);
+					this.fileNameFormat = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.FILENAME_FORMAT, "{FILENAME}.{PARTITION}{SUBPARTITION}");
+					this.filePathFormat = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.FILEPATH_FORMAT, targetFilePath);
 
 				} else
 					destFieldDefinition.fileNamePort = false;
@@ -402,25 +387,25 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[], java.lang.Class[], int)
+	 * @see
+	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
+	 * java.lang.Class[], int)
 	 */
-	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
-			throws KETLWriteException {
+	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
 
 		String fileName = "NA", subPartition = null;
 		// Read record and write to output buffer.
 		for (int i = 0; i < pRecordWidth; i++) {
 			// if record exists
 			try {
-				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue()
-						: pInputRecords[this.mInPorts[i].getSourcePortIndex()];
+				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : pInputRecords[this.mInPorts[i].getSourcePortIndex()];
 
-				// if null then quotes have been enabled globally but will only apply if the value
-				// isn't a number. this can be determined here, as class is calculated at runtime
-				if (this.mDestFieldDefinitions[i].quoteEnabled == null
-						&& this.mDestFieldDefinitions[i].quoteString != null) {
-					this.mDestFieldDefinitions[i].quoteEnabled = !Number.class.isAssignableFrom(this.mInPorts[i]
-							.getPortClass());
+				// if null then quotes have been enabled globally but will only
+				// apply if the value
+				// isn't a number. this can be determined here, as class is
+				// calculated at runtime
+				if (this.mDestFieldDefinitions[i].quoteEnabled == null && this.mDestFieldDefinitions[i].quoteString != null) {
+					this.mDestFieldDefinitions[i].quoteEnabled = !Number.class.isAssignableFrom(this.mInPorts[i].getPortClass());
 				}
 
 				if (this.fileNameInPort && this.mDestFieldDefinitions[i].fileNamePort) {
@@ -438,19 +423,15 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 				// if byte array is null then apply default value
 				if (data == null) {
 					if (this.mDestFieldDefinitions[i].DefaultValue != null) {
-						outData = this.escape(this.mDestFieldDefinitions[i].DefaultValue,
-								this.mDestFieldDefinitions[i].Delimiter, !this.mDestFieldDefinitions[i].FixedWidth,
+						outData = this.escape(this.mDestFieldDefinitions[i].DefaultValue, this.mDestFieldDefinitions[i].Delimiter, !this.mDestFieldDefinitions[i].FixedWidth,
 								this.mDestFieldDefinitions[i].alwaysEscape, this.mDestFieldDefinitions[i].quoteEnabled);
 					}
 				} else {
 					if (this.mDestFieldDefinitions[i].FormatString != null) {
 						int idx = this.mInPorts[i].getSourcePortIndex();
-						outData = this.escape(this.mDestFieldDefinitions[i].getFormat(pExpectedDataTypes[idx]).format(
-								data), this.mDestFieldDefinitions[i].Delimiter,
-								!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape,
-								this.mDestFieldDefinitions[i].quoteEnabled);
-					} else if (this.mInPorts[i].getPortClass() == Double.class
-							|| this.mInPorts[i].getPortClass() == Float.class) {
+						outData = this.escape(this.mDestFieldDefinitions[i].getFormat(pExpectedDataTypes[idx]).format(data), this.mDestFieldDefinitions[i].Delimiter,
+								!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape, this.mDestFieldDefinitions[i].quoteEnabled);
+					} else if (this.mInPorts[i].getPortClass() == Double.class || this.mInPorts[i].getPortClass() == Float.class) {
 						Double val = (Double) data;
 						if (val > Long.MAX_VALUE || val < Long.MIN_VALUE || val - val.longValue() != 0)
 							data = val.toString();
@@ -458,14 +439,12 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 							data = val.longValue();
 					}
 
-					outData = this.escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter,
-							!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape,
-							this.mDestFieldDefinitions[i].quoteEnabled);
+					outData = this.escape(data.toString(), this.mDestFieldDefinitions[i].Delimiter, !this.mDestFieldDefinitions[i].FixedWidth,
+							this.mDestFieldDefinitions[i].alwaysEscape, this.mDestFieldDefinitions[i].quoteEnabled);
 				}
 
 				// get max length of item to place inoutput buffer
-				if (outData != null && this.mDestFieldDefinitions[i].MaxLength != -1
-						&& outData.length() > this.mDestFieldDefinitions[i].MaxLength) {
+				if (outData != null && this.mDestFieldDefinitions[i].MaxLength != -1 && outData.length() > this.mDestFieldDefinitions[i].MaxLength) {
 					outData = outData.substring(0, this.mDestFieldDefinitions[i].MaxLength);
 				}
 
@@ -527,7 +506,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 	}
 
 	private OutputFile createNewWriterMap(String fileName, String subPartition) throws KETLWriteException, IOException {
-		OutputFile out = new OutputFile(this.mCharSet,this.mZip,this.miOutputBufferSize);
+		OutputFile out = new OutputFile(this.mCharSet, this.mZip, this.miOutputBufferSize);
 
 		String path = "";
 		if (this.targetFilePath != null)
@@ -541,8 +520,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 			path = path.replace("{SUBPARTITION}", subPartition == null ? "" : subPartition);
 			File f = new File(path);
 			if (f.exists() == false) {
-				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Creating " + path
-						+ " directory " + f.getAbsolutePath());
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Creating " + path + " directory " + f.getAbsolutePath());
 				f.mkdir();
 			} else if (f.isDirectory() == false) {
 				throw new KETLWriteException("File path is invalid " + f.getAbsolutePath());
@@ -601,7 +579,8 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 
 	private static String quote(String datum, String quotes, String escapeCharacter) {
 		// if (datum.contains(escapeCharacter))
-		// datum = datum.replace(escapeCharacter, escapeCharacter + escapeCharacter);
+		// datum = datum.replace(escapeCharacter, escapeCharacter +
+		// escapeCharacter);
 		if (datum.contains(quotes))
 			return datum.replace(quotes, escapeCharacter + quotes);
 		return (quotes != null && datum != null) ? quotes + datum + quotes : datum;

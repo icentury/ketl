@@ -59,6 +59,11 @@ import com.kni.util.FileTools;
  */
 public class NIOFileReader extends ETLReader implements QAForFileReader {
 
+	@Override
+	protected String getVersion() {
+		return "$LastChangedRevision$";
+	}
+
 	/**
 	 * The Class FileETLOutPort.
 	 */
@@ -79,22 +84,16 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		}
 
 		/** The type map. */
-		Class[] typeMap = { String.class, Double.class, Integer.class, Float.class, Long.class, Short.class,
-				Date.class, Boolean.class, Byte.class, Byte[].class, Character.class, Character[].class };
+		Class[] typeMap = { String.class, Double.class, Integer.class, Float.class, Long.class, Short.class, Date.class, Boolean.class, Byte.class, Byte[].class, Character.class,
+				Character[].class };
 
 		/** The type methods. */
-		String[] typeMethods = { "FieldLevelFastInputChannel.toString(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toDouble(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toInteger(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toFloat(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toLong(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toShort(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toDate(${chars}, ${length}, ${dateformatter},${parseposition})",
-				"FieldLevelFastInputChannel.toBoolean(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toByte(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toByteArray(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toChar(${chars}, ${length})",
-				"FieldLevelFastInputChannel.toCharArray(${chars}, ${length})" };
+		String[] typeMethods = { "FieldLevelFastInputChannel.toString(${chars}, ${length})", "FieldLevelFastInputChannel.toDouble(${chars}, ${length})",
+				"FieldLevelFastInputChannel.toInteger(${chars}, ${length})", "FieldLevelFastInputChannel.toFloat(${chars}, ${length})",
+				"FieldLevelFastInputChannel.toLong(${chars}, ${length})", "FieldLevelFastInputChannel.toShort(${chars}, ${length})",
+				"FieldLevelFastInputChannel.toDate(${chars}, ${length}, ${dateformatter},${parseposition})", "FieldLevelFastInputChannel.toBoolean(${chars}, ${length})",
+				"FieldLevelFastInputChannel.toByte(${chars}, ${length})", "FieldLevelFastInputChannel.toByteArray(${chars}, ${length})",
+				"FieldLevelFastInputChannel.toChar(${chars}, ${length})", "FieldLevelFastInputChannel.toCharArray(${chars}, ${length})" };
 
 		/**
 		 * Instantiates a new file ETL out port.
@@ -126,58 +125,42 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 			nmAttrs.getNamedItem(NIOFileReader.NAME);
 
 			if (mstrDefaultFieldDelimeter == null) {
-				mstrDefaultFieldDelimeter = XMLHelper.getAttributeAsString(nlOut.getParentNode().getAttributes(),
-						NIOFileReader.DELIMITER, null);
+				mstrDefaultFieldDelimeter = XMLHelper.getAttributeAsString(nlOut.getParentNode().getAttributes(), NIOFileReader.DELIMITER, null);
 			}
 
 			if (mstrDefaultFieldDelimeter == null) {
 				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-						"FileReader: No default delimiter has been specified, system default field delimiter '"
-								+ NIOFileReader.DEFAULT_FIELD_DELIMITER
+						"FileReader: No default delimiter has been specified, system default field delimiter '" + NIOFileReader.DEFAULT_FIELD_DELIMITER
 								+ "' will be used for fields without delimiters specified.");
 				mstrDefaultFieldDelimeter = NIOFileReader.DEFAULT_FIELD_DELIMITER;
 			}
 
-			srcFieldDefinition.MaxLength = XMLHelper.getAttributeAsInt(nmAttrs, NIOFileReader.MAXIMUM_LENGTH,
-					srcFieldDefinition.MaxLength);
-			srcFieldDefinition.FixedLength = XMLHelper.getAttributeAsInt(nmAttrs, NIOFileReader.FIXED_LENGTH,
-					srcFieldDefinition.FixedLength);
-			srcFieldDefinition.ReadOrder = EngineConstants.resolveValueFromConstant(XMLHelper.getAttributeAsString(
-					nmAttrs, NIOFileReader.READ_ORDER, Integer.toString(srcFieldDefinition.ReadOrder)),
-					srcFieldDefinition.ReadOrder);
-			srcFieldDefinition.ReadOrderSequence = XMLHelper.getAttributeAsInt(nmAttrs,
-					NIOFileReader.READ_ORDER_SEQUENCE, srcFieldDefinition.ReadOrderSequence);
+			srcFieldDefinition.MaxLength = XMLHelper.getAttributeAsInt(nmAttrs, NIOFileReader.MAXIMUM_LENGTH, srcFieldDefinition.MaxLength);
+			srcFieldDefinition.FixedLength = XMLHelper.getAttributeAsInt(nmAttrs, NIOFileReader.FIXED_LENGTH, srcFieldDefinition.FixedLength);
+			srcFieldDefinition.ReadOrder = EngineConstants.resolveValueFromConstant(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.READ_ORDER, Integer
+					.toString(srcFieldDefinition.ReadOrder)), srcFieldDefinition.ReadOrder);
+			srcFieldDefinition.ReadOrderSequence = XMLHelper.getAttributeAsInt(nmAttrs, NIOFileReader.READ_ORDER_SEQUENCE, srcFieldDefinition.ReadOrderSequence);
 
-			srcFieldDefinition.AutoTruncate = XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileReader.AUTOTRUNCATE,
-					srcFieldDefinition.AutoTruncate);
+			srcFieldDefinition.AutoTruncate = XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileReader.AUTOTRUNCATE, srcFieldDefinition.AutoTruncate);
 
-			srcFieldDefinition.setDelimiter(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.DELIMITER,
-					mstrDefaultFieldDelimeter));
+			srcFieldDefinition.setDelimiter(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.DELIMITER, mstrDefaultFieldDelimeter));
 
-			srcFieldDefinition.setEscapeCharacter(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.ESCAPE_CHAR,
-					null));
-			srcFieldDefinition.setEscapeDoubleQuotes(XMLHelper.getAttributeAsBoolean(nmAttrs,
-					NIOFileReader.ESCAPE_DOUBLEQUOTES, false));
+			srcFieldDefinition.setEscapeCharacter(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.ESCAPE_CHAR, null));
+			srcFieldDefinition.setEscapeDoubleQuotes(XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileReader.ESCAPE_DOUBLEQUOTES, false));
 
 			srcFieldDefinition.setNullIf(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.NULLIF, null));
 
-			srcFieldDefinition.setQuoteStart(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.QUOTESTART,
-					srcFieldDefinition.getQuoteStart()));
-			srcFieldDefinition.setQuoteEnd(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.QUOTEEND,
-					srcFieldDefinition.getQuoteEnd()));
+			srcFieldDefinition.setQuoteStart(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.QUOTESTART, srcFieldDefinition.getQuoteStart()));
+			srcFieldDefinition.setQuoteEnd(XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.QUOTEEND, srcFieldDefinition.getQuoteEnd()));
 
-			srcFieldDefinition.FormatString = XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.FORMAT_STRING,
-					srcFieldDefinition.FormatString);
-			srcFieldDefinition.DefaultValue = XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.DEFAULT_VALUE,
-					srcFieldDefinition.DefaultValue);
+			srcFieldDefinition.FormatString = XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.FORMAT_STRING, srcFieldDefinition.FormatString);
+			srcFieldDefinition.DefaultValue = XMLHelper.getAttributeAsString(nmAttrs, NIOFileReader.DEFAULT_VALUE, srcFieldDefinition.DefaultValue);
 			srcFieldDefinition.keepDelimiter = XMLHelper.getAttributeAsBoolean(nmAttrs, "KEEPDELIMITER", false);
 
-			srcFieldDefinition.PartitionField = XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileReader.PARTITION_KEY,
-					false);
+			srcFieldDefinition.PartitionField = XMLHelper.getAttributeAsBoolean(nmAttrs, NIOFileReader.PARTITION_KEY, false);
 			srcFieldDefinition.setInternal(XMLHelper.getAttributeAsString(nmAttrs, "INTERNAL", null));
 
-			srcFieldDefinition.ObjectType = EngineConstants.resolveObjectNameToID(XMLHelper.getAttributeAsString(
-					nmAttrs, "OBJECTTYPE", null));
+			srcFieldDefinition.ObjectType = EngineConstants.resolveObjectNameToID(XMLHelper.getAttributeAsString(nmAttrs, "OBJECTTYPE", null));
 
 			srcFieldDefinition.DataType = port.getPortClass();
 
@@ -201,9 +184,8 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 			this.getSourceFieldDefinition();
 
 			String sfRef = this.mstrName + "FieldDef";
-			NIOFileReader.this.getCodeField("SourceFieldDefinition",
-					"((com.kni.etl.ketl.reader.NIOFileReader.FileETLOutPort)this.getOwner().getOutPort("
-							+ portReferenceIndex + ")).getSourceFieldDefinition()", false, true, sfRef);
+			NIOFileReader.this.getCodeField("SourceFieldDefinition", "((com.kni.etl.ketl.reader.NIOFileReader.FileETLOutPort)this.getOwner().getOutPort(" + portReferenceIndex
+					+ ")).getSourceFieldDefinition()", false, true, sfRef);
 
 			if (this.sf.hasInternal()) {
 				switch (this.sf.internal) {
@@ -214,27 +196,24 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 					return this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this)
 							+ "] = ((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getFilePath();";
 				default:
-					throw new KETLThreadException("No method has been defined to handle internal " + this.sf.internal + ", contact support",
-							this);
+					throw new KETLThreadException("No method has been defined to handle internal " + this.sf.internal + ", contact support", this);
 				}
 			}
 
 			StringBuilder code = new StringBuilder("\n// handle negative codes and keep trying to resolve\ndo { res = ");
-			// if fixed length then grab fixed length field else use delimiter, ////TODO: should resolve sf values to
+			// if fixed length then grab fixed length field else use delimiter,
+			// ////TODO: should resolve sf values to
 			// constants
 
 			if (this.sf.FixedLength > 0)
-				code.append(" this.mReader.readFixedLengthField( " + sfRef + ".FixedLength," + sfRef
-						+ ".getQuoteStartAsChars(), " + sfRef + ".getQuoteEndAsChars(), buf);");
+				code.append(" this.mReader.readFixedLengthField( " + sfRef + ".FixedLength," + sfRef + ".getQuoteStartAsChars(), " + sfRef + ".getQuoteEndAsChars(), buf);");
 			else
-				code.append("this.mReader.readDelimitedField(" + sfRef + ".getDelimiterAsChars(), " + sfRef
-						+ ".getQuoteStartAsChars(), " + sfRef + ".getQuoteEndAsChars(), " + sfRef
-						+ ".mEscapeDoubleQuotes, " + sfRef + ".escapeChar, " + sfRef + ".MaxLength, " + sfRef
-						+ ".AverageLength, buf, " + sfRef + ".AutoTruncate," + sfRef + ".keepDelimiter);");
+				code.append("this.mReader.readDelimitedField(" + sfRef + ".getDelimiterAsChars(), " + sfRef + ".getQuoteStartAsChars(), " + sfRef + ".getQuoteEndAsChars(), "
+						+ sfRef + ".mEscapeDoubleQuotes, " + sfRef + ".escapeChar, " + sfRef + ".MaxLength, " + sfRef + ".AverageLength, buf, " + sfRef + ".AutoTruncate," + sfRef
+						+ ".keepDelimiter);");
 
 			// handle
-			code.append(" if(res <0) {char[] tmp = (char[]) this.getOwner().handlePortEventCode(res,"
-					+ Arrays.searchArray(NIOFileReader.this.mOutPorts, this)
+			code.append(" if(res <0) {char[] tmp = (char[]) this.getOwner().handlePortEventCode(res," + Arrays.searchArray(NIOFileReader.this.mOutPorts, this)
 					+ "); if(tmp != null) buf=tmp;}} while(res < 0);");
 
 			// if not used handle
@@ -246,28 +225,20 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 				// null check required
 				if (this.sf.NullIf != null)
 					code.append("res =  com.kni.etl.ketl.reader.NIOFileReader.charArrayEquals(buf, res, "
-							+ NIOFileReader.this.getCodeField("char[]", "\"" + new String(this.sf.NullIfCharArray)
-									+ "\".toCharArray()", true, true, null) + "," + this.sf.NullIfCharArray.length
-							+ ")?0:res;");
+							+ NIOFileReader.this.getCodeField("char[]", "\"" + new String(this.sf.NullIfCharArray) + "\".toCharArray()", true, true, null) + ","
+							+ this.sf.NullIfCharArray.length + ")?0:res;");
 
 				if (this.sf.DefaultValue != null) {
 					if (this.sf.DataType == String.class) {
-						code.append("if(res == 0) "
-								+ this.getCodeGenerationReferenceObject()
-								+ "["
-								+ this.mesStep.getUsedPortIndex(this)
-								+ "] = "
-								+ NIOFileReader.this.getCodeField("String", "\"" + this.sf.DefaultValue + "\"", true,
-										true, null) + ";");
+						code.append("if(res == 0) " + this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this) + "] = "
+								+ NIOFileReader.this.getCodeField("String", "\"" + this.sf.DefaultValue + "\"", true, true, null) + ";");
 					} else
-						code.append("if(res == 0) "
-								+ NIOFileReader.this.getCodeField("String", "\"" + this.sf.DefaultValue + "\"", true,
-										true, null) + ".getChars(0," + this.sf.DefaultValue.length() + ",buf,0);");
+						code.append("if(res == 0) " + NIOFileReader.this.getCodeField("String", "\"" + this.sf.DefaultValue + "\"", true, true, null) + ".getChars(0,"
+								+ this.sf.DefaultValue.length() + ",buf,0);");
 				}
 
-				code.append("try{" + (this.sf.position != null ? sfRef + ".position.setIndex(0);\n" : "")
-						+ this.getCodeGenerationReferenceObject() + "[" + this.mesStep.getUsedPortIndex(this)
-						+ "] = (res == 0?null:");
+				code.append("try{" + (this.sf.position != null ? sfRef + ".position.setIndex(0);\n" : "") + this.getCodeGenerationReferenceObject() + "["
+						+ this.mesStep.getUsedPortIndex(this) + "] = (res == 0?null:");
 
 				int res = Arrays.searchArray(this.typeMap, this.sf.DataType);
 				String method;
@@ -290,8 +261,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 
 				code.append(method + ");");
 
-				code.append("} catch (Exception e) { this.getOwner().handlePortException(e," + portReferenceIndex
-						+ "); }");
+				code.append("} catch (Exception e) { this.getOwner().handlePortException(e," + portReferenceIndex + "); }");
 
 			}
 
@@ -470,10 +440,8 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		for (Object o : pSource) {
 			String file = (String) o;
 			if (nl.add(file) == false)
-				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
-						"Duplicate file found in search will be ignored, use "
-								+ NIOFileReader.ALLOW_DUPLICATES_ATTRIBUTE
-								+ "=\"TRUE\" attribute to allow for duplicate files. File: " + file);
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, "Duplicate file found in search will be ignored, use "
+						+ NIOFileReader.ALLOW_DUPLICATES_ATTRIBUTE + "=\"TRUE\" attribute to allow for duplicate files. File: " + file);
 		}
 
 		return new ArrayList(nl);
@@ -545,8 +513,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public NIOFileReader(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-			throws KETLThreadException {
+	public NIOFileReader(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -583,8 +550,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 				if (fn.delete()) {
 					ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Deleted file: " + fn.getAbsolutePath());
 				} else
-					ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Failed to delete file: "
-							+ fn.getAbsolutePath());
+					ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Failed to delete file: " + fn.getAbsolutePath());
 			}
 		}
 	}
@@ -594,9 +560,10 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 	 * 
 	 * @see com.kni.etl.ketl.smp.ETLReader#generateCoreImports()
 	 */
+	@Override
 	protected String generateCoreImports() {
-		return super.generateCoreImports() + "import com.kni.etl.util.ManagedFastInputChannel;\n"
-				+ "import com.kni.etl.FieldLevelFastInputChannel;\n" + "import com.kni.etl.SourceFieldDefinition;\n";
+		return super.generateCoreImports() + "import com.kni.etl.util.ManagedFastInputChannel;\n" + "import com.kni.etl.FieldLevelFastInputChannel;\n"
+				+ "import com.kni.etl.SourceFieldDefinition;\n";
 	}
 
 	/**
@@ -625,16 +592,13 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 	 * 
 	 * @see com.kni.etl.ketl.smp.ETLWorker#generatePortMappingCode()
 	 */
+	@Override
 	protected String generatePortMappingCode() throws KETLThreadException {
 		StringBuilder sb = new StringBuilder();
 		// declare fields
-		this.ocNm = this.getCodeField("int",
-				"((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getOpenChannels()", false, false,
-				"openChannel");
-		this.getCodeField("FieldLevelFastInputChannel", this.ocNm + " > 0?" + NIOFileReader.CURRENT_FILE_CHANNEL
-				+ ":null", false, true, "mReader");
-		this.getCodeField("char[]", "((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getBuffer()", false,
-				true, "buf");
+		this.ocNm = this.getCodeField("int", "((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getOpenChannels()", false, false, "openChannel");
+		this.getCodeField("FieldLevelFastInputChannel", this.ocNm + " > 0?" + NIOFileReader.CURRENT_FILE_CHANNEL + ":null", false, true, "mReader");
+		this.getCodeField("char[]", "((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getBuffer()", false, true, "buf");
 		this.getCodeField("boolean", "false", false, true, "partialRecord");
 
 		// generate port maps
@@ -748,7 +712,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 				iNumPaths++;
 			} catch (Exception e) {
 				while (this.mvReadyFiles.size() > 0) {
-					ManagedFastInputChannel fs = (ManagedFastInputChannel) this.mvReadyFiles.remove(0);
+					ManagedFastInputChannel fs = this.mvReadyFiles.remove(0);
 					this.close(fs, NIOFileReader.OK_RECORD);
 				}
 				throw new Exception("Failed to open file: " + e.toString());
@@ -809,7 +773,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		}
 
 		while (this.mCurrentFileChannel == null && this.mvReadyFiles.size() > 0)
-			this.mCurrentFileChannel = this.getReader((ManagedFastInputChannel) this.mvReadyFiles.remove(0));
+			this.mCurrentFileChannel = this.getReader(this.mvReadyFiles.remove(0));
 
 		return true;
 	}
@@ -847,6 +811,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 	 * 
 	 * @see com.kni.etl.ketl.ETLStep#getQAClass(java.lang.String)
 	 */
+	@Override
 	public String getQAClass(String strQAType) {
 		if (strQAType.equalsIgnoreCase(QAEventGenerator.SIZE_TAG)) {
 			return QAForFileReader.QA_SIZE_CLASSNAME;
@@ -900,8 +865,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 			else if (this.mCodingErrorAction.equalsIgnoreCase(NIOFileReader.IGNORE_ACTION))
 				action = CodingErrorAction.IGNORE;
 
-			file.mReader = new FieldLevelFastInputChannel(file.mfChannel, "r", this.mIOBufferSize, this.mCharacterSet,
-					this.mZipped, action);
+			file.mReader = new FieldLevelFastInputChannel(file.mfChannel, "r", this.mIOBufferSize, this.mCharacterSet, this.mZipped, action);
 
 			if (this.mbAllowInvalidLastRecord) {
 				file.mReader.allowForNoDelimeterAtEOF(true);
@@ -919,11 +883,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 
 						do {
 							if (sf.FixedLength > 0) {
-								res = file.mReader.readFixedLengthField(sf.FixedLength, sf.getQuoteStartAsChars(), sf
-										.getQuoteEndAsChars(), this.buf);
+								res = file.mReader.readFixedLengthField(sf.FixedLength, sf.getQuoteStartAsChars(), sf.getQuoteEndAsChars(), this.buf);
 							} else {
-								res = file.mReader.readDelimitedField(sf.getDelimiterAsChars(), sf
-										.getQuoteStartAsChars(), sf.getQuoteEndAsChars(), sf.mEscapeDoubleQuotes,
+								res = file.mReader.readDelimitedField(sf.getDelimiterAsChars(), sf.getQuoteStartAsChars(), sf.getQuoteEndAsChars(), sf.mEscapeDoubleQuotes,
 										sf.escapeChar, sf.MaxLength, sf.AverageLength, this.buf, sf.AutoTruncate);
 							}
 
@@ -936,8 +898,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 					}
 				}
 			} catch (EOFException e) {
-				ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Attempted to skip " + this.miSkipLines
-						+ " records but end of file reached");
+				ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE, "Attempted to skip " + this.miSkipLines + " records but end of file reached");
 				this.close(file, NIOFileReader.OK_RECORD);
 				file = null;
 			}
@@ -996,8 +957,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		switch (eventCode) {
 		case FieldLevelFastInputChannel.END_OF_FILE:
 			if (this.mCurrentFileChannel.mReader.isEndOfFile()) {
-				this.close(this.mCurrentFileChannel,
-						portIndex < this.mOutPorts.length - 1 ? NIOFileReader.PARTIAL_RECORD : NIOFileReader.OK_RECORD);
+				this.close(this.mCurrentFileChannel, portIndex < this.mOutPorts.length - 1 ? NIOFileReader.PARTIAL_RECORD : NIOFileReader.OK_RECORD);
 				return null;
 			} else
 				throw new KETLThreadException("Problem passing field", this);
@@ -1005,12 +965,10 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		case FieldLevelFastInputChannel.BUFFER_TO_SMALL:
 			// increase buffer size and try again
 			if (this.buf.length > this.mMaxLineLength * 4) {
-				throw new KETLThreadException("Field " + this.mOutPorts[portIndex].mstrName
-						+ " length is greater than max line length of " + this.mMaxLineLength, this);
+				throw new KETLThreadException("Field " + this.mOutPorts[portIndex].mstrName + " length is greater than max line length of " + this.mMaxLineLength, this);
 			}
 			this.buf = new char[this.buf.length * 2];
-			ResourcePool
-					.LogMessage(this, ResourcePool.INFO_MESSAGE, "Increased buffer size to allow for larger fields");
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Increased buffer size to allow for larger fields");
 			return this.buf;
 		default:
 			throw new KETLThreadException("Result from field level parser unknown: " + eventCode, this);
@@ -1038,7 +996,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		if (e instanceof EOFException) {
 			this.close(this.mCurrentFileChannel, NIOFileReader.OK_RECORD);
 			while (this.mvReadyFiles.size() > 0) {
-				this.mCurrentFileChannel = this.getReader((ManagedFastInputChannel) this.mvReadyFiles.remove(0));
+				this.mCurrentFileChannel = this.getReader(this.mvReadyFiles.remove(0));
 				if (this.mCurrentFileChannel != null)
 					return this.mCurrentFileChannel.mReader;
 			}
@@ -1063,8 +1021,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		switch (eventCode) {
 		case FieldLevelFastInputChannel.END_OF_FILE:
 			if (this.mCurrentFileChannel.mReader.isEndOfFile()) {
-				this.close(this.getCurrentFileChannel(),
-						portIndex < this.mOutPorts.length - 1 ? NIOFileReader.PARTIAL_RECORD : NIOFileReader.OK_RECORD);
+				this.close(this.getCurrentFileChannel(), portIndex < this.mOutPorts.length - 1 ? NIOFileReader.PARTIAL_RECORD : NIOFileReader.OK_RECORD);
 				return null;
 			} else
 				throw new KETLThreadException("Problem passing field", this);
@@ -1072,12 +1029,10 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		case FieldLevelFastInputChannel.BUFFER_TO_SMALL:
 			// increase buffer size and try again
 			if (this.buf.length > this.mMaxLineLength * 4) {
-				throw new KETLThreadException("Field " + this.mOutPorts[portIndex].mstrName
-						+ " length is greater than max line length of " + this.mMaxLineLength, this);
+				throw new KETLThreadException("Field " + this.mOutPorts[portIndex].mstrName + " length is greater than max line length of " + this.mMaxLineLength, this);
 			}
 			this.buf = new char[this.buf.length * 2];
-			ResourcePool
-					.LogMessage(this, ResourcePool.INFO_MESSAGE, "Increased buffer size to allow for larger fields");
+			ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Increased buffer size to allow for larger fields");
 			return this.buf;
 		default:
 			throw new KETLThreadException("Result from field level parser unknown: " + eventCode, this);
@@ -1087,22 +1042,22 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.ETLWorker#handlePortException(java.lang.Exception, int)
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#handlePortException(java.lang.Exception,
+	 * int)
 	 */
 	@Override
 	public Object handlePortException(Exception e, int portIndex) throws KETLThreadException {
 		ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unexpected error reading file " + e.toString());
 		if (this.mRecordCounter >= 0)
-			throw new KETLThreadException("Check record " + this.mRecordCounter
-					+ (portIndex >= 0 ? ", field " + (portIndex + 1) : ""), this);
+			throw new KETLThreadException("Check record " + this.mRecordCounter + (portIndex >= 0 ? ", field " + (portIndex + 1) : ""), this);
 
 		while (this.mvReadyFiles.size() > 0) {
-			this.mCurrentFileChannel = (ManagedFastInputChannel) this.mvReadyFiles.remove(0);
+			this.mCurrentFileChannel = this.mvReadyFiles.remove(0);
 			try {
 				this.close(this.mCurrentFileChannel, NIOFileReader.OK_RECORD);
 			} catch (IOException e1) {
-				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not close file channel - "
-						+ e.toString());
+				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Could not close file channel - " + e.toString());
 			}
 		}
 
@@ -1115,10 +1070,12 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 	 * @param arg2
 	 */
 	/*
-	 * private void handleError(DataItem arg1, SourceFieldDefinition arg0, Exception arg2) {
-	 * arg1.setNull(arg0.DataType); arg1.setError(arg2.toString()); this.miErrorCount++; if (this.miErrorCount >
-	 * this.miErrorLimit) throw new KETLException("Error limit of " + this.miErrorLimit + " reached, last error: " +
-	 * arg2.toString()); }
+	 * private void handleError(DataItem arg1, SourceFieldDefinition arg0,
+	 * Exception arg2) { arg1.setNull(arg0.DataType);
+	 * arg1.setError(arg2.toString()); this.miErrorCount++; if
+	 * (this.miErrorCount > this.miErrorLimit) throw new
+	 * KETLException("Error limit of " + this.miErrorLimit +
+	 * " reached, last error: " + arg2.toString()); }
 	 */
 	/*
 	 * (non-Javadoc)
@@ -1149,32 +1106,23 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		}
 
 		if (this.maParameters == null) {
-			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE,
-					"No complete parameter sets found, check that the following exist:\n"
-							+ this.getRequiredTagsMessage());
+			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "No complete parameter sets found, check that the following exist:\n" + this.getRequiredTagsMessage());
 
 			return -2;
 		}
 
-		this.mAllowDuplicates = XMLHelper.getAttributeAsBoolean(xmlSourceNode.getAttributes(),
-				NIOFileReader.ALLOW_DUPLICATES_ATTRIBUTE, false);
+		this.mAllowDuplicates = XMLHelper.getAttributeAsBoolean(xmlSourceNode.getAttributes(), NIOFileReader.ALLOW_DUPLICATES_ATTRIBUTE, false);
 
-		this.mCharacterSet = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(),
-				NIOFileReader.CHARACTERSET_ATTRIB, java.nio.charset.Charset.defaultCharset().name());
-		this.mDeleteSource = XMLHelper.getAttributeAsBoolean(xmlSourceNode.getAttributes(),
-				NIOFileReader.DELETESOURCE_ATTRIB, false);
-		this.mMoveSource = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(),
-				NIOFileReader.MOVESOURCE_ATTRIB, null);
-		this.mCharacterSet = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(),
-				NIOFileReader.CHARACTERSET_ATTRIB, null);
-		this.mCodingErrorAction = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(),
-				NIOFileReader.CODINGERRORACTION_ATTRIB, NIOFileReader.REPORT_ACTION);
+		this.mCharacterSet = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(), NIOFileReader.CHARACTERSET_ATTRIB, java.nio.charset.Charset.defaultCharset().name());
+		this.mDeleteSource = XMLHelper.getAttributeAsBoolean(xmlSourceNode.getAttributes(), NIOFileReader.DELETESOURCE_ATTRIB, false);
+		this.mMoveSource = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(), NIOFileReader.MOVESOURCE_ATTRIB, null);
+		this.mCharacterSet = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(), NIOFileReader.CHARACTERSET_ATTRIB, null);
+		this.mCodingErrorAction = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(), NIOFileReader.CODINGERRORACTION_ATTRIB, NIOFileReader.REPORT_ACTION);
 		this.mZipped = XMLHelper.getAttributeAsBoolean(xmlSourceNode.getAttributes(), NIOFileReader.ZIPPED, false);
 		this.miSkipLines = XMLHelper.getAttributeAsInt(xmlSourceNode.getAttributes(), NIOFileReader.SKIP_LINES, 0);
-		this.mstrDefaultRecordDelimter = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(),
-				NIOFileReader.RECORD_DELIMITER, NIOFileReader.DEFAULT_RECORD_DELIMITER);
-		this.mbAllowInvalidLastRecord = (XMLHelper.getAttributeAsBoolean(xmlSourceNode.getAttributes(),
-				NIOFileReader.ALLOW_INVALID_LAST_RECORD, NIOFileReader.DEFAULT_ALLOW_INVALID_LAST_RECORD));
+		this.mstrDefaultRecordDelimter = XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(), NIOFileReader.RECORD_DELIMITER, NIOFileReader.DEFAULT_RECORD_DELIMITER);
+		this.mbAllowInvalidLastRecord = (XMLHelper.getAttributeAsBoolean(xmlSourceNode.getAttributes(), NIOFileReader.ALLOW_INVALID_LAST_RECORD,
+				NIOFileReader.DEFAULT_ALLOW_INVALID_LAST_RECORD));
 		this.mIOBufferSize = XMLHelper.getAttributeAsInt(xmlSourceNode.getAttributes(), "IOBUFFER", 16384);
 		this.mMaxLineLength = XMLHelper.getAttributeAsInt(xmlSourceNode.getAttributes(), "MAXLINELENGTH", 16384);
 
@@ -1190,10 +1138,8 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 			if (sf.MaxLength < 0)
 				sf.MaxLength = this.mMaxLineLength;
 
-			if (this.mBufferLength < ((sf.getQuoteStart() == null ? 0 : sf.getQuoteStartLength()) + sf.MaxLength + (sf
-					.getQuoteEnd() == null ? 0 : sf.getQuoteEndLength())))
-				this.mBufferLength = ((sf.getQuoteStart() == null ? 0 : sf.getQuoteStartLength()) + sf.MaxLength + (sf
-						.getQuoteEnd() == null ? 0 : sf.getQuoteEndLength()));
+			if (this.mBufferLength < ((sf.getQuoteStart() == null ? 0 : sf.getQuoteStartLength()) + sf.MaxLength + (sf.getQuoteEnd() == null ? 0 : sf.getQuoteEndLength())))
+				this.mBufferLength = ((sf.getQuoteStart() == null ? 0 : sf.getQuoteStartLength()) + sf.MaxLength + (sf.getQuoteEnd() == null ? 0 : sf.getQuoteEndLength()));
 
 			// find last non internal field
 			if (sf.hasInternal() == false)
@@ -1204,8 +1150,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 		if (lastNonInternalSf != null)
 			lastNonInternalSf.setDelimiter(this.mstrDefaultRecordDelimter);
 
-		ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Initial max line length accounting for quotes: "
-				+ this.mBufferLength);
+		ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Initial max line length accounting for quotes: " + this.mBufferLength);
 		this.buf = new char[this.mBufferLength];
 
 		for (ETLOutPort element : this.mOutPorts) {
@@ -1249,8 +1194,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 
 			// Move file to new directory
 			if (fn.renameTo(new File(dir, fn.getName())) == false)
-				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Failed to move file: "
-						+ fn.getAbsolutePath());
+				ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Failed to move file: " + fn.getAbsolutePath());
 			else
 				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Moved file: " + fn.getAbsolutePath());
 		}
@@ -1259,11 +1203,12 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
+	 * @see
+	 * com.kni.etl.ketl.smp.ETLWorker#getNewOutPort(com.kni.etl.ketl.ETLStep)
 	 */
 	@Override
 	protected ETLOutPort getNewOutPort(com.kni.etl.ketl.ETLStep srcStep) {
-		return new FileETLOutPort((ETLStep) this, (ETLStep) this);
+		return new FileETLOutPort(this, this);
 	}
 
 	/**

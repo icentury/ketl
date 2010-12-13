@@ -30,29 +30,37 @@ import com.kni.etl.ketl.exceptions.KETLTransformException;
  */
 public interface DefaultTransformCore extends DefaultCore {
 
-    /** The Constant SKIP_RECORD. */
-    public final static int SKIP_RECORD = 0;
-    
-    /** The Constant SUCCESS. */
-    public final static int SUCCESS = 1;
-    
-    /** The Constant REPEAT_RECORD. */
-    public final static int REPEAT_RECORD = 2;
+	/** The Constant SKIP_RECORD. */
+	public final static int SKIP_RECORD = 0;
 
-    /**
-     * Transform record.
-     * 
-     * @param pInputRecord the input record
-     * @param pInputDataTypes the input data types
-     * @param pInputRecordWidth the input record width
-     * @param pOutputRecord the output record
-     * @param pOutputDataTypes the output data types
-     * @param pOutputRecordWidth the output record width
-     * 
-     * @return the int
-     * 
-     * @throws KETLTransformException the KETL transform exception
-     */
-    public abstract int transformRecord(Object[] pInputRecord, Class[] pInputDataTypes, int pInputRecordWidth,
-            Object[] pOutputRecord, Class[] pOutputDataTypes, int pOutputRecordWidth) throws KETLTransformException;
+	/** The Constant SUCCESS. */
+	public final static int SUCCESS = 1;
+
+	/** The Constant REPEAT_RECORD. */
+	public final static int REPEAT_RECORD = 2;
+
+	/**
+	 * Transform record.
+	 * 
+	 * @param pInputRecord
+	 *            the input record
+	 * @param pInputDataTypes
+	 *            the input data types
+	 * @param pInputRecordWidth
+	 *            the input record width
+	 * @param pOutputRecord
+	 *            the output record
+	 * @param pOutputDataTypes
+	 *            the output data types
+	 * @param pOutputRecordWidth
+	 *            the output record width
+	 * 
+	 * @return the int
+	 * 
+	 * @throws KETLTransformException
+	 *             the KETL transform exception
+	 */
+	public abstract int transformRecord(Object[] pInputRecord, Class[] pInputDataTypes, int pInputRecordWidth, Object[] pOutputRecord, Class[] pOutputDataTypes,
+			int pOutputRecordWidth) throws KETLTransformException;
+
 }
