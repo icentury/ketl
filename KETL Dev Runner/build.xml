@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project [<!ENTITY buildfile SYSTEM "file:./build-user.xml">]>
+
+<project name="KETL Deployment" default="package" basedir=".">
+    &buildfile;
+
+   
+    <target name="init">
+        <mkdir dir="conf"/>
+    	<mkdir dir="bin"/>
+    	<mkdir dir="lib"/>
+    	<mkdir dir="xml"/>
+    	<mkdir dir="xml/plugins"/>
+        <mkdir dir="license"/>
+        <mkdir dir="log"/>
+    </target>
+
+
+	
+    <target name="build" >
+        <echo message="${ant.project.name}: ${ant.file}"/>
+    </target>
+</project>
