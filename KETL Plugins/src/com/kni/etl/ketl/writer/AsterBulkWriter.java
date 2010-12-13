@@ -75,7 +75,7 @@ import com.kni.util.FileTools;
 
 public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, WriterBatchManager, DBConnection, PrePostSQL {
 
-	static final String VERSION = "$Id:$";
+	static final String VERSION = "$Revision$";
 
 	public class AsterBulkETLInPort extends ETLInPort {
 
