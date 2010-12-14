@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
+import java.sql.Statement;
 
 import com.asterdata.ncluster.core.BaseConnection;
 import com.asterdata.ncluster.core.Encoding;
@@ -26,9 +27,11 @@ public class CopyManager implements CopyManagerInterface {
 
 	private int bufferSize = 16384;
 
+	private final Statement pgStmt;
+
 	public CopyManager(Connection con) throws SQLException {
 		pgConnection = (BaseConnection) con;
-
+		pgStmt = pgConnection.createStatement();
 		/*
 		 * QueryExecutor executor = pgConnection.getQueryExecutor(); Field
 		 * field; //UTF-8 try { field =
@@ -144,9 +147,14 @@ public class CopyManager implements CopyManagerInterface {
 		this.bufferSize = arg0;
 	}
 
-	@Override
 	public void commit() throws SQLException {
 		this.pgConnection.commit();
+	}
+
+	public void begin() throws SQLException {
+
+		pgStmt.execute("begin");
+
 	}
 
 }

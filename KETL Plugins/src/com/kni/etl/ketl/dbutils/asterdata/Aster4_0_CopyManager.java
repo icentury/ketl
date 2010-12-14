@@ -387,8 +387,12 @@ public class Aster4_0_CopyManager implements CopyManagerInterface {
 		}
 	}
 
-	@Override
 	public void commit() throws SQLException {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void begin() {
 		// TODO Auto-generated method stub
 
 	}

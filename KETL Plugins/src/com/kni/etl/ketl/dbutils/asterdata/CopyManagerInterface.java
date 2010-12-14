@@ -46,4 +46,6 @@ public interface CopyManagerInterface {
 
 	public abstract void commit() throws SQLException;
 
+	public abstract void begin() throws SQLException;
+
 }

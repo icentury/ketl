@@ -36,7 +36,6 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -109,6 +108,7 @@ final public class AsterCopyWriter {
 		public void useDataFeed() {
 			Object o;
 			try {
+				copyMngr.begin();
 				while ((o = dataFeed.take()) != DONE) {
 					byte[] data = (byte[]) o;
 					ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
@@ -568,9 +568,6 @@ final public class AsterCopyWriter {
 	}
 
 	private CopyManagerInterface newCopyManager(Connection con) throws SQLException {
-		Statement stmt = con.createStatement();
-		stmt.execute("begin");
-
 		return new CopyManager(con);
 	}
 
