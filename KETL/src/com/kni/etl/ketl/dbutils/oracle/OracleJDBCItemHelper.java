@@ -28,6 +28,7 @@ import java.util.HashMap;
 
 import oracle.sql.ARRAY;
 import oracle.sql.ArrayDescriptor;
+
 import org.w3c.dom.Element;
 
 import com.kni.etl.dbutils.JDBCItemHelper;
@@ -93,9 +94,13 @@ public class OracleJDBCItemHelper extends JDBCItemHelper {
         case oracle.jdbc.OracleTypes.OPAQUE:
             return oracle.sql.OPAQUE.class.getCanonicalName();
         case oracle.jdbc.OracleTypes.BLOB:
-            return Byte[].class.getCanonicalName();
+			return java.sql.Blob.class.getCanonicalName();
         case oracle.jdbc.OracleTypes.CLOB:
-            return String.class.getCanonicalName();
+			return java.sql.Clob.class.getCanonicalName();
+		case oracle.jdbc.OracleTypes.INTERVALDS:
+		case oracle.jdbc.OracleTypes.INTERVALYM:
+		case java.sql.Types.LONGVARCHAR:
+			return String.class.getCanonicalName();
         default:
             return super.getJavaType(pSQLType, pLength, pPrecision, pScale);
         }
