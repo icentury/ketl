@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<ETL xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" VERSION="1.0" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+    <PARAMETER_LIST NAME="SourceDB">
+        <PARAMETER NAME="USER">dbc</PARAMETER>
+        <PARAMETER NAME="PASSWORD">dbc</PARAMETER>
+        <PARAMETER NAME="URL">jdbc:teradata://192.168.245.135</PARAMETER>
+        <PARAMETER NAME="DRIVER">com.teradata.jdbc.TeraDriver</PARAMETER>
+        <PARAMETER NAME="SQL">SELECT * FROM MYDB.test_table</PARAMETER>
+       
+    </PARAMETER_LIST>
+    <PARAMETER_LIST NAME="DestinationDB">
+        <PARAMETER NAME="USER">dbc</PARAMETER>
+        <PARAMETER NAME="PASSWORD">dbc</PARAMETER>
+        <PARAMETER NAME="URL">jdbc:teradata://192.168.245.135/TMODE=ANSI,TYPE=FASTLOAD</PARAMETER>
+        <PARAMETER NAME="DRIVER">com.teradata.jdbc.TeraDriver</PARAMETER>
+    </PARAMETER_LIST>
+    <!-- Source, Target DDL
+    CREATE TABLE MYDB.test_table
+(col1 INTEGER NOT NULL,
+col2 CHAR(25),
+col3 VARCHAR(25) NOT NULL,
+col4 DATE FORMAT 'YY/MM/DD',
+PRIMARY KEY (col1)); 
+CREATE TABLE MYDB.test_table2
+(col1 INTEGER NOT NULL,
+col2 CHAR(25),
+col3 VARCHAR(25) NOT NULL,
+col4 DATE FORMAT 'YY/MM/DD',
+PRIMARY KEY (col1));-->
+    <JOB ID="TERA_WRITE" NAME="GENERIC_ETL" PROJECT="TEST" TYPE="KETL">
+        <ACTION>
+            <STEP CLASS="com.kni.etl.ketl.reader.JDBCReader" NAME="read" HANDLER="com.kni.etl.ketl.dbutils.teradata.TeradataJDBCItemHelper"  OUTSYNTAX="INFERRED" PARAMETER_LIST="SourceDB">
+            </STEP>
+           
+            <STEP CLASS="com.kni.etl.ketl.writer.JDBCWriter" NAME="write" HANDLER="com.kni.etl.ketl.dbutils.teradata.TeradataJDBCItemHelper"  PARAMETER_LIST="DestinationDB" SCHEMA="MYDB" TABLE="test_table2" TYPE="BULK">
+                 <PRESQL AUTOCOMMIT="FALSE">delete from MYDB.test_table2</PRESQL>
+                 <IN NAME="col1">read.col1</IN>
+                <IN NAME="col2">read.col2</IN>
+                <IN NAME="col3">read.col3</IN>
+                <IN NAME="col4">read.col4</IN>
+            </STEP>
+        </ACTION>
+    </JOB>
+</ETL>
