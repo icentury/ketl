@@ -306,7 +306,7 @@ public class JDBCItemHelper {
 			return Long.class.getCanonicalName();
 		case java.sql.Types.BINARY:
 		case java.sql.Types.BLOB:
-			return Byte[].class.getCanonicalName();
+			return java.sql.Blob.class.getCanonicalName();
 		case java.sql.Types.BIT:
 			return Integer.class.getCanonicalName();
 		case java.sql.Types.CHAR:
