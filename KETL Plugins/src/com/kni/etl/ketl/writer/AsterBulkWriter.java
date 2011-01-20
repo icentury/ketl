@@ -711,7 +711,7 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 		// Pull the name of the table to be written to...
 		this.mstrTableName = XMLHelper.getAttributeAsString(nmAttrs, AsterBulkWriter.TABLE_ATTRIB, null);
 		this.miGroupWaitTime = XMLHelper.getAttributeAsInt(nmAttrs, AsterBulkWriter.GROUPWAIT_ATTRIB, -1);
-		this.useDataBlocks = XMLHelper.getAttributeAsBoolean(nmAttrs, "_USEDATABLOCKS", true);
+		this.useDataBlocks = XMLHelper.getAttributeAsBoolean(nmAttrs, "_USEDATABLOCKS", false);
 
 		// Pull the commit size...
 		this.batchSize = XMLHelper.getAttributeAsInt(nmAttrs, AsterBulkWriter.COMMITSIZE_ATTRIB, this.batchSize);
