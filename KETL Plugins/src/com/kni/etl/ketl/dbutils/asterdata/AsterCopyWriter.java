@@ -294,12 +294,12 @@ final public class AsterCopyWriter {
 
 	private final String tempPath;
 
-	public AsterCopyWriter(Connection con, boolean streaming) throws SQLException {
+	public AsterCopyWriter(Connection con, boolean streaming, boolean useDataBlocks) throws SQLException {
 		super();
 		this.streaming = streaming;
 		this.tempPath = System.getenv("java.io.tmpdir");
 		this.compress = true;
-
+		this.useDataBlocks = useDataBlocks;
 		setup(con);
 	}
 
@@ -312,11 +312,12 @@ final public class AsterCopyWriter {
 	 * @throws SQLException
 	 *             the SQL exception
 	 */
-	public AsterCopyWriter(Connection con, String tempPath, boolean compress) throws SQLException {
+	public AsterCopyWriter(Connection con, String tempPath, boolean compress, boolean useDataBlocks) throws SQLException {
 		super();
 		this.streaming = false;
 		this.tempPath = tempPath;
 		this.compress = compress;
+		this.useDataBlocks = useDataBlocks;
 		setup(con);
 
 	}
@@ -334,6 +335,8 @@ final public class AsterCopyWriter {
 	private Integer partitionID;
 
 	private int flushMB = 5;
+
+	private boolean useDataBlocks = true;
 
 	public void setReplaceInvalid(String arg0) {
 		this.replace0 = arg0;
@@ -357,7 +360,7 @@ final public class AsterCopyWriter {
 
 		if (this.streaming) {
 			if (this.streamReader == null) {
-				this.streamReader = new StreamReader(this.copy, this.loadCommand(), getDefaultCopyBufferSize(), Thread.currentThread(), true, this.flushMB);
+				this.streamReader = new StreamReader(this.copy, this.loadCommand(), getDefaultCopyBufferSize(), Thread.currentThread(), useDataBlocks, this.flushMB);
 				this.writer = this.streamReader.getWriter();
 				this.streamReader.start();
 			} else

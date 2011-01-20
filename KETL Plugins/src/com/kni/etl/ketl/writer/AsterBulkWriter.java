@@ -327,6 +327,8 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 
 	private int flushMB;
 
+	private boolean useDataBlocks = true;
+
 	/**
 	 * Instantiates a new PG bulk writer.
 	 * 
@@ -410,7 +412,8 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 					if (this.targetInFilename) {
 						target = file.getName().split("\\.")[0];
 					}
-					AsterCopyWriter wr = new AsterCopyWriter(this.mcDBConnection, EngineConstants.PARTITION_PATH + File.separator + this.getPartitionID(), this.compress);
+					AsterCopyWriter wr = new AsterCopyWriter(this.mcDBConnection, EngineConstants.PARTITION_PATH + File.separator + this.getPartitionID(), this.compress,
+							this.useDataBlocks);
 					wr.createLoadCommand(target, this.cols, this.mAutoPartition);
 					if (this.streaming == false)
 						this.setWaiting("database to process copy file " + f.getFilePath());
@@ -473,14 +476,14 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 		if (this.streaming) {
 			try {
 				wr = new AsterCopyWriter(ResourcePool.getConnection(this.strDriverClass, this.loaderURL, this.strUserName, this.strPassword, this.strPreSQL, true, this
-						.getDatabaseProperties()), true);
+						.getDatabaseProperties()), true, this.useDataBlocks);
 				wr.setFlushMB(this.flushMB);
 			} catch (ClassNotFoundException e) {
 				throw new SQLException(e);
 			}
 		} else {
 			wr = new AsterCopyWriter(this.mcDBConnection, this.targetFilePath == null ? EngineConstants.PARTITION_PATH + File.separator + this.getPartitionID()
-					: this.targetFilePath, this.compress);
+					: this.targetFilePath, this.compress, this.useDataBlocks);
 		}
 
 		if (this.offLineConfig) {
@@ -708,6 +711,7 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 		// Pull the name of the table to be written to...
 		this.mstrTableName = XMLHelper.getAttributeAsString(nmAttrs, AsterBulkWriter.TABLE_ATTRIB, null);
 		this.miGroupWaitTime = XMLHelper.getAttributeAsInt(nmAttrs, AsterBulkWriter.GROUPWAIT_ATTRIB, -1);
+		this.useDataBlocks = XMLHelper.getAttributeAsBoolean(nmAttrs, "_USEDATABLOCKS", true);
 
 		// Pull the commit size...
 		this.batchSize = XMLHelper.getAttributeAsInt(nmAttrs, AsterBulkWriter.COMMITSIZE_ATTRIB, this.batchSize);
