@@ -692,7 +692,8 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 			this.loaderURL = this.strURL;
 		else {
 			String[] urls = this.loaderURL.split(";");
-			this.loaderURL = urls[this.partitions % urls.length];
+			int id = this.partitionID % urls.length;
+			this.loaderURL = urls[id];
 		}
 
 		this.strDriverClass = this.getParameterValue(0, DBConnection.DRIVER_ATTRIB);
