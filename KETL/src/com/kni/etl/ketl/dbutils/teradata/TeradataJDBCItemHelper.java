@@ -35,6 +35,7 @@ public class TeradataJDBCItemHelper extends JDBCItemHelper {
 		switch (pSQLType) {
 		case java.sql.Types.DATE:
 			return java.sql.Date.class.getCanonicalName();
+		case java.sql.Types.OTHER:
 		case java.sql.Types.LONGVARCHAR:
 			return String.class.getCanonicalName();
 		default:

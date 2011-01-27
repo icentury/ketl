@@ -432,7 +432,11 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 						outData = this.escape(this.mDestFieldDefinitions[i].getFormat(pExpectedDataTypes[idx]).format(data), this.mDestFieldDefinitions[i].Delimiter,
 								!this.mDestFieldDefinitions[i].FixedWidth, this.mDestFieldDefinitions[i].alwaysEscape, this.mDestFieldDefinitions[i].quoteEnabled);
 					} else if (this.mInPorts[i].getPortClass() == Double.class || this.mInPorts[i].getPortClass() == Float.class) {
-						Double val = (Double) data;
+						Double val;
+						if (data instanceof Double)
+							val = (Double) data;
+						else
+							val = ((Float) data).doubleValue();
 						if (val > Long.MAX_VALUE || val < Long.MIN_VALUE || val - val.longValue() != 0)
 							data = val.toString();
 						else

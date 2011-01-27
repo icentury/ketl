@@ -48,7 +48,6 @@ import com.kni.etl.ETLJobStatus;
 import com.kni.etl.EngineConstants;
 import com.kni.etl.ParameterList;
 import com.kni.etl.dbutils.ResourcePool;
-import com.kni.etl.ketl.checkpointer.CheckPointStore;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLReadException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
@@ -512,7 +511,7 @@ public class KETLJobExecutor extends ETLJobExecutor {
 					this.ejCurrentJob.setNotificationMode(XMLHelper.getAttributeAsString(xmlDOM.getElementsByTagName(
 							"ACTION").item(0).getAttributes(), "EMAILSTATUS", null));
 				} catch (java.lang.reflect.InvocationTargetException e) {
-					throw (Exception) e.getCause();
+					throw e.getCause();
 				}
 				this.em.start();
 
