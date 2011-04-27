@@ -60,7 +60,7 @@ public abstract class  ManagedBlockingQueue extends LinkedBlockingQueue {
      * 
      * @param worker the worker
      */
-    public abstract void registerWriter(ETLWorker worker);
+    public abstract void registerWriter(ETLStats worker);
 
     
 }

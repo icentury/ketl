@@ -57,14 +57,17 @@ public class KETLJob extends ETLJob {
 
 	private boolean paused = false;
 
+	@Override
 	public boolean isPaused() {
 		return paused;
 	}
 
+	@Override
 	public void pauseJob() {
 		this.paused = true;
 	}
 
+	@Override
 	public void resumeJob() {
 		this.paused = false;
 	}
@@ -115,8 +118,7 @@ public class KETLJob extends ETLJob {
 			e = pParentNode.getOwnerDocument().importNode(xmlConfig.getFirstChild(), true);
 			pParentNode.appendChild(e);
 		} catch (org.xml.sax.SAXException e2) {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Parsing XML document, "
-					+ e2.toString());
+			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Parsing XML document, " + e2.toString());
 
 			System.exit(EngineConstants.INVALID_XML_EXIT_CODE);
 		} catch (Exception e1) {
@@ -194,8 +196,7 @@ public class KETLJob extends ETLJob {
 	 * 
 	 * @return the persistent map
 	 */
-	final public synchronized PersistentMap registerLookupWriteLock(String name, LookupCreatorImpl lookupImpl,
-			int pPersistence) {
+	final public synchronized PersistentMap registerLookupWriteLock(String name, LookupCreatorImpl lookupImpl, int pPersistence) {
 		RegisteredLookup res = (RegisteredLookup) this.mLookups.get(name);
 
 		if (res == null && pPersistence != EngineConstants.JOB_PERSISTENCE) {
@@ -247,7 +248,7 @@ public class KETLJob extends ETLJob {
 	}
 
 	/** The lookups. */
-	private Map mLookups = new HashMap();
+	private final Map mLookups = new HashMap();
 
 	/**
 	 * Delete lookup.

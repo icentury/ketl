@@ -20,55 +20,16 @@
  *  San Francisco CA 94105
  *  http://www.kineticnetworks.com
  */
-package com.kni.etl.ketl.filter;
+package com.kni.etl.ketl.smp;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import com.kni.etl.ketl.smp.ETLStats;
-
+import java.util.concurrent.BlockingQueue;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class Filter.
+ * The Interface DefaultTransformCore.
  */
-public class Filter {
+public interface BatchTransformCore extends DefaultCore {
 
-    /**
-     * New filter.
-     * 
-     * @param filternodes the filternodes
-     * @param step the step
-     * 
-     * @return the filter
-     */
-    public static Filter newFilter(Node[] filternodes,ETLStats step) {
-        // generate a class to do the filtering
-        
-        return null;
-    }
-    
-    /**
-     * Instantiates a new filter.
-     * 
-     * @param xmlConfig the xml config
-     * @param step the step
-     */
-    public Filter(Element xmlConfig,ETLStats step) {
-        
-    }
-
-    /**
-     * Filter.
-     * 
-     * @param data the data
-     * @param len the len
-     * 
-     * @return the object[][]
-     */
-    public Object[][] filter(Object[][] data, int len) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	public abstract void iterableTransform(BlockingQueue sourceQueue, BlockingQueue queue);
 
 }

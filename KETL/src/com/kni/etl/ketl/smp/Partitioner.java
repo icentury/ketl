@@ -166,7 +166,7 @@ final public class Partitioner extends ManagedBlockingQueue {
 		 * @see com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
 		 */
 		@Override
-		public void registerWriter(ETLWorker worker) {
+		public void registerWriter(ETLStats worker) {
 			this.mParentPartitioner.registerWriter(worker);
 		}
 
@@ -218,7 +218,7 @@ final public class Partitioner extends ManagedBlockingQueue {
 	 * @see com.kni.etl.ketl.smp.ManagedBlockingQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
 	 */
 	@Override
-	public void registerWriter(ETLWorker worker) {
+	public void registerWriter(ETLStats worker) {
 
 	}
 

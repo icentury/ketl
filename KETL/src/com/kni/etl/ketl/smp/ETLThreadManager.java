@@ -116,7 +116,7 @@ public class ETLThreadManager {
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public synchronized ETLWorker getStep(ETLWorker sourceStep, String name) throws KETLThreadException {
+	public synchronized ETLStats getStep(ETLWorker sourceStep, String name) throws KETLThreadException {
 		for (Object o : this.threads) {
 			WorkerThread wt = (WorkerThread) o;
 

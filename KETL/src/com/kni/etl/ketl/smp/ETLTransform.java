@@ -621,10 +621,6 @@ public abstract class ETLTransform extends ETLStep {
 		boolean newDataArray = true;
 		Object[][] data = res;
 
-		if (this.batchCore != null) {
-			return this.batchCore.transform(res, length);
-		}
-
 		for (int i = 0; i < length; i++) {
 			Object[] result = new Object[this.mOutputRecordWidth];
 
@@ -704,48 +700,52 @@ public abstract class ETLTransform extends ETLStep {
 	 *             the KETL transform exception
 	 * @throws KETLThreadException
 	 */
-	final private void transformFromQueue(LinkedBlockingQueue queue) throws InterruptedException, KETLTransformException, KETLThreadException {
+	final private void transformFromQueue(LinkedBlockingQueue sourceQueue) throws InterruptedException, KETLTransformException, KETLThreadException {
 
-		while (true) {
-			this.interruptExecution();
-			Object o;
-			o = queue.take();
-			if (o == ETLWorker.ENDOBJ) {
-				if (this.mAggregate) {
-					this.aggregateBatch(null, -1);
+		if (this.batchCore != null) {
+			this.batchCore.iterableTransform(sourceQueue, this.queue);
+		} else {
+			while (true) {
+				this.interruptExecution();
+				Object o;
+				o = queue.take();
+				if (o == ETLWorker.ENDOBJ) {
+					if (this.mAggregate) {
+						this.aggregateBatch(null, -1);
+					}
+
+					if (this.mBatchManagement) {
+						this.mBatchManager.finishBatch(null, BatchManager.LASTBATCH);
+					}
+					this.queue.put(o);
+					break;
 				}
+				Object[][] res = (Object[][]) o;
 
 				if (this.mBatchManagement) {
-					this.mBatchManager.finishBatch(null, BatchManager.LASTBATCH);
+					res = this.mBatchManager.initializeBatch(res, res.length);
+
 				}
-				this.queue.put(o);
-				break;
+
+				if (this.timing)
+					this.startTimeNano = System.nanoTime();
+				res = this.transformBatch(res, res.length);
+				if (this.timing)
+					this.totalTimeNano += System.nanoTime() - this.startTimeNano;
+
+				if (this.mBatchManagement) {
+					res = this.mBatchManager.finishBatch(res, res.length);
+
+				}
+
+				if (this.mAggregate) {
+					this.aggregateBatch(res, res.length);
+				} else
+					this.queue.put(res);
+
+				this.updateThreadStats(res.length);
+
 			}
-			Object[][] res = (Object[][]) o;
-
-			if (this.mBatchManagement) {
-				res = this.mBatchManager.initializeBatch(res, res.length);
-
-			}
-
-			if (this.timing)
-				this.startTimeNano = System.nanoTime();
-			res = this.transformBatch(res, res.length);
-			if (this.timing)
-				this.totalTimeNano += System.nanoTime() - this.startTimeNano;
-
-			if (this.mBatchManagement) {
-				res = this.mBatchManager.finishBatch(res, res.length);
-
-			}
-
-			if (this.mAggregate) {
-				this.aggregateBatch(res, res.length);
-			} else
-				this.queue.put(res);
-
-			this.updateThreadStats(res.length);
-
 		}
 
 	}

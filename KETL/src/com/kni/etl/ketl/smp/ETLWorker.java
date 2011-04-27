@@ -61,7 +61,7 @@ import com.kni.etl.util.XMLHelper;
  *         to Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and
  *         Comments
  */
-abstract public class ETLWorker implements Runnable {
+abstract public class ETLWorker implements Runnable, ETLStats {
 
 	/**
 	 * The Class CodeField.
@@ -429,7 +429,7 @@ abstract public class ETLWorker implements Runnable {
 	int tuneIntervalIncrement = 200000;
 
 	/** The timing. */
-	protected boolean timing;
+	protected final boolean timing;
 
 	/** The debug. */
 	protected boolean mDebug;
@@ -456,7 +456,7 @@ abstract public class ETLWorker implements Runnable {
 		super();
 		this.queueSize = XMLHelper.getAttributeAsInt(pXMLConfig.getAttributes(), "QUEUESIZE", this.defaultQueueSize);
 		this.batchSize = XMLHelper.getAttributeAsInt(pXMLConfig.getAttributes(), "BATCHSIZE", this.defaultBatchSize);
-		this.timing = XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "TIMING", false);
+		this.timing = XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "TIMING", true);
 
 		this.mThreadManager = pThreadManager;
 		this.partitionID = pPartitionID;
@@ -1678,18 +1678,21 @@ abstract public class ETLWorker implements Runnable {
 	/** The batch optimizer. */
 	private BatchOptimizer mBatchOptimizer = null;
 
-	/**
-	 * Update thread stats.
+	/*
+	 * (non-Javadoc)
 	 * 
-	 * @param rowCount
-	 *            the row count
+	 * @see com.kni.etl.ketl.smp.ETLStats#updateThreadStats(int)
 	 */
-	final protected void updateThreadStats(int rowCount) {
+	final public void updateThreadStats(int rowCount) {
 		this.recordCount += rowCount;
 
 		if (this.mBatchOptimizer != null && this.selfTune && this.recordCount > this.tuneInterval) {
 			this.mBatchOptimizer.optimize(this);
 		}
+	}
+
+	final public void incrementTiming(long timing) {
+		this.totalTimeNano += timing;
 	}
 
 	/**

@@ -90,7 +90,7 @@ final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
      * @see com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
      */
     @Override
-    public synchronized void registerWriter(ETLWorker worker) {
+    public synchronized void registerWriter(ETLStats worker) {
         this.writingThreads++;
     }
 

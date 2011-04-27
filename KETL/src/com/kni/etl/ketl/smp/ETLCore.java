@@ -49,7 +49,7 @@ import com.kni.etl.stringtools.FastSimpleDateFormat;
 abstract public class ETLCore implements DefaultCore {
 
     /** The owner step. */
-    private ETLWorker ownerStep;
+    private ETLStats ownerStep;
 
     /**
      * Initialize core fields.
@@ -61,7 +61,7 @@ abstract public class ETLCore implements DefaultCore {
      * 
      * @return the owner
      */
-    public ETLWorker getOwner() {
+    public ETLStats getOwner() {
         return this.ownerStep;
     }
 
@@ -70,7 +70,7 @@ abstract public class ETLCore implements DefaultCore {
      * 
      * @param arg0 the new owner
      */
-    public void setOwner(ETLWorker arg0) {
+    public void setOwner(ETLStats arg0) {
         this.ownerStep = arg0;
         this.initializeCoreFields();
     }
