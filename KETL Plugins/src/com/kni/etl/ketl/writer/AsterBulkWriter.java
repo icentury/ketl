@@ -67,6 +67,7 @@ import com.kni.etl.ketl.reader.JDBCReader;
 import com.kni.etl.ketl.reader.NIOFileReader;
 import com.kni.etl.ketl.smp.BatchManager;
 import com.kni.etl.ketl.smp.DefaultWriterCore;
+import com.kni.etl.ketl.smp.ETLStats;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.ETLWorker;
 import com.kni.etl.ketl.smp.WriterBatchManager;
@@ -1019,7 +1020,7 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 	private void sendBatchToDatabase() throws SQLException, ClassNotFoundException, KETLWriteException {
 
 		if (this.miGroupWaitTime > 0) {
-			this.setWaiting("for group, batch will fire " + this.miGroupWaitTime + "s after next minute");
+			this.setWaiting("replication waiting up to " + this.miGroupWaitTime + "s seconds for other load threads");
 
 			Calendar calendar = new GregorianCalendar();
 			int currentMinute = calendar.get(Calendar.MINUTE);
@@ -1070,7 +1071,7 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 						long endTime = System.currentTimeMillis() + 1;
 						long res = Math.min((long) recs, (long) (recs / ((endTime - startTime) / 1000)));
 
-						ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, (this.streaming ? "Replication" : "DB write") + " rate " + res + " rec/s");
+						ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Aster write rate " + res + " rec/s");
 					} finally {
 						if (con != null)
 							ResourcePool.releaseConnection(con);
@@ -1138,7 +1139,7 @@ public class AsterBulkWriter extends ETLWriter implements DefaultWriterCore, Wri
 	private void waitForPreSQL(TaskRunner runner) throws SQLException, InterruptedException {
 		List<ETLWorker> fellowWorkers = this.getThreadManager().getFellowWorkers(this.getName());
 
-		for (ETLWorker tmp : fellowWorkers) {
+		for (ETLStats tmp : fellowWorkers) {
 			AsterBulkWriter worker = (AsterBulkWriter) tmp;
 			if (worker.preSQLRunner != null) {
 				while (worker.preSQLRunner.isAlive()) {

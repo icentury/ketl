@@ -132,12 +132,32 @@ final public class AsterCopyWriter {
 
 		private void useStream() {
 			try {
-				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "loadCommand " + loadCommand);
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Aster load stream started, load command " + loadCommand);
+				copyMngr.begin();
+				long startTime = System.currentTimeMillis();
 				copyMngr.copyInQuery(loadCommand, is);
 				bis.close();
 				is.close();
 				is = null;
+
+				// timing
+				long now = System.currentTimeMillis();
+				long diff = Math.max(now - startTime, 1000);
+				long streamTime = diff / 1000;
+				long rec = rowsInThisBatch / (diff / 1000);
+
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Aster load stream completed in " + streamTime + "'s (" + rec + " rec/s), commit started");
+				startTime = now;
+
+				// commit changes
 				copyMngr.commit();
+
+				// timing
+				now = System.currentTimeMillis();
+				diff = Math.max(now - startTime, 1000);
+				streamTime = diff / 1000;
+				rec = rowsInThisBatch / (diff / 1000);
+				ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Aster commit completed in " + streamTime + "'s (" + rec + " rec/s)");
 			} catch (Exception e) {
 				exception = e;
 				try {
