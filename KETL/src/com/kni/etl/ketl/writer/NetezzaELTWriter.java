@@ -45,103 +45,107 @@ import com.kni.etl.util.XMLHelper;
  */
 public class NetezzaELTWriter extends BulkLoaderELTWriter {
 
-    
-    /**
-     * Instantiates a new netezza ELT writer.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public NetezzaELTWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	/**
+	 * Instantiates a new netezza ELT writer.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public NetezzaELTWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.writer.JDBCELTWriter#prepareStatementWrapper(java.sql.Connection, java.lang.String, com.kni.etl.dbutils.JDBCItemHelper)
-     */
-    @Override
-    StatementWrapper prepareStatementWrapper(Connection Connection, String loadStatement, JDBCItemHelper jdbcHelper)
-            throws SQLException {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.writer.JDBCELTWriter#prepareStatementWrapper(java.sql
+	 * .Connection, java.lang.String, com.kni.etl.dbutils.JDBCItemHelper)
+	 */
+	@Override
+	StatementWrapper prepareStatementWrapper(Connection Connection, String loadStatement, JDBCItemHelper jdbcHelper) throws SQLException {
 
-        return NetezzaStatementWrapper.prepareStatement(Connection, this.mEncoding, this.mTargetTable, loadStatement,
-                this.madcdColumns, jdbcHelper, this.pipeData());
-    }
+		return NetezzaStatementWrapper.prepareStatement(Connection, this.mEncoding, this.mTargetTable, loadStatement, this.madcdColumns, jdbcHelper, this.pipeData());
+	}
 
-    /** The OS command. */
-    private String mOSCommand;
-    
-    /** The target table. */
-    private String mTargetTable;
-    
-    /** The encoding. */
-    private String mEncoding;
-    
-    /** The hostname. */
-    private String mHostname;
-    
-    /** The DB name. */
-    private String mDBName;
+	/** The OS command. */
+	private String mOSCommand;
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.writer.JDBCELTWriter#buildInBatchSQL(java.lang.String)
-     */
-    @Override
-    protected String buildInBatchSQL(String pTable) throws Exception {
+	/** The target table. */
+	private String mTargetTable;
 
-        this.mOSCommand = this.getStepTemplate(this.mDBType, "NZLOAD", true);
+	/** The encoding. */
+	private String mEncoding;
 
-        String URL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
-        int hostStartPos = URL.indexOf("//");
-        int hostEndPos = URL.indexOf(":", hostStartPos);
-        if (hostEndPos == -1)
-            hostEndPos = URL.indexOf("/", hostStartPos);
+	/** The hostname. */
+	private String mHostname;
 
-        if (hostStartPos == -1 || hostEndPos == -1)
-            throw new KETLThreadException("Could not determine hostname from URL", this);
+	/** The DB name. */
+	private String mDBName;
 
-        this.mHostname = URL.substring(hostStartPos + 2, hostEndPos);
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "HOSTNAME", this.mHostname);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.writer.JDBCELTWriter#buildInBatchSQL(java.lang.String)
+	 */
+	@Override
+	protected String buildInBatchSQL(String pTable) throws Exception {
 
-        int dbStartPos = URL.lastIndexOf("/");
-        this.mDBName = URL.substring(dbStartPos + 1);
+		this.mOSCommand = this.getStepTemplate(this.getGroup(), "NZLOAD", true);
 
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "DATABASE", this.mDBName);
-        this.mEncoding = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "MULTIBYTE", false) ? "UTF8"
-                : "LATIN9";
+		String URL = this.getParameterValue(0, DBConnection.URL_ATTRIB);
+		int hostStartPos = URL.indexOf("//");
+		int hostEndPos = URL.indexOf(":", hostStartPos);
+		if (hostEndPos == -1)
+			hostEndPos = URL.indexOf("/", hostStartPos);
 
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "PASSWORD", this.getParameterValue(0,
-                DBConnection.PASSWORD_ATTRIB));
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "USER", this.getParameterValue(0,
-                DBConnection.USER_ATTRIB));
-        this.mTargetTable = pTable;
-        return this.mOSCommand;
-    }
+		if (hostStartPos == -1 || hostEndPos == -1)
+			throw new KETLThreadException("Could not determine hostname from URL", this);
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.writer.DatabaseELTWriter#close(boolean)
-     */
-    @Override
-    protected void close(boolean success, boolean jobFailed) {
-        if (success == false && this.isLastThreadToEnterCompletePhase()
-                && ((BulkLoaderStatementWrapper) this.stmt).loaderExecuted()) {
-            // run nzreclaim
-            try {
-                ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
-                        "nzreclaim will be executed to cleanup the target table");
-                ((NetezzaStatementWrapper) this.stmt).reclaim(this.getParameterValue(0, DBConnection.USER_ATTRIB), this
-                        .getParameterValue(0, DBConnection.PASSWORD_ATTRIB), this.mTargetTable, this.mDBName,
-                        this.mHostname);
-            } catch (IOException e) {
-                ResourcePool.LogException(e, Thread.currentThread());
-                e.printStackTrace();
-            }
-        }
-        super.close(success, jobFailed);
-    }
+		this.mHostname = URL.substring(hostStartPos + 2, hostEndPos);
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "HOSTNAME", this.mHostname);
+
+		int dbStartPos = URL.lastIndexOf("/");
+		this.mDBName = URL.substring(dbStartPos + 1);
+
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "DATABASE", this.mDBName);
+		this.mEncoding = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "MULTIBYTE", false) ? "UTF8" : "LATIN9";
+
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "PASSWORD", this.getParameterValue(0, DBConnection.PASSWORD_ATTRIB));
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "USER", this.getParameterValue(0, DBConnection.USER_ATTRIB));
+		this.mTargetTable = pTable;
+		return this.mOSCommand;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.writer.DatabaseELTWriter#close(boolean)
+	 */
+	@Override
+	protected void close(boolean success, boolean jobFailed) {
+		if (success == false && this.isLastThreadToEnterCompletePhase() && ((BulkLoaderStatementWrapper) this.stmt).loaderExecuted()) {
+			// run nzreclaim
+			try {
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "nzreclaim will be executed to cleanup the target table");
+				((NetezzaStatementWrapper) this.stmt).reclaim(this.getParameterValue(0, DBConnection.USER_ATTRIB), this.getParameterValue(0, DBConnection.PASSWORD_ATTRIB),
+						this.mTargetTable, this.mDBName, this.mHostname);
+			} catch (IOException e) {
+				ResourcePool.LogException(e, Thread.currentThread());
+				e.printStackTrace();
+			}
+		}
+		super.close(success, jobFailed);
+	}
 
 }

@@ -708,7 +708,7 @@ public abstract class ETLTransform extends ETLStep {
 			while (true) {
 				this.interruptExecution();
 				Object o;
-				o = queue.take();
+				o = sourceQueue.take();
 				if (o == ETLWorker.ENDOBJ) {
 					if (this.mAggregate) {
 						this.aggregateBatch(null, -1);

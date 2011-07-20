@@ -22,6 +22,7 @@
  */
 package com.kni.etl.ketl.smp;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -33,127 +34,142 @@ import com.kni.etl.util.SortedList;
  */
 final class ManagedBlockingQueueImpl extends ManagedBlockingQueue {
 
-    /** The Constant serialVersionUID. */
-    private static final long serialVersionUID = 1L;
-    
-    /** The reading threads. */
-    private int writingThreads = 0, readingThreads = 0;
-    
-    /** The name. */
-    private String name;
+	/** The Constant serialVersionUID. */
+	private static final long serialVersionUID = 1L;
 
-    /**
-     * The Constructor.
-     * 
-     * @param pCapacity the capacity
-     */
-    public ManagedBlockingQueueImpl(int pCapacity) {
-        super(pCapacity);
-    }
+	/** The reading threads. */
+	private int writingThreads = 0, readingThreads = 0;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.smp.MQueue#setName(java.lang.String)
-     */
-    @Override
-    public void setName(String arg0) {
-        this.name = arg0;
-    }
-    
-    public String getName() {
-    	return this.name;
-    }
+	/** The name. */
+	private String name;
 
-    /* (non-Javadoc)
-     * @see java.util.concurrent.LinkedBlockingQueue#toString()
-     */
-    @Override
-    public String toString() {
-        return this.name == null ? "NA" : this.name + this.size();
-    }
+	/**
+	 * The Constructor.
+	 * 
+	 * @param pCapacity
+	 *            the capacity
+	 */
+	public ManagedBlockingQueueImpl(int pCapacity) {
+		super(pCapacity);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.smp.MQueue#registerReader(com.kni.etl.ketl.smp.ETLWorker)
-     */
-    @Override
-    public synchronized void registerReader(ETLWorker worker) {
-        this.readingThreads++;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.MQueue#setName(java.lang.String)
+	 */
+	@Override
+	public void setName(String arg0) {
+		this.name = arg0;
+	}
 
-    }
+	@Override
+	public String getName() {
+		return this.name;
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
-     */
-    @Override
-    public synchronized void registerWriter(ETLStats worker) {
-        this.writingThreads++;
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.concurrent.LinkedBlockingQueue#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.name == null ? "NA" : this.name + ",Size: " + this.size() + ", Readers: " + this.readers + ", Writers: " + this.writers;
+	}
 
-    /** The buffered sort. */
-    private List<Object[]> bufferedSort;
+	private final List<ETLWorker> readers = new ArrayList();
+	private final List<ETLWorker> writers = new ArrayList();
 
-    /**
-     * Sets the sort comparator.
-     * 
-     * @param arg0 the new sort comparator
-     */
-    public void setSortComparator(Comparator arg0){
-        this.bufferedSort=new SortedList<Object[]>(arg0);
-    }
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.util.concurrent.LinkedBlockingQueue#put(java.lang.Object)
-     */
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.kni.etl.ketl.smp.MQueue#put(java.lang.Object)
-     */
-    @Override
-    public void put(Object pO) throws InterruptedException {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.MQueue#registerReader(com.kni.etl.ketl.smp.ETLWorker
+	 * )
+	 */
+	@Override
+	public synchronized void registerReader(ETLWorker worker) {
+		this.readingThreads++;
+		this.readers.add(worker);
+	}
 
-        if (pO == com.kni.etl.ketl.smp.ETLWorker.ENDOBJ) {
-            synchronized (this) {
-                this.writingThreads--;
-                if (this.writingThreads == 0) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker
+	 * )
+	 */
+	@Override
+	public synchronized void registerWriter(ETLWorker worker) {
+		this.writingThreads++;
+		this.writers.add(worker);
 
-                    if (this.bufferedSort != null) {
-                        Object[][] batch;
-                        ((SortedList)this.bufferedSort).releaseAll();
-                        while ((batch = this.bufferedSort.toArray(new Object[((SortedList) this.bufferedSort).fetchSize()][])) != null)
-                            super.put(batch);
-                    }
+	}
 
-                    for (int i = 0; i < this.readingThreads; i++) {
-                        super.put(pO);
-                    }
-                }
-            }
+	/** The buffered sort. */
+	private List<Object[]> bufferedSort;
 
-            return;
-        }
+	/**
+	 * Sets the sort comparator.
+	 * 
+	 * @param arg0
+	 *            the new sort comparator
+	 */
+	public void setSortComparator(Comparator arg0) {
+		this.bufferedSort = new SortedList<Object[]>(arg0);
+	}
 
-        if (this.bufferedSort != null) {
-            Object[][] batch = (Object[][]) pO;
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see java.util.concurrent.LinkedBlockingQueue#put(java.lang.Object)
+	 */
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see com.kni.etl.ketl.smp.MQueue#put(java.lang.Object)
+	 */
+	@Override
+	public void put(Object pO) throws InterruptedException {
 
-            int size = batch.length;
-            
-            for(int i=0;i<size;i++)
-                this.bufferedSort.add(batch[i]);
-            
-            batch = this.bufferedSort.toArray(batch);
+		if (pO == com.kni.etl.ketl.smp.ETLWorker.ENDOBJ) {
+			synchronized (this) {
+				this.writingThreads--;
+				if (this.writingThreads == 0) {
 
-            if (batch == null)
-                return;
-        }
+					if (this.bufferedSort != null) {
+						Object[][] batch;
+						((SortedList) this.bufferedSort).releaseAll();
+						while ((batch = this.bufferedSort.toArray(new Object[((SortedList) this.bufferedSort).fetchSize()][])) != null)
+							super.put(batch);
+					}
 
-        super.put(pO);
-    }
+					for (int i = 0; i < this.readingThreads; i++) {
+						super.put(pO);
+					}
+				}
+			}
+
+			return;
+		}
+
+		if (this.bufferedSort != null) {
+			Object[][] batch = (Object[][]) pO;
+
+			int size = batch.length;
+
+			for (int i = 0; i < size; i++)
+				this.bufferedSort.add(batch[i]);
+
+			batch = this.bufferedSort.toArray(batch);
+
+			if (batch == null)
+				return;
+		}
+
+		super.put(pO);
+	}
 
 }

@@ -42,22 +42,22 @@ final public class Partitioner extends ManagedBlockingQueue {
 	private static final long serialVersionUID = 1L;
 
 	/** The capacity. */
-	private int mCapacity;
+	private final int mCapacity;
 
 	/** The hash order. */
-	private int[] mHashOrder;
+	private final int[] mHashOrder;
 
 	/** The out data. */
-	private List[] mOutData;
+	private final List[] mOutData;
 
 	/** The hash length. */
 	private int mHashLength = 0;
 
 	/** The partition keys. */
-	private Node[] mPartitionKeys;
+	private final Node[] mPartitionKeys;
 
 	/** The destination queues. */
-	private ManagedBlockingQueue[] mDestinationQueues;
+	private final ManagedBlockingQueue[] mDestinationQueues;
 
 	/** The dest queues. */
 	private int mDestQueues = 0;
@@ -66,7 +66,7 @@ final public class Partitioner extends ManagedBlockingQueue {
 	private String name;
 
 	/** The sorted. */
-	private boolean mSorted;
+	private final boolean mSorted;
 
 	/**
 	 * Instantiates a new partitioner.
@@ -111,7 +111,7 @@ final public class Partitioner extends ManagedBlockingQueue {
 		private String name;
 
 		/** The parent partitioner. */
-		private Partitioner mParentPartitioner;
+		private final Partitioner mParentPartitioner;
 
 		/**
 		 * The Constructor.
@@ -136,9 +136,10 @@ final public class Partitioner extends ManagedBlockingQueue {
 			this.name = arg0;
 		}
 
-	    public String getName() {
-	    	return this.name;
-	    }
+		@Override
+		public String getName() {
+			return this.name;
+		}
 
 		/*
 		 * (non-Javadoc)
@@ -153,7 +154,9 @@ final public class Partitioner extends ManagedBlockingQueue {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.kni.etl.ketl.smp.MQueue#registerReader(com.kni.etl.ketl.smp.ETLWorker)
+		 * @see
+		 * com.kni.etl.ketl.smp.MQueue#registerReader(com.kni.etl.ketl.smp.ETLWorker
+		 * )
 		 */
 		@Override
 		public void registerReader(ETLWorker worker) {
@@ -163,10 +166,12 @@ final public class Partitioner extends ManagedBlockingQueue {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
+		 * @see
+		 * com.kni.etl.ketl.smp.MQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker
+		 * )
 		 */
 		@Override
-		public void registerWriter(ETLStats worker) {
+		public void registerWriter(ETLWorker worker) {
 			this.mParentPartitioner.registerWriter(worker);
 		}
 
@@ -188,7 +193,9 @@ final public class Partitioner extends ManagedBlockingQueue {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.ManagedBlockingQueue#registerReader(com.kni.etl.ketl.smp.ETLWorker)
+	 * @see
+	 * com.kni.etl.ketl.smp.ManagedBlockingQueue#registerReader(com.kni.etl.
+	 * ketl.smp.ETLWorker)
 	 */
 	@Override
 	public void registerReader(ETLWorker worker) {
@@ -215,10 +222,12 @@ final public class Partitioner extends ManagedBlockingQueue {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.kni.etl.ketl.smp.ManagedBlockingQueue#registerWriter(com.kni.etl.ketl.smp.ETLWorker)
+	 * @see
+	 * com.kni.etl.ketl.smp.ManagedBlockingQueue#registerWriter(com.kni.etl.
+	 * ketl.smp.ETLWorker)
 	 */
 	@Override
-	public void registerWriter(ETLStats worker) {
+	public void registerWriter(ETLWorker worker) {
 
 	}
 
@@ -232,11 +241,11 @@ final public class Partitioner extends ManagedBlockingQueue {
 		this.name = arg0;
 	}
 
-    public String getName() {
-    	return this.name;
-    }
+	@Override
+	public String getName() {
+		return this.name;
+	}
 
-    
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -294,9 +303,9 @@ final public class Partitioner extends ManagedBlockingQueue {
 				int pos = this.mHashOrder[i];
 				if (data[pos] == null)
 					h += 1;
-				//else
-				//if (data[pos] instanceof Number)
-				//	h = h + ((Number) data[pos]).intValue();
+				// else
+				// if (data[pos] instanceof Number)
+				// h = h + ((Number) data[pos]).intValue();
 				else
 					h = 31 * h + data[pos].hashCode();
 			}

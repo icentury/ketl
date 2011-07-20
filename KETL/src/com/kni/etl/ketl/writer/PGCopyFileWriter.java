@@ -121,8 +121,8 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 				// Create a new column definition with the default properties...
 				dcdNewColumn = new DatabaseColumnDefinition(xmlConfig, "", 0);
 				dcdNewColumn.setProperty(DatabaseColumnDefinition.INSERT_COLUMN); // INSERT
-																					// by
-																					// default
+				// by
+				// default
 
 				// Get the column's target name...
 				dcdNewColumn.setColumnName(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), ETLStep.NAME_ATTRIB, null));
@@ -190,8 +190,8 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 
 	/** The mv columns. */
 	private final List<DatabaseColumnDefinition> mvColumns = new ArrayList<DatabaseColumnDefinition>(); // for
-																										// building
-																										// the
+	// building
+	// the
 
 	// column list and
 	// later converting
@@ -512,9 +512,9 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 
 			String template = null;
 			try {
-				String mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
+				this.setGroup(EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName()));
 
-				template = this.getStepTemplate(mDBType, "SELECTCOLUMNDATATYPE", true);
+				template = this.getStepTemplate(this.getGroup(), "SELECTCOLUMNDATATYPE", true);
 				template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrTableName);
 				template = EngineConstants.replaceParameterV2(template, "COLUMNS", java.util.Arrays.toString(cols).replace("[", "").replace("]", ""));
 

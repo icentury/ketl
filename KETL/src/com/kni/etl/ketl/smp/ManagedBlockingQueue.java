@@ -28,39 +28,42 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * The Class ManagedBlockingQueue.
  */
-public abstract class  ManagedBlockingQueue extends LinkedBlockingQueue {
+public abstract class ManagedBlockingQueue extends LinkedBlockingQueue {
 
-    /**
-     * Instantiates a new managed blocking queue.
-     * 
-     * @param capacity the capacity
-     */
-    public ManagedBlockingQueue(int capacity) {
-        super(capacity);
-    }
+	/**
+	 * Instantiates a new managed blocking queue.
+	 * 
+	 * @param capacity
+	 *            the capacity
+	 */
+	public ManagedBlockingQueue(int capacity) {
+		super(capacity);
+	}
 
-    /**
-     * Sets the name.
-     * 
-     * @param arg0 the new name
-     */
-    public abstract void setName(String arg0);
+	/**
+	 * Sets the name.
+	 * 
+	 * @param arg0
+	 *            the new name
+	 */
+	public abstract void setName(String arg0);
 
-    public abstract String getName();
-    
-    /**
-     * Register reader.
-     * 
-     * @param worker the worker
-     */
-    public abstract void registerReader(ETLWorker worker);
+	public abstract String getName();
 
-    /**
-     * Register writer.
-     * 
-     * @param worker the worker
-     */
-    public abstract void registerWriter(ETLStats worker);
+	/**
+	 * Register reader.
+	 * 
+	 * @param worker
+	 *            the worker
+	 */
+	public abstract void registerReader(ETLWorker worker);
 
-    
+	/**
+	 * Register writer.
+	 * 
+	 * @param worker
+	 *            the worker
+	 */
+	public abstract void registerWriter(ETLWorker worker);
+
 }

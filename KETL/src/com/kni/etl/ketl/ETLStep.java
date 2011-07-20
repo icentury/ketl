@@ -31,12 +31,9 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -45,6 +42,8 @@ import com.kni.etl.EngineConstants;
 import com.kni.etl.ParameterList;
 import com.kni.etl.SharedCounter;
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.SystemConfigCache.Parameter;
+import com.kni.etl.ketl.SystemConfigCache.ParameterType;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.qa.QACollection;
@@ -177,9 +176,9 @@ public abstract class ETLStep extends ETLWorker {
 		String strParameterListName = null;
 
 		// Find the name of the parameter list to be used...
-		if ((strParameterListName = XMLHelper.getAttributeAsString(pXMLConfig.getAttributes(), EngineConstants.PARAMETER_LIST, null)) == null && this.getRequiredTags() != null
-				&& this.getRequiredTags().length > 0) {
-			throw new KETLThreadException("Missing required parameters: " + this.getRequiredTagsMessage(), this);
+		if ((strParameterListName = XMLHelper.getAttributeAsString(pXMLConfig.getAttributes(), EngineConstants.PARAMETER_LIST, null)) == null && this.getRequiredTags(null) != null
+				&& this.getRequiredTags(null).length > 0) {
+			throw new KETLThreadException("Missing required parameters: " + this.getRequiredTagsMessage(null), this);
 		}
 
 		/*
@@ -188,7 +187,7 @@ public abstract class ETLStep extends ETLWorker {
 		 */
 		if (strParameterListName != null)
 			if (this.getParamaterLists(strParameterListName) != 0) {
-				throw new KETLThreadException("No complete parameter sets found, check that the following exist:\n" + this.getRequiredTagsMessage(), this);
+				throw new KETLThreadException("No complete parameter sets found, check that the following exist:\n" + this.getRequiredTagsMessage(null), this);
 			}
 
 	}
@@ -199,6 +198,7 @@ public abstract class ETLStep extends ETLWorker {
 	/** The dump writer. */
 	private Writer mDumpWriter;
 
+	private String mGroup;
 	/** The dump file. */
 	private String mDumpFile;
 
@@ -365,7 +365,7 @@ public abstract class ETLStep extends ETLWorker {
 		ArrayList res = new ArrayList();
 
 		for (Object o : tmp) {
-			if (this.hasCompleteParameterSet((com.kni.etl.ParameterList) o)) {
+			if (this.hasCompleteParameterSet((com.kni.etl.ParameterList) o, null)) {
 				res.add(o);
 			}
 		}
@@ -434,95 +434,23 @@ public abstract class ETLStep extends ETLWorker {
 		return null;
 	}
 
+	private final SystemConfig systemConfig = SystemConfigCache.getInstance();
+
 	/**
 	 * Gets the required tags.
 	 * 
 	 * @return the required tags
 	 */
-	protected String[] getRequiredTags() {
-		Exception e = null;
-		for (int x = 0; x < 5; x++) {
-			try {
-				Node n = XMLHelper.findElementByName(EngineConstants.getSystemXML(), "STEP", "CLASS", this.getClass().getCanonicalName());
-
-				if (n == null) {
-					EngineConstants.clearSystemXML();
-					n = XMLHelper.findElementByName(EngineConstants.getSystemXML(), "STEP", "CLASS", this.getClass().getCanonicalName());
-				}
-
-				if (n == null) {
-					throw new RuntimeException("Class requires an entry in the System.xml file to be valid, please add an entry for class " + this.getClass().getCanonicalName());
-				}
-				NodeList nl = ((Element) n).getElementsByTagName("PARAMETERS");
-
-				HashSet res = new HashSet();
-				for (int i = 0; i < nl.getLength(); i++) {
-					Node[] params = XMLHelper.getElementsByName(nl.item(i), "PARAMETER", "REQUIRED", "TRUE");
-
-					if (params != null)
-						for (Node element : params)
-							res.add(((Element) element).getAttribute("NAME"));
-				}
-
-				Class cl = this.getClass().getSuperclass();
-
-				if (cl != null && ETLWorker.class.isAssignableFrom(cl)) {
-					this.getRequiredTags(res, cl);
-				}
-
-				String[] result = new String[res.size()];
-				res.toArray(result);
-
-				return result;
-			} catch (Exception e1) {
-				e = e1;
-				ResourcePool.logException(e1);
-				EngineConstants.clearSystemXML();
-				ResourcePool.LogMessage(Thread.currentThread(), "Retrying system.xml in 5 seconds, attemp - " + (x + 1) + " of 5");
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e2) {
-					ResourcePool.logException(e2);
-				}
-			}
-		}
-		throw new RuntimeException(e);
+	protected String[] getRequiredTags(String group) {
+		return systemConfig.getRequiredTags(this.getClass(), group);
 	}
 
-	/**
-	 * Gets the required tags.
-	 * 
-	 * @param parentList
-	 *            the parent list
-	 * @param requestedClass
-	 *            the requested class
-	 * 
-	 * @return the required tags
-	 */
-	private void getRequiredTags(HashSet parentList, Class requestedClass) {
+	protected String[] getRequiredTags() {
+		return this.getRequiredTags(this.getGroup());
+	}
 
-		Node n = XMLHelper.findElementByName(EngineConstants.getSystemXML(), "STEP", "CLASS", requestedClass.getCanonicalName());
-
-		if (n == null)
-			return;
-
-		NodeList nl = ((Element) n).getElementsByTagName("PARAMETERS");
-
-		for (int i = 0; i < nl.getLength(); i++) {
-			Node[] params = XMLHelper.getElementsByName(nl.item(i), "PARAMETER", "REQUIRED", "TRUE");
-
-			if (params != null)
-				for (Node element : params) {
-					if (parentList.contains(params) == false)
-						parentList.add(((Element) element).getAttribute("NAME"));
-				}
-		}
-
-		Class cl = requestedClass.getSuperclass();
-		if (cl != null && ETLWorker.class.isAssignableFrom(cl)) {
-			this.getRequiredTags(parentList, cl);
-		}
-
+	protected String getRequiredTagsMessage() {
+		return this.getRequiredTagsMessage(this.getGroup());
 	}
 
 	/**
@@ -530,15 +458,15 @@ public abstract class ETLStep extends ETLWorker {
 	 * 
 	 * @return the required tags message
 	 */
-	protected String getRequiredTagsMessage() {
-		if (this.getRequiredTags() == null) {
+	protected String getRequiredTagsMessage(String group) {
+		if (this.getRequiredTags(group) == null) {
 			return "Step is missing getRequiredTags(), coding error, please report bug";
 		}
 
 		String msg = "";
 
-		for (int i = 0; i < this.getRequiredTags().length; i++) {
-			String str = this.getRequiredTags()[i];
+		for (int i = 0; i < this.getRequiredTags(group).length; i++) {
+			String str = this.getRequiredTags(group)[i];
 			msg = msg + "\t" + str + "\n";
 		}
 
@@ -561,22 +489,22 @@ public abstract class ETLStep extends ETLWorker {
 	 *             the KETL thread exception
 	 */
 	protected final String getStepTemplate(String pGroup, String pName, boolean pDefaultAllowed) throws KETLThreadException {
-		Throwable e = null;
-		// for loop added to deal with random bug in DOM objects.
-		for (int i = 0; i < 5; i++) {
-			try {
-				return this.getStepTemplate(this.getClass(), pGroup, pName, pDefaultAllowed);
-			} catch (Throwable e1) {
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e2) {
-					throw new KETLThreadException(e2, Thread.currentThread());
-				}
-				e = e1;
-			}
-		}
 
-		throw new KETLThreadException("getStepTemplate retried to many time", e, Thread.currentThread());
+		return this.getStepTemplate(this.getClass(), pGroup, pName, pDefaultAllowed);
+	}
+
+	protected final String getAttribute(String pGroup, String pName, boolean pDefaultAllowed) throws KETLThreadException {
+
+		return this.getAttribute(this.getClass(), pGroup, pName, pDefaultAllowed);
+	}
+
+	protected final String getAttribute(Class parentClass, String pGroup, String pName, boolean pDefaultAllowed) throws KETLThreadException {
+
+		Parameter p = this.systemConfig.getParameterOfType(parentClass, pGroup, pName, ParameterType.ATTRIBUTE, pDefaultAllowed);
+		if (p == null)
+			return null;
+
+		return p.defaultValue.toString();
 	}
 
 	/**
@@ -597,102 +525,7 @@ public abstract class ETLStep extends ETLWorker {
 	 *             the KETL thread exception
 	 */
 	protected final String getStepTemplate(Class parentClass, String pGroup, String pName, boolean pDefaultAllowed) throws KETLThreadException {
-		Element template = this.getStepTemplates(parentClass);
-
-		if (template == null) {
-			throw new KETLThreadException("Template missing from system file CLASS=" + this.getClass().getCanonicalName() + " GROUP=" + pGroup + " NAME=" + pName, this);
-		}
-
-		Class superCl = this.getClass().getSuperclass();
-
-		synchronized (template) {
-			// get group
-			Element e = (Element) XMLHelper.getElementByName(template, "GROUP", "NAME", pGroup);
-
-			// if group is null then try default group
-			if (e == null) {
-
-				if (pDefaultAllowed)
-					e = (Element) XMLHelper.getElementByName(template, "GROUP", "NAME", "DEFAULT");
-
-				// if still null then go to parent parent class
-				if (e == null) {
-					if (superCl != null && ETLWorker.class.isAssignableFrom(superCl))
-						return this.getStepTemplate(superCl, pGroup, pName, pDefaultAllowed);
-
-					throw new KETLThreadException("Template group \"" + pGroup + "\" not found", this);
-				}
-			}
-
-			e = (Element) XMLHelper.getElementByName(e, "TEMPLATE", "NAME", pName);
-
-			if (e == null) {
-
-				// if not found in main group then go back to default
-				if (pDefaultAllowed) {
-					e = (Element) XMLHelper.getElementByName(template, "GROUP", "NAME", "DEFAULT");
-
-					// go to parent
-					if (e != null) {
-						e = (Element) XMLHelper.getElementByName(e, "TEMPLATE", "NAME", pName);
-					}
-				}
-
-				// go to parent
-				if (e == null) {
-					if (superCl != null && ETLWorker.class.isAssignableFrom(superCl))
-						return this.getStepTemplate(superCl, pGroup, pName, pDefaultAllowed);
-					throw new KETLThreadException("Template group \"" + pGroup + "\" element \"" + pName + "\" not found", this);
-				}
-
-			}
-
-			return XMLHelper.getTextContent(e);
-
-		}
-	}
-
-	/**
-	 * Gets the step templates.
-	 * 
-	 * @param pClass
-	 *            the class
-	 * 
-	 * @return the step templates
-	 * 
-	 * @throws KETLThreadException
-	 *             the KETL thread exception
-	 */
-	protected final Element getStepTemplates(Class pClass) throws KETLThreadException {
-		Document doc = EngineConstants.getSystemXML();
-
-		if (doc == null) {
-			// try again, stupid xml bug
-			EngineConstants.clearSystemXML();
-			if ((doc = EngineConstants.getSystemXML()) == null)
-				throw new KETLThreadException("System.xml cannot be found or instantiated", this);
-		}
-		Element node = (Element) this.mStepTemplate.get(pClass.getCanonicalName());
-		if (node == null) {
-			synchronized (doc) {
-				node = (Element) XMLHelper.findElementByName(doc, "STEP", "CLASS", pClass.getCanonicalName());
-
-				// bug fix, system xml gets corrupted and must be reloaded
-				if (node == null) {
-					EngineConstants.clearSystemXML();
-					doc = EngineConstants.getSystemXML();
-					this.mStepTemplate.clear();
-					node = (Element) XMLHelper.findElementByName(doc, "STEP", "CLASS", pClass.getCanonicalName());
-				}
-
-				if (node != null) {
-					node = (Element) XMLHelper.getElementByName(node, "TEMPLATES", null, null);
-					this.mStepTemplate.put(pClass.getCanonicalName(), node);
-				}
-			}
-		}
-
-		return node;
+		return this.systemConfig.getStepTemplate(parentClass, pGroup, pName, pDefaultAllowed);
 	}
 
 	/**
@@ -703,15 +536,15 @@ public abstract class ETLStep extends ETLWorker {
 	 * 
 	 * @return true, if successful
 	 */
-	private boolean hasCompleteParameterSet(com.kni.etl.ParameterList aParametersAndValues) {
-		if (this.getRequiredTags() == null) {
+	private boolean hasCompleteParameterSet(com.kni.etl.ParameterList aParametersAndValues, String group) {
+		if (this.getRequiredTags(group) == null) {
 			return true;
 		}
 
-		for (int i = 0; i < this.getRequiredTags().length; i++) {
+		for (int i = 0; i < this.getRequiredTags(group).length; i++) {
 			boolean found = false;
 
-			if (aParametersAndValues.getParameter(this.getRequiredTags()[i]) != null) {
+			if (aParametersAndValues.getParameter(this.getRequiredTags(group)[i]) != null) {
 				found = true;
 			}
 
@@ -806,7 +639,7 @@ public abstract class ETLStep extends ETLWorker {
 		// initialize any qa for this step
 		this.mqacQACollection = this.getQACollection(xmlConfig);
 
-		this.getStepTemplates(this.getClass());
+		this.systemConfig.refreshStepTemplates(this.getClass());
 
 		this.batchSize = XMLHelper.getAttributeAsInt(xmlConfig.getParentNode().getParentNode().getAttributes(), ETLStep.BATCHSIZE_ATTRIB, ETLStep.DEFAULT_BATCHSIZE);
 		this.userDefinedImports = XMLHelper.getAttributeAsString(xmlConfig.getParentNode().getParentNode().getAttributes(), ETLStep.IMPORTS, null);
@@ -1255,6 +1088,14 @@ public abstract class ETLStep extends ETLWorker {
 	public ETLStep getTargetStep(String mstrTargetStep) throws KETLThreadException {
 		return (ETLStep) this.getThreadManager().getStep(this, mstrTargetStep);
 
+	}
+
+	protected void setGroup(String group) {
+		this.mGroup = group;
+	}
+
+	protected String getGroup() {
+		return this.mGroup;
 	}
 
 }

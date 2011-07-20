@@ -419,9 +419,6 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 	/** The DB case. */
 	private int mDBCase = -1;
 
-	/** The DB type. */
-	private String mDBType;
-
 	/** The failed batch elements. */
 	private final Set mFailedBatchElements = new HashSet();
 
@@ -567,7 +564,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
 		String template = null;
 		if (this.msKeyTableAllColumns != null) {
-			template = this.getStepTemplate(this.mDBType, multiStatement ? "MULTIINSERT" : "INSERT", true);
+			template = this.getStepTemplate(this.getGroup(), multiStatement ? "MULTIINSERT" : "INSERT", true);
 
 			template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);
 			template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
@@ -577,8 +574,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 		}
 		if (this.msAllColumns != null) {
 			template = multiStatement ? template
-					+ (this.getStepTemplate(this.mDBType, "STATEMENTSEPERATOR", true) == null ? "" : this.getStepTemplate(this.mDBType, "STATEMENTSEPERATOR", true)) : template;
-			template = template + this.getStepTemplate(this.mDBType, multiStatement ? "MULTIINSERT" : "INSERT", true);
+					+ (this.getStepTemplate(this.getGroup(), "STATEMENTSEPERATOR", true) == null ? "" : this.getStepTemplate(this.getGroup(), "STATEMENTSEPERATOR", true))
+					: template;
+			template = template + this.getStepTemplate(this.getGroup(), multiStatement ? "MULTIINSERT" : "INSERT", true);
 
 			template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrTableName);
 			template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
@@ -588,7 +586,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 		}
 
 		if (multiStatement) {
-			String wrapper = this.getStepTemplate(this.mDBType, "MULTIINSERTWRAPPER", true);
+			String wrapper = this.getStepTemplate(this.getGroup(), "MULTIINSERTWRAPPER", true);
 			template = EngineConstants.replaceParameterV2(wrapper, "STATEMENT", template);
 			template = EngineConstants.replaceParameterV2(template, "VALUES", this.getInsertValues());
 		}
@@ -1137,7 +1135,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
 			DatabaseMetaData md = this.mcDBConnection.getMetaData();
 
-			this.mDBType = EngineConstants.cleanseDatabaseName(md.getDatabaseProductName());
+			this.setGroup(EngineConstants.cleanseDatabaseName(md.getDatabaseProductName()));
 			this.maxCharLength = md.getMaxCharLiteralLength();
 			this.supportsSetSavepoint = md.supportsSavepoints();
 			this.mBatchData = XMLHelper.getAttributeAsBoolean(nmAttrs, DimensionTransformation.BATCH_ATTRIB, this.mBatchData);
@@ -1163,7 +1161,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 			tmp = XMLHelper.getAttributeAsString(nmAttrs, "MODE", "BOTH");
 			if (tmp.equalsIgnoreCase("BOTH")) {
 				this.miMode = DimensionTransformation.LOAD_KEY_TABLE_DIMENSION;
-				namedValueList = Boolean.parseBoolean(this.getStepTemplate(this.mDBType, "NAMEDVALUELIST", true));
+				namedValueList = Boolean.parseBoolean(this.getStepTemplate(this.getGroup(), "NAMEDVALUELIST", true));
 			} else if (tmp.equalsIgnoreCase("KEYTABLEONLY")) {
 				this.miMode = DimensionTransformation.KEY_TABLE_ONLY;
 			} else if (tmp.equalsIgnoreCase("TABLEONLY"))
@@ -1410,7 +1408,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 			try {
 				Statement mStmt = this.mcDBConnection.createStatement();
 
-				template = this.getStepTemplate(this.mDBType, "CHECKFORKEYTABLE", true);
+				template = this.getStepTemplate(this.getGroup(), "CHECKFORKEYTABLE", true);
 				template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);
 				template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
 
@@ -1427,7 +1425,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 				}
 
 				if (exists == false) {
-					template = this.getStepTemplate(this.mDBType, "CREATEKEYTABLE", true);
+					template = this.getStepTemplate(this.getGroup(), "CREATEKEYTABLE", true);
 
 					template = EngineConstants.replaceParameterV2(template, "KEYTABLENAME", this.mstrKeyTableName);
 
@@ -1439,14 +1437,14 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
 					mStmt.executeUpdate(template);
 
-					template = this.getStepTemplate(this.mDBType, "CREATEKEYTABLEPKINDEX", true);
+					template = this.getStepTemplate(this.getGroup(), "CREATEKEYTABLEPKINDEX", true);
 					template = EngineConstants.replaceParameterV2(template, "COLUMNS", this.mstrPrimaryKeyColumns);
 					template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);
 					template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
 
 					mStmt.executeUpdate(template);
 
-					template = this.getStepTemplate(this.mDBType, "CREATEKEYTABLESKINDEX", true);
+					template = this.getStepTemplate(this.getGroup(), "CREATEKEYTABLESKINDEX", true);
 					template = EngineConstants.replaceParameterV2(template, "COLUMNS", this.mstrSourceKeyColumns);
 					template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);
 					template = EngineConstants.replaceParameterV2(template, "SCHEMANAME", this.mstrSchemaName);
@@ -1585,7 +1583,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 	protected void seedLookup() throws KETLThreadException {
 
 		this.setWaiting("lookup to seed");
-		String template = this.getStepTemplate(this.mDBType, "SEEDLOOKUP", true);
+		String template = this.getStepTemplate(this.getGroup(), "SEEDLOOKUP", true);
 		if (this.msKeyTableAllColumns != null) {
 
 			template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrKeyTableName);

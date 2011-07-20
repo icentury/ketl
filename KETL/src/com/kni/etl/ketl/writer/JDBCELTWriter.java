@@ -123,7 +123,7 @@ public class JDBCELTWriter extends DatabaseELTWriter {
 	@Override
 	protected String buildInBatchSQL(String pTable) throws Exception {
 
-		String template = this.getStepTemplate(this.mDBType, "INSERT", true);
+		String template = this.getStepTemplate(this.getGroup(), "INSERT", true);
 
 		template = EngineConstants.replaceParameterV2(template, "DEDUPECOLUMN", this.mHandleDuplicateKeys ? ",seqcol" : "");
 		template = EngineConstants.replaceParameterV2(template, "DESTINATIONTABLENAME", pTable);

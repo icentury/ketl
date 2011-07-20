@@ -42,75 +42,78 @@ import com.kni.etl.util.XMLHelper;
  */
 public class SQLLoaderELTWriter extends BulkLoaderELTWriter {
 
-    /** The Constant CONNECTIONSTRING_ATTRIB. */
-    private static final String CONNECTIONSTRING_ATTRIB = "CONNECTIONSTRING";
+	/** The Constant CONNECTIONSTRING_ATTRIB. */
+	private static final String CONNECTIONSTRING_ATTRIB = "CONNECTIONSTRING";
 
-    /**
-     * Instantiates a new SQL loader ELT writer.
-     * 
-     * @param pXMLConfig the XML config
-     * @param pPartitionID the partition ID
-     * @param pPartition the partition
-     * @param pThreadManager the thread manager
-     * 
-     * @throws KETLThreadException the KETL thread exception
-     */
-    public SQLLoaderELTWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
-            throws KETLThreadException {
-        super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
-    }
+	/**
+	 * Instantiates a new SQL loader ELT writer.
+	 * 
+	 * @param pXMLConfig
+	 *            the XML config
+	 * @param pPartitionID
+	 *            the partition ID
+	 * @param pPartition
+	 *            the partition
+	 * @param pThreadManager
+	 *            the thread manager
+	 * 
+	 * @throws KETLThreadException
+	 *             the KETL thread exception
+	 */
+	public SQLLoaderELTWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
+	}
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.writer.JDBCELTWriter#prepareStatementWrapper(java.sql.Connection, java.lang.String, com.kni.etl.dbutils.JDBCItemHelper)
-     */
-    @Override
-    StatementWrapper prepareStatementWrapper(Connection Connection, String loadStatement, JDBCItemHelper jdbcHelper)
-            throws SQLException {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.writer.JDBCELTWriter#prepareStatementWrapper(java.sql
+	 * .Connection, java.lang.String, com.kni.etl.dbutils.JDBCItemHelper)
+	 */
+	@Override
+	StatementWrapper prepareStatementWrapper(Connection Connection, String loadStatement, JDBCItemHelper jdbcHelper) throws SQLException {
 
-        boolean enableRounding = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(),"ENABLEROUNDING",false);
-        return SQLLoaderStatementWrapper.prepareStatement(Connection, this.mTargetTable, loadStatement,
-                this.madcdColumns, jdbcHelper, this.pipeData(),enableRounding);
-    }
+		boolean enableRounding = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "ENABLEROUNDING", false);
+		return SQLLoaderStatementWrapper.prepareStatement(Connection, this.mTargetTable, loadStatement, this.madcdColumns, jdbcHelper, this.pipeData(), enableRounding);
+	}
 
-    /** The OS command. */
-    private String mOSCommand;
-    
-    /** The target table. */
-    private String mTargetTable;
+	/** The OS command. */
+	private String mOSCommand;
 
-    /* (non-Javadoc)
-     * @see com.kni.etl.ketl.writer.JDBCELTWriter#buildInBatchSQL(java.lang.String)
-     */
-    @Override
-    protected String buildInBatchSQL(String pTable) throws Exception {
+	/** The target table. */
+	private String mTargetTable;
 
-        this.mOSCommand = this.getStepTemplate(this.mDBType, "SQLLDR", true);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.kni.etl.ketl.writer.JDBCELTWriter#buildInBatchSQL(java.lang.String)
+	 */
+	@Override
+	protected String buildInBatchSQL(String pTable) throws Exception {
 
-        boolean parallel = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "PARALLEL", true);
+		this.mOSCommand = this.getStepTemplate(this.getGroup(), "SQLLDR", true);
 
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "CONNECTIONSTRING", this
-                .getParameterValue(0, SQLLoaderELTWriter.CONNECTIONSTRING_ATTRIB));
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "BINDSIZE", "BINDSIZE="
-                + Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "BINDSIZE", 50000)));
+		boolean parallel = XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "PARALLEL", true);
 
-        if (parallel)
-            this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "ROWS", "");
-        else
-            this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "ROWS", "ROWS="
-                    + Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "ROWS",
-                            this.miCommitSize)));
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "CONNECTIONSTRING", this.getParameterValue(0, SQLLoaderELTWriter.CONNECTIONSTRING_ATTRIB));
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "BINDSIZE", "BINDSIZE="
+				+ Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "BINDSIZE", 50000)));
 
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "PARALLEL", "PARALLEL="
-                + (parallel ? "TRUE" : "FALSE"));
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "DIRECT", "DIRECT="
-                + (XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "DIRECT", true) ? "TRUE"
-                        : "FALSE"));
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "PASSWORD", this.getParameterValue(0,
-                DBConnection.PASSWORD_ATTRIB));
-        this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "USER", this.getParameterValue(0,
-                DBConnection.USER_ATTRIB));
-        this.mTargetTable = pTable;
-        return this.mOSCommand;
-    }
+		if (parallel)
+			this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "ROWS", "");
+		else
+			this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "ROWS", "ROWS="
+					+ Integer.toString(XMLHelper.getAttributeAsInt(this.getXMLConfig().getAttributes(), "ROWS", this.miCommitSize)));
+
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "PARALLEL", "PARALLEL=" + (parallel ? "TRUE" : "FALSE"));
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "DIRECT", "DIRECT="
+				+ (XMLHelper.getAttributeAsBoolean(this.getXMLConfig().getAttributes(), "DIRECT", true) ? "TRUE" : "FALSE"));
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "PASSWORD", this.getParameterValue(0, DBConnection.PASSWORD_ATTRIB));
+		this.mOSCommand = EngineConstants.replaceParameterV2(this.mOSCommand, "USER", this.getParameterValue(0, DBConnection.USER_ATTRIB));
+		this.mTargetTable = pTable;
+		return this.mOSCommand;
+	}
 
 }

@@ -239,8 +239,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 		}
 
 		try {
-
-			this.mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
+			this.setGroup(EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName()));
 		} catch (Exception e) {
 			ResourcePool.LogMessage(this, ResourcePool.ERROR_MESSAGE, "Unable to get database type from metadata: " + e.toString());
 
@@ -375,9 +374,6 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	/** The current table. */
 	private Table mCurrentTable = null;
 
-	/** The DB type. */
-	private String mDBType;
-
 	private Set<String> mstrTablesList;
 
 	private String mstrFilter;
@@ -458,11 +454,11 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 		if (this.execCompleteness)
 			cTable.completeness = this.getCompleteness(cTable);
 
-		String mColSQL = this.getStepTemplate(this.mDBType, "COLUMNSTATS", true);
-		String mColLOBSQL = this.getStepTemplate(this.mDBType, "COLUMNLOBSTATS", true);
+		String mColSQL = this.getStepTemplate(this.getGroup(), "COLUMNSTATS", true);
+		String mColLOBSQL = this.getStepTemplate(this.getGroup(), "COLUMNLOBSTATS", true);
 
 		for (Column col : cTable.mColumnList) {
-			String query = this.getStepTemplate(this.mDBType, "COLUMNQUERY", true);
+			String query = this.getStepTemplate(this.getGroup(), "COLUMNQUERY", true);
 
 			String colStr;
 
@@ -552,7 +548,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	 */
 	private String getDOV(Column col) throws Exception {
 
-		String sql = this.getStepTemplate(this.mDBType, "DOV", true);
+		String sql = this.getStepTemplate(this.getGroup(), "DOV", true);
 
 		sql = EngineConstants.replaceParameterV2(sql, "COL", this.idQuote + col.mName + this.idQuote);
 		sql = EngineConstants.replaceParameterV2(sql, "TABLE", col.mTable.mFullTableAddress);
@@ -615,7 +611,7 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	 */
 	private String getSample(Column col) throws Exception {
 
-		String sql = this.getStepTemplate(this.mDBType, "SAMPLE", true);
+		String sql = this.getStepTemplate(this.getGroup(), "SAMPLE", true);
 
 		sql = EngineConstants.replaceParameterV2(sql, "COL", this.idQuote + col.mName + this.idQuote);
 		sql = EngineConstants.replaceParameterV2(sql, "TABLE", col.mTable.mFullTableAddress);
@@ -721,8 +717,8 @@ public class JDBCSSAScanner extends ETLReader implements DefaultReaderCore, DBCo
 	 */
 	String getCompleteness(Table tbl) throws KETLThreadException {
 
-		String sql = this.getStepTemplate(this.mDBType, "COMPLETENESS", true);
-		String colExp = this.getStepTemplate(this.mDBType, "COMPLETENESSCOLEXPRESSION", true);
+		String sql = this.getStepTemplate(this.getGroup(), "COMPLETENESS", true);
+		String colExp = this.getStepTemplate(this.getGroup(), "COMPLETENESSCOLEXPRESSION", true);
 
 		sql = EngineConstants.replaceParameterV2(sql, "COLCOUNT", Integer.toString(tbl.mColumnList.size()));
 		sql = EngineConstants.replaceParameterV2(sql, "TABLE", tbl.mFullTableAddress);

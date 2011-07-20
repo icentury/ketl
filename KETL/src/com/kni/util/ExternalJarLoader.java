@@ -10,8 +10,10 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 import com.kni.etl.dbutils.ResourcePool;
 
@@ -32,6 +34,10 @@ public class ExternalJarLoader {
 		addURL(f.toURL());
 	}
 
+	public static String[] getLoadedJars() {
+		return loadedJars.toArray(new String[0]);
+	}
+
 	public static void addURL(URL... u) throws IOException {
 
 		URLClassLoader urlClassLoader = (URLClassLoader) ClassLoader.getSystemClassLoader();
@@ -42,8 +48,7 @@ public class ExternalJarLoader {
 			method.setAccessible(true);
 			method.invoke(urlClassLoader, (Object[]) u);
 			for (URL url : u) {
-				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "Added to classpath: "
-						+ url.getFile());
+				loadedJars.add(url.getFile());
 			}
 		} catch (Throwable t) {
 			t.printStackTrace();
@@ -117,10 +122,11 @@ public class ExternalJarLoader {
 		}
 	}
 
+	private static Set<String> loadedJars = new HashSet();
+
 	private static void loadToolsJarFromJavaHome() throws IOException {
-		File javaHome = new File(System.getProperty("java.home") + File.separator + "lib" + File.separator
-				+ "tools.jar");
-		ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "loading... tools.jar");
+		File javaHome = new File(System.getProperty("java.home") + File.separator + "lib" + File.separator + "tools.jar");
+		loadedJars.add("tools.jar");
 		addJarFilesToClassPath(javaHome.toURL());
 
 	}

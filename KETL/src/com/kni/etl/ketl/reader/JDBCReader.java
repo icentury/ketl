@@ -776,10 +776,10 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 					throw new KETLThreadException(e, this);
 				}
 
-				String mDBType = EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName());
+				this.setGroup(EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName()));
 
 				SQLQuery query = aSQLStatement[0];
-				sql = this.getStepTemplate(mDBType, "GETCOLUMNS", true);
+				sql = this.getStepTemplate(this.getGroup(), "GETCOLUMNS", true);
 				sql = EngineConstants.replaceParameterV2(sql, "QUERY", query.getFinalSQL(""));
 				PreparedStatement mStmt = mcDBConnection.prepareStatement(sql);
 
