@@ -1,0 +1,36 @@
+<?xml-stylesheet type="text/xsl" href="F:\Development\XML\JobLoader\job_parameter_values.xsl"?>
+<ETL VERSION="1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="F:\Development\XML\ketl.xsd">
+
+
+	<PARAMETER_LIST NAME="DestinationDB">
+		<PARAMETER NAME="USER">dbc</PARAMETER>
+		<PARAMETER NAME="PASSWORD">dbc</PARAMETER>
+		<PARAMETER NAME="DRIVER">com.teradata.jdbc.TeraDriver</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:teradata://172.16.24.30/FASTLOAD=TRUE,SESSIONS=25,DATABASE=DWH</PARAMETER>
+		<PARAMETER NAME="TABLE">TEST</PARAMETER>
+		<PARAMETER NAME="SCHEMA">DWH</PARAMETER>
+	</PARAMETER_LIST>
+
+	<PARAMETER_LIST NAME="SourceDB">
+		<PARAMETER NAME="USER">nwakefield</PARAMETER>
+		<PARAMETER NAME="PASSWORD">nickw_630</PARAMETER>
+		<PARAMETER NAME="URL">jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=esv4-dw11-vip.corp.linkedin.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=esv4-dw12-vip.corp.linkedin.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=esv4-dw13-vip.corp.linkedin.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=esv4-dw14-vip.corp.linkedin.com)(PORT=1521))(ADDRESS=(PROTOCOL=TCP)(HOST=esv4-dw15-vip.corp.linkedin.com)(PORT=1521))(LOAD_BALANCE=yes)(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=DW_ADHOC)(FAILOVER_MODE=(TYPE=SELECT)(METHOD=BASIC)(RETRIES=180)(DELAY=5))))</PARAMETER>
+		<PARAMETER NAME="DRIVER">oracle.jdbc.driver.OracleDriver</PARAMETER>
+		<PARAMETER NAME="SQL">select page_key_sk as col1,page_key_sk as col2 ,page_key_sk as col3 ,page_key_sk as col4  from dwh.fact_detail_page_tracking where date_sk = 20110404 and rownum &lt; 10000000</PARAMETER>	
+	</PARAMETER_LIST>
+
+
+	<JOB ID="ASTERCOPY" NAME="LOAD_STG_TABLE" PROJECT="TEST" TYPE="KETL">
+		<ACTION PARRALLISM="2">
+			<STEP BATCHSIZE="10000" TIMING="TRUE" FETCHSIZE="5000" PARRALLISM="1" NAME="Source" CLASS="com.kni.etl.ketl.reader.JDBCReader"  OUTSYNTAX="INFERRED" xCURSORMODE="TRUE" PARAMETER_LIST="SourceDB"/>
+	
+
+			<STEP BATCHSIZE="1000" COMMITSIZE="100000000" NAME="Target" INCREMENTALCOMMIT="FALSE" FLOWTYPE="FANIN" CLASS="com.kni.etl.ketl.writer.JDBCWriter" TYPE="BULK" PARAMETER_LIST="DestinationDB" SCHEMA="${SCHEMA}" TABLE="${TABLE}">
+				<PRESQL>delete from ${TABLE} all</PRESQL>
+				<IN>Source.*</IN>
+			</STEP>
+			
+		</ACTION>
+	</JOB>
+
+</ETL>
