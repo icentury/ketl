@@ -586,7 +586,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
 		// datum = datum.replace(escapeCharacter, escapeCharacter +
 		// escapeCharacter);
 		if (datum.contains(quotes))
-			return datum.replace(quotes, escapeCharacter + quotes);
+			return quotes + datum.replace(quotes, escapeCharacter + quotes) + quotes;
 		return (quotes != null && datum != null) ? quotes + datum + quotes : datum;
 	}
 
