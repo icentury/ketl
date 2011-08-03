@@ -114,6 +114,9 @@ public class DataItemHelper {
         if (pDataTypeName.equals("BYTEARRAY")) {
             return DataItemHelper.BYTEARRAY;
         }
+		if (pDataTypeName.equals(byte[].class.getCanonicalName())) {
+			return DataItemHelper.BYTEARRAY;
+		}
 
         return -1;
     }
