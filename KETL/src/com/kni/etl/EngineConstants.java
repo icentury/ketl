@@ -236,11 +236,11 @@ public class EngineConstants {
 
 	/** The Constant OBJECT_TYPES. */
 	private final static String[] OBJECT_TYPES = { null, EngineConstants.IP_ADDRESS_STR, EngineConstants.IN_COOKIE_STR, EngineConstants.OUT_COOKIE_STR,
-			EngineConstants.GET_REQUEST_STR, EngineConstants.BROWSER_STR, EngineConstants.HTML_ERROR_CODE_STR, EngineConstants.OTHER_STR, EngineConstants.HIT_DATE_TIME_STR, null,
-			null, null, null, null, EngineConstants.BYTES_SENT_STR, EngineConstants.SERVE_TIME_STR, EngineConstants.CANONICAL_PORT_STR, EngineConstants.REFERRER_URL_STR,
-			EngineConstants.REQUEST_PROTOCOL_STR, null, EngineConstants.SERVER_NAME_STR, EngineConstants.REMOTE_USER_STR, EngineConstants.REQUEST_METHOD_STR,
-			EngineConstants.QUERY_STRING_STR, EngineConstants.REQUEST_STRING_STR, EngineConstants.CUSTOM_FIELD_1_STR, EngineConstants.CUSTOM_FIELD_2_STR,
-			EngineConstants.CUSTOM_FIELD_3_STR };
+			EngineConstants.GET_REQUEST_STR, EngineConstants.BROWSER_STR, EngineConstants.HTML_ERROR_CODE_STR, EngineConstants.OTHER_STR,
+			EngineConstants.HIT_DATE_TIME_STR, null, null, null, null, null, EngineConstants.BYTES_SENT_STR, EngineConstants.SERVE_TIME_STR,
+			EngineConstants.CANONICAL_PORT_STR, EngineConstants.REFERRER_URL_STR, EngineConstants.REQUEST_PROTOCOL_STR, null, EngineConstants.SERVER_NAME_STR,
+			EngineConstants.REMOTE_USER_STR, EngineConstants.REQUEST_METHOD_STR, EngineConstants.QUERY_STRING_STR, EngineConstants.REQUEST_STRING_STR,
+			EngineConstants.CUSTOM_FIELD_1_STR, EngineConstants.CUSTOM_FIELD_2_STR, EngineConstants.CUSTOM_FIELD_3_STR };
 
 	/**
 	 * Resolve object name to ID.
@@ -527,7 +527,8 @@ public class EngineConstants {
 						EngineConstants.LOOKUPCLASS = XMLHelper.getTextContent(e);
 					} catch (Throwable e1) {
 						lookForAlternative = true;
-						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "LOOKUPCLASS " + tmp + " could not be found, looking for alternative");
+						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "LOOKUPCLASS " + tmp
+								+ " could not be found, looking for alternative");
 					}
 
 				}
@@ -544,7 +545,8 @@ public class EngineConstants {
 							EngineConstants.LOOKUPCLASS = element[0];
 
 							if (lookForAlternative)
-								ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, "LOOKUPCLASS defaulted to " + EngineConstants.LOOKUPCLASS);
+								ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE, "LOOKUPCLASS defaulted to "
+										+ EngineConstants.LOOKUPCLASS);
 							break;
 						} catch (Exception e1) {
 
@@ -629,6 +631,8 @@ public class EngineConstants {
 	private static Set<String> loadedPlugins = new HashSet();
 
 	private static void loadPlugins(Document doc) {
+		if (loadedPlugins == null)
+			loadedPlugins = new HashSet();
 		File dir = new File(Metadata.getKETLPath() + File.separator + "xml" + File.separator + "plugins");
 
 		if (dir.isDirectory()) {
@@ -646,19 +650,22 @@ public class EngineConstants {
 							for (Node element0 : node) {
 								String pluginName = XMLHelper.getAttributeAsString(element0.getAttributes(), "CLASS", null);
 								if (pluginName == null) {
-									ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Plugin in file " + element + " does not have a name.");
+									ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Plugin in file " + element
+											+ " does not have a name.");
 								} else {
 									try {
 										Class.forName(pluginName);
 										loadedPlugins.add(pluginName);
+										ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Plugin " + pluginName + " enabled.");
 										doc.getFirstChild().appendChild(doc.importNode(element0, true));
 									} catch (Exception e) {
-										ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Plugin " + pluginName + " failed to initialize: "
-												+ e.toString());
+										e.printStackTrace();
+										ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Plugin " + pluginName
+												+ " failed to initialize: " + e.toString());
 
 									} catch (Throwable e) {
-										ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Plugin " + pluginName + " failed to initialize: "
-												+ e.toString());
+										ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Plugin " + pluginName
+												+ " failed to initialize: " + e.toString());
 
 									}
 								}
@@ -671,7 +678,8 @@ public class EngineConstants {
 				}
 			}
 		} else if (dir.exists()) {
-			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE, "Plugins directory is not a directory, any installed plugins will not be enabled");
+			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
+					"Plugins directory is not a directory, any installed plugins will not be enabled");
 		}
 	}
 
@@ -817,11 +825,12 @@ public class EngineConstants {
 	 * @throws Throwable
 	 *             the throwable
 	 */
-	final public static PersistentMap getInstanceOfPersistantMap(String className, String pName, int pSize, Integer pPersistanceID, String pCacheDir, Class[] pKeyTypes,
-			Class[] pValueTypes, String[] pValueFields, boolean pPurgeCache) throws Throwable {
+	final public static PersistentMap getInstanceOfPersistantMap(String className, String pName, int pSize, Integer pPersistanceID, String pCacheDir,
+			Class[] pKeyTypes, Class[] pValueTypes, String[] pValueFields, boolean pPurgeCache) throws Throwable {
 		Class cl = Class.forName(className);
 
-		Constructor con = cl.getConstructor(new Class[] { String.class, int.class, Integer.class, String.class, Class[].class, Class[].class, String[].class, boolean.class });
+		Constructor con = cl.getConstructor(new Class[] { String.class, int.class, Integer.class, String.class, Class[].class, Class[].class, String[].class,
+				boolean.class });
 		PersistentMap pm;
 
 		try {
@@ -860,7 +869,8 @@ public class EngineConstants {
 			loadIDPos = strAction.indexOf(st + pParameterToLookFor + ed);
 
 			if (loadIDPos != -1) {
-				strAction = strAction.substring(0, loadIDPos) + pNewValue + strAction.substring(loadIDPos + st.length() + pParameterToLookFor.length() + ed.length());
+				strAction = strAction.substring(0, loadIDPos) + pNewValue
+						+ strAction.substring(loadIDPos + st.length() + pParameterToLookFor.length() + ed.length());
 			}
 		}
 
@@ -891,7 +901,8 @@ public class EngineConstants {
 		}
 
 		if ((pNewValue == null) || (pNewValueFormat.length != pNewValue.length)) {
-			ResourcePool.LogMessage(Thread.currentThread().getName(), ResourcePool.ERROR_MESSAGE, "Parameter formats and parameters value mismatch, parameter parsing");
+			ResourcePool.LogMessage(Thread.currentThread().getName(), ResourcePool.ERROR_MESSAGE,
+					"Parameter formats and parameters value mismatch, parameter parsing");
 
 			return strAction;
 		}
@@ -912,8 +923,8 @@ public class EngineConstants {
 
 					strAction = strAction.substring(0, loadIDPos)
 							+ value
-							+ strAction.substring(loadIDPos + EngineConstants.VARIABLE_PARAMETER_START.length() + pParameterToLookFor.length() + 1 + pNewValueFormat[i].length()
-									+ 1 + EngineConstants.VARIABLE_PARAMETER_END.length());
+							+ strAction.substring(loadIDPos + EngineConstants.VARIABLE_PARAMETER_START.length() + pParameterToLookFor.length() + 1
+									+ pNewValueFormat[i].length() + 1 + EngineConstants.VARIABLE_PARAMETER_END.length());
 				}
 			}
 		}
