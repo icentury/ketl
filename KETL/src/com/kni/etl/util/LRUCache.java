@@ -22,6 +22,7 @@
  */
 package com.kni.etl.util;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -74,8 +75,9 @@ public class LRUCache<K, V> {
      * Removing entry.
      * 
      * @param eldest the eldest
+     * @throws IOException 
      */
-    protected void removingEntry(Map.Entry<K, V> eldest) {
+    protected void removingEntry(Map.Entry<K, V> eldest)  {
 
     }
 

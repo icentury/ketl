@@ -22,7 +22,16 @@
  */
 package com.kni.etl.ketl.lookup;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Map;
+
+import com.kni.util.Bytes;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -42,8 +51,9 @@ public interface PersistentMap extends Map {
 	 *            the field
 	 * 
 	 * @return the object
+	 * @throws IOException 
 	 */
-	public abstract Object get(Object key, String pField);
+	public abstract Object get(Object key, String pField) throws IOException;
 
 	/*
 	 * (non-Javadoc)
@@ -87,8 +97,10 @@ public interface PersistentMap extends Map {
 	 * 
 	 * @param force
 	 *            the force
+	 * @throws ClassNotFoundException 
+	 * @throws IOException 
 	 */
-	public abstract void commit(boolean force);
+	public abstract void commit(boolean force) throws IOException, ClassNotFoundException;
 
 	/**
 	 * Gets the value fields.

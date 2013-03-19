@@ -22,6 +22,7 @@
  */
 package com.kni.etl.ketl.transformation;
 
+import java.io.IOException;
 import java.sql.BatchUpdateException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -984,7 +985,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 		Integer res;
 		try {
 			res = this.getSurrogateKey(pInputRecords);
-		} catch (Error e) {
+		} catch (Throwable e) {
 			throw new KETLTransformException(e.getMessage());
 		}
 		// if not found then create new value in index
@@ -1026,8 +1027,9 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 	 *            the input records
 	 * 
 	 * @return the surrogate key
+	 * @throws IOException 
 	 */
-	final private Integer getSurrogateKey(Object[] pInputRecords) {
+	final private Integer getSurrogateKey(Object[] pInputRecords) throws IOException {
 
 		for (int i = 0; i < this.mSKColCount; i++)
 			this.skData[i] = pInputRecords[this.skIndx[i]];
@@ -1092,8 +1094,8 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 
 		ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Slowly changing dimension mode = " + this.mSCD);
 
-		String tmp = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "PERSISTENCE", null);
-		if (tmp == null || tmp.equalsIgnoreCase("JOB")) {
+		String tmp = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "PERSISTENCE", "JOB");
+		if (tmp.equalsIgnoreCase("JOB")) {
 			this.mCachePersistenceID = ((Long) this.getJobExecutionID()).intValue();
 			this.cachePersistence = EngineConstants.JOB_PERSISTENCE;
 		} else if (tmp.equalsIgnoreCase("LOAD")) {
@@ -1532,7 +1534,7 @@ public class DimensionTransformation extends ETLTransformation implements DBConn
 							if (idx == this.pkPort) {
 								try {
 									this.stmt.setParameterFromClass(i + 1, Integer.class, this.getSurrogateKey(record), this.maxCharLength, this.pkPort.getXMLConfig());
-								} catch (Error e) {
+								} catch (Throwable e) {
 									throw new KETLTransformException(e.getMessage());
 								}
 							} else {

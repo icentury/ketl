@@ -25,6 +25,7 @@ package com.kni.etl.dbutils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
@@ -859,7 +860,11 @@ public class ResourcePool {
 			RegisteredLookup lk = (RegisteredLookup) o;
 			ResourcePool
 					.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Writing lookup " + lk.getName());
-			lk.flush();
+			try {
+				lk.flush();
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
 		}
 
 		ResourcePool.syncLookupsToDisc();

@@ -22,6 +22,7 @@
  */
 package com.kni.etl.ketl.lookup;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Random;
 
@@ -38,8 +39,10 @@ abstract public class DataTypeIndexedMapTest extends TestCase {
 
 	/**
 	 * Test put big decimal.
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
-	public void testPutBigDecimal() {
+	public void testPutBigDecimal() throws IOException, ClassNotFoundException {
 		int i;
 		this.map.clear();
 		for (i = 0; i < 50000; i++) {

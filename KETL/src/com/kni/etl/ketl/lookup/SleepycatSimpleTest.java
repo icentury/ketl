@@ -23,6 +23,7 @@
 package com.kni.etl.ketl.lookup;
 
 import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.Random;
@@ -53,8 +54,10 @@ public class SleepycatSimpleTest extends TestCase {
 
 	/**
 	 * Test put SQL timestamp.
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
-	public void testPutSQLTimestamp() {
+	public void testPutSQLTimestamp() throws IOException, ClassNotFoundException {
 		int i;
 		this.map.clear();
 		for (i = 0; i < 50000; i++) {
@@ -94,8 +97,10 @@ public class SleepycatSimpleTest extends TestCase {
 
 	/**
 	 * Test put big decimal.
+	 * @throws IOException 
+	 * @throws ClassNotFoundException 
 	 */
-	public void testPutBigDecimal() {
+	public void testPutBigDecimal() throws IOException, ClassNotFoundException {
 		int i;
 		this.map.clear();
 		for (i = 0; i < 50000; i++) {
@@ -132,8 +137,9 @@ public class SleepycatSimpleTest extends TestCase {
 
 	/**
 	 * Test put large simple.
+	 * @throws IOException 
 	 */
-	public void testPutLargeSimple() {
+	public void testPutLargeSimple() throws IOException {
 		int i;
 		this.map.clear();
 		Date st = new Date();

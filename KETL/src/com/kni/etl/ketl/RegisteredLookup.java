@@ -141,8 +141,10 @@ public class RegisteredLookup implements Externalizable {
 
     /**
      * Flush.
+     * @throws ClassNotFoundException 
+     * @throws IOException 
      */
-    public void flush() {
+    public void flush() throws IOException, ClassNotFoundException {
         this.lookup.commit(true);        
     }
 

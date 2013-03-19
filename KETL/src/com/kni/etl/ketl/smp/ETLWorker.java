@@ -1455,7 +1455,7 @@ abstract public class ETLWorker implements Runnable, ETLStats {
 			}
 			pWorker.initializeAllOutPorts();
 		}
-
+		
 		// resolve wildcard out.
 	}
 

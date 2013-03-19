@@ -22,6 +22,8 @@
  */
 package com.kni.etl.ketl.writer;
 
+import java.io.IOException;
+
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
@@ -333,7 +335,11 @@ public class LookupWriter extends ETLWriter implements DefaultWriterCore, Lookup
 			return res;
 		// submit lookup for use
 		if (this.lookupLocked) {
-			this.mLookup.commit(true);
+			try {
+				this.mLookup.commit(true);
+			} catch (Throwable e) {
+				throw new KETLThreadException(e,this);
+			}
 			((KETLJob) this.getJobExecutor().getCurrentETLJob()).releaseLookupWriteLock(this.getName(), this);
 		}
 		return 0;

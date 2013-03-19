@@ -662,8 +662,9 @@ abstract public class SCDWriter extends ETLWriter implements DefaultWriterCore, 
      * @throws KETLTransformException the KETL transform exception
      * @throws KETLThreadException the KETL thread exception
      * @throws IOException Signals that an I/O exception has occurred.
+     * @throws ClassNotFoundException 
      */
-    private void seedSCDLookup() throws SQLException, KETLTransformException, KETLThreadException, IOException {
+    private void seedSCDLookup() throws SQLException, KETLTransformException, KETLThreadException, IOException, ClassNotFoundException {
         try {
             // download values to lookup
             // scd lookup format

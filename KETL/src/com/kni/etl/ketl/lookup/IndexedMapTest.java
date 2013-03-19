@@ -22,6 +22,7 @@
  */
 package com.kni.etl.ketl.lookup;
 
+import java.io.IOException;
 import java.util.Random;
 
 import junit.framework.TestCase;
@@ -65,8 +66,9 @@ abstract public class IndexedMapTest extends TestCase {
      */
     /**
      * Test put medium.
+     * @throws IOException 
      */
-    public void testPutMedium() {
+    public void testPutMedium() throws IOException {
 
         int i;
         this.map.clear();
@@ -107,8 +109,9 @@ abstract public class IndexedMapTest extends TestCase {
 
     /**
      * Test put small.
+     * @throws IOException 
      */
-    public void testPutSmall() {
+    public void testPutSmall() throws IOException {
         int i;
         this.map.clear();
         for (i = 0; i < 5000; i++) {
@@ -159,8 +162,9 @@ abstract public class IndexedMapTest extends TestCase {
 
     /**
      * Test put large.
+     * @throws IOException 
      */
-    public void testPutLarge() {
+    public void testPutLarge() throws IOException {
         int i;
         long start = System.currentTimeMillis();
         this.map.clear();

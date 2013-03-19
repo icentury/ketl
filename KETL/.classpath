@@ -16,5 +16,6 @@
 	<classpathentry kind="lib" path="lib/saxon9-xpath.jar"/>
 	<classpathentry kind="lib" path="lib/saxon9.jar"/>
 	<classpathentry kind="lib" path="lib/ojdbc6.jar"/>
+	<classpathentry kind="lib" path="/Users/aalurkar/Documents/workspace/KETL/lib/sqljdbc4.jar"/>
 	<classpathentry kind="output" path="build"/>
 </classpath>

@@ -1080,6 +1080,9 @@ public class EngineConstants {
 		if (name == null)
 			return DBType.DEFAULT.name();
 
+		if (name.equalsIgnoreCase("Microsoft SQL Server"))
+			name = "SQLServer";
+		
 		for (DBType dbType : DBType.values()) {
 
 			if (name.toUpperCase().contains(dbType.name()))

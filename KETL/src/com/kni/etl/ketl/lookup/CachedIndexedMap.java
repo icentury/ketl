@@ -22,6 +22,7 @@
  */
 package com.kni.etl.ketl.lookup;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import java.util.Set;
 
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.exceptions.KETLError;
+import com.kni.etl.ketl.lookup.LookupUtil.ByteArrayWrapper;
 import com.kni.etl.util.LRUCache;
 
 // TODO: Auto-generated Javadoc
@@ -50,18 +52,15 @@ final public class CachedIndexedMap implements PersistentMap {
          * @see com.kni.etl.util.LRUCache#removingEntry(java.util.Map.Entry)
          */
         @Override
-        protected void removingEntry(Entry eldest) {
+        protected void removingEntry(Entry eldest)  {
             Object pValue = eldest.getValue();
-            Object pkey = eldest.getKey();
-
-            if (CachedIndexedMap.this.mKeyIsArray) {
-                if (((HashWrapper) pkey).dirty) {
-                    CachedIndexedMap.this.mParentCache.put(((HashWrapper) pkey).data, pValue);
-                    ((HashWrapper) pkey).dirty = false;
-                }
-            }
-            else
-                CachedIndexedMap.this.mParentCache.put(pkey, pValue);
+            ByteArrayWrapper buf = (ByteArrayWrapper) eldest.getKey();
+            try {
+    			Object pkey = LookupUtil.byteArrayToObject(buf);
+            	CachedIndexedMap.this.mParentCache.put( pkey, pValue);
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
 
             super.removingEntry(eldest);
 
@@ -86,9 +85,7 @@ final public class CachedIndexedMap implements PersistentMap {
             int cnt = 0;
             for (Object o : this.getBackingMap().keySet()) {
                 if (CachedIndexedMap.this.mKeyIsArray) {
-                    if (((HashWrapper) o).dirty) {
                         cnt++;
-                    }
                 }
             }
 
@@ -97,64 +94,19 @@ final public class CachedIndexedMap implements PersistentMap {
 
         /**
          * Flush.
+         * @throws ClassNotFoundException 
+         * @throws IOException 
          */
-        public void flush() {
-            Object[] vals = this.getBackingMap().keySet().toArray();
-            for (Object pKey : vals) {
-                Object pValue = this.get(pKey);
-                if (CachedIndexedMap.this.mKeyIsArray) {
-                    if (((HashWrapper) pKey).dirty) {
-                        CachedIndexedMap.this.mParentCache.put(((HashWrapper) pKey).data, pValue);
-                        ((HashWrapper) pKey).dirty = false;
-                    }
-                }
-                else
-                    CachedIndexedMap.this.mParentCache.put(pKey, pValue);
+        public void flush() throws IOException, ClassNotFoundException {
+            Object[] vals =  this.getBackingMap().keySet().toArray();
+            for (Object b : vals) {
+            	Object pKey = LookupUtil.byteArrayToObject((ByteArrayWrapper)b);
+                CachedIndexedMap.this.mParentCache.put(pKey,  this.get(b));
             }
         }
 
     }
 
-    /**
-     * The Class HashWrapper.
-     */
-    final class HashWrapper {
-
-        /** The data. */
-        Object[] data;
-        
-        /** The dirty. */
-        boolean dirty;
-
-        /**
-         * Instantiates a new hash wrapper.
-         * 
-         * @param data the data
-         * @param dirty2 the dirty2
-         */
-        public HashWrapper(Object[] data, boolean dirty2) {
-            super();
-            this.data = data;
-            this.dirty = dirty2;
-        }
-
-        /* (non-Javadoc)
-         * @see java.lang.Object#equals(java.lang.Object)
-         */
-        @Override
-        public boolean equals(Object obj) {
-            return java.util.Arrays.equals(this.data, ((HashWrapper) obj).data);
-        }
-
-        /* (non-Javadoc)
-         * @see java.lang.Object#hashCode()
-         */
-        @Override
-        public int hashCode() {
-            return java.util.Arrays.hashCode(this.data);
-        }
-
-    }
 
     /**
      * Gets the approximate class size.
@@ -203,8 +155,6 @@ final public class CachedIndexedMap implements PersistentMap {
     /** The field index. */
     private HashMap mFieldIndex = new HashMap();
 
-    /** The HWR. */
-    private HashWrapper mHWR = new HashWrapper(null, true);
     
     /** The key is array. */
     private boolean mKeyIsArray;
@@ -265,7 +215,7 @@ final public class CachedIndexedMap implements PersistentMap {
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.lookup.PersistentMap#commit(boolean)
      */
-    public synchronized void commit(boolean force) {
+    public synchronized void commit(boolean force) throws IOException, ClassNotFoundException {
         this.mLRU.flush();
         this.mParentCache.commit(false);
     }
@@ -320,7 +270,7 @@ final public class CachedIndexedMap implements PersistentMap {
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.lookup.PersistentMap#get(java.lang.Object, java.lang.String)
      */
-    public Object get(Object pkey, String pField) {
+    public Object get(Object pkey, String pField) throws IOException {
 
         Object res = this.getItem(pkey);
 
@@ -355,14 +305,8 @@ final public class CachedIndexedMap implements PersistentMap {
     /* (non-Javadoc)
      * @see com.kni.etl.ketl.lookup.PersistentMap#getItem(java.lang.Object)
      */
-    public Object getItem(Object pkey) {
-        if (this.mKeyIsArray) {
-            this.mHWR.data = (Object[]) pkey;
-            return this.mLRU.get(this.mHWR);
-        }
-
-        return this.mLRU.get(pkey);
-
+    public Object getItem(Object pkey) throws IOException {
+        return this.mLRU.get(LookupUtil.objToWrappedByteArray(pkey));
     }
 
     /* (non-Javadoc)
@@ -386,7 +330,11 @@ final public class CachedIndexedMap implements PersistentMap {
      */
     public Object put(Object pkey, Object pValue) {
 
-        return this.put(pkey, pValue, true);
+        try {
+			return this.put(pkey, pValue, true);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
     }
 
     /**
@@ -397,11 +345,12 @@ final public class CachedIndexedMap implements PersistentMap {
      * @param dirty the dirty
      * 
      * @return the object
+     * @throws IOException 
      */
-    final private Object put(Object pkey, Object pValue, boolean dirty) {
+    final private Object put(Object pkey, Object pValue, boolean dirty) throws IOException {
 
         // local hashed cached
-        this.mLRU.put(this.mKeyIsArray ? new HashWrapper((Object[]) pkey, dirty) : pkey, pValue);
+        this.mLRU.put(LookupUtil.objToWrappedByteArray(pkey), pValue);
         // this.mParentCache.put(pkey, pValue);
 
         return null;
@@ -443,7 +392,11 @@ final public class CachedIndexedMap implements PersistentMap {
      */
     @Override
     public String toString() {
-        this.mLRU.flush();
+        try {
+			this.mLRU.flush();
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
         return this.mParentCache.toString();
     }
 

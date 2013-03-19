@@ -22,14 +22,8 @@
  */
 package com.kni.etl.ketl.lookup;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,7 +35,6 @@ import com.kni.etl.EngineConstants;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.stringtools.NumberFormatter;
-import com.kni.util.Bytes;
 import com.sleepycat.je.Database;
 import com.sleepycat.je.DatabaseConfig;
 import com.sleepycat.je.DatabaseEntry;
@@ -54,135 +47,9 @@ import com.sleepycat.je.OperationStatus;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class SleepycatIndexedMap.
+ * The Class 
  */
 final public class SleepycatIndexedMap implements PersistentMap {
-
-	/** The Constant ARRAY. */
-	final static byte ARRAY = 8;
-
-	/** The Constant BIGDECIMAL. */
-	final static byte BIGDECIMAL = 13;
-
-	/** The Constant DATE. */
-	final static byte DATE = 9;
-
-	/** The Constant DOUBLE. */
-	final static byte DOUBLE = 4;
-
-	/** The Constant FLOAT. */
-	final static byte FLOAT = 3;
-
-	/** The Constant INT. */
-	final static byte INT = 1;
-
-	/** The Constant LONG. */
-	final static byte LONG = 2;
-
-	/** The Constant NULL. */
-	final static byte NULL = 7;
-
-	/** The Constant OBJECT. */
-	final static byte OBJECT = 6;
-
-	/** The Constant SHORT. */
-	final static byte SHORT = 0;
-
-	/** The Constant SQLDATE. */
-	final static byte SQLDATE = 11;
-
-	/** The Constant STRING. */
-	final static byte STRING = 5;
-
-	/** The Constant TIME. */
-	final static byte TIME = 10;
-
-	/** The Constant TIMESTAMP. */
-	final static byte TIMESTAMP = 12;
-
-	/**
-	 * Byte array to object.
-	 * 
-	 * @param buf
-	 *            the buf
-	 * @param off
-	 *            the off
-	 * @param length
-	 *            the length
-	 * 
-	 * @return the object
-	 * 
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 * @throws ClassNotFoundException
-	 *             the class not found exception
-	 */
-	private static Object byteArrayToObject(final byte[] buf, int off, final int length) throws IOException,
-			ClassNotFoundException {
-
-		byte type = buf[off++];
-
-		if (type == SleepycatIndexedMap.NULL)
-			return null;
-		if (type == SleepycatIndexedMap.ARRAY) {
-			int len = buf[off++];
-			Object[] ar = new Object[len];
-			int pos = off;
-			for (int i = 0; i < len; i++) {
-				int size = buf[pos++];
-				ar[i] = SleepycatIndexedMap.byteArrayToObject(buf, pos, size);
-				pos += size;
-			}
-
-			return ar;
-		}
-		if (type == SleepycatIndexedMap.INT) {
-			return Bytes.unpack4(buf, off);
-		}
-		if (type == SleepycatIndexedMap.STRING) {
-			return new String(buf, off, length - 1);
-		}
-		if (type == SleepycatIndexedMap.SHORT) {
-			return Bytes.unpack2(buf, off);
-		}
-		if (type == SleepycatIndexedMap.DOUBLE) {
-			return Bytes.unpackF8(buf, off);
-		}
-		if (type == SleepycatIndexedMap.LONG) {
-			return Bytes.unpack8(buf, off);
-		}
-		if (type == SleepycatIndexedMap.FLOAT) {
-			return Bytes.unpackF4(buf, off);
-		}
-		if (type == SleepycatIndexedMap.TIMESTAMP) {
-			long t = Bytes.unpack8(buf, off);
-			java.sql.Timestamp res = new java.sql.Timestamp(t);
-			res.setNanos(Bytes.unpack4(buf, off + 8));
-			return res;
-		}
-		if (type == SleepycatIndexedMap.BIGDECIMAL) {
-			byte[] tmp = new byte[length - 5];
-			int scale = Bytes.unpack4(buf, off);
-			System.arraycopy(buf, off + 4, tmp, 0, length - 5);
-			BigInteger bi = new BigInteger(tmp);
-			return new BigDecimal(bi, scale);
-		}
-		if (type == SleepycatIndexedMap.SQLDATE) {
-			return new java.sql.Date(Bytes.unpack8(buf, off));
-		}
-		if (type == SleepycatIndexedMap.TIME) {
-			return new java.sql.Time(Bytes.unpack8(buf, off));
-		}
-		if (type == SleepycatIndexedMap.OBJECT) {
-			ByteArrayInputStream outStream = new ByteArrayInputStream(buf, off, length - 1);
-			ObjectInputStream objStream = new ObjectInputStream(outStream);
-			Object obj = objStream.readObject();
-			objStream.close();
-			outStream.close();
-			return obj;
-		}
-		throw new IOException("Invalid type found in data stream");
-	}
 
 	// Deletes all files and subdirectories under dir.
 	// Returns true if all deletions were successful.
@@ -200,7 +67,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 		if (dir.isDirectory()) {
 			String[] children = dir.list();
 			for (String element : children) {
-				boolean success = SleepycatIndexedMap.deleteDir(new File(dir, element));
+				boolean success = deleteDir(new File(dir, element));
 				if (!success) {
 					return false;
 				}
@@ -209,103 +76,6 @@ final public class SleepycatIndexedMap implements PersistentMap {
 
 		// The directory is now empty so delete it
 		return dir.delete();
-	}
-
-	/**
-	 * Obj to byte array.
-	 * 
-	 * @param obj
-	 *            the obj
-	 * 
-	 * @return the byte[]
-	 * 
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	private static byte[] objToByteArray(final Object obj) throws IOException {
-
-		if (obj == null)
-			return new byte[] { SleepycatIndexedMap.NULL };
-
-		Class cl = obj.getClass();
-		byte[] buf;
-
-		if (cl.isArray()) {
-			Object[] ar = (Object[]) obj;
-			int len = ar.length;
-
-			buf = new byte[] { SleepycatIndexedMap.ARRAY, (byte) len };
-			for (int i = 0; i < len; i++) {
-				byte[] tmp = SleepycatIndexedMap.objToByteArray(ar[i]);
-				buf = Bytes.join(buf, new byte[] { (byte) tmp.length });
-				buf = Bytes.join(buf, tmp);
-			}
-
-			return buf;
-		}
-
-		if (cl == Integer.class) {
-			buf = new byte[5];
-			buf[0] = SleepycatIndexedMap.INT;
-			Bytes.pack4(buf, 1, ((Integer) obj));
-		} else if (cl == String.class) {
-			byte[] tmp = ((String) obj).getBytes();
-			buf = new byte[tmp.length + 1];
-			buf[0] = SleepycatIndexedMap.STRING;
-			System.arraycopy(tmp, 0, buf, 1, tmp.length);
-		} else if (cl == java.sql.Timestamp.class) {
-			java.sql.Timestamp tmp = (java.sql.Timestamp) obj;
-
-			buf = new byte[13];
-			buf[0] = SleepycatIndexedMap.TIMESTAMP;
-			Bytes.pack8(buf, 1, tmp.getTime());
-			Bytes.pack4(buf, 9, tmp.getNanos());
-		} else if (cl == java.math.BigDecimal.class) {
-			BigDecimal bd = (BigDecimal) obj;
-			byte[] tmp = bd.unscaledValue().toByteArray();
-			buf = new byte[tmp.length + 5];
-			buf[0] = SleepycatIndexedMap.BIGDECIMAL;
-			int scale = bd.scale();
-			Bytes.pack4(buf, 1, scale);
-			System.arraycopy(tmp, 0, buf, 5, tmp.length);
-		} else if (cl == java.sql.Date.class) {
-			buf = new byte[9];
-			buf[0] = SleepycatIndexedMap.SQLDATE;
-			Bytes.pack8(buf, 1, ((java.sql.Date) obj).getTime());
-		} else if (cl == java.sql.Time.class) {
-			buf = new byte[9];
-			buf[0] = SleepycatIndexedMap.TIME;
-			Bytes.pack8(buf, 1, ((java.sql.Time) obj).getTime());
-		} else if (cl == Short.class) {
-			buf = new byte[3];
-			buf[0] = SleepycatIndexedMap.SHORT;
-			Bytes.pack2(buf, 1, ((Short) obj));
-		} else if (cl == Long.class) {
-			buf = new byte[9];
-			buf[0] = SleepycatIndexedMap.LONG;
-			Bytes.pack8(buf, 1, ((Long) obj));
-		} else if (cl == Float.class) {
-			buf = new byte[5];
-			buf[0] = SleepycatIndexedMap.FLOAT;
-			Bytes.packF4(buf, 1, ((Float) obj));
-		} else if (cl == Double.class) {
-			buf = new byte[9];
-			buf[0] = SleepycatIndexedMap.DOUBLE;
-			Bytes.packF8(buf, 1, ((Double) obj));
-		} else {
-			ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-			ObjectOutputStream objStream = new ObjectOutputStream(outStream);
-			objStream.writeObject(obj);
-			objStream.flush();
-			outStream.flush();
-			byte[] tmp = outStream.toByteArray();
-			buf = new byte[tmp.length + 1];
-			buf[0] = SleepycatIndexedMap.OBJECT;
-			System.arraycopy(tmp, 0, buf, 1, tmp.length);
-			objStream.close();
-			outStream.close();
-		}
-		return buf;
 	}
 
 	/** The my environment. */
@@ -480,17 +250,17 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	 */
 	private static void configureEnvironment(String cacheDir) throws DatabaseException {
 
-		synchronized (SleepycatIndexedMap.lock) {
+		synchronized (lock) {
 			EnvironmentConfig envConfig = new EnvironmentConfig();
 			envConfig.setAllowCreate(true);
-			SleepycatIndexedMap.myEnvironment = new Environment(new File(cacheDir), envConfig);
+			myEnvironment = new Environment(new File(cacheDir), envConfig);
 
 			EnvironmentMutableConfig envMutableConfig = new EnvironmentMutableConfig();
 			int pct = (int) (EngineConstants.getCacheMemoryRatio() * 100);
 
 			envMutableConfig.setCachePercent(pct);
 			envMutableConfig.setTxnWriteNoSync(true);
-			SleepycatIndexedMap.myEnvironment.setMutableConfig(envMutableConfig);
+			myEnvironment.setMutableConfig(envMutableConfig);
 
 			ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Setting cache size to "
 					+ NumberFormatter.format((long) (Runtime.getRuntime().maxMemory() * EngineConstants
@@ -538,7 +308,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 				this.myClassDb.close();
 			}
 
-			SleepycatIndexedMap.removeDatabase(this.dataDb, this.classDb);
+			removeDatabase(this.dataDb, this.classDb);
 		} catch (DatabaseException e) {
 			throw new KETLError(e);
 		} finally {
@@ -560,12 +330,12 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	 *             the database exception
 	 */
 	private static void removeDatabase(String dataDb, String classDb) throws DatabaseException {
-		synchronized (SleepycatIndexedMap.lock) {
-			List dbs = SleepycatIndexedMap.myEnvironment.getDatabaseNames();
+		synchronized (lock) {
+			List dbs = myEnvironment.getDatabaseNames();
 			if (dbs.contains(dataDb))
-				SleepycatIndexedMap.myEnvironment.removeDatabase(null, dataDb);
+				myEnvironment.removeDatabase(null, dataDb);
 			if (dbs.contains(classDb))
-				SleepycatIndexedMap.myEnvironment.removeDatabase(null, classDb);
+				myEnvironment.removeDatabase(null, classDb);
 		}
 	}
 
@@ -665,8 +435,8 @@ final public class SleepycatIndexedMap implements PersistentMap {
 		byte[] res = theData.getData();
 		if (res == null)
 			return null;
-		return this.mValuesIsArray == false ? new Object[] { SleepycatIndexedMap.byteArrayToObject(res, 0, res.length) }
-				: SleepycatIndexedMap.byteArrayToObject(res, 0, res.length);
+		return this.mValuesIsArray == false ? new Object[] { LookupUtil.byteArrayToObject(res, 0, res.length) }
+				: LookupUtil.byteArrayToObject(res, 0, res.length);
 	}
 
 	/**
@@ -807,10 +577,10 @@ final public class SleepycatIndexedMap implements PersistentMap {
 		val = this.castKey((Object[]) val);
 
 		if (this.mKeyIsArray == false)
-			return new DatabaseEntry(SleepycatIndexedMap.objToByteArray(val == null ? null : ((Object[]) val)[0]));
+			return new DatabaseEntry(LookupUtil.objToByteArray(val == null ? null : ((Object[]) val)[0]));
 
 		// if (this.mKeyBinding == null)
-		return new DatabaseEntry(SleepycatIndexedMap.objToByteArray((val)));
+		return new DatabaseEntry(LookupUtil.objToByteArray((val)));
 
 		// DatabaseEntry entry = new DatabaseEntry();
 		// this.mKeyBinding.objectToEntry((val == null ? null : (Object[])
@@ -872,10 +642,10 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	 */
 	void init(boolean purge) {
 
-		SleepycatIndexedMap.initEnvironment(this.getCacheDirectory());
+		initEnvironment(this.getCacheDirectory());
 
-		SleepycatIndexedMap.mValidCacheList.add(this.dataDb);
-		SleepycatIndexedMap.mValidCacheList.add(this.classDb);
+		mValidCacheList.add(this.dataDb);
+		mValidCacheList.add(this.classDb);
 
 		if (purge)
 			this.deleteCache();
@@ -887,10 +657,10 @@ final public class SleepycatIndexedMap implements PersistentMap {
 		}
 
 		try {
-			synchronized (SleepycatIndexedMap.lock) {
-				this.myDatabase = SleepycatIndexedMap.myEnvironment.openDatabase(null, this.dataDb, this.myDbConfig);
-				this.myClassDb = SleepycatIndexedMap.myEnvironment.openDatabase(null, this.classDb, this.myDbConfig);
-				List ls = SleepycatIndexedMap.myEnvironment.getDatabaseNames();
+			synchronized (lock) {
+				this.myDatabase = myEnvironment.openDatabase(null, this.dataDb, this.myDbConfig);
+				this.myClassDb = myEnvironment.openDatabase(null, this.classDb, this.myDbConfig);
+				List ls = myEnvironment.getDatabaseNames();
 				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.DEBUG_MESSAGE, "Cache db's: "
 						+ ls.toString());
 				this.myDatabase.sync();
@@ -914,11 +684,11 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	 *            the cache dir
 	 */
 	private static synchronized void initEnvironment(String cacheDir) {
-		synchronized (SleepycatIndexedMap.lock) {
-			if (SleepycatIndexedMap.myEnvironment == null) {
-				SleepycatIndexedMap.mValidCacheList = java.util.Collections.synchronizedList(new ArrayList());
+		synchronized (lock) {
+			if (myEnvironment == null) {
+				mValidCacheList = java.util.Collections.synchronizedList(new ArrayList());
 				try {
-					SleepycatIndexedMap.configureEnvironment(cacheDir);
+					configureEnvironment(cacheDir);
 				} catch (DatabaseException dbe) {
 					throw new KETLError(dbe);
 				}
@@ -959,7 +729,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 			// Create the DatabaseEntry for the data. Use the EntryBinding
 			// object
 			// that was just created to populate the DatabaseEntry
-			DatabaseEntry theData = new DatabaseEntry(SleepycatIndexedMap.objToByteArray(this.mValuesIsArray ? pValue
+			DatabaseEntry theData = new DatabaseEntry(LookupUtil.objToByteArray(this.mValuesIsArray ? pValue
 					: ((Object[]) pValue)[0]));
 
 			// Put it as normal
@@ -1046,9 +816,9 @@ final public class SleepycatIndexedMap implements PersistentMap {
 		String exampleValue = "N/A", exampleKey = "N/A";
 		String strSize;
 		try {
-			synchronized (SleepycatIndexedMap.lock) {
-				strSize = NumberFormatter.format(SleepycatIndexedMap.myEnvironment == null ? 0
-						: SleepycatIndexedMap.myEnvironment.getStats(null).getCacheTotalBytes());
+			synchronized (lock) {
+				strSize = NumberFormatter.format(myEnvironment == null ? 0
+						: myEnvironment.getStats(null).getCacheTotalBytes());
 			}
 		} catch (DatabaseException e) {
 			strSize = "N/A";
@@ -1077,23 +847,23 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	 * Close env.
 	 */
 	private static void closeEnv() {
-		synchronized (SleepycatIndexedMap.lock) {
+		synchronized (lock) {
 			try {
-				List dbs = SleepycatIndexedMap.myEnvironment.getDatabaseNames();
+				List dbs = myEnvironment.getDatabaseNames();
 
-				dbs.removeAll(SleepycatIndexedMap.mValidCacheList);
+				dbs.removeAll(mValidCacheList);
 				for (Object o : dbs) {
 					try {
 						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.WARNING_MESSAGE,
 								"Removing unreferenced cache " + o);
-						SleepycatIndexedMap.myEnvironment.removeDatabase(null, (String) o);
+						myEnvironment.removeDatabase(null, (String) o);
 					} catch (Throwable e) {
 						e.printStackTrace();
 					}
 				}
-				SleepycatIndexedMap.myEnvironment.sync();
-				SleepycatIndexedMap.myEnvironment.close();
-				SleepycatIndexedMap.myEnvironment = null;
+				myEnvironment.sync();
+				myEnvironment.close();
+				myEnvironment = null;
 			} catch (DatabaseException e) {
 				ResourcePool.LogException(e, Thread.currentThread());
 			}
@@ -1106,7 +876,7 @@ final public class SleepycatIndexedMap implements PersistentMap {
 	 * @see com.kni.etl.ketl.lookup.PersistentMap#closeCacheEnvironment()
 	 */
 	public void closeCacheEnvironment() {
-		SleepycatIndexedMap.closeEnv();
+		closeEnv();
 	}
 
 }
