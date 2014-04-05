@@ -68,7 +68,7 @@ public class OutputFile {
 	 * @throws IOException
 	 */
 	public String openTemp(File tmpDir) throws IOException {
-		return this.open(File.createTempFile("ast",".tmp", tmpDir));
+		return this.open(File.createTempFile("ast",mZip?".tmp.gz":".tmp", tmpDir));
 	}
 	public String open(String filePath) throws IOException {
 		return this.open(new File(filePath));

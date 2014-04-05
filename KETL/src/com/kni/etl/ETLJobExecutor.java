@@ -283,7 +283,7 @@ public abstract class ETLJobExecutor extends Thread {
 		ArrayList overrideParameters = new ArrayList();
 		String[] ignoreQAs = null;
 		String server = null;
-
+		
 		for (String element : args) {
 			if ((server == null) && (element.indexOf("SERVER=") != -1)) {
 				server = ArgumentParserUtil.extractArguments(element, "SERVER=");
@@ -310,7 +310,7 @@ public abstract class ETLJobExecutor extends Thread {
 			if ((element.indexOf("LOADID=") != -1)) {
 				iLoadID = Integer.parseInt(ArgumentParserUtil.extractArguments(element, "LOADID="));
 			}
-
+			
 			if (element.indexOf("PARAMETER=[") != -1) {
 				String[] param = ArgumentParserUtil.extractMultipleArguments(element, "PARAMETER=[");
 				overrideParameters.add(param);
@@ -395,6 +395,10 @@ public abstract class ETLJobExecutor extends Thread {
 					}
 					ETLJob kj = eJob != null ? eJob : je.getNewJob();
 
+				    if (kj.getJobExecutionID() == 0) {
+				    	kj.setJobExecutionID((int) System.currentTimeMillis()/1000);
+				    }
+				    
 					kj.setLoadID(iLoadID);
 					try {
 						ResourcePool.setThreadToJobMap(Thread.currentThread(), kj);
