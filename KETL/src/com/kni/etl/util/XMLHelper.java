@@ -185,7 +185,7 @@ public class XMLHelper {
 		str = str.replaceAll("\"", "&quot;");
 		str = str.replaceAll("<", "&lt;");
 		str = str.replaceAll(">", "&gt;");
-		str = str.replaceAll("’", "&apos;");
+		str = str.replaceAll("ï¿½", "&apos;");
 
 		return str;
 	}
@@ -282,6 +282,19 @@ public class XMLHelper {
 					}
 
 					sb.append(XMLHelper.escapeXML(val));
+				}
+			} else if (n.getNodeType() == Node.CDATA_SECTION_NODE) {
+				String val = node.getTextContent();
+				
+				if ((val != null) && (val.length() > 0)) {
+					if (endAdded == false) {
+						sb.append(">");
+						endAdded = true;
+					}
+
+					sb.append("<![CDATA[");
+					sb.append(val);
+					sb.append("]]>");
 				}
 			}
 		}
@@ -708,7 +721,6 @@ public class XMLHelper {
 	 */
 	public static final String getTextContent(Node node) {
 		return node == null || node.getFirstChild() == null ? null : node.getTextContent();
-
 	}
 
 	/** The Constant NONODES. */
