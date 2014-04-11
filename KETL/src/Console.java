@@ -51,6 +51,7 @@ import com.kni.etl.EngineConstants;
 import com.kni.etl.Metadata;
 import com.kni.etl.OSJobExecutor;
 import com.kni.etl.SQLJobExecutor;
+import com.kni.etl.TableauJobExecutor;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.KETLCluster;
 import com.kni.etl.ketl.KETLJobExecutor;
@@ -257,6 +258,7 @@ public class Console {
 
 	/** The os job exec. */
 	ETLJobExecutor osJobExec = new OSJobExecutor();
+	ETLJobExecutor tableauJobExec = new TableauJobExecutor();
 
 	/** The password. */
 	String password;
@@ -1395,6 +1397,8 @@ public class Console {
 							cur = this.sqlJobExec;
 						} else if (type.equals("OSJOB")) {
 							cur = this.osJobExec;
+						} else if (type.equals("TABLEAU")) {
+							cur = this.tableauJobExec;
 						} else if (type.equals("XMLSESSIONIZER")) {
 							throw new RuntimeException(
 									"The XMLSessionizer job type is no longer supported, please migrate to KETL job with Sessionizer step");

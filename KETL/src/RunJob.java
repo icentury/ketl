@@ -33,6 +33,7 @@ import com.kni.etl.ETLJobExecutor;
 import com.kni.etl.Metadata;
 import com.kni.etl.OSJobExecutor;
 import com.kni.etl.SQLJobExecutor;
+import com.kni.etl.TableauJobExecutor;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.KETLJobExecutor;
 import com.kni.etl.util.XMLHelper;
@@ -149,6 +150,8 @@ public class RunJob {
 			ETLJobExecutor osJobExec = new OSJobExecutor();
 
 			ETLJobExecutor sqlJobExec = new SQLJobExecutor();
+			
+			ETLJobExecutor tableauJobExec = new TableauJobExecutor();
 
 			ResourcePool.LogMessage(Thread.currentThread(),
 					ResourcePool.INFO_MESSAGE, "Executing file " + fileName);
@@ -179,6 +182,8 @@ public class RunJob {
 					cur = sqlJobExec;
 				} else if (type.equals("OSJOB")) {
 					cur = osJobExec;
+				} else if (type.equals("TABLEAUJOB")) {
+					cur = tableauJobExec;
 				} else if (type.equals("EMPTYJOB")) {
 					ResourcePool.LogMessage(Thread.currentThread(),
 							ResourcePool.INFO_MESSAGE, "Skipping empty job "

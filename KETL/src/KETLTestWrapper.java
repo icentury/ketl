@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 import com.kni.etl.ETLJobExecutor;
 import com.kni.etl.OSJobExecutor;
 import com.kni.etl.SQLJobExecutor;
+import com.kni.etl.TableauJobExecutor;
 import com.kni.etl.ketl.KETLJobExecutor;
 
 // TODO: Auto-generated Javadoc
@@ -83,6 +84,9 @@ public class KETLTestWrapper extends TestCase {
             }
             else if (this.type.equals("OSJOB")) {
                 cur = new OSJobExecutor();
+            }
+            else if (this.type.equals("TABLEAUJOB")) {
+                cur = new TableauJobExecutor();
             }
             else if (this.type.equals("EMPTYJOB")) {
                 return;

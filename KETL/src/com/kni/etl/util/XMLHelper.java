@@ -75,6 +75,23 @@ public class XMLHelper {
 	/** The Constant PARAMETER_TAG. */
 	public static final String PARAMETER_TAG = "PARAMETER";
 
+	
+	
+	public static synchronized Document readXMLFromString(String pXML)
+			throws Exception {
+		Document xmlDocument = null;
+
+		// turn file into readable nodes
+		DocumentBuilder builder = null;
+
+		// Build a DOM out of the XML string...
+
+		DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
+		builder = dmf.newDocumentBuilder();
+		xmlDocument = builder.parse(new InputSource(new StringReader(pXML)));
+
+		return xmlDocument;
+	}
 	/**
 	 * Read XML from file.
 	 * 
@@ -101,14 +118,7 @@ public class XMLHelper {
 				sb.append((char) c);
 			}
 
-			// turn file into readable nodes
-			DocumentBuilder builder = null;
-
-			// Build a DOM out of the XML string...
-
-			DocumentBuilderFactory dmf = DocumentBuilderFactory.newInstance();
-			builder = dmf.newDocumentBuilder();
-			xmlDocument = builder.parse(new InputSource(new StringReader(sb.toString())));
+			xmlDocument = readXMLFromString(sb.toString());
 
 		} catch (Exception e) {
 			throw new Exception( "Parsing XML document("
