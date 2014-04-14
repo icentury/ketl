@@ -353,6 +353,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 							+ this.bucketName
 							+ File.separator
 							+ this.parentDir
+							+ File.separator
 							+ "'  CREDENTIALS 'aws_access_key_id="
 							+ this.accessKey
 							+ ";aws_secret_access_key="
@@ -558,7 +559,9 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 				+ File.separator
 				+ this.mstrTableName
 				+ File.separator
-				+ this.getJobExecutionID();
+				+ this.getJobExecutionID()
+				+ "_"
+				+ System.currentTimeMillis();
 		this.mCharset = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.CHARACTERSET_ATTRIB, "UTF-8");
 
 		

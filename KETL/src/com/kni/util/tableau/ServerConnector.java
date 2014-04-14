@@ -74,11 +74,12 @@ public class ServerConnector {
 				throws Exception {
 			
 			this.status = httpresp.getStatusLine();
+			StringBuffer strbuffer = new StringBuffer();
+			
 			try {
 				BufferedReader bufferedReader = new BufferedReader(
 						new InputStreamReader(httpresp.getEntity().getContent()));
 
-				StringBuffer strbuffer = new StringBuffer();
 				String currentline = "";
 				while ((currentline = bufferedReader.readLine()) != null) {
 					strbuffer.append(currentline);
@@ -90,7 +91,7 @@ public class ServerConnector {
 			}
 			
 			if (!this.success())
-				throw new KETLException(this.status.getReasonPhrase());
+				throw new KETLException(this.status.getReasonPhrase() + ": " +  strbuffer.toString());
 		}
 
 		public boolean success(){
@@ -144,8 +145,13 @@ public class ServerConnector {
 		HttpGet request = new HttpGet(url);
 		HttpResponse response = client.execute(request);
 
+		
 		TableauResponse tResponse = new TableauResponse(response);
 
+		if (!tResponse.success()){
+			throw new Exception(tResponse.errorMessage());
+		}
+		
 		// Get Required data for creating the authentication request, such as
 		// modulus and exponent of the RSA public key and the authencity_token
 		String modulusstr = null;
@@ -190,18 +196,23 @@ public class ServerConnector {
 		// Create a post request for the authentication
 		HttpPost postrequest = new HttpPost(serveraddress + "/auth/login.xml");
 
-		List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-		nvps.add(new BasicNameValuePair("authenticity_token", authencity_token));
-		nvps.add(new BasicNameValuePair("crypted", cryptedpass));
-		nvps.add(new BasicNameValuePair("username", user));
-
-		// bind parameters to the request
-		postrequest.setEntity(new UrlEncodedFormEntity(nvps));
-
+		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+		builder.addPart("authenticity_token", new StringBody(authencity_token, ContentType.TEXT_PLAIN));
+		builder.addPart("crypted", new StringBody(cryptedpass,
+				ContentType.TEXT_PLAIN));
+		builder.addPart("username", new StringBody(user, ContentType.TEXT_PLAIN));
+		
+		postrequest.setEntity(builder.build());
+		
 		HttpResponse postResponse = client.execute(postrequest);
 
 		// We clear the entity here so we don't have to shutdown the client
 		tResponse  = new TableauResponse(postResponse);
+		
+		if (!tResponse.success()){
+			throw new Exception(tResponse.errorMessage());
+		}
 		
 		elements = tResponse.doc.getElementsByTagName("authenticity_token");
 		for (int i = 0; i < elements.getLength(); i++) {

@@ -143,7 +143,8 @@ public class TableauJobExecutor extends ETLJobExecutor {
 			} catch (Throwable e) {
 				jsJobStatus.setErrorCode(1); // BRIAN: NEED TO SET UP OS JOB
 				// ERROR CODES
-				jsJobStatus.setErrorMessage("Error running exec(): "
+				ojJob.getStatus().setException(e);
+				jsJobStatus.setErrorMessage("Error running tableau command: "
 						+ e.getMessage());
 
 				return false;
@@ -188,22 +189,13 @@ public class TableauJobExecutor extends ETLJobExecutor {
 					jsJobStatus.setExtendedMessage("STDOUT:"
 							+ response.message());
 
-					if (iReturnValue == ETLJobStatus.CRITICAL_FAILURE_ERROR_CODE) {
-						jsJobStatus.setErrorMessage("Server has been paused\n"
-								+ jsJobStatus.getErrorMessage());
-
-						jsJobStatus
-								.setStatusCode(ETLJobStatus.CRITICAL_FAILURE_PAUSE_LOAD);
-					}
-
 					bSuccess = false;
 				} else
 					jsJobStatus
 							.setStats(-1, System.currentTimeMillis() - start);
 			} catch (Exception e) {
 				ResourcePool.logException(e);
-				jsJobStatus.setErrorCode(2); // BRIAN: NEED TO SET UP OS JOB
-				// ERROR CODES
+				jsJobStatus.setErrorCode(2); 
 				jsJobStatus.setErrorMessage("Error in process: "
 						+ e.getMessage());
 				bSuccess = false;
@@ -242,7 +234,7 @@ public class TableauJobExecutor extends ETLJobExecutor {
 	@Override
 	public boolean supportsJobType(ETLJob jJob) {
 		// Only accept OS jobs...
-		return this.isValidType(jJob) && (jJob instanceof OSJob);
+		return this.isValidType(jJob) && (jJob instanceof TableauJob);
 	}
 
 	/**
