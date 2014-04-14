@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
@@ -507,6 +508,21 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 		return new RedshiftBulkETLInPort(this, srcStep);
 	}
 
+	private static synchronized String getS3TargetDir(Element config,String parentDir,String tableName,long id) {
+		String tmp = XMLHelper.getAttributeAsString(config.getAttributes(), "TARGETDIR", null);
+		if (tmp == null) {
+			tmp = parentDir
+					+ File.separator
+					+ tableName
+					+ File.separator
+					+ id
+					+ "_"
+					+ System.currentTimeMillis();
+			config.setAttribute("TARGETDIR", tmp);
+		}
+		return tmp;
+	}
+	
 	/**
 	 * DOCUMENT ME!.
 	 * 
@@ -554,14 +570,10 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 		this.parentDir= this.getParameterValue(0, AWSPARENTDIR_ATTRIB);
 		this.bucketName= this.getParameterValue(0, BUCKETNAME_ATTRIB);
 		// Pull the name of the table to be written to...
+	
 		this.mstrTableName = XMLHelper.getAttributeAsString(nmAttrs, RedshiftBulkWriter.TABLE_ATTRIB, null);
-		this.parentDir = this.parentDir
-				+ File.separator
-				+ this.mstrTableName
-				+ File.separator
-				+ this.getJobExecutionID()
-				+ "_"
-				+ System.currentTimeMillis();
+		
+		this.parentDir = getS3TargetDir(this.getXMLConfig(),this.parentDir,this.mstrTableName,this.getJobExecutionID());
 		this.mCharset = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.CHARACTERSET_ATTRIB, "UTF-8");
 
 		
