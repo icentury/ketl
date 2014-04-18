@@ -52,7 +52,7 @@ public abstract class ETLPort {
 	/** The Constant OBJECT_TYPE_ATTRIB. */
 	public static final String OBJECT_TYPE_ATTRIB = "OBJECTTYPE";
 
-	private static final String METHOD_ATTRIB = "METHOD";
+	public static final String METHOD_ATTRIB = "METHOD";
 
 	/** The mstr name. */
 	public String mstrName;
@@ -185,9 +185,6 @@ public abstract class ETLPort {
 	public int initialize(Node xmlConfig) throws ClassNotFoundException, KETLThreadException {
 		this.mObjectType = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), ETLPort.OBJECT_TYPE_ATTRIB, null);
 		this.mNode = xmlConfig;
-		this.mstrName = this.getPortName();
-		this.setPortClass();
-
 		String methodName = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), ETLPort.METHOD_ATTRIB, null);
 
 		if (methodName != null) {
@@ -197,6 +194,10 @@ public abstract class ETLPort {
 				throw new KETLThreadException(e, this);
 			}
 		}
+		
+		this.mstrName = this.getPortName();
+		this.setPortClass();
+
 		if (this.isConstant() && this.constantValue == null) {
 			this.instantiateConstant();
 		}

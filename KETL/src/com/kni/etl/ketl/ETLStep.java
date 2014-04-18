@@ -66,6 +66,11 @@ public abstract class ETLStep extends ETLWorker {
 
 	private Exception pendingException;
 
+	protected Object[] activeRecord;
+
+	final public Object[] getActiveRecord() {
+    	return this.activeRecord;
+    }
 	/*
 	 * (non-Javadoc)
 	 * 

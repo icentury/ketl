@@ -46,10 +46,6 @@ public class ETLOutPort extends ETLPort {
         // TODO Auto-generated constructor stub
     }
 
-    public String getHash(){
-		return "a";
-	}
-
 
     /**
      * Gets the channel.

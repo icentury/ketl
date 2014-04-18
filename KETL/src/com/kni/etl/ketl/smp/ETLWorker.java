@@ -1322,7 +1322,8 @@ abstract public class ETLWorker implements Runnable, ETLStats {
 
 				// is current port a constant, if so just instantiate it and
 				// don't do this bit
-				if (ETLPort.containsConstant(XMLHelper.getTextContent(node)) == false) {
+				if (XMLHelper.getAttributeAsString(node.getAttributes(),ETLPort.METHOD_ATTRIB,null) == null && 
+						ETLPort.containsConstant(XMLHelper.getTextContent(node)) == false) {
 					String[] sources = ETLWorker.extractPortDetails(XMLHelper.getTextContent(node));
 
 					if (sources == null)

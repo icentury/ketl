@@ -116,6 +116,7 @@ public abstract class ETLWriter extends ETLStep {
     /** The core. */
     private DefaultWriterCore core;
 
+	
     /**
      * Gets the expected data types.
      * 
@@ -148,14 +149,22 @@ public abstract class ETLWriter extends ETLStep {
         for (int i = 0; i < length; i++) {
             try {
                 if(this.mMonitor) ResourcePool.LogMessage(this,ResourcePool.DEBUG_MESSAGE,"[" + count+"]" + java.util.Arrays.toString(o[i]));
-                int res = this.core.putNextRecord(o[i], this.mExpectedDataTypes, this.mRecordWidth);
-                if (res > 0) {
-                    this.recordCheck(o[i],null);                                        
-                    count += res;
-                }
-                else if (res < 0) {
-                    throw new KETLWriteException("Unknown error, see previous messages");
-                }
+				try {
+					this.activeRecord = o[i];
+					int res = this.core.putNextRecord(o[i],
+							this.mExpectedDataTypes, this.mRecordWidth);
+					if (res > 0) {
+						this.recordCheck(o[i], null);
+						count += res;
+					} else if (res < 0) {
+						throw new KETLWriteException(
+								"Unknown error, see previous messages");
+					}
+				} finally {
+					this.activeRecord = null;
+				}
+                
+              
             } catch (KETLWriteException e) {
                 this.recordCheck(o[i],e);                                    
                 this.incrementErrorCount(e, o[i], this.getRecordsProcessed() + i + 1);

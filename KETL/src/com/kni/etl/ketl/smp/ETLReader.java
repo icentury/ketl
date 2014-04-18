@@ -32,6 +32,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.kni.etl.SQLJob;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLOutPort;
 import com.kni.etl.ketl.ETLPort;
@@ -157,7 +158,7 @@ public abstract class ETLReader extends ETLStep {
 		}
 
 		NodeList nl = ((Element) pXMLConfig).getElementsByTagName("OUT");
-
+		
 		List<ETLPort> tmpOutPorts = new ArrayList<ETLPort>();
 		for (int i = 0; i < nl.getLength(); i++) {
 			ETLOutPort out = this.getNewOutPort(null);
@@ -175,23 +176,6 @@ public abstract class ETLReader extends ETLStep {
 			}
 		}
 		
-		if(this.mbRowHash != null){
-			ETLOutPort out = this.getNewOutPort(null);
-
-			try {
-				 Document doc = XMLHelper.readXMLFromString("<OUT DATATYPE=\"STRING\" NAME=\""+this.mbRowHash+"\" METHOD=\"getHash\"/>");
-				out.initialize(XMLHelper.findElementByName(doc,"OUT",null,null));
-			} catch (Exception e) {
-				throw new KETLThreadException(e, this);
-			}
-			
-			if (this.hmOutports.put(out.getPortName(), out) != null)
-				throw new KETLThreadException("Duplicate OUT port name exists, check step " + this.getName() + " port "
-						+ out.mstrName, this);
-			else {
-				tmpOutPorts.add(out);
-			}
-		}
 		
 		this.mOutPorts = tmpOutPorts.toArray(new ETLOutPort[0]);
 	}

@@ -22,6 +22,10 @@
  */
 package com.kni.etl.ketl;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import org.apache.commons.codec.binary.Hex;
 import org.w3c.dom.Node;
 
 import com.kni.etl.ketl.exceptions.KETLThreadException;
@@ -92,6 +96,19 @@ public class ETLInPort extends ETLPort {
 		return this.src.getPortIndex();
 	}
 
+	private MessageDigest digest;
+	final private byte[] NULL = "0".getBytes();
+	
+	public String getHash() throws NoSuchAlgorithmException {
+		if (digest == null)
+			digest = MessageDigest.getInstance("SHA-256");
+
+		digest.reset();
+		for (Object o : this.mesStep.activeRecord) {
+			digest.update(o==null?NULL:o.toString().getBytes());
+		}
+		return Hex.encodeHexString( digest.digest());
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
