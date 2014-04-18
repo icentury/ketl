@@ -38,9 +38,11 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
@@ -52,6 +54,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.kni.etl.ketl.exceptions.KETLException;
+import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
 
 @SuppressWarnings("deprecation")
@@ -91,7 +94,7 @@ public class ServerConnector {
 			}
 			
 			if (!this.success())
-				throw new KETLException(this.status.getReasonPhrase() + ": " +  strbuffer.toString());
+				throw new KETLThreadException(this.status.getReasonPhrase() + ": " +  strbuffer.toString(),this);
 		}
 
 		public boolean success(){
@@ -112,9 +115,11 @@ public class ServerConnector {
 	
 
 	
-	private HttpClient client;
 	private String authencity_token;
 	private String serverAddress;
+	private SystemDefaultHttpClient client;
+	private String cryptedpass;
+	private String user;
 
 	
 	/**
@@ -135,9 +140,8 @@ public class ServerConnector {
 /*
 		SSLSocketFactory sf = new SSLSocketFactory(sslContext, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 		*/
-		HttpClient client = new DefaultHttpClient();
-	   
-	    //client.getConnectionManager().getSchemeRegistry().register(new Scheme("https", 443, sslsf)); 
+		this.user = user;
+		client = new SystemDefaultHttpClient();
 		// Create Http Get request for authentication informations
 		this.serverAddress = serveraddress;
 		String url = serveraddress + "/auth.xml";
@@ -191,7 +195,7 @@ public class ServerConnector {
 
 		// Encrypt the password with the created public key
 		byte[] cipherData = cipher.doFinal(password.getBytes());
-		String cryptedpass = new String(Hex.encodeHex(cipherData));
+		this.cryptedpass = new String(Hex.encodeHex(cipherData));
 
 		// Create a post request for the authentication
 		HttpPost postrequest = new HttpPost(serveraddress + "/auth/login.xml");
@@ -219,8 +223,7 @@ public class ServerConnector {
 			this.authencity_token = elements.item(i).getTextContent();
 		}
 
-		this.client = client;
-
+	
 	}
 
 	public enum Type {

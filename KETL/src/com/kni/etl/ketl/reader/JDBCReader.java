@@ -174,7 +174,7 @@ public class JDBCReader extends ETLReader implements DefaultReaderCore, QAForJDB
 
 	/** The Constant SQL_SAMPLE_ATTRIB. */
 	public static final String INCREMENTAL_ATTRIB = "INCREMENTAL";
-
+	
 	/** The Constant SQL_SAMPLE_ATTRIB. */
 	public static final String CURSORMODE_ATTRIB = "CURSORMODE";
 

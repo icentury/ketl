@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -40,6 +41,7 @@ import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLReadException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.util.XMLHelper;
+import com.sun.tools.doclets.internal.toolkit.resources.doclets;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -58,6 +60,12 @@ public abstract class ETLReader extends ETLStep {
 
 	/** The mb sampling enabled. */
 	private boolean mbSamplingEnabled = false;
+
+	private String mbRowHash;
+
+	
+	/** The Constant HASH_ATTRIB. */
+	public static final String HASH_ATTRIB = "ROWHASH";
 
 	/*
 	 * (non-Javadoc)
@@ -142,6 +150,8 @@ public abstract class ETLReader extends ETLStep {
 			throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 
+		this.mbRowHash = XMLHelper.getAttributeAsString(pXMLConfig.getAttributes(), HASH_ATTRIB,null);
+		
 		if (XMLHelper.getAttributeAsBoolean(pXMLConfig.getAttributes(), "INFERRED", this.alwaysOverrideOuts())) {
 			this.overrideOuts();
 		}
@@ -164,9 +174,29 @@ public abstract class ETLReader extends ETLStep {
 				tmpOutPorts.add(out);
 			}
 		}
+		
+		if(this.mbRowHash != null){
+			ETLOutPort out = this.getNewOutPort(null);
+
+			try {
+				 Document doc = XMLHelper.readXMLFromString("<OUT DATATYPE=\"STRING\" NAME=\""+this.mbRowHash+"\" METHOD=\"getHash\"/>");
+				out.initialize(XMLHelper.findElementByName(doc,"OUT",null,null));
+			} catch (Exception e) {
+				throw new KETLThreadException(e, this);
+			}
+			
+			if (this.hmOutports.put(out.getPortName(), out) != null)
+				throw new KETLThreadException("Duplicate OUT port name exists, check step " + this.getName() + " port "
+						+ out.mstrName, this);
+			else {
+				tmpOutPorts.add(out);
+			}
+		}
+		
 		this.mOutPorts = tmpOutPorts.toArray(new ETLOutPort[0]);
 	}
-
+	
+	
 	/**
 	 * Always override outs.
 	 * 

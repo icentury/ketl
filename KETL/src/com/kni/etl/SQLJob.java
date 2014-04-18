@@ -261,6 +261,7 @@ public class SQLJob extends ETLJob implements DBConnection {
      * @throws Exception the exception
      */
     public String resolveParameters(String pText) throws Exception {
+    	pText = getInternalConstants(pText);
         String[] strParms = EngineConstants.getParametersFromText(pText);
         if (strParms != null) {
             for (String element : strParms) {
