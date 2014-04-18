@@ -736,15 +736,21 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 	}
 
 	private void writeRecord(RedshiftCopyFileWriter stmt, Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException, IOException {
-		for (int i = 0; i < pRecordWidth; i++) {
+		for (int i = 0; i < this.mInPorts.length; i++) {
 
 			if (((RedshiftBulkETLInPort) this.mInPorts[i]).skip == false) {
 
-				Class cl = pExpectedDataTypes[this.mInPorts[i].getSourcePortIndex()];
-				Class tClass = ((RedshiftBulkETLInPort) this.mInPorts[i]).targetClass;
-
-				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : pInputRecords[this.mInPorts[i].getSourcePortIndex()];
-
+				Class cl, tClass = ((RedshiftBulkETLInPort) this.mInPorts[i]).targetClass;
+				Object data;
+				if (this.mInPorts[i].isConstant()) {
+					cl = tClass;
+					data = this.mInPorts[i].getConstantValue();
+				} else {
+					cl = pExpectedDataTypes[this.mInPorts[i]
+							.getSourcePortIndex()];
+					data = pInputRecords[this.mInPorts[i].getSourcePortIndex()];
+				}
+				
 				if (data != null && Number.class.isAssignableFrom(cl)) {
 					if (tClass == Integer.class || tClass == Long.class) {
 						data = ((Number) data).longValue();
