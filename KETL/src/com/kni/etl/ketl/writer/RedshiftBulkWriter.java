@@ -24,7 +24,6 @@ package com.kni.etl.ketl.writer;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -41,6 +40,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.kni.etl.EngineConstants;
+import com.kni.etl.dbutils.CopyFileItemHelper;
 import com.kni.etl.dbutils.DatabaseColumnDefinition;
 import com.kni.etl.dbutils.JDBCItemHelper;
 import com.kni.etl.dbutils.PrePostSQL;
@@ -54,7 +54,6 @@ import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLWriteException;
 import com.kni.etl.ketl.reader.JDBCReader;
-import com.kni.etl.ketl.reader.NIOFileReader;
 import com.kni.etl.ketl.smp.BatchManager;
 import com.kni.etl.ketl.smp.DefaultWriterCore;
 import com.kni.etl.ketl.smp.ETLThreadManager;
@@ -74,7 +73,8 @@ import com.kni.etl.util.XMLHelper;
  * @author Brian Sullivan
  * @version 0.1
  */
-public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, WriterBatchManager, DBConnection, PrePostSQL {
+public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, WriterBatchManager, DBConnection,
+		PrePostSQL {
 
 	@Override
 	protected String getVersion() {
@@ -127,7 +127,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 				// default
 
 				// Get the column's target name...
-				dcdNewColumn.setColumnName(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), ETLStep.NAME_ATTRIB, null));
+				dcdNewColumn.setColumnName(XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
+						ETLStep.NAME_ATTRIB, null));
 
 				RedshiftBulkWriter.this.mvColumns.add(dcdNewColumn);
 			}
@@ -135,9 +136,10 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 			if (XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), NIOFileWriter.FILE_NAME, false)) {
 				RedshiftBulkWriter.this.fileNameInPort = true;
 
-				RedshiftBulkWriter.this.fileNameFormat = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), NIOFileWriter.FILENAME_FORMAT,
-						"{FILENAME}.{PARTITION}{SUBPARTITION}");
-				RedshiftBulkWriter.this.filePathFormat = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), NIOFileWriter.FILEPATH_FORMAT, targetFilePath);
+				RedshiftBulkWriter.this.fileNameFormat = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
+						NIOFileWriter.FILENAME_FORMAT, "{FILENAME}.{PARTITION}{SUBPARTITION}");
+				RedshiftBulkWriter.this.filePathFormat = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(),
+						NIOFileWriter.FILEPATH_FORMAT, targetFilePath);
 				RedshiftBulkWriter.this.fileNamePort = this;
 
 			}
@@ -259,7 +261,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public RedshiftBulkWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+	public RedshiftBulkWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
+			throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -311,7 +314,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 		} catch (Exception e) {
 			throw new KETLThreadException(e, this);
 		} finally {
-			
+
 			for (RedshiftCopyFileWriter wr : this.mWriterList) {
 				try {
 					wr.close();
@@ -319,7 +322,6 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 					ResourcePool.LogException(e, this);
 				}
 			}
-			
 
 			if (this.isLastThreadToEnterCompletePhase()) {
 				// wait for all other threads to complete
@@ -338,7 +340,6 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 				try {
 					stmt = this.mcDBConnection.createStatement();
 
-					
 					sb.append(this.mstrTableName);
 					sb.append(" (");
 
@@ -350,25 +351,20 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 
 					}
 
-					sb.append(") from 's3://"
-							+ this.bucketName
-							+ File.separator
-							+ this.parentDir
-							+ File.separator
-							+ "'  CREDENTIALS 'aws_access_key_id="
-							+ this.accessKey
-							+ ";aws_secret_access_key="
-							+ this.secretKey
-							+ "' GZIP DELIMITER '\\001' MAXERROR AS 10 TIMEFORMAT AS 'epochmillisecs'  ESCAPE TRUNCATECOLUMNS TRIMBLANKS;\n");
+					sb.append(") from 's3://" + this.bucketName + File.separator + this.parentDir + File.separator
+							+ "'  CREDENTIALS 'aws_access_key_id=" + this.accessKey + ";aws_secret_access_key="
+							+ this.secretKey + "' GZIP DELIMITER '\\001' MAXERROR AS " + this.getErrorLimit()
+							+ " DATEFORMAT AS 'YYYYMMDD' "
+							+ " TIMEFORMAT AS 'epochmillisecs'  ESCAPE TRUNCATECOLUMNS TRIMBLANKS;\n");
 
 					stmt.execute(sb.toString());
 					stmt.close();
 				} catch (SQLException e) {
 					throw new KETLThreadException("Copy command failed: " + sb.toString(), e);
 				}
-				
+
 			}
-			
+
 			ResourcePool.releaseConnection(this.getConnection());
 			this.mcDBConnection = null;
 
@@ -377,7 +373,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 		return res;
 	}
 
-	private RedshiftCopyFileWriter createNewWriterMap(String fileName, String subPartition) throws KETLWriteException, IOException {
+	private RedshiftCopyFileWriter createNewWriterMap(String fileName, String subPartition) throws KETLWriteException,
+			IOException {
 
 		String path = "";
 		if (this.targetFilePath != null)
@@ -391,7 +388,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 			path = path.replace("{SUBPARTITION}", subPartition == null ? "" : subPartition);
 			File f = new File(path);
 			if (f.exists() == false) {
-				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Creating " + path + " directory " + f.getAbsolutePath());
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Creating " + path
+						+ " directory " + f.getAbsolutePath());
 				f.mkdir();
 			} else if (f.isDirectory() == false) {
 				throw new KETLWriteException("File path is invalid " + f.getAbsolutePath());
@@ -412,11 +410,9 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 	}
 
 	private RedshiftCopyFileWriter createOutputFile(String[] cols) throws IOException {
-		RedshiftCopyFileWriter writer = new RedshiftCopyFileWriter(this.cols,
-				this.mcDBConnection, new File(EngineConstants.PARTITION_PATH
-						+ File.separator + this.getPartitionID()),
-				this.accessKey, this.secretKey, this.bucketName,
-				this.parentDir, this.mCharset, this.mZip, this.mIOBufferSize);
+		RedshiftCopyFileWriter writer = new RedshiftCopyFileWriter(this.cols, this.mcDBConnection, new File(
+				EngineConstants.PARTITION_PATH + File.separator + this.getPartitionID()), this.accessKey,
+				this.secretKey, this.bucketName, this.parentDir, this.mCharset, this.mZip, this.mIOBufferSize);
 		this.mWriterList.add(writer);
 		return writer;
 	}
@@ -508,21 +504,15 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 		return new RedshiftBulkETLInPort(this, srcStep);
 	}
 
-	private static synchronized String getS3TargetDir(Element config,String parentDir,String tableName,long id) {
+	private static synchronized String getS3TargetDir(Element config, String parentDir, String tableName, long id) {
 		String tmp = XMLHelper.getAttributeAsString(config.getAttributes(), "TARGETDIR", null);
 		if (tmp == null) {
-			tmp = parentDir
-					+ File.separator
-					+ tableName
-					+ File.separator
-					+ id
-					+ "_"
-					+ System.currentTimeMillis();
+			tmp = parentDir + File.separator + tableName + File.separator + id + "_" + System.currentTimeMillis();
 			config.setAttribute("TARGETDIR", tmp);
 		}
 		return tmp;
 	}
-	
+
 	/**
 	 * DOCUMENT ME!.
 	 * 
@@ -565,18 +555,18 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 
 		this.mIOBufferSize = XMLHelper.getAttributeAsInt(nmAttrs, "IOBUFFER", 16384);
 
-		this.accessKey= this.getParameterValue(0, AWSKEY_ATTRIB);
-		this.secretKey= this.getParameterValue(0, AWSSECRET_ATTRIB);
-		this.parentDir= this.getParameterValue(0, AWSPARENTDIR_ATTRIB);
-		this.bucketName= this.getParameterValue(0, BUCKETNAME_ATTRIB);
+		this.accessKey = this.getParameterValue(0, AWSKEY_ATTRIB);
+		this.secretKey = this.getParameterValue(0, AWSSECRET_ATTRIB);
+		this.parentDir = this.getParameterValue(0, AWSPARENTDIR_ATTRIB);
+		this.bucketName = this.getParameterValue(0, BUCKETNAME_ATTRIB);
 		// Pull the name of the table to be written to...
-	
+
 		this.mstrTableName = XMLHelper.getAttributeAsString(nmAttrs, RedshiftBulkWriter.TABLE_ATTRIB, null);
-		
-		this.parentDir = getS3TargetDir(this.getXMLConfig(),this.parentDir,this.mstrTableName,this.getJobExecutionID());
+
+		this.parentDir = getS3TargetDir(this.getXMLConfig(), this.parentDir, this.mstrTableName,
+				this.getJobExecutionID());
 		this.mCharset = XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.CHARACTERSET_ATTRIB, "UTF-8");
 
-		
 		// Pull the commit size...
 		this.batchSize = XMLHelper.getAttributeAsInt(nmAttrs, RedshiftBulkWriter.COMMITSIZE_ATTRIB, this.batchSize);
 
@@ -588,16 +578,18 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 		}
 
 		try {
-			this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName, this.strPassword, this.strPreSQL, true, this
-					.getDatabaseProperties());
+			this.mcDBConnection = ResourcePool.getConnection(this.strDriverClass, this.strURL, this.strUserName,
+					this.strPassword, this.strPreSQL, true, this.getDatabaseProperties());
 
 			String template = null;
 			try {
-				this.setGroup(EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData().getDatabaseProductName()));
+				this.setGroup(EngineConstants.cleanseDatabaseName(this.mcDBConnection.getMetaData()
+						.getDatabaseProductName()));
 
 				template = this.getStepTemplate(this.getGroup(), "SELECTCOLUMNDATATYPE", true);
 				template = EngineConstants.replaceParameterV2(template, "TABLENAME", this.mstrTableName);
-				template = EngineConstants.replaceParameterV2(template, "COLUMNS", java.util.Arrays.toString(cols).replace("[", "").replace("]", ""));
+				template = EngineConstants.replaceParameterV2(template, "COLUMNS", java.util.Arrays.toString(cols)
+						.replace("[", "").replace("]", ""));
 
 				Statement mStmt = mcDBConnection.createStatement();
 				ResultSet rs = mStmt.executeQuery(template);
@@ -606,24 +598,13 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 				// object reference
 				ResultSetMetaData rm = rs.getMetaData();
 
-				String hdl = XMLHelper.getAttributeAsString(nmAttrs, "HANDLER", null);
-
-				JDBCItemHelper jdbcHelper;
-				if (hdl == null)
-					jdbcHelper = new JDBCItemHelper();
-				else {
-					try {
-						Class cl = Class.forName(hdl);
-						jdbcHelper = (JDBCItemHelper) cl.newInstance();
-					} catch (Exception e) {
-						throw new KETLThreadException("HANDLER class not found", e, this);
-					}
-				}
+				CopyFileItemHelper jdbcHelper = new CopyFileItemHelper();
 
 				for (int i = 1; i <= cols.length; i++) {
 
-					((RedshiftBulkETLInPort) this.getInPort(cols[i - 1])).targetClass = Class.forName(jdbcHelper.getJavaType(rm.getColumnType(i), JDBCReader.getColumnDisplaySize(rm,
-							i), JDBCReader.getPrecision(rm, i), JDBCReader.getScale(rm, i)));
+					((RedshiftBulkETLInPort) this.getInPort(cols[i - 1])).targetClass = Class.forName(jdbcHelper
+							.getJavaType(rm.getColumnType(i), JDBCReader.getColumnDisplaySize(rm, i),
+									JDBCReader.getPrecision(rm, i), JDBCReader.getScale(rm, i)));
 				}
 
 				rs.close();
@@ -631,12 +612,12 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 				mStmt.close();
 
 			} catch (Exception e1) {
-				throw new KETLThreadException("Problem executing fetch data type SQL \"" + template + "\"- " + e1.getMessage(), e1, this);
+				throw new KETLThreadException("Problem executing fetch data type SQL \"" + template + "\"- "
+						+ e1.getMessage(), e1, this);
 			}
 
 			this.executePreStatements();
 			this.executePreBatchStatements();
-
 
 		} catch (Exception e) {
 			throw new KETLThreadException(e, this);
@@ -664,7 +645,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 	 * com.kni.etl.ketl.smp.DefaultWriterCore#putNextRecord(java.lang.Object[],
 	 * java.lang.Class[], int)
 	 */
-	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException {
+	public int putNextRecord(Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth)
+			throws KETLWriteException {
 
 		String fileName = "NA";
 		Object subPartition = null;
@@ -688,12 +670,11 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 				}
 				writeRecord(wr, pInputRecords, pExpectedDataTypes, pRecordWidth);
 			} else {
-				
+
 				if (this.mWriters == null) {
 					this.createOutputFile(cols);
 
-					this.mWriters = new RedshiftCopyFileWriter[this.mWriterList
-							.size()];
+					this.mWriters = new RedshiftCopyFileWriter[this.mWriterList.size()];
 					this.mWriterList.toArray(this.mWriters);
 
 				}
@@ -735,24 +716,24 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 
 	}
 
-	private void writeRecord(RedshiftCopyFileWriter stmt, Object[] pInputRecords, Class[] pExpectedDataTypes, int pRecordWidth) throws KETLWriteException, IOException {
+	private void writeRecord(RedshiftCopyFileWriter stmt, Object[] pInputRecords, Class[] pExpectedDataTypes,
+			int pRecordWidth) throws KETLWriteException, IOException {
 		for (int i = 0; i < this.mInPorts.length; i++) {
 
 			if (((RedshiftBulkETLInPort) this.mInPorts[i]).skip == false) {
 
-				Class cl, tClass = ((RedshiftBulkETLInPort) this.mInPorts[i]).targetClass;
+				Class cl, targetClass = ((RedshiftBulkETLInPort) this.mInPorts[i]).targetClass;
 				Object data;
 				if (this.mInPorts[i].isConstant()) {
-					cl = tClass;
+					cl = targetClass;
 					data = this.mInPorts[i].getConstantValue();
 				} else {
-					cl = pExpectedDataTypes[this.mInPorts[i]
-							.getSourcePortIndex()];
+					cl = pExpectedDataTypes[this.mInPorts[i].getSourcePortIndex()];
 					data = pInputRecords[this.mInPorts[i].getSourcePortIndex()];
 				}
-				
+
 				if (data != null && Number.class.isAssignableFrom(cl)) {
-					if (tClass == Integer.class || tClass == Long.class) {
+					if (targetClass == Integer.class || targetClass == Long.class) {
 						data = ((Number) data).longValue();
 						cl = Long.class;
 					} else {
@@ -773,8 +754,12 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 					stmt.setLong(i + 1, (Long) data);
 				else if (cl == Float.class || cl == Float.class)
 					stmt.setFloat(i + 1, (Float) data);
-				else if (cl == java.util.Date.class || cl == java.sql.Timestamp.class || cl == java.sql.Time.class || cl == java.sql.Date.class)
-					stmt.setTimestamp(i + 1, (java.util.Date) data);
+				else if (cl == java.util.Date.class || cl == java.sql.Date.class || cl == java.sql.Timestamp.class
+						|| cl == java.sql.Time.class)
+					if (targetClass == java.sql.Date.class)
+						stmt.setDate(i + 1, (java.util.Date) data);
+					else
+						stmt.setTimestamp(i + 1, (java.util.Date) data);
 				else if (cl == Boolean.class || cl == boolean.class)
 					stmt.setBoolean(i + 1, (Boolean) data);
 				else if (cl == byte[].class)

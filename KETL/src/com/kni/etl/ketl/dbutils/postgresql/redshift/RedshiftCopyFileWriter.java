@@ -36,12 +36,16 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Formatter;
+
+import javax.swing.text.DateFormatter;
 
 import org.postgresql.copy.CopyManager;
 
 import com.kni.etl.EngineConstants;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.writer.S3OutputFile;
+import com.kni.etl.stringtools.FastSimpleDateFormat;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -125,6 +129,8 @@ final public class RedshiftCopyFileWriter {
 			throws IOException {
 		super();
 
+		this.mFormatter = new SimpleDateFormat();
+		this.mFormatter.applyPattern("yyyyMMdd");
 		this.mConnection = con;
 		//this.copy = ((org.postgresql.PGConnection) this.mConnection).getCopyAPI();
 		this.mColumns = cols.length;
@@ -497,6 +503,13 @@ final public class RedshiftCopyFileWriter {
 
 	public void commit() {
 		// TODO when really connected to db commit
+		
+	}
+	
+	SimpleDateFormat mFormatter;
+
+	public void setDate(int pos, Date arg0) {
+		this.setObject(pos, mFormatter.format(arg0));
 		
 	}
 

@@ -654,7 +654,7 @@ public abstract class ETLStep extends ETLWorker {
 		this.mShowExceptions = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), ETLStep.SHOWEXCEPTIONS, this.mShowExceptions);
 
 		// Pull the error limit...
-		this.miErrorLimit = XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), ETLStep.ERRORLIMIT_ATTRIB, ETLStep.DEFAULT_ERRORLIMIT);
+		this.setErrorLimit(XMLHelper.getAttributeAsInt(xmlConfig.getAttributes(), ETLStep.ERRORLIMIT_ATTRIB, ETLStep.DEFAULT_ERRORLIMIT));
 
 		/*
 		 * String strParameterListName = null; // Find the name of the parameter
@@ -852,8 +852,8 @@ public abstract class ETLStep extends ETLWorker {
 	protected void incrementErrorCount(Exception e, int i, int recordCounter) throws Exception {
 
 		this.mLastError = e;
-		if (this.mErrorCounter.increment(i) > this.miErrorLimit) {
-			if (this.miErrorLimit == 0) {
+		if (this.mErrorCounter.increment(i) > this.getErrorLimit()) {
+			if (this.getErrorLimit() == 0) {
 				throw e;
 			}
 			throw e;
@@ -874,7 +874,7 @@ public abstract class ETLStep extends ETLWorker {
 	 */
 	protected void incrementErrorCount(ETLEvent event, int i) throws KETLQAException {
 
-		if (this.mErrorCounter.increment(i) > this.miErrorLimit) {
+		if (this.mErrorCounter.increment(i) > this.getErrorLimit()) {
 			throw new KETLQAException("Step halted, QA failed, see below for details: " + event.mstrMessage, event, this);
 		}
 
@@ -891,7 +891,7 @@ public abstract class ETLStep extends ETLWorker {
 		SharedCounter cnt = this.getJobExecutor().ejCurrentJob.getErrorCounter(this.getName());
 
 		int res = cnt.value();
-		if (res > this.miErrorLimit) {
+		if (res > this.getErrorLimit()) {
 			if (this.getJobExecutor().getCurrentETLJob().getStatus().getException() == null)
 				this.mkjExecutor.getCurrentETLJob().getStatus().setException(this.mLastError);
 			return false;
@@ -1101,6 +1101,12 @@ public abstract class ETLStep extends ETLWorker {
 
 	protected String getGroup() {
 		return this.mGroup;
+	}
+	public int getErrorLimit() {
+		return miErrorLimit;
+	}
+	public void setErrorLimit(int miErrorLimit) {
+		this.miErrorLimit = miErrorLimit;
 	}
 
 }
