@@ -245,6 +245,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 	private String secretKey;
 	private String bucketName;
 	private String parentDir;
+	private boolean mbTruncate;
 
 	/**
 	 * Instantiates a new PG bulk writer.
@@ -309,15 +310,15 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 				this.recordsInBatch = 0;
 				this.executePostBatchStatements();
 			}
-
-			this.executePostStatements();
 		} catch (Exception e) {
 			throw new KETLThreadException(e, this);
 		} finally {
 
 			for (RedshiftCopyFileWriter wr : this.mWriterList) {
 				try {
+					this.setWaiting("upload to S3");
 					wr.close();
+					this.setWaiting(null);
 				} catch (Exception e) {
 					ResourcePool.LogException(e, this);
 				}
@@ -333,12 +334,15 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 						throw new KETLError(e);
 					}
 				}
-				this.setWaiting("final statements to run");
 				Statement stmt;
 				StringBuilder sb = new StringBuilder("COPY ");
 
 				try {
 					stmt = this.mcDBConnection.createStatement();
+					if (this.mbTruncate) {
+						this.setWaiting("truncating of target table");
+						stmt.execute("truncate table " + this.mstrTableName);
+					}
 
 					sb.append(this.mstrTableName);
 					sb.append(" (");
@@ -356,9 +360,11 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 							+ this.secretKey + "' GZIP DELIMITER '\\001' MAXERROR AS " + this.getErrorLimit()
 							+ " DATEFORMAT AS 'YYYYMMDD' "
 							+ " TIMEFORMAT AS 'epochmillisecs'  ESCAPE TRUNCATECOLUMNS TRIMBLANKS;\n");
+					this.setWaiting("copy command to complete");
 
 					stmt.execute(sb.toString());
 					stmt.close();
+					this.executePostStatements();
 				} catch (SQLException e) {
 					throw new KETLThreadException("Copy command failed: " + sb.toString(), e);
 				}
@@ -562,6 +568,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 		// Pull the name of the table to be written to...
 
 		this.mstrTableName = XMLHelper.getAttributeAsString(nmAttrs, RedshiftBulkWriter.TABLE_ATTRIB, null);
+		String tmpType = XMLHelper.getAttributeAsString(nmAttrs, DatabaseELTWriter.TYPE_ATTRIB, "BULK");
+		this.mbTruncate = tmpType.equalsIgnoreCase("REPLACE");
 
 		this.parentDir = getS3TargetDir(this.getXMLConfig(), this.parentDir, this.mstrTableName,
 				this.getJobExecutionID());
