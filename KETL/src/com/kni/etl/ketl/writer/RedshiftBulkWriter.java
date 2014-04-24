@@ -358,7 +358,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 					sb.append(") from 's3://" + this.bucketName + File.separator + this.parentDir + File.separator
 							+ "'  CREDENTIALS 'aws_access_key_id=" + this.accessKey + ";aws_secret_access_key="
 							+ this.secretKey + "' GZIP DELIMITER '\\001' MAXERROR AS " + this.getErrorLimit()
-							+ " DATEFORMAT AS 'YYYYMMDD' "
+							+ " DATEFORMAT AS 'YYYYMMDD' ACCEPTINVCHARS "
 							+ " TIMEFORMAT AS 'epochmillisecs'  ESCAPE TRUNCATECOLUMNS TRIMBLANKS;\n");
 					this.setWaiting("copy command to complete");
 
