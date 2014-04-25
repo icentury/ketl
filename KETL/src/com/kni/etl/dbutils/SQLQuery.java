@@ -23,17 +23,13 @@
 package com.kni.etl.dbutils;
 
 import java.math.BigDecimal;
-import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,7 +43,6 @@ import com.kni.etl.EngineConstants;
 import com.kni.etl.Metadata;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
-import com.kni.etl.util.XMLHelper;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -192,7 +187,10 @@ public class SQLQuery {
 		return sql;
 	}
 
-	private enum IncrementalType {DATE,NUMBER,STRING,UNKNOWN} 
+	private enum IncrementalType {
+		DATE, NUMBER, STRING, UNKNOWN
+	}
+
 	public Collection<ParameterColumnMapping> replaceIncremental(String parameterListName) throws ParseException {
 		Pattern p = Pattern.compile("(" + THIS_GET_INCREMENTAL.replace(".", "\\.").replace("(", "\\(") + ").*\\)");
 		Matcher m = p.matcher(sql);
@@ -206,24 +204,24 @@ public class SQLQuery {
 				String param = function.substring(0, function.length() - 1).trim();
 				String[] vals = param.split(",");
 				IncrementalType type = null;
-				if(vals.length ==4 )
+				if (vals.length == 4)
 					this.offSet = Integer.parseInt(vals[3].trim());
-				
-				if(vals.length == 3){
-					type  =					IncrementalType.valueOf(vals[2].trim());					
+
+				if (vals.length == 3) {
+					type = IncrementalType.valueOf(vals[2].trim());
 				} else
-					type= IncrementalType.UNKNOWN;
-				incrementalParameters
-						.add(new ParameterColumnMapping(parameterListName, vals[1].trim(), vals[0].trim(),type));
+					type = IncrementalType.UNKNOWN;
+				incrementalParameters.add(new ParameterColumnMapping(parameterListName, vals[1].trim(), vals[0].trim(),
+						type));
 			}
-			
+
 			sql = code.replace("${INCPARAM}", "?");
 
 			return incrementalParameters;
 		} catch (Throwable e) {
 			ParseException e1 = new ParseException("Invalid parameters for incremental syntax should be "
-					+ THIS_GET_INCREMENTAL + "column name,parameter name) - " + e.getMessage() + ", whilst parsing \""
-					+ sql + "\"", m.start());
+					+ THIS_GET_INCREMENTAL + "column name,parameter name,[type]) - " + e.getMessage()
+					+ ", whilst parsing \"" + sql + "\"", m.start());
 			e1.setStackTrace(e.getStackTrace());
 			throw e1;
 		}
@@ -310,8 +308,10 @@ public class SQLQuery {
 				parameter.setTextContent(newValue);
 				paramList.setAttribute(ETLStep.NAME_ATTRIB, this.parameterListName);
 				md.importParameterList(paramList);
-				
-				ResourcePool.LogMessage(Thread.currentThread(),ResourcePool.INFO_MESSAGE,"Updating incremental parameter " + this.getParameterName() + ", from " + this.getValue() + " to " + maxValue.toString());					
+
+				ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE,
+						"Updating incremental parameter " + this.getParameterName() + ", from " + this.getValue()
+								+ " to " + maxValue.toString());
 			} catch (Exception e) {
 				throw new KETLThreadException(e, this);
 
@@ -352,6 +352,7 @@ public class SQLQuery {
 	}
 
 	private int offSet = 0;
+
 	public void setIncrementalParameters(PreparedStatement pstmt) throws SQLException {
 
 		for (int i = 0; i < this.incrementalParameters.size(); i++) {
@@ -359,16 +360,17 @@ public class SQLQuery {
 			String paramValue = param.value;
 			Class cls = param.type;
 			if (Number.class.isAssignableFrom(cls)) {
-				BigDecimal bd = paramValue == null ? new BigDecimal(Integer.MIN_VALUE) : new BigDecimal(paramValue).add(new BigDecimal(offSet));
-				pstmt.setBigDecimal(i + 1, bd);				
+				BigDecimal bd = paramValue == null ? new BigDecimal(Integer.MIN_VALUE) : new BigDecimal(paramValue)
+						.add(new BigDecimal(offSet));
+				pstmt.setBigDecimal(i + 1, bd);
 				previousValue = bd.toString();
 			} else if (CharSequence.class.isAssignableFrom(cls)) {
 				paramValue = paramValue == null ? new String(new byte[] { 0 }) : paramValue;
-				pstmt.setString(i + 1, paramValue);				
+				pstmt.setString(i + 1, paramValue);
 				previousValue = paramValue;
 			} else if (java.util.Date.class.isAssignableFrom(cls)) {
 				paramValue = paramValue == null ? "0" : paramValue;
-				Timestamp dt = new java.sql.Timestamp(Long.parseLong(paramValue)+offSet);
+				Timestamp dt = new java.sql.Timestamp(Long.parseLong(paramValue) + offSet);
 				pstmt.setTimestamp(i + 1, dt);
 
 				previousValue = dt.toString();
@@ -389,20 +391,20 @@ public class SQLQuery {
 	public void setIncrementalBlankParameters(PreparedStatement stmt) throws SQLException {
 		for (int i = 0; i < this.incrementalParameters.size(); i++) {
 			ParameterColumnMapping param = this.incrementalParameters.get(i);
-			switch(param.columnType)
-			{ case DATE:
-				stmt.setNull(i+1,java.sql.Types.DATE);
+			switch (param.columnType) {
+			case DATE:
+				stmt.setNull(i + 1, java.sql.Types.DATE);
 				break;
 			case NUMBER:
-				stmt.setNull(i+1,java.sql.Types.NUMERIC);
+				stmt.setNull(i + 1, java.sql.Types.NUMERIC);
 				break;
 			case STRING:
 			default:
-				stmt.setNull(i+1,java.sql.Types.VARCHAR);
+				stmt.setNull(i + 1, java.sql.Types.VARCHAR);
 				break;
 			}
 		}
-		
+
 	}
 
 }

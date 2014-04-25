@@ -22,30 +22,20 @@
  */
 package com.kni.etl.ketl.dbutils.postgresql.redshift;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Formatter;
 
-import javax.swing.text.DateFormatter;
-
-import org.postgresql.copy.CopyManager;
-
-import com.kni.etl.EngineConstants;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.writer.S3OutputFile;
-import com.kni.etl.stringtools.FastSimpleDateFormat;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -53,9 +43,8 @@ import com.kni.etl.stringtools.FastSimpleDateFormat;
  */
 final public class RedshiftCopyFileWriter {
 
-	
 	/** The Constant mDelimiter. */
-	private final static String mDelimiter = "\001";
+	private final static char mDelimiter = '\001';
 
 	/** The Constant mNull. */
 	private final static String mNull = "\\N";
@@ -67,7 +56,7 @@ final public class RedshiftCopyFileWriter {
 	private int batchesCompleted = 0;
 
 	/** The copy. */
-	//private CopyManager copy;
+	// private CopyManager copy;
 
 	/** The date formatter. */
 	private DateFormat dateFormatter;
@@ -92,7 +81,7 @@ final public class RedshiftCopyFileWriter {
 
 	/** The ms load command. */
 	private String msLoadCommand = null;
-	
+
 	/** The rows in this batch. */
 	private int rowsInThisBatch = 0;
 
@@ -113,26 +102,26 @@ final public class RedshiftCopyFileWriter {
 
 	/**
 	 * Instantiates a new PG copy writer.
-	 * @param cols 
+	 * 
+	 * @param cols
 	 * 
 	 * @param con
 	 *            the con
-	 * @param filePath 
+	 * @param filePath
 	 * 
 	 * @throws SQLException
 	 *             the SQL exception
-	 * @throws IOException 
+	 * @throws IOException
 	 */
-	public RedshiftCopyFileWriter(String[] cols, Connection con, File spoolDir, String awsKey,
-			String secretKey, String bucketName, String parentDir,
-			String charsetName, boolean zip, int bufferSize)
-			throws IOException {
+	public RedshiftCopyFileWriter(String[] cols, Connection con, File spoolDir, String awsKey, String secretKey,
+			String bucketName, String parentDir, String charsetName, boolean zip, int bufferSize) throws IOException {
 		super();
 
 		this.mFormatter = new SimpleDateFormat();
 		this.mFormatter.applyPattern("yyyyMMdd");
 		this.mConnection = con;
-		//this.copy = ((org.postgresql.PGConnection) this.mConnection).getCopyAPI();
+		// this.copy = ((org.postgresql.PGConnection)
+		// this.mConnection).getCopyAPI();
 		this.mColumns = cols.length;
 		this.mDatums = new Object[this.mColumns];
 		this.mDatumTypes = new Class[this.mColumns];
@@ -142,31 +131,29 @@ final public class RedshiftCopyFileWriter {
 		this.secretKey = secretKey;
 		this.bucketName = bucketName;
 		this.parentDir = parentDir;
-		//this.copy.setCopyBufferSize(1 << 20);
+		// this.copy.setCopyBufferSize(1 << 20);
 		this.doubleFormatter.setGroupingUsed(false);
-		//this.mEncoder = Charset.forName(this.copy.getEncoding());
-		this.outputFile = new S3OutputFile( awsKey,  secretKey,  bucketName,parentDir,charsetName,zip,bufferSize);
+		// this.mEncoder = Charset.forName(this.copy.getEncoding());
+		this.outputFile = new S3OutputFile(awsKey, secretKey, bucketName, parentDir, charsetName, zip, bufferSize);
 		if (!spoolDir.exists())
 			spoolDir.mkdir();
 
-		this.outputFile.openTemp(spoolDir);		
+		this.outputFile.openTemp(spoolDir);
 	}
 
 	/**
 	 * Close.
 	 * 
 	 * @return true, if successful
-	 * @throws IOException 
+	 * @throws IOException
 	 * 
 	 * @throws SQLException
 	 *             the SQL exception
 	 */
-	public boolean close() throws IOException  {
+	public boolean close() throws IOException {
 		this.outputFile.close();
 		return true;
 	}
-
-
 
 	/** The sb. */
 	StringBuilder sb = new StringBuilder();
@@ -187,7 +174,7 @@ final public class RedshiftCopyFileWriter {
 		// check for escaping needed
 		if ((mString.indexOf('\\') != -1) || (mString.indexOf('|') != -1) || (mString.indexOf('\n') != -1)
 				|| (mString.indexOf('\r') != -1) || mString.indexOf((char) 0) != -1 || mString.indexOf('\b') != -1
-				|| mString.indexOf('\t') != -1 || mString.indexOf('\f') != -1) {
+				|| mString.indexOf('\t') != -1 || mString.indexOf('\f') != -1 || mString.indexOf(mDelimiter) != -1) {
 		} else {
 			return mString;
 		}
@@ -206,6 +193,9 @@ final public class RedshiftCopyFileWriter {
 				break;
 			case '\f':
 				this.sb.append("\\f");
+				break;
+			case mDelimiter:
+				this.sb.append("\\001");
 				break;
 			case '\b':
 				this.sb.append("\\b");
@@ -465,7 +455,7 @@ final public class RedshiftCopyFileWriter {
 	 *            the arg0
 	 */
 	private void setObject(int pos, Object arg0) {
-		
+
 		this.mDatums[pos - 1] = arg0;
 		if (this.mDatumTypes[pos - 1] == null)
 			this.mDatumTypes[pos - 1] = this.mDatums[pos - 1].getClass();
@@ -503,14 +493,14 @@ final public class RedshiftCopyFileWriter {
 
 	public void commit() {
 		// TODO when really connected to db commit
-		
+
 	}
-	
+
 	SimpleDateFormat mFormatter;
 
 	public void setDate(int pos, Date arg0) {
 		this.setObject(pos, mFormatter.format(arg0));
-		
+
 	}
 
 }
