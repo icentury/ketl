@@ -364,9 +364,14 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 
 					stmt.execute(sb.toString());
 					stmt.close();
-					this.executePostStatements();
 				} catch (SQLException e) {
 					throw new KETLThreadException("Copy command failed: " + sb.toString(), e);
+				}
+
+				try {
+					this.executePostStatements();
+				} catch (SQLException e) {
+					throw new KETLThreadException("Post SQL failed: " + e.toString(), e);
 				}
 
 			}

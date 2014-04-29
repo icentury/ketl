@@ -59,7 +59,7 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 	}
 
 	private enum Type {
-		NORMAL, FULL
+		NORMAL, FULL, DDL
 	};
 
 	private Type type = Type.NORMAL;
@@ -79,7 +79,8 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 	 * @throws KETLThreadException
 	 *             the KETL thread exception
 	 */
-	public ConsoleWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager) throws KETLThreadException {
+	public ConsoleWriter(Node pXMLConfig, int pPartitionID, int pPartition, ETLThreadManager pThreadManager)
+			throws KETLThreadException {
 		super(pXMLConfig, pPartitionID, pPartition, pThreadManager);
 	}
 
@@ -108,7 +109,8 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 				for (int i = 0; i < this.mInPorts.length; i++) {
 					if (i > 0)
 						this.pw.print(';');
-					this.pw.print(this.mInPorts[i].mstrName + "(" + this.mInPorts[i].getPortClass().getCanonicalName() + ")");
+					this.pw.print(this.mInPorts[i].mstrName + "(" + this.mInPorts[i].getPortClass().getCanonicalName()
+							+ ")");
 				}
 				this.pw.println();
 				this.listHeaders = false;
@@ -117,7 +119,8 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 				if (i > 0)
 					this.pw.print(';');
 
-				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : o[this.mInPorts[i].getSourcePortIndex()];
+				Object data = this.mInPorts[i].isConstant() ? this.mInPorts[i].getConstantValue() : o[this.mInPorts[i]
+						.getSourcePortIndex()];
 
 				if (data == null)
 					this.pw.print("[NULL]");
@@ -133,7 +136,26 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 			this.pw.println(this.getName() + " - Record: " + this.recordCount++);
 			for (int i = 0; i < this.mInPorts.length; i++) {
 				try {
-					this.pw.println("\t" + this.mInPorts[i].getPortName() + ": " + o[this.mInPorts[i].getSourcePortIndex()]);
+					this.pw.println("\t" + this.mInPorts[i].getPortName() + ": "
+							+ o[this.mInPorts[i].getSourcePortIndex()]);
+				} catch (KETLThreadException e) {
+					throw new KETLWriteException(e);
+				}
+			}
+
+		} else if (type == Type.DDL) {
+			for (int i = 0; i < this.mInPorts.length; i++) {
+				try {
+					if (this.cols == null)
+						this.cols = new ColInfo[this.mInPorts.length];
+
+					ColInfo c = cols[i];
+					Object ob = o[this.mInPorts[i].getSourcePortIndex()];
+					if (c == null) {
+						c = new ColInfo(this.mInPorts[i].getPortName(), ob, i, this.mInPorts[i].getPortClass());
+						cols[i] = c;
+					} else
+						c.syncLen(ob);
 				} catch (KETLThreadException e) {
 					throw new KETLWriteException(e);
 				}
@@ -142,6 +164,38 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 		return 1;
 	}
 
+	class ColInfo {
+		Integer len = null;
+
+		public ColInfo(String name, Object o, int pos, Class type) {
+			super();
+			syncLen(o);
+			this.name = name;
+			this.pos = pos;
+			this.type = type;
+		}
+
+		@Override
+		public String toString() {
+			return this.name + " " + this.type.getSimpleName() + (len == null ? "," : "(" + this.len + "),");
+		}
+
+		String name;
+		int pos;
+		Class type;
+
+		void syncLen(Object o) {
+			if (o != null && o instanceof CharSequence) {
+				int len = o.toString().length();
+				if (this.len == null || len > this.len) {
+					this.len = len;
+				}
+			}
+		}
+	}
+
+	private ColInfo[] cols = null;
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -149,7 +203,11 @@ public class ConsoleWriter extends ETLWriter implements DefaultWriterCore {
 	 */
 	@Override
 	protected void close(boolean success, boolean jobFailed) {
+		if (this.type == Type.DDL && this.cols != null) {
+			for (ColInfo c : this.cols)
+				this.pw.println(c.toString());
 
+		}
 	}
 
 	@Override
