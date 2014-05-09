@@ -25,6 +25,7 @@ package com.kni.etl.ketl.reader;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.w3c.dom.Node;
 
@@ -32,6 +33,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.DeleteMessageBatchRequest;
 import com.amazonaws.services.sqs.model.DeleteMessageBatchRequestEntry;
+import com.amazonaws.services.sqs.model.ListQueuesResult;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
@@ -77,6 +79,7 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
     AmazonSQSClient sqsClient;
     public int waitTimeSeconds = 0;
     private List<DeleteMessageBatchRequestEntry> messagesToDelete = new ArrayList();
+    public String name;
 
     public void recordMessageIDs(List<Message> messages) {
       for (Message m : messages)
@@ -86,12 +89,23 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
     }
 
     public void deleteMessages() {
-      sqsClient.deleteMessageBatch(new DeleteMessageBatchRequest(this.endpoint,
-          this.messagesToDelete));
+      while (messagesToDelete.size() > 0) {
+        List<DeleteMessageBatchRequestEntry> batch =
+            new ArrayList<DeleteMessageBatchRequestEntry>();
+        while (batch.size() < 10 && messagesToDelete.size() > 0)
+          batch.add(this.messagesToDelete.remove(0));
+
+        if (batch.size() > 0)
+          sqsClient.deleteMessageBatch(new DeleteMessageBatchRequest(this.endpoint, batch));
+      }
     }
+
+
+
   }
 
   private List<SQSQueue> endPoints = new ArrayList<SQSQueue>();
+  private long miMaxRuntime;
 
   /*
    * (non-Javadoc)
@@ -103,6 +117,8 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
     int res = super.initialize(pXmlConfig);
 
 
+    this.miMaxRuntime =
+        XMLHelper.getAttributeAsInt(pXmlConfig.getAttributes(), "MAXRUNTIME", Integer.MAX_VALUE) * 1000;
 
     if (this.maParameters != null) {
       for (int paramList = 0; paramList < this.maParameters.size(); paramList++) {
@@ -113,12 +129,31 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
                   "AWSKEY"), this.getParameterValue(paramList, "AWSSECRET")));
 
           String queueName = this.getParameterValue(paramList, "SQSQUEUENAME");
+          int waitTimeSeconds =
+              this.getParameterValue(paramList, "SQSWAITTIME") != null ? Integer.parseInt(this
+                  .getParameterValue(paramList, "SQSWAITTIME")) : 0;
 
-          if (this.getParameterValue(paramList, "SQSWAITTIME") != null)
-            queue.waitTimeSeconds =
-                Integer.parseInt(this.getParameterValue(paramList, "SQSWAITTIME"));
-          queue.endpoint = queue.sqsClient.getQueueUrl(queueName).getQueueUrl();
-          endPoints.add(queue);
+          if (queueName.contains("*")) {
+            ListQueuesResult queueList = queue.sqsClient.listQueues(queueName.replace("*", ""));
+            for (String endPoint : queueList.getQueueUrls()) {
+              queue = new SQSQueue();
+              queue.sqsClient =
+                  new AmazonSQSClient(new BasicAWSCredentials(this.getParameterValue(paramList,
+                      "AWSKEY"), this.getParameterValue(paramList, "AWSSECRET")));
+              queue.endpoint = endPoint;
+              queue.waitTimeSeconds = waitTimeSeconds;
+              queue.name = endPoint.substring(endPoint.lastIndexOf('/') + 1);
+              endPoints.add(queue);
+            }
+          } else {
+            queue.waitTimeSeconds = waitTimeSeconds;
+            queue.name = queueName;
+            queue.endpoint = queue.sqsClient.getQueueUrl(queueName).getQueueUrl();
+            endPoints.add(queue);
+          }
+
+          // prevent skew by shuffling to partition id
+          java.util.Collections.shuffle(this.endPoints, new Random(this.partitionID));
         } catch (QueueDoesNotExistException e) {
           throw new KETLThreadException("Error connecting to queue", e);
         }
@@ -134,6 +169,8 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
   /**
    * The Class HelloWorldOutPort.
    */
+  private static final String QUEUENAME = "$QUEUENAME";
+
   class SQSOutPort extends ETLOutPort {
 
     private String attributeName;
@@ -191,15 +228,16 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
           return message.getMessageId();
         case receipthandle:
           return message.getReceiptHandle();
+        case queuename:
+          return message.getAttributes().get(QUEUENAME);
         default:
           return null;
       }
     }
-
   }
 
   enum MessagePart {
-    body, messageid, receipthandle, attribute
+    body, messageid, receipthandle, attribute, queuename
   };
 
 
@@ -220,34 +258,45 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
    * java.lang.Class[], int)
    */
 
-  private List<Message> messages = new ArrayList<Message>();
+  private List<Message> messages = java.util.Collections.synchronizedList(new ArrayList<Message>());
   private int deleteId = 0;
+  private Long sqsReadStart = null;
 
   public int getNextRecord(Object[] pResultArray, Class[] pExpectedDataTypes, int pRecordWidth)
       throws KETLReadException {
 
+    if (this.sqsReadStart == null)
+      this.sqsReadStart = System.currentTimeMillis();
+
     // as we are generating records not reading from a source we need to use
     // a counter
-    if (messages.size() == 0) {
+    if (messages.size() == 0
+        && (System.currentTimeMillis() - this.sqsReadStart) < this.miMaxRuntime) {
       for (SQSQueue activeQueue : this.endPoints) {
 
-        ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest();
-        receiveMessageRequest.setWaitTimeSeconds(activeQueue.waitTimeSeconds);
-        receiveMessageRequest.setQueueUrl(activeQueue.endpoint);
-        ReceiveMessageResult res = activeQueue.sqsClient.receiveMessage(receiveMessageRequest);
-        List<Message> queueMessages = res.getMessages();
+        if (messages.size() <= this.batchSize) {
+          ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest();
+          receiveMessageRequest.setWaitTimeSeconds(activeQueue.waitTimeSeconds);
+          receiveMessageRequest.setQueueUrl(activeQueue.endpoint);
+          receiveMessageRequest.setMaxNumberOfMessages(this.batchSize);
+          ReceiveMessageResult res = activeQueue.sqsClient.receiveMessage(receiveMessageRequest);
+          List<Message> queueMessages = res.getMessages();
 
-        if (messages != null) {
-          messages.addAll(messages);
-          activeQueue.recordMessageIDs(messages);
+          if (queueMessages != null) {
+            for (Message m : queueMessages) {
+              m.addAttributesEntry(QUEUENAME, activeQueue.name);
+              messages.add(m);
+            }
+            activeQueue.recordMessageIDs(queueMessages);
 
+          }
         }
       }
 
+    }
 
-      if (messages.size() == 0) {
-        return DefaultReaderCore.COMPLETE;
-      }
+    if (messages.size() == 0) {
+      return DefaultReaderCore.COMPLETE;
     }
 
     Message message = messages.remove(0);
