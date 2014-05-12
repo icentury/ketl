@@ -358,8 +358,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 
           sb.append(") from 's3://" + this.bucketName + File.separator + this.parentDir
               + File.separator + "'  CREDENTIALS 'aws_access_key_id=" + this.accessKey
-              + ";aws_secret_access_key=" + this.secretKey
-              + "' GZIP DELIMITER '\\001' MAXERROR AS " + this.getErrorLimit()
+              + ";aws_secret_access_key=" + this.secretKey + "' " + this.getCompression()
+              + " DELIMITER '\\001' MAXERROR AS " + this.getErrorLimit()
               + " DATEFORMAT AS 'YYYYMMDD' ACCEPTINVCHARS "
               + " TIMEFORMAT AS 'epochmillisecs'  ESCAPE TRUNCATECOLUMNS TRIMBLANKS;\n");
           this.setWaiting("copy command to complete");
@@ -384,6 +384,11 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
     }
 
     return res;
+  }
+
+
+  private String getCompression() {
+    return this.mZip ? "GZIP" : "";
   }
 
   private RedshiftCopyFileWriter createNewWriterMap(String fileName, String subPartition)
@@ -572,7 +577,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
       return res;
 
     this.mIOBufferSize = XMLHelper.getAttributeAsInt(nmAttrs, "IOBUFFER", 16384);
-
+    this.mZip = XMLHelper.getAttributeAsBoolean(nmAttrs, "COMPRESS", true);
     this.accessKey = this.getParameterValue(0, AWSKEY_ATTRIB);
     this.secretKey = this.getParameterValue(0, AWSSECRET_ATTRIB);
     this.parentDir = this.getParameterValue(0, AWSPARENTDIR_ATTRIB);
