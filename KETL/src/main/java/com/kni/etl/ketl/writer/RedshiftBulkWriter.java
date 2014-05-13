@@ -245,6 +245,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
   private String bucketName;
   private String parentDir;
   private boolean mbTruncate;
+  private int fileMaxRows;
+  private Integer s3Expire;
 
   /**
    * Instantiates a new PG bulk writer.
@@ -434,7 +436,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
         new RedshiftCopyFileWriter(this.cols, this.mcDBConnection, new File(
             EngineConstants.PARTITION_PATH + File.separator + this.getPartitionID()),
             this.accessKey, this.secretKey, this.bucketName, this.parentDir, this.mCharset,
-            this.mZip, this.mIOBufferSize);
+            this.mZip, this.mIOBufferSize, this.fileMaxRows);
     this.mWriterList.add(writer);
     return writer;
   }
@@ -577,6 +579,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
       return res;
 
     this.mIOBufferSize = XMLHelper.getAttributeAsInt(nmAttrs, "IOBUFFER", 16384);
+    this.fileMaxRows = XMLHelper.getAttributeAsInt(nmAttrs, "FILEMAXROWS", Integer.MAX_VALUE);
     this.mZip = XMLHelper.getAttributeAsBoolean(nmAttrs, "COMPRESS", true);
     this.accessKey = this.getParameterValue(0, AWSKEY_ATTRIB);
     this.secretKey = this.getParameterValue(0, AWSSECRET_ATTRIB);
