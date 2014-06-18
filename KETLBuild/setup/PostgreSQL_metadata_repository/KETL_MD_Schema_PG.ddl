@@ -518,6 +518,19 @@ CREATE TABLE server_status (
 
 ALTER TABLE server_status OWNER TO ketlmd;
 
+
+CREATE TABLE field_mapping(
+ field_name character varying(128) not null,
+ mapping_name character varying(50)  not null,
+ config text
+);
+
+
+ALTER TABLE field_mapping OWNER TO ketlmd;
+
+ALTER TABLE ONLY field_mapping
+    ADD CONSTRAINT field_mapping_pkey PRIMARY KEY (mapping_name,field_name);
+
 --
 -- TOC entry 1806 (class 16386 OID 205753222)
 -- Dependencies: 1443 1443
