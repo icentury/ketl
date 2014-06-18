@@ -82,7 +82,6 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
    */
   public class RedshiftBulkETLInPort extends ETLInPort {
 
-    private boolean skip;
 
     public Class<?> targetClass;
 
@@ -108,8 +107,6 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
       if (res != 0)
         return res;
 
-      this.skip =
-          XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), NIOFileWriter.SKIP, false);
 
       // It's ok if not specified
       if (skip == false) {

@@ -53,7 +53,7 @@ public class ETLEvent
     Object moSource = null;
     
     /** The mes originating step. */
-    ETLStep mesOriginatingStep;
+    RecordChecker mesOriginatingStep;
     
     /** The mi return code. */
     int miReturnCode = 0;
@@ -72,7 +72,7 @@ public class ETLEvent
      * @param esOriginatingStep the es originating step
      * @param strEventName the str event name
      */
-    public ETLEvent(ETLStep esOriginatingStep, String strEventName)
+    public ETLEvent(RecordChecker esOriginatingStep, String strEventName)
     {
         this();
         this.mstrEventName = strEventName;
@@ -87,7 +87,7 @@ public class ETLEvent
      * @param strEventName the str event name
      * @param strMsg the str msg
      */
-    public ETLEvent(Object oSource, ETLStep esOriginatingStep, String strEventName, String strMsg)
+    public ETLEvent(Object oSource, RecordChecker esOriginatingStep, String strEventName, String strMsg)
     {
         this();
         this.moSource = oSource;
@@ -131,7 +131,7 @@ public class ETLEvent
      * 
      * @return the ETL step
      */
-    public ETLStep getETLStep()
+    public RecordChecker getETLStep()
     {
         return this.mesOriginatingStep;
     }

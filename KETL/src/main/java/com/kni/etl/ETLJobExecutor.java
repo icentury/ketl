@@ -33,14 +33,18 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Queue;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.kni.etl.dbutils.ResourcePool;
+import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.util.XMLHelper;
 import com.kni.util.ArgumentParserUtil;
@@ -887,6 +891,41 @@ public abstract class ETLJobExecutor extends Thread {
 			}
 		}
 	}
+
+  protected void setWritebackParameter(String paramListName, String paramName, String value) throws Exception,
+      ParserConfigurationException {
+      
+        if (paramListName == null)
+          throw new Exception("For parameter list name must be specified for writeback,add tag "
+              + EngineConstants.PARAMETER_LIST);
+      
+        if (value == null) {
+          ResourcePool.LogMessage(this, ResourcePool.WARNING_MESSAGE,
+              "Parameter write back resulted in setting parameter " + paramName + " to NULL");
+        }
+      
+        Metadata md = ResourcePool.getMetadata();
+      
+        if (md == null) {
+          throw new Exception("Parameter writeback failed as metadata could not be connected to");
+        }
+      
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+      
+        Document document = builder.newDocument(); // Create
+        // from
+        // whole
+        // cloth
+        Element paramList = document.createElement(EngineConstants.PARAMETER_LIST);
+        Element parameter = document.createElement(EngineConstants.PARAMETER);
+        document.appendChild(paramList);
+        paramList.appendChild(parameter);
+        parameter.setAttribute(ETLStep.NAME_ATTRIB, paramName);
+        parameter.setTextContent(value);
+        paramList.setAttribute(ETLStep.NAME_ATTRIB, paramListName);
+        md.importParameterList(paramList);
+      }
 
 	
 }

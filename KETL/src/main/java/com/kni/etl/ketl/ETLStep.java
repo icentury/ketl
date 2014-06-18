@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -40,8 +41,10 @@ import com.kni.etl.SharedCounter;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.SystemConfigCache.Parameter;
 import com.kni.etl.ketl.SystemConfigCache.ParameterType;
+import com.kni.etl.ketl.exceptions.KETLException;
 import com.kni.etl.ketl.exceptions.KETLQAException;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
+import com.kni.etl.ketl.exceptions.KETLTransformException;
 import com.kni.etl.ketl.qa.QACollection;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.ketl.smp.ETLWorker;
@@ -54,7 +57,24 @@ import com.kni.etl.util.XMLHelper;
  * @author nwakefield To change the template for this generated type comment go to
  *         Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
-public abstract class ETLStep extends ETLWorker {
+public abstract class ETLStep extends ETLWorker implements RecordChecker {
+
+  /**
+   * Outs resolved.
+   * 
+   * @param config the config
+   * 
+   * @return true, if successful
+   */
+  protected static synchronized boolean outsResolved(Element config) {
+    boolean tmp =
+        XMLHelper.getAttributeAsBoolean(config.getAttributes(), "OUTSYNTAXRESOLVED", false);
+    if (tmp == false) {
+      config.setAttribute("OUTSYNTAXRESOLVED", "TRUE");
+      return tmp;
+    }
+    return tmp;
+  }
 
   /** The job. */
   private ETLJob mJob;
@@ -586,15 +606,13 @@ public abstract class ETLStep extends ETLWorker {
 
   private String userDefinedImports;
 
-  /**
-   * Record check.
+  /*
+   * (non-Javadoc)
    * 
-   * @param di the di
-   * @param e the e
-   * 
-   * @throws KETLQAException the KETLQA exception
+   * @see com.kni.etl.ketl.RecordChecker#recordCheck(java.lang.Object[], java.lang.Exception)
    */
-  final protected void recordCheck(Object[] di, Exception e) throws KETLQAException {
+  @Override
+  final public void recordCheck(Object[] di, Exception e) throws KETLQAException {
     this.mqacQACollection.recordCheck(di, e);
     this.mqacQACollection.itemChecks(di, e);
   }
@@ -847,6 +865,55 @@ public abstract class ETLStep extends ETLWorker {
   /**
    * Increment error count.
    * 
+   * @param e the e
+   * @param objects the objects
+   * @param val the val
+   * 
+   * @throws KETLTransformException the KETL transform exception
+   */
+  final public void incrementErrorCount(Exception e, Object[] objects, int val)
+      throws KETLException {
+
+    try {
+      if (objects != null)
+        this.logBadRecord(val, objects, e);
+    } catch (IOException e1) {
+      throw new KETLException(e1);
+    }
+    try {
+      this.incrementErrorCount(e, 1, val);
+    } catch (Exception e1) {
+      if (e1 instanceof KETLException)
+        throw (KETLException) e1;
+      throw new KETLException(e1);
+    }
+  }
+
+
+  final public void incrementErrorCount(Exception e, Object[] left, Object[] right, int val)
+      throws KETLException {
+
+    try {
+      if (left != null)
+        this.logBadRecord(val, left, e);
+      if (right != null)
+        this.logBadRecord(val, right, e);
+    } catch (IOException e1) {
+      throw new KETLException(e);
+    }
+
+    try {
+      this.incrementErrorCount(e, 1, val);
+    } catch (Exception e1) {
+      if (e1 instanceof KETLException)
+        throw (KETLException) e1;
+      throw new KETLException(e1);
+    }
+  }
+
+  /**
+   * Increment error count.
+   * 
    * @param event the event
    * @param i the i
    * 
@@ -1083,6 +1150,10 @@ public abstract class ETLStep extends ETLWorker {
 
   public void setErrorLimit(int miErrorLimit) {
     this.miErrorLimit = miErrorLimit;
+  }
+
+  protected boolean isObjectList(String value) {
+    return value.startsWith("objectList://");
   }
 
 }

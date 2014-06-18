@@ -83,9 +83,6 @@ public class SQLJob extends ETLJob implements DBConnection {
     /** The SQL node. */
     Node mSQLNode;
     
-    /** The Constant WRITEBACK_PARAMETER. */
-    public static final String WRITEBACK_PARAMETER = "WRITEBACK_PARAMETER";
-
     /**
      * Auto commit.
      * 

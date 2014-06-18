@@ -92,12 +92,18 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
       while (messagesToDelete.size() > 0) {
         List<DeleteMessageBatchRequestEntry> batch =
             new ArrayList<DeleteMessageBatchRequestEntry>();
+
+        setWaiting("messages to deleted from queue, " + messagesToDelete.size() + " left");
+
         while (batch.size() < 10 && messagesToDelete.size() > 0)
           batch.add(this.messagesToDelete.remove(0));
 
         if (batch.size() > 0)
           sqsClient.deleteMessageBatch(new DeleteMessageBatchRequest(this.endpoint, batch));
       }
+
+      setWaiting(null);
+
     }
 
 
@@ -268,10 +274,10 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
     if (this.sqsReadStart == null)
       this.sqsReadStart = System.currentTimeMillis();
 
+    long execTime = System.currentTimeMillis() - this.sqsReadStart;
     // as we are generating records not reading from a source we need to use
     // a counter
-    if (messages.size() == 0
-        && (System.currentTimeMillis() - this.sqsReadStart) < this.miMaxRuntime) {
+    if (messages.size() == 0 && execTime < this.miMaxRuntime) {
       for (SQSQueue activeQueue : this.endPoints) {
 
         if (messages.size() <= this.batchSize) {
@@ -325,10 +331,16 @@ public class SQSReader extends ETLReader implements DefaultReaderCore {
    * @see com.kni.etl.ketl.smp.ETLWorker#close(boolean)
    */
   @Override
-  protected void close(boolean success, boolean jobSuccess) {
-    if (success && jobSuccess) {
-      for (SQSQueue q : this.endPoints)
-        q.deleteMessages();
-    }
+  protected void close(boolean success, boolean jobSuccess) {}
+
+  @Override
+  public int complete() throws KETLThreadException {
+    // TODO Auto-generated method stub
+    int res = super.complete();
+
+    for (SQSQueue q : this.endPoints)
+      q.deleteMessages();
+
+    return res;
   }
 }

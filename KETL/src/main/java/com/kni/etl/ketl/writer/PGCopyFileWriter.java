@@ -112,7 +112,7 @@ public class PGCopyFileWriter extends ETLWriter implements DefaultWriterCore, Wr
 			if (res != 0)
 				return res;
 
-			this.skip = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), NIOFileWriter.SKIP, false);
+			this.skip = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), ETLInPort.SKIP, false);
 
 			// It's ok if not specified
 			if (skip == false) {

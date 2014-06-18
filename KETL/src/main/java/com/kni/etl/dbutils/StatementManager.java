@@ -29,7 +29,7 @@ import java.sql.Statement;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.kni.etl.SQLJob;
+import com.kni.etl.ETLJob;
 import com.kni.etl.ketl.DBConnection;
 import com.kni.etl.ketl.ETLStep;
 import com.kni.etl.util.XMLHelper;
@@ -77,7 +77,7 @@ public class StatementManager {
 			ResourcePool.LogMessage(parent, ResourcePool.DEBUG_MESSAGE, "Executing statement: " + curSQL);
 
 		if (node != null) {
-			String paramName = XMLHelper.getAttributeAsString(node.getAttributes(), SQLJob.WRITEBACK_PARAMETER, null);
+			String paramName = XMLHelper.getAttributeAsString(node.getAttributes(), ETLJob.WRITEBACK_PARAMETER, null);
 		}
 
 		stmt.executeUpdate(curSQL);

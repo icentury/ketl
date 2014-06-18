@@ -57,6 +57,9 @@ public class ETLJob {
 
 	public static final String EXTERNAL_SOURCE = "EXTSOURCE";
 
+  /** The Constant WRITEBACK_PARAMETER. */
+  public static final String WRITEBACK_PARAMETER = "WRITEBACK_PARAMETER";
+
 	/** The js status. */
 	transient protected ETLJobStatus jsStatus;
 
