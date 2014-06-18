@@ -199,9 +199,10 @@ public class SQLQuery {
     incrementalParameters = new ArrayList<ParameterColumnMapping>();
     try {
       String code = sql;
+      List<String> parts = new ArrayList<String>();
       while (m.find()) {
         String function = code.substring(m.start(), m.end());
-        code = code.replace(function, "${INCPARAM}");
+        parts.add(function);
         function = function.replace(THIS_GET_INCREMENTAL, "");
         String param = function.substring(0, function.length() - 1).trim();
         String[] vals = param.split(",");
@@ -217,8 +218,9 @@ public class SQLQuery {
             vals[0].trim(), type));
       }
 
-      sql = code.replace("${INCPARAM}", "?");
-
+      for (String fn : parts)
+        code = code.replace(fn, "?");
+      sql = code;
       return incrementalParameters;
     } catch (Throwable e) {
       ParseException e1 =
