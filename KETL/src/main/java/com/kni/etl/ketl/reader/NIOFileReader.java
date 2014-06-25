@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3URI;
@@ -778,9 +779,14 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     URL url = new URL(arg0.filePath);
     if (url.getHost().contains("amazonaws")) {
       AmazonS3URI s3URI = new AmazonS3URI(arg0.filePath);
+      ClientConfiguration config = new ClientConfiguration();
+      // 1hr timeout by default
+      String strTimeout = this.getParameterValue(arg0.paramListID, "AWSTIMEOUT");
+      config.setSocketTimeout(strTimeout == null ? 60 * 60 * 1000 : Integer.parseInt(strTimeout));
       AmazonS3Client s3Client =
           new AmazonS3Client(new BasicAWSCredentials(this.getParameterValue(arg0.paramListID,
-              "AWSKEY"), this.getParameterValue(arg0.paramListID, "AWSSECRET")));
+              "AWSKEY"), this.getParameterValue(arg0.paramListID, "AWSSECRET")), config);
+
       S3Object res = s3Client.getObject(s3URI.getBucket(), s3URI.getKey());
       long len = res.getObjectMetadata().getContentLength();
       return new ManagedFastInputChannel(arg0.filePath, res.getObjectContent(), len);

@@ -32,9 +32,11 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1400,15 +1402,15 @@ public class Metadata {
     sb.append("--DataSeparatorString\r\nContent-Type: text/html; charset=\"us-ascii\"\r\n\r\n<html><head><meta http-equiv=\"Content-Language\" content=\"en-us\"><meta http-equiv=\"Content-Type\" content=\"text/html; charset=windows-1252\"><style>\n<!--\n.tbl { border-left-style: none; border-right-style: none;border-top: 1.5pt solid green; border-bottom: 1.5pt solid green }\n.ms-simple1-tl { border-left-style: none; border-right-style: none; border-top-style: none;border-bottom: .75pt solid green }\n.row {  border-left-style: none; border-right-style: none; border-top-style: none;border-bottom: .75pt solid green;font-size: 9pt }--></style></head><body><font face=\"Arial\"><b>KETL "
         + level + "</b><table border=\"0\" width=\"100%\" id=\"table1\" class=\"tbl\">\r\n");
 
-    if (msgParts.length == 1)
+    if (msgParts.length > 0)
       sb.append(writeHTMLRow(level + " Message", msgParts[0]));
-    if (msgParts.length == 2)
+    if (msgParts.length > 1)
       sb.append(writeHTMLRow("Job ID", msgParts[1]));
-    if (msgParts.length == 3)
+    if (msgParts.length > 2)
       sb.append(writeHTMLRow("Datetime", msgParts[2]));
-    if (msgParts.length == 4)
+    if (msgParts.length > 3)
       sb.append(writeHTMLRow(level + " Code", msgParts[3]));
-    if (msgParts.length == 5)
+    if (msgParts.length > 4)
       sb.append(writeHTMLRow("Extended Message",
           msgParts[4] == null ? "NULL" : msgParts[4].replace("\n", "<br/>")));
 
@@ -1827,7 +1829,7 @@ public class Metadata {
         }
 
         if (occurences > 0) {
-          ResourcePool.LogMessage(this, -1, ResourcePool.ERROR_MESSAGE, "Job " + pJobID
+          ResourcePool.LogMessage(j, -1, ResourcePool.ERROR_MESSAGE, "Job " + pJobID
               + " already in job queue, multiple executions of job disallowed.",
               "To resolve this problem closeout the currently blocking job, "
                   + "blocking job maybe a prior load failure.", Thread.currentThread().getName()
@@ -1851,12 +1853,15 @@ public class Metadata {
               + this.loadTableName() + "(LOAD_ID,START_JOB_ID,START_DATE,PROJECT_ID) VALUES(?,?,"
               + this.currentTimeStampSyntax + ",?)");
       PreparedStatement dependenciesStmt =
-          this.metadataConnection.prepareStatement("SELECT JOB_ID, PARENT_JOB_ID  FROM  "
-              + this.tablePrefix + "JOB_DEPENDENCIE A WHERE JOB_ID IN (SELECT JOB_ID FROM  "
-              + this.tablePrefix
-              + "JOB WHERE PROJECT_ID = ? )  AND PARENT_JOB_ID IN (SELECT JOB_ID FROM  "
-              + this.tablePrefix + "JOB  WHERE PROJECT_ID = ?)");
-
+          this.metadataConnection
+              .prepareStatement("SELECT A.JOB_ID, PARENT_JOB_ID, ALLOW_DUPLICATES, B.JOB_ID FROM  "
+                  + this.tablePrefix
+                  + "JOB_DEPENDENCIE A LEFT OUTER JOIN (SELECT DISTINCT JOB_ID FROM "
+                  + this.tablePrefix
+                  + "JOB_LOG) B ON (A.JOB_ID = B.JOB_ID) WHERE A.JOB_ID IN (SELECT JOB_ID FROM  "
+                  + this.tablePrefix
+                  + "JOB WHERE PROJECT_ID = ? )  AND PARENT_JOB_ID IN (SELECT JOB_ID FROM  "
+                  + this.tablePrefix + "JOB  WHERE PROJECT_ID = ?)");
       PreparedStatement insJobsStmt = null;
       PreparedStatement insNoDepJobStmt = null;
 
@@ -1879,8 +1884,15 @@ public class Metadata {
           rs = dependenciesStmt.executeQuery();
 
           int i = 0;
-
           while (rs.next()) {
+            boolean duplicatesAllowed =
+                rs.getString(3) == null ? false : rs.getString(3).equalsIgnoreCase("Y");
+
+            if (!duplicatesAllowed && rs.getString(4) != null) {
+              ResourcePool.logMessage("Skipping dependence, due to duplicate. Skipped job: "
+                  + rs.getString(1));
+              continue;
+            }
             if (sJobDependencies == null) {
               sJobDependencies = new String[i + 1][2];
               sJobDependencies[i][0] = rs.getString(1);
@@ -1973,6 +1985,7 @@ public class Metadata {
       if (newLoadStmt != null) {
         newLoadStmt.close();
       }
+
 
       if (dependenciesStmt != null) {
         dependenciesStmt.close();
@@ -2757,8 +2770,10 @@ public class Metadata {
               + "action = ? where job_id = ?");
 
       m_deps =
-          this.metadataConnection.prepareStatement("insert into " + this.tablePrefix
-              + "job_dependencie(parent_job_id,job_id,continue_if_failed) values(?,?,?)");
+          this.metadataConnection
+              .prepareStatement("insert into "
+                  + this.tablePrefix
+                  + "job_dependencie(parent_job_id,job_id,continue_if_failed,allow_duplicates) values(?,?,?,?)");
 
       m_depDel =
           this.metadataConnection.prepareStatement("delete from  " + this.tablePrefix
@@ -2997,6 +3012,10 @@ public class Metadata {
               m_deps.setString(3, "Y");
             }
 
+            // set evaluation
+            m_deps.setString(4, XMLHelper.getAttributeAsBoolean(n.getAttributes(),
+                "ALLOW_DUPLICATES", false) ? "Y" : "N");
+
             m_deps.executeUpdate();
           }
         }
@@ -3047,6 +3066,9 @@ public class Metadata {
       m_jobStmt.setString(pos, value);
     }
   }
+
+  private static Set<String> KEYS_TO_ENCRYPT = new HashSet<String>(Arrays.asList(new String[] {
+      "PASSWORD", "AWSSECRET"}));
 
   /**
    * Import parameter list.
@@ -3111,7 +3133,7 @@ public class Metadata {
             }
 
             if (this.mEncryptionEnabled) {
-              if (name.equalsIgnoreCase("PASSWORD") && value != null) {
+              if (KEYS_TO_ENCRYPT.contains(name.toUpperCase()) && value != null) {
                 value = this.mEncryptor.encrypt(value);
               }
             }
@@ -3204,7 +3226,7 @@ public class Metadata {
                 + " where parameter_name = ? and parameter_list_id = ?");
 
         if (this.mEncryptionEnabled) {
-          if (strParameterName.equalsIgnoreCase("PASSWORD")) {
+          if (KEYS_TO_ENCRYPT.contains(strParameterName.toUpperCase())) {
             strValue = this.mEncryptor.encrypt(strValue);
           }
         }
@@ -3252,33 +3274,32 @@ public class Metadata {
    * @throws SQLException the SQL exception
    * @throws Exception the exception
    */
-  public String[][] getJobDependencies(String pJobID) throws SQLException, java.lang.Exception {
+  public JobDependencie[] getJobDependencies(String pJobID) throws SQLException,
+      java.lang.Exception {
     PreparedStatement m_stmt = null;
     ResultSet m_rs = null;
-    ArrayList jobsToFetch = new ArrayList();
+    List<JobDependencie> jobsToFetch = new ArrayList<JobDependencie>();
 
     synchronized (this.oLock) {
       // Make metadata connection alive.
       this.refreshMetadataConnection();
 
       m_stmt =
-          this.metadataConnection.prepareStatement("SELECT JOB_ID,CONTINUE_IF_FAILED FROM  "
-              + this.tablePrefix + "JOB_DEPENDENCIE A " + "WHERE PARENT_JOB_ID = ?");
+          this.metadataConnection
+              .prepareStatement("SELECT JOB_ID,CONTINUE_IF_FAILED,ALLOW_DUPLICATES FROM  "
+                  + this.tablePrefix + "JOB_DEPENDENCIE A " + "WHERE PARENT_JOB_ID = ?");
       m_stmt.setString(1, pJobID);
       m_rs = m_stmt.executeQuery();
 
       // cycle through pending jobs setting next run date
       while (m_rs.next()) {
         try {
-          String[] res = new String[2];
+          JobDependencie res = new JobDependencie();
+          res.name = m_rs.getString(1);
+          res.critical = !m_rs.getString(2).equalsIgnoreCase(Metadata.WAITS_ON);
 
-          res[0] = m_rs.getString(1);
-
-          if (m_rs.getString(2).equalsIgnoreCase(Metadata.WAITS_ON)) {
-            res[1] = Metadata.WAITS_ON;
-          } else {
-            res[1] = Metadata.DEPENDS_ON;
-          }
+          if (m_rs.getString(3) != null)
+            res.allowDuplicates = m_rs.getString(3).equalsIgnoreCase("Y");
 
           jobsToFetch.add(res);
         } catch (Exception e) {
@@ -3298,11 +3319,7 @@ public class Metadata {
       }
     }
 
-    String[][] dependencies = new String[jobsToFetch.size()][];
-
-    jobsToFetch.toArray(dependencies);
-
-    return (dependencies);
+    return jobsToFetch.toArray(new JobDependencie[0]);
   }
 
   /** The Constant jobReferences. */
@@ -3879,8 +3896,8 @@ public class Metadata {
 
           if (this.mEncryptionEnabled) {
             // auto encrypt any passwords
-            if (((String) parameterList[fieldCnt][Metadata.PARAMETER_NAME])
-                .equalsIgnoreCase("PASSWORD")) {
+            if (KEYS_TO_ENCRYPT
+                .contains(((String) parameterList[fieldCnt][Metadata.PARAMETER_NAME]).toUpperCase())) {
               try {
                 parameterList[fieldCnt][Metadata.PARAMETER_VALUE] =
                     this.mEncryptor
@@ -3966,7 +3983,7 @@ public class Metadata {
 
           if (this.mEncryptionEnabled) {
             // auto encrypt any passwords
-            if (strParameterName.equalsIgnoreCase("PASSWORD")) {
+            if (KEYS_TO_ENCRYPT.contains(strParameterName.toUpperCase())) {
               try {
                 value = this.mEncryptor.decrypt(value);
               } catch (Exception e) {
@@ -6248,7 +6265,7 @@ public class Metadata {
 
       m_stmt =
           this.metadataConnection.prepareStatement("SELECT object_name FROM " + this.tablePrefix
-              + " EXT_OBJECT_LIST " + " WHERE DOMAIN = ? AND LOAD_ID = ? ");
+              + " EXT_OBJECT_LIST " + " WHERE DOMAIN_NAME = ? AND LOAD_ID = ? ");
 
       m_stmt.setString(1, domain.split("//")[1]);
       m_stmt.setInt(2, loadId);

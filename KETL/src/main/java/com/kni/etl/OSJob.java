@@ -182,13 +182,9 @@ public class OSJob extends ETLJob {
     if (strParms != null) {
 
       for (String element : strParms) {
-        String parmValue = (String) this.getGlobalParameter(element);
-
-        if (parmValue != null) {
-          cmd = EngineConstants.replaceParameter(cmd, element, parmValue);
-        } else {
-          throw new Exception("Parameter " + element + " can not be found in parameter list");
-        }
+        cmd =
+            EngineConstants.replaceParameter(cmd, element,
+                (String) this.getGlobalParameter(element));
       }
     }
 

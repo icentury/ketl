@@ -58,7 +58,8 @@ public class ETLInPort extends ETLPort {
 
     String sort = XMLHelper.getAttributeAsString(xmlConfig.getAttributes(), "SORT", null);
     this.hashColumn =
-        XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), "HASH_COLUMN", true);
+        XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), "HASH_COLUMN",
+            !this.isConstant());
     this.skip = XMLHelper.getAttributeAsBoolean(xmlConfig.getAttributes(), ETLInPort.SKIP, false);
 
     if (sort == null)
@@ -107,7 +108,8 @@ public class ETLInPort extends ETLPort {
       if (!p.hashColumn || p.skip)
         continue;
 
-      Object o = this.mesStep.activeRecord[p.getSourcePortIndex()];
+      Object o =
+          p.isConstant() ? p.getConstantValue() : this.mesStep.activeRecord[p.getSourcePortIndex()];
       byte[] b = o == null ? NULL : o.toString().getBytes();
       digest.update(b, 0, b.length);
     }

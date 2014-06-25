@@ -1,5 +1,8 @@
 package com.kni.etl.ketl.transformation;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +20,7 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.DBConnection;
 import com.kni.etl.ketl.ETLOutPort;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.exceptions.KETLTransformException;
 import com.kni.etl.ketl.reader.JDBCReader;
@@ -25,12 +29,12 @@ import com.kni.etl.ketl.smp.ETLWorker;
 import com.kni.etl.ketl.smp.JavaTransformCore;
 import com.kni.etl.ketl.transformation.UserDefinedTransform.Input;
 import com.kni.etl.ketl.transformation.UserDefinedTransform.Output;
-import com.kni.etl.util.NetworkClassLoader;
 import com.kni.etl.util.XMLHelper;
 
 public class JavaTransform extends ETLTransformation implements JavaTransformCore, UDFConfiguration {
 
   private UserDefinedTransform customTransform;
+  private JARClassLoader classLoader;
 
   public JavaTransform(Node pXMLConfig, int pPartitionID, int pPartition,
       ETLThreadManager pThreadManager) throws KETLThreadException {
@@ -61,6 +65,22 @@ public class JavaTransform extends ETLTransformation implements JavaTransformCor
     }
   }
 
+
+
+  class JARClassLoader extends URLClassLoader {
+
+    public JARClassLoader(URL[] urls) {
+      super(urls);
+    }
+
+    @Override
+    public void addURL(URL url) {
+      super.addURL(url);
+    }
+
+  }
+
+
   @Override
   protected void overrideOuts(ETLWorker srcWorker) throws KETLThreadException {
     super.overrideOuts(srcWorker);
@@ -76,8 +96,11 @@ public class JavaTransform extends ETLTransformation implements JavaTransformCor
       if (classPath != null) {
         // load jar from file
         // load class from jar
-        NetworkClassLoader n = new NetworkClassLoader();
-        cl = n.getClass(classPath, className);
+        URLClassLoader loader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+        classLoader = new JARClassLoader(loader.getURLs());
+        classLoader.addURL(new URL(classPath));
+        cl = classLoader.loadClass(className);
+
       } else {
         cl = Class.forName(className);
       }
@@ -140,7 +163,14 @@ public class JavaTransform extends ETLTransformation implements JavaTransformCor
   }
 
   @Override
-  protected void close(boolean success, boolean jobFailed) {}
+  protected void close(boolean success, boolean jobFailed) {
+    if (classLoader != null)
+      try {
+        classLoader.close();
+      } catch (IOException e) {
+        throw new KETLError(e);
+      }
+  }
 
   @Override
   public String getAttribute(String arg0) {
