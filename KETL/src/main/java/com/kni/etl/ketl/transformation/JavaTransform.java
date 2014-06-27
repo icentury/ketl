@@ -80,6 +80,7 @@ public class JavaTransform extends ETLTransformation implements JavaTransformCor
 
   }
 
+  static private String CLASS_LOADER = "$CLASS_LOADER";
 
   @Override
   protected void overrideOuts(ETLWorker srcWorker) throws KETLThreadException {
@@ -96,10 +97,17 @@ public class JavaTransform extends ETLTransformation implements JavaTransformCor
       if (classPath != null) {
         // load jar from file
         // load class from jar
-        URLClassLoader loader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-        classLoader = new JARClassLoader(loader.getURLs());
-        classLoader.addURL(new URL(classPath));
-        cl = classLoader.loadClass(className);
+        cl = (Class<?>) this.getSharedResource(CLASS_LOADER);
+
+        if (cl == null) {
+          URLClassLoader loader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+          classLoader = new JARClassLoader(loader.getURLs());
+          ResourcePool.logMessage("Reading customer transform " + classPath);
+          URL url = new URL(classPath);
+          classLoader.addURL(url);
+          cl = classLoader.loadClass(className);
+          this.setSharedResource(CLASS_LOADER, cl);
+        }
 
       } else {
         cl = Class.forName(className);

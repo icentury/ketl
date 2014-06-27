@@ -78,6 +78,12 @@ public abstract class ETLSplit extends ETLStep implements
     return KETLTransformException.class.getCanonicalName();
   }
 
+  protected DefaultCore getCore() {
+    return this.core;
+  }
+
+
+
   /*
    * (non-Javadoc)
    * 

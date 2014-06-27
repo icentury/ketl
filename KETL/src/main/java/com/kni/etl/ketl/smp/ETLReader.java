@@ -299,6 +299,10 @@ public abstract class ETLReader extends ETLStep implements KETLExceptionWrapper<
   /** The count. */
   private int count = 0;
 
+  protected DefaultCore getCore() {
+    return this.core;
+  }
+
   /**
    * Gets the next batch.
    * 

@@ -1459,8 +1459,10 @@ abstract public class ETLWorker implements Runnable, ETLStats, StepStatsCollecto
         synchronized (this.mThreadManager) {
           ResourcePool.LogMessage(this, ResourcePool.DEBUG_MESSAGE, "Alive");
         }
-        if (!wasPreviouslyRun)
+        if (!wasPreviouslyRun) {
+          this.initWorker();
           this.executeWorker();
+        }
         this.complete();
         this.controlledExit = true;
       } catch (java.lang.Error e) {
@@ -1490,6 +1492,11 @@ abstract public class ETLWorker implements Runnable, ETLStats, StepStatsCollecto
         this.interruptAllSteps();
       }
     }
+  }
+
+  protected void initWorker() {
+    if (this.getCore() instanceof ETLCore)
+      ((ETLCore) this.getCore()).initializeCoreFields();
   }
 
   private void determineIfPrimary() {
@@ -1567,6 +1574,8 @@ abstract public class ETLWorker implements Runnable, ETLStats, StepStatsCollecto
    * @param newCore the new core
    */
   abstract void setCore(DefaultCore newCore);
+
+  abstract DefaultCore getCore();
 
   /**
    * Sets the output record data types.

@@ -40,20 +40,20 @@ import org.w3c.dom.Node;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.services.s3.model.S3Object;
 import com.kni.etl.EngineConstants;
 import com.kni.etl.FieldLevelFastInputChannel;
 import com.kni.etl.SourceFieldDefinition;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLOutPort;
 import com.kni.etl.ketl.ETLStep;
+import com.kni.etl.ketl.exceptions.KETLError;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.qa.QAEventGenerator;
 import com.kni.etl.ketl.qa.QAForFileReader;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.stringtools.FastSimpleDateFormat;
 import com.kni.etl.util.ManagedFastInputChannel;
+import com.kni.etl.util.ManagedInputChannel;
 import com.kni.etl.util.XMLHelper;
 import com.kni.util.Arrays;
 import com.kni.util.FileTools;
@@ -63,6 +63,8 @@ import com.kni.util.FileTools;
  * The Class NIOFileReader.
  */
 public class NIOFileReader extends ETLReader implements QAForFileReader {
+
+  private static final String AWSCLIENT = "$AWSCLIENT";
 
   @Override
   protected String getVersion() {
@@ -503,8 +505,6 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
   /** The buf. */
   private char[] buf;
 
-  /** The bytes read. */
-  protected long bytesRead = 0;
 
   /** The ma files. */
   protected List<FileToRead> maFiles = new ArrayList<FileToRead>();
@@ -522,7 +522,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
   private String mCharacterSet, mCodingErrorAction;
 
   /** The current file channel. */
-  private ManagedFastInputChannel mCurrentFileChannel = null;
+  private ManagedInputChannel mCurrentFileChannel = null;
 
   /** The delete source. */
   private boolean mDeleteSource = false;
@@ -546,7 +546,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
   private String mstrDefaultRecordDelimter;
 
   /** The mv ready files. */
-  protected Vector<ManagedFastInputChannel> mvReadyFiles = new Vector<ManagedFastInputChannel>();
+  protected Vector<ManagedInputChannel> mvReadyFiles = new Vector<ManagedInputChannel>();
 
   /** The open channels. */
   protected int openChannels = 0;
@@ -574,7 +574,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
    * 
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  protected final void close(ManagedFastInputChannel file, int pCause) throws IOException {
+  protected final void close(ManagedInputChannel file, int pCause) throws IOException {
     switch (pCause) {
       case PARTIAL_RECORD:
         ResourcePool
@@ -611,7 +611,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
    */
   @Override
   protected String generateCoreImports() {
-    return super.generateCoreImports() + "import com.kni.etl.util.ManagedFastInputChannel;\n"
+    return super.generateCoreImports() + "import com.kni.etl.util.ManagedInputChannel;\n"
         + "import com.kni.etl.FieldLevelFastInputChannel;\n"
         + "import com.kni.etl.SourceFieldDefinition;\n";
   }
@@ -636,7 +636,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 
   /** The CURREN t_ FIL e_ CHANNEL. */
   private static String CURRENT_FILE_CHANNEL =
-      "((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getCurrentFileChannel().mReader";
+      "((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getCurrentFileChannel().getReader()";
 
   /*
    * (non-Javadoc)
@@ -703,8 +703,10 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
    * Gets the current file channel.
    * 
    * @return the current file channel
+   * @throws KETLThreadException
+   * @throws Exception
    */
-  public ManagedFastInputChannel getCurrentFileChannel() {
+  public ManagedInputChannel getCurrentFileChannel() {
     return this.mCurrentFileChannel;
   }
 
@@ -750,20 +752,19 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     UrlValidator urlValidator = new UrlValidator();
     for (FileToRead element : astrPaths) {
       try {
-        ManagedFastInputChannel rf;
+        ManagedInputChannel rf;
         if (urlValidator.isValid(element.filePath)) {
           rf = getStreamFromURL(element);
         } else {
           rf = new ManagedFastInputChannel(element.filePath);
         }
-        this.bytesRead += rf.length();
         this.openChannels++;
         this.mvReadyFiles.add(rf);
         this.maFiles.add(element);
         iNumPaths++;
       } catch (Exception e) {
         while (this.mvReadyFiles.size() > 0) {
-          ManagedFastInputChannel fs = this.mvReadyFiles.remove(0);
+          ManagedInputChannel fs = this.mvReadyFiles.remove(0);
           this.close(fs, NIOFileReader.OK_RECORD);
         }
         throw new Exception("Failed to open file: " + e.toString());
@@ -775,21 +776,24 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
   }
 
 
-  private ManagedFastInputChannel getStreamFromURL(FileToRead arg0) throws IOException {
+  private ManagedInputChannel getStreamFromURL(FileToRead arg0) throws IOException {
     URL url = new URL(arg0.filePath);
     if (url.getHost().contains("amazonaws")) {
-      AmazonS3URI s3URI = new AmazonS3URI(arg0.filePath);
-      ClientConfiguration config = new ClientConfiguration();
       // 1hr timeout by default
-      String strTimeout = this.getParameterValue(arg0.paramListID, "AWSTIMEOUT");
-      config.setSocketTimeout(strTimeout == null ? 60 * 60 * 1000 : Integer.parseInt(strTimeout));
-      AmazonS3Client s3Client =
-          new AmazonS3Client(new BasicAWSCredentials(this.getParameterValue(arg0.paramListID,
-              "AWSKEY"), this.getParameterValue(arg0.paramListID, "AWSSECRET")), config);
 
-      S3Object res = s3Client.getObject(s3URI.getBucket(), s3URI.getKey());
-      long len = res.getObjectMetadata().getContentLength();
-      return new ManagedFastInputChannel(arg0.filePath, res.getObjectContent(), len);
+      AmazonS3Client s3Client = (AmazonS3Client) this.getSharedResource(AWSCLIENT);
+      if (s3Client == null) {
+        ClientConfiguration config = new ClientConfiguration();
+        String strTimeout = this.getParameterValue(arg0.paramListID, "AWSTIMEOUT");
+        config.setSocketTimeout(strTimeout == null ? 60 * 60 * 1000 : Integer.parseInt(strTimeout));
+        s3Client =
+            new AmazonS3Client(new BasicAWSCredentials(this.getParameterValue(arg0.paramListID,
+                "AWSKEY"), this.getParameterValue(arg0.paramListID, "AWSSECRET")), config);
+        this.setSharedResource(AWSCLIENT, s3Client);
+      }
+      return new S3ManagedFastInputChannel(arg0.filePath, s3Client);
+
+
     }
 
     URLConnection con = url.openConnection();
@@ -798,12 +802,31 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 
   }
 
+  @Override
+  protected void initWorker() {
+
+    for (ManagedInputChannel mi : this.mvReadyFiles) {
+      if (!mi.fileExists())
+        throw new KETLError("File " + mi.getName() + " could not be found");
+    }
+    while (this.mCurrentFileChannel == null && this.mvReadyFiles.size() > 0) {
+      try {
+        this.mCurrentFileChannel = this.getReader(this.mvReadyFiles.remove(0));
+      } catch (Exception e) {
+        throw new KETLError(e);
+      }
+    }
+
+    super.initWorker();
+
+  }
+
   public String getFilePath() {
-    return this.mCurrentFileChannel.file.getAbsolutePath();
+    return this.mCurrentFileChannel.getAbsolutePath();
   }
 
   public String getFileName() {
-    return this.mCurrentFileChannel.file.getName();
+    return this.mCurrentFileChannel.getName();
   }
 
   /**
@@ -857,8 +880,6 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
       }
     }
 
-    while (this.mCurrentFileChannel == null && this.mvReadyFiles.size() > 0)
-      this.mCurrentFileChannel = this.getReader(this.mvReadyFiles.remove(0));
 
     return true;
   }
@@ -940,7 +961,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
    * 
    * @throws Exception the exception
    */
-  private ManagedFastInputChannel getReader(ManagedFastInputChannel file) throws Exception {
+  private ManagedInputChannel getReader(ManagedInputChannel file) throws Exception {
 
     try {
       CodingErrorAction action = CodingErrorAction.REPORT;
@@ -949,16 +970,16 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
       else if (this.mCodingErrorAction.equalsIgnoreCase(NIOFileReader.IGNORE_ACTION))
         action = CodingErrorAction.IGNORE;
 
-      file.mReader =
-          new FieldLevelFastInputChannel(file.mfChannel, "r", this.mIOBufferSize,
-              this.mCharacterSet, this.mZipped, action);
+      file.setReader(new FieldLevelFastInputChannel(file.getChannel(), "r", this.mIOBufferSize,
+          this.mCharacterSet, this.mZipped, action));
 
       if (this.mbAllowInvalidLastRecord) {
-        file.mReader.allowForNoDelimeterAtEOF(true);
+        file.getReader().allowForNoDelimeterAtEOF(true);
       } else
-        file.mReader.allowForNoDelimeterAtEOF(false);
+        file.getReader().allowForNoDelimeterAtEOF(false);
 
-      ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Reading file " + file.mPath);
+      ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
+          "Reading file " + file.getAbsolutePath());
       try {
         for (int x = 0; x < this.miSkipLines; x++) {
 
@@ -970,11 +991,11 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
             do {
               if (sf.FixedLength > 0) {
                 res =
-                    file.mReader.readFixedLengthField(sf.FixedLength, sf.getQuoteStartAsChars(),
-                        sf.getQuoteEndAsChars(), this.buf);
+                    file.getReader().readFixedLengthField(sf.FixedLength,
+                        sf.getQuoteStartAsChars(), sf.getQuoteEndAsChars(), this.buf);
               } else {
                 res =
-                    file.mReader.readDelimitedField(sf.getDelimiterAsChars(),
+                    file.getReader().readDelimitedField(sf.getDelimiterAsChars(),
                         sf.getQuoteStartAsChars(), sf.getQuoteEndAsChars(), sf.mEscapeDoubleQuotes,
                         sf.escapeChar, sf.MaxLength, sf.AverageLength, this.buf, sf.AutoTruncate);
               }
@@ -997,7 +1018,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     } catch (Exception e) {
       this.close(file, NIOFileReader.OK_RECORD);
       for (Object o : this.mvReadyFiles) {
-        ManagedFastInputChannel fc = (ManagedFastInputChannel) o;
+        ManagedInputChannel fc = (ManagedInputChannel) o;
         this.close(fc, NIOFileReader.OK_RECORD);
       }
       throw new Exception("Failed to open file: " + e.toString());
@@ -1044,7 +1065,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
       KETLThreadException {
     switch (eventCode) {
       case FieldLevelFastInputChannel.END_OF_FILE:
-        if (this.mCurrentFileChannel.mReader.isEndOfFile()) {
+        if (this.mCurrentFileChannel.getReader().isEndOfFile()) {
           this.close(this.mCurrentFileChannel,
               portIndex < this.mOutPorts.length - 1 ? NIOFileReader.PARTIAL_RECORD
                   : NIOFileReader.OK_RECORD);
@@ -1090,7 +1111,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
       while (this.mvReadyFiles.size() > 0) {
         this.mCurrentFileChannel = this.getReader(this.mvReadyFiles.remove(0));
         if (this.mCurrentFileChannel != null)
-          return this.mCurrentFileChannel.mReader;
+          return this.mCurrentFileChannel.getReader();
       }
 
       if (this.mDeleteSource)
@@ -1113,7 +1134,7 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
       KETLThreadException {
     switch (eventCode) {
       case FieldLevelFastInputChannel.END_OF_FILE:
-        if (this.mCurrentFileChannel.mReader.isEndOfFile()) {
+        if (this.mCurrentFileChannel.getReader().isEndOfFile()) {
           this.close(this.getCurrentFileChannel(),
               portIndex < this.mOutPorts.length - 1 ? NIOFileReader.PARTIAL_RECORD
                   : NIOFileReader.OK_RECORD);
@@ -1352,11 +1373,15 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
   @Override
   protected void close(boolean success, boolean jobFailed) {
 
+    if (this.getSharedResource(AWSCLIENT) != null) {
+      ((AmazonS3Client) this.getSharedResource(AWSCLIENT)).shutdown();
+      this.setSharedResource(AWSCLIENT, null);
+    }
     if (this.mvReadyFiles == null)
       return;
 
     for (Object o : this.mvReadyFiles) {
-      ManagedFastInputChannel rf = (ManagedFastInputChannel) o;
+      ManagedInputChannel rf = (ManagedInputChannel) o;
       try {
         rf.close();
       } catch (IOException e) {

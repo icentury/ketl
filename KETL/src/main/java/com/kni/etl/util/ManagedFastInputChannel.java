@@ -31,10 +31,10 @@ import com.kni.etl.FieldLevelFastInputChannel;
 /**
  * The Class ManagedFastInputChannel.
  */
-public class ManagedFastInputChannel {
+public class ManagedFastInputChannel implements ManagedInputChannel {
 
   /** The mf channel. */
-  public ReadableByteChannel mfChannel;
+  private ReadableByteChannel mfChannel;
 
   /** The mi current record. */
   public int miCurrentRecord;
@@ -43,7 +43,7 @@ public class ManagedFastInputChannel {
   public String mPath;
 
   /** The reader. */
-  public FieldLevelFastInputChannel mReader;
+  private FieldLevelFastInputChannel mReader;
 
   public File file;
 
@@ -68,18 +68,59 @@ public class ManagedFastInputChannel {
     this.len = len;
   }
 
-  /**
-   * Close.
+
+
+  /*
+   * (non-Javadoc)
    * 
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @see com.kni.etl.util.ManagedInputChannel#getChannel()
    */
+  @Override
+  public ReadableByteChannel getChannel() {
+    return mfChannel;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.kni.etl.util.ManagedInputChannel#close()
+   */
+  @Override
   public void close() throws IOException {
     this.mfChannel.close();
     if (this.mReader != null)
       this.mReader.close();
   }
 
-  public long length() {
-    return len;
+  /*
+   * (non-Javadoc)
+   * 
+   * @see com.kni.etl.util.ManagedInputChannel#length()
+   */
+
+  @Override
+  public String getAbsolutePath() {
+    return this.mPath;
+  }
+
+  @Override
+  public String getName() {
+    return this.mPath;
+  }
+
+  @Override
+  public FieldLevelFastInputChannel getReader() {
+    return this.mReader;
+  }
+
+  @Override
+  public void setReader(FieldLevelFastInputChannel fieldLevelFastInputChannel) {
+    this.mReader = fieldLevelFastInputChannel;
+
+  }
+
+  @Override
+  public boolean fileExists() {
+    return this.f.exists();
   }
 }

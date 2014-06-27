@@ -100,6 +100,12 @@ public abstract class ETLTransform extends ETLStep implements AggregateTransform
 
   private ManagedBlockingQueue interimQueue;
 
+
+  protected DefaultCore getCore() {
+    return this.core;
+  }
+
+
   /**
    * The Constructor.
    * 

@@ -303,6 +303,12 @@ public abstract class ETLMerge extends ETLStep implements
 
   }
 
+  protected DefaultCore getCore() {
+    return this.core;
+  }
+
+
+
   /** The expected output data types. */
   private Class[] mLeftExpectedInputDataTypes, mRightExpectedInputDataTypes,
       mExpectedOutputDataTypes;

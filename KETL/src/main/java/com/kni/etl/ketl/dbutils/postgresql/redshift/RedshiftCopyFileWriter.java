@@ -496,6 +496,10 @@ final public class RedshiftCopyFileWriter {
 
   }
 
+  public void rollback() throws IOException {
+    this.outputFile.delete();
+  }
+
 
 
 }

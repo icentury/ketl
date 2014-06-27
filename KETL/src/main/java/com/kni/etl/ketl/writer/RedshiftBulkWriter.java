@@ -272,7 +272,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
       if (this.mWriterList != null) {
         for (RedshiftCopyFileWriter wr : this.mWriterList) {
           try {
-            wr.close();
+            wr.rollback();
           } catch (IOException e) {
             ResourcePool.LogException(e, this);
           }
@@ -334,39 +334,54 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
             throw new KETLError(e);
           }
         }
-        Statement stmt;
-        StringBuilder sb = new StringBuilder("COPY ");
+        int attempts = 0;
+        boolean completed = false;
+        while (completed == false) {
+          StringBuilder sb = new StringBuilder("COPY ");
+          Statement stmt;
 
-        try {
-          stmt = this.mcDBConnection.createStatement();
-          if (this.mbTruncate) {
-            this.setWaiting("truncating of target table");
-            stmt.execute("truncate table " + this.mstrTableName);
-          }
-
-          sb.append(this.mstrTableName);
-          sb.append(" (");
-
-          for (int i = 0; i < cols.length; i++) {
-            if (i > 0) {
-              sb.append(",");
+          try {
+            stmt = this.mcDBConnection.createStatement();
+            if (this.mbTruncate) {
+              this.setWaiting("truncating of target table");
+              stmt.execute("truncate table " + this.mstrTableName);
             }
-            sb.append(cols[i]);
 
+            sb.append(this.mstrTableName);
+            sb.append(" (");
+
+            for (int i = 0; i < cols.length; i++) {
+              if (i > 0) {
+                sb.append(",");
+              }
+              sb.append(cols[i]);
+
+            }
+
+            sb.append(") from 's3://" + this.bucketName + File.separator + this.parentDir
+                + File.separator + "'  CREDENTIALS 'aws_access_key_id=" + this.accessKey
+                + ";aws_secret_access_key=" + this.secretKey + "' " + this.getCompression()
+                + " DELIMITER '\\001' MAXERROR AS " + this.getErrorLimit()
+                + " DATEFORMAT AS 'YYYYMMDD' ACCEPTINVCHARS "
+                + " TIMEFORMAT AS 'epochmillisecs'  ESCAPE TRUNCATECOLUMNS TRIMBLANKS;\n");
+            this.setWaiting("copy command to complete");
+
+            stmt.execute(sb.toString());
+            stmt.close();
+            completed = true;
+          } catch (SQLException e) {
+            if (attempts++ < 3) {
+              try {
+                if (!this.mcDBConnection.getAutoCommit())
+                  this.mcDBConnection.rollback();
+              } catch (SQLException e1) {
+                throw new KETLThreadException("Copy command failed whilst rolling back for "
+                    + this.mstrTableName, e);
+              }
+              ResourcePool.logMessage("Retrying copy command, due to error " + e.getMessage());
+            } else
+              throw new KETLThreadException("Copy command failed for " + this.mstrTableName, e);
           }
-
-          sb.append(") from 's3://" + this.bucketName + File.separator + this.parentDir
-              + File.separator + "'  CREDENTIALS 'aws_access_key_id=" + this.accessKey
-              + ";aws_secret_access_key=" + this.secretKey + "' " + this.getCompression()
-              + " DELIMITER '\\001' MAXERROR AS " + this.getErrorLimit()
-              + " DATEFORMAT AS 'YYYYMMDD' ACCEPTINVCHARS "
-              + " TIMEFORMAT AS 'epochmillisecs'  ESCAPE TRUNCATECOLUMNS TRIMBLANKS;\n");
-          this.setWaiting("copy command to complete");
-
-          stmt.execute(sb.toString());
-          stmt.close();
-        } catch (SQLException e) {
-          throw new KETLThreadException("Copy command failed: " + sb.toString(), e);
         }
 
         try {

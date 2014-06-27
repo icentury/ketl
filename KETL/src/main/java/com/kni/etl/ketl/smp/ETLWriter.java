@@ -53,6 +53,12 @@ public abstract class ETLWriter extends ETLStep implements KETLExceptionWrapper<
 
   }
 
+  protected DefaultCore getCore() {
+    return this.core;
+  }
+
+
+
   /** The src queue. */
   private ManagedBlockingQueue srcQueue;
 

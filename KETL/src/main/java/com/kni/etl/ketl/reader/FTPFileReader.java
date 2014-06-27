@@ -29,6 +29,7 @@ import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.exceptions.KETLThreadException;
 import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.util.ManagedFastInputChannel;
+import com.kni.etl.util.ManagedInputChannel;
 import com.kni.util.net.ftp.DefaultFTPFileListParser;
 import com.kni.util.net.ftp.FTP;
 import com.kni.util.net.ftp.FTPClient;
@@ -264,13 +265,13 @@ public class FTPFileReader extends FileReader {
 
         this.openChannels++;
 
-        ManagedFastInputChannel rf = new ManagedFastInputChannel(element.filePath, tmpStream, 0);
+        ManagedInputChannel rf = new ManagedFastInputChannel(element.filePath, tmpStream, 0);
         this.mvReadyFiles.add(rf);
         this.maFiles.add(element);
         iNumPaths++;
       } catch (Exception e) {
         while (this.mvReadyFiles.size() > 0) {
-          ManagedFastInputChannel fs = this.mvReadyFiles.remove(0);
+          ManagedInputChannel fs = this.mvReadyFiles.remove(0);
           this.close(fs, NIOFileReader.OK_RECORD);
         }
         throw new Exception("Failed to open file: " + e.toString());

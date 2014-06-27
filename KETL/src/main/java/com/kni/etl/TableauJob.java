@@ -50,6 +50,14 @@ public class TableauJob extends ETLJob {
   private boolean debug = false;
   private boolean synchronous;
 
+  public enum Command {
+    REFRESH, EMAIL
+  };
+
+  private Command cmd = Command.REFRESH;
+  private String template;
+  private String email;
+
   public TableauJob() throws Exception {
     super();
   }
@@ -108,7 +116,7 @@ public class TableauJob extends ETLJob {
    * 
    * @throws Exception the exception
    */
-  public void initRefresh() throws Exception {
+  public void loadOptions() throws Exception {
     String cmd = (String) this.getAction(true);
 
     if (cmd.indexOf("<TABLEAU") != -1) {
@@ -122,7 +130,9 @@ public class TableauJob extends ETLJob {
       NodeList nl = xmlDOM.getElementsByTagName("TABLEAU");
 
 
+      this.template = XMLHelper.getTextContent(nl.item(0));
 
+      this.email = XMLHelper.getAttributeAsString(nl.item(0).getAttributes(), "EMAIL", null);
       debug = XMLHelper.getAttributeAsBoolean(nl.item(0).getAttributes(), "DEBUG", false);
       this.setTimeout(XMLHelper.getAttributeAsInt(nl.item(0).getAttributes(), "TIMEOUT",
           Integer.MAX_VALUE));
@@ -131,6 +141,9 @@ public class TableauJob extends ETLJob {
           "EMAILSTATUS", null));
       this.setObjectProject(XMLHelper.getAttributeAsString(nl.item(0).getAttributes(), "PROJECT",
           null));
+
+      this.setCommand(Command.valueOf(XMLHelper.getAttributeAsString(nl.item(0).getAttributes(),
+          "CMD", this.cmd.name()).toUpperCase()));
       this.synchronous =
           XMLHelper.getAttributeAsBoolean(nl.item(0).getAttributes(), "SYNCHRONOUS", true);
 
@@ -145,6 +158,14 @@ public class TableauJob extends ETLJob {
       }
     }
 
+  }
+
+  private void setCommand(Command arg0) {
+    this.cmd = arg0;
+  }
+
+  public Command getCommand() {
+    return this.cmd;
   }
 
   /**
@@ -241,5 +262,9 @@ public class TableauJob extends ETLJob {
   public String getUsername() throws Exception {
     return (String) this.getGlobalParameter(DBConnection.USER_ATTRIB);
 
+  }
+
+  public String getTemplate() {
+    return this.template;
   }
 }

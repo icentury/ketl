@@ -66,7 +66,6 @@ abstract public class ETLCore implements DefaultCore {
    */
   public void setOwner(ETLWorker arg0) {
     this.ownerStep = arg0;
-    this.initializeCoreFields();
   }
 
   /**
