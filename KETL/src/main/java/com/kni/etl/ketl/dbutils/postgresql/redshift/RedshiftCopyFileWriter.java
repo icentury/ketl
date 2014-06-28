@@ -497,6 +497,8 @@ final public class RedshiftCopyFileWriter {
   }
 
   public void rollback() throws IOException {
+    ResourcePool.logMessage("Rolling back file and deleting: "
+        + this.outputFile.getFile().getAbsolutePath());
     this.outputFile.delete();
   }
 

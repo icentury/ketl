@@ -6256,7 +6256,7 @@ public class Metadata {
     return true;
   }
 
-  public List<String> getObjectList(String domain, int loadId) throws SQLException, Exception {
+  public List<String[]> getObjectList(String domain, int loadId) throws SQLException, Exception {
     PreparedStatement m_stmt = null;
 
     synchronized (this.oLock) {
@@ -6264,16 +6264,16 @@ public class Metadata {
       this.refreshMetadataConnection();
 
       m_stmt =
-          this.metadataConnection.prepareStatement("SELECT object_name FROM " + this.tablePrefix
-              + " EXT_OBJECT_LIST " + " WHERE DOMAIN_NAME = ? AND LOAD_ID = ? ");
+          this.metadataConnection.prepareStatement("SELECT object_id,object_name FROM "
+              + this.tablePrefix + " EXT_OBJECT_LIST " + " WHERE DOMAIN_NAME = ? AND LOAD_ID = ? ");
 
       m_stmt.setString(1, domain.split("//")[1]);
       m_stmt.setInt(2, loadId);
 
       ResultSet rs = m_stmt.executeQuery();
-      List<String> objects = new ArrayList<String>();
+      List<String[]> objects = new ArrayList<String[]>();
       while (rs.next()) {
-        objects.add(rs.getString(1));
+        objects.add(new String[] {rs.getString(1), rs.getString(2)});
       }
 
       rs.close();

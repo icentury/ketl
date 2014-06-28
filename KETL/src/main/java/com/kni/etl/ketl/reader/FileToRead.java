@@ -3,7 +3,7 @@ package com.kni.etl.ketl.reader;
 /**
  * The Class FileToRead.
  */
-public class FileToRead implements Comparable<String> {
+public class FileToRead implements Comparable<FileToRead> {
 
   public String getFilePath() {
     return filePath;
@@ -14,6 +14,7 @@ public class FileToRead implements Comparable<String> {
 
   /** The param list ID. */
   int paramListID;
+  String id;
 
   /**
    * Instantiates a new file to read.
@@ -21,15 +22,16 @@ public class FileToRead implements Comparable<String> {
    * @param name the name
    * @param paramListID the param list ID
    */
-  public FileToRead(String name, int paramListID) {
+  public FileToRead(String id, String name, int paramListID) {
     super();
     this.filePath = name;
     this.paramListID = paramListID;
+    this.id = id;
   }
 
   @Override
-  public int compareTo(String o) {
-    return o.compareTo(this.filePath);
+  public int compareTo(FileToRead o) {
+    return o.filePath.compareTo(this.filePath);
   }
 
 }

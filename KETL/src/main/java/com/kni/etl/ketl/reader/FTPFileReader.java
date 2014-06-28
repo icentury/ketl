@@ -265,7 +265,8 @@ public class FTPFileReader extends FileReader {
 
         this.openChannels++;
 
-        ManagedInputChannel rf = new ManagedFastInputChannel(element.filePath, tmpStream, 0);
+        ManagedInputChannel rf =
+            new ManagedFastInputChannel(element.filePath, element.id, tmpStream, 0);
         this.mvReadyFiles.add(rf);
         this.maFiles.add(element);
         iNumPaths++;

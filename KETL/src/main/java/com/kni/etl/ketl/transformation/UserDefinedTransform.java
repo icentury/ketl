@@ -340,7 +340,7 @@ public abstract class UserDefinedTransform implements Iterable<Object[]>, BatchT
       return con.newInstance(new Object[] {result});
 
     } catch (Exception e) {
-      throw new KETLTransformException("Faied to cast ", e);
+      throw new KETLTransformException("Failed to cast ", e);
     }
   }
 

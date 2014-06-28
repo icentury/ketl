@@ -16,6 +16,7 @@ public class S3OutputFile extends OutputFile {
   private String bucketName;
   private String directory;
   private Integer mS3Expire;
+  private boolean deleted = false;
 
   public S3OutputFile(String accessKey, String secretKey, String bucketName, String directory,
       String charSet, boolean zip, int miOutputBufferSize) {
@@ -38,7 +39,7 @@ public class S3OutputFile extends OutputFile {
                 this.getFile());
 
         ResourcePool.logMessage("Uploaded " + this.getS3Location());
-        this.getFile().delete();
+        this.deleted = this.getFile().delete();
         return;
       } catch (AmazonClientException e) {
         try {
@@ -59,10 +60,12 @@ public class S3OutputFile extends OutputFile {
   }
 
   public void delete() throws IOException {
-    ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Deleting file "
-        + this.getFile().getAbsolutePath());
     super.close();
-    this.getFile().delete();
+    if (!deleted) {
+      ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "Deleting file "
+          + this.getFile().getAbsolutePath());
+      this.getFile().delete();
+    }
   }
 
 }

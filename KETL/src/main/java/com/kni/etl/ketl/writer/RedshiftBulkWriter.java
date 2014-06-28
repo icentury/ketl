@@ -324,6 +324,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
         }
       }
 
+      this.mWriterList.clear();
+
       if (this.isLastThreadToEnterCompletePhase()) {
         // wait for all other threads to complete
         this.setWaiting("all other threads in group to complete");
@@ -368,6 +370,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
 
             stmt.execute(sb.toString());
             stmt.close();
+            ResourcePool.logMessage("Copy completed for table " + this.mstrTableName);
+
             completed = true;
           } catch (SQLException e) {
             if (attempts++ < 3) {

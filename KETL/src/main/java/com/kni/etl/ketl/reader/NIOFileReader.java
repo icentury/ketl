@@ -54,6 +54,7 @@ import com.kni.etl.ketl.smp.ETLThreadManager;
 import com.kni.etl.stringtools.FastSimpleDateFormat;
 import com.kni.etl.util.ManagedFastInputChannel;
 import com.kni.etl.util.ManagedInputChannel;
+import com.kni.etl.util.S3ManagedFastInputChannel;
 import com.kni.etl.util.XMLHelper;
 import com.kni.util.Arrays;
 import com.kni.util.FileTools;
@@ -238,6 +239,10 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
             return this.getCodeGenerationReferenceObject() + "["
                 + this.mesStep.getUsedPortIndex(this)
                 + "] = ((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getFilePath();";
+          case FILE_ID:
+            return this.getCodeGenerationReferenceObject() + "["
+                + this.mesStep.getUsedPortIndex(this)
+                + "] = ((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getFileId();";
           default:
             throw new KETLThreadException("No method has been defined to handle internal "
                 + this.sf.internal + ", contact support", this);
@@ -785,19 +790,20 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
       if (s3Client == null) {
         ClientConfiguration config = new ClientConfiguration();
         String strTimeout = this.getParameterValue(arg0.paramListID, "AWSTIMEOUT");
-        config.setSocketTimeout(strTimeout == null ? 60 * 60 * 1000 : Integer.parseInt(strTimeout));
+        config.setSocketTimeout(strTimeout == null ? 1 * 60 * 1000 : Integer.parseInt(strTimeout));
         s3Client =
             new AmazonS3Client(new BasicAWSCredentials(this.getParameterValue(arg0.paramListID,
                 "AWSKEY"), this.getParameterValue(arg0.paramListID, "AWSSECRET")), config);
         this.setSharedResource(AWSCLIENT, s3Client);
       }
-      return new S3ManagedFastInputChannel(arg0.filePath, s3Client);
+      return new S3ManagedFastInputChannel(arg0.filePath, arg0.id, s3Client);
 
 
     }
 
     URLConnection con = url.openConnection();
-    return new ManagedFastInputChannel(arg0.filePath, con.getInputStream(), con.getContentLength());
+    return new ManagedFastInputChannel(arg0.filePath, arg0.id, con.getInputStream(),
+        con.getContentLength());
 
 
   }
@@ -829,6 +835,10 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     return this.mCurrentFileChannel.getName();
   }
 
+  public String getFileId() {
+    return this.mCurrentFileChannel.getId();
+  }
+
   /**
    * Gets the files.
    * 
@@ -841,24 +851,24 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     List<FileToRead> files = new ArrayList<FileToRead>();
     for (int i = 0; i < this.maParameters.size(); i++) {
 
-      String[] fileNames;
       String searchPath = this.getParameterValue(i, NIOFileReader.SEARCHPATH);
-      if (this.isObjectList(searchPath))
-        fileNames =
-            ResourcePool.getMetadata()
-                .getObjectList(searchPath, this.getJobExecutor().getCurrentETLJob().getLoadID())
-                .toArray(new String[0]);
-      else
-        fileNames = FileTools.getFilenames(searchPath);
 
-      java.util.Arrays.sort(fileNames);
-
-      if (fileNames != null) {
-        for (String element : fileNames) {
-          files.add(new FileToRead(element, i));
+      if (this.isObjectList(searchPath)) {
+        List<String[]> fileNames =
+            ResourcePool.getMetadata().getObjectList(searchPath,
+                this.getJobExecutor().getCurrentETLJob().getLoadID());
+        for (String[] element : fileNames) {
+          files.add(new FileToRead(element[0], element[1], i));
         }
-
+      } else {
+        String[] fileNames = FileTools.getFilenames(searchPath);
+        if (fileNames != null) {
+          for (String element : fileNames) {
+            files.add(new FileToRead(element, element, i));
+          }
+        }
       }
+      java.util.Collections.sort(files);
     }
 
     if (files.size() == 0)

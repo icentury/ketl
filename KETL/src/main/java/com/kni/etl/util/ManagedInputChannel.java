@@ -29,4 +29,8 @@ public interface ManagedInputChannel {
 
   public abstract void setReader(FieldLevelFastInputChannel fieldLevelFastInputChannel);
 
+
+  public abstract String getId();
+
+
 }

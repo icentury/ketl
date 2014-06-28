@@ -53,17 +53,21 @@ public class ManagedFastInputChannel implements ManagedInputChannel {
 
   private long len;
 
+  private String id;
+
   public ManagedFastInputChannel(String path) throws FileNotFoundException {
     this.f = new File(path);
     this.fi = new FileInputStream(f);
     this.mfChannel = fi.getChannel();
     this.mPath = path;
     this.file = f;
+    this.id = path;
     this.len = this.f.length();
   }
 
-  public ManagedFastInputChannel(String path, InputStream tmpStream, long len) {
+  public ManagedFastInputChannel(String path, String id, InputStream tmpStream, long len) {
     this.mfChannel = java.nio.channels.Channels.newChannel(tmpStream);
+    this.id = id;
     this.mPath = path;
     this.len = len;
   }
@@ -123,4 +127,11 @@ public class ManagedFastInputChannel implements ManagedInputChannel {
   public boolean fileExists() {
     return this.f.exists();
   }
+
+  @Override
+  public String getId() {
+    return this.id;
+  }
+
+
 }
