@@ -418,6 +418,8 @@ public class EngineConstants {
 
   public static final String DEFAULT_POOL = "Default";
 
+  public static final Integer DEFAULT_PRIORITY = 10;
+
   /** The DEFAULTCACHESIZE. */
   private static String DEFAULTCACHESIZE = "64kb";
 

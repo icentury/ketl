@@ -2177,7 +2177,7 @@ public class Metadata {
       m_stmt =
           this.metadataConnection
               .prepareStatement("SELECT CLASS_NAME,PROJECT_ID,JOB_ID,ACTION,NAME,RETRY_ATTEMPTS,PARAMETER_LIST_ID,"
-                  + "A.JOB_TYPE_ID,a.DESCRIPTION,b.DESCRIPTION,DISABLE_ALERTING,SECONDS_BEFORE_RETRY,A.POOL FROM  "
+                  + "A.JOB_TYPE_ID,a.DESCRIPTION,b.DESCRIPTION,DISABLE_ALERTING,SECONDS_BEFORE_RETRY,A.POOL,A.PRIORITY FROM  "
                   + this.tablePrefix
                   + "JOB A,  "
                   + this.tablePrefix
@@ -2232,6 +2232,9 @@ public class Metadata {
           // get seconds before retry
           newETLJob.setSecondsBeforeRetry(m_rs.getInt(12));
           newETLJob.setPool(m_rs.getString(13));
+          newETLJob.setPriority(m_rs.getInt(14));
+          if (m_rs.wasNull())
+            newETLJob.setPriority(EngineConstants.DEFAULT_PRIORITY);
           if ((x != null) && x.equalsIgnoreCase("Y")) {
             newETLJob.setDisableAlerting(true);
           }
@@ -2761,13 +2764,13 @@ public class Metadata {
           this.metadataConnection.prepareStatement("insert into " + this.tablePrefix
               + "job(job_id,job_type_id,project_id,parameter_list_id,name,"
               + "description,retry_attempts,seconds_before_retry,disable_alerting,"
-              + "action) values(?,?,?,?,?,?,?,?,?,?)");
+              + "action,pool) values(?,?,?,?,?,?,?,?,?,?,?,?)");
 
       m_updStmt =
           this.metadataConnection.prepareStatement("update " + this.tablePrefix
               + "job set job_type_id = ?,project_id = ?,parameter_list_id = ?,name = ?,"
               + "description = ?,retry_attempts = ?,seconds_before_retry = ?,disable_alerting = ?,"
-              + "action = ? where job_id = ?");
+              + "action = ?, pool = ?, priority = ? where job_id = ?");
 
       m_deps =
           this.metadataConnection
@@ -2852,6 +2855,8 @@ public class Metadata {
               m_jobStmt.setNull(8, Types.INTEGER);
               m_jobStmt.setNull(9, Types.VARCHAR);
               m_jobStmt.setNull(10, Types.LONGVARCHAR);
+              m_jobStmt.setNull(11, Types.VARCHAR);
+              m_jobStmt.setNull(12, Types.INTEGER);
               m_jobStmt.executeUpdate();
             }
           }
@@ -2926,6 +2931,10 @@ public class Metadata {
         }
 
         m_jobStmt.setCharacterStream(10, new java.io.StringReader(action), action.length());
+        m_jobStmt.setString(11, XMLHelper.getAttributeAsString(pJob.getAttributes(), "POOL",
+            EngineConstants.DEFAULT_POOL));
+        m_jobStmt.setInt(12, XMLHelper.getAttributeAsInt(pJob.getAttributes(), "PRIORITY",
+            EngineConstants.DEFAULT_PRIORITY));
         m_jobStmt.executeUpdate();
         ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.INFO_MESSAGE, "Creating job "
             + ID);
@@ -2977,7 +2986,11 @@ public class Metadata {
         }
 
         m_updStmt.setCharacterStream(9, new java.io.StringReader(action), action.length());
-        m_updStmt.setString(10, ID);
+        m_updStmt.setString(10, XMLHelper.getAttributeAsString(pJob.getAttributes(), "POOL",
+            EngineConstants.DEFAULT_POOL));
+        m_updStmt.setInt(11, XMLHelper.getAttributeAsInt(pJob.getAttributes(), "PRIORITY",
+            EngineConstants.DEFAULT_PRIORITY));
+        m_updStmt.setString(12, ID);
         m_updStmt.executeUpdate();
         ResourcePool.LogMessage("Updating job " + ID);
       }

@@ -337,7 +337,10 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
           }
         }
         int attempts = 0;
-        boolean completed = false;
+        if (this.getRecordsProcessed() == 0) {
+          ResourcePool.logMessage("Skipping copy as no records received");
+        }
+        boolean completed = this.getRecordsProcessed() == 0;
         while (completed == false) {
           StringBuilder sb = new StringBuilder("COPY ");
           Statement stmt;

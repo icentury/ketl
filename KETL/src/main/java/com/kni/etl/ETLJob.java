@@ -333,6 +333,8 @@ public class ETLJob {
     e.setAttribute("SECONDS_BEFORE_RETRY", Integer.toString(this.getSecondsBeforeRetry()));
     e.setAttribute("RETRY_ATTEMPTS", Integer.toString(this.getMaxRetries()));
     e.setAttribute("DESCRIPTION", this.getDescription());
+    e.setAttribute("POOL", this.getPool());
+    e.setAttribute("PRIORITY", this.getPriority().toString());
 
     if (this.isAlertingDisabled()) {
       e.setAttribute("DISABLE_ALERTING", "Y");
@@ -1301,6 +1303,7 @@ public class ETLJob {
   private int timeOut = Integer.MAX_VALUE;
 
   private String pool;
+  private Integer priority;
 
   private Map<String, Integer> batchInfoMap = new HashMap<String, Integer>();
 
@@ -1332,5 +1335,15 @@ public class ETLJob {
   public Integer getLastBatchCounter(ETLStep step) {
     Integer lastBatchCounter = batchInfoMap.get(step.getName());
     return lastBatchCounter == null ? 0 : lastBatchCounter;
+  }
+
+  public void setPriority(int arg0) {
+    this.priority = arg0;
+  }
+
+  public Integer getPriority() {
+    if (priority == null)
+      return EngineConstants.DEFAULT_PRIORITY;
+    return priority;
   }
 }
