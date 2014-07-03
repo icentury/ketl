@@ -68,22 +68,22 @@ public class FTPFileReader extends FileReader {
   }
 
   /** The USER. */
-  static String USER = "USER";
+  public static String USER = "USER";
 
   /** The PASSWORD. */
-  static String PASSWORD = "PASSWORD";
+  public static String PASSWORD = "PASSWORD";
 
   /** The TRANSFE r_ TYPE. */
-  static String TRANSFER_TYPE = "TRANSFER_TYPE";
+  public static String TRANSFER_TYPE = "TRANSFER_TYPE";
 
   /** The BINARY. */
   static String BINARY = "BINARY";
 
   /** The ASCII. */
-  static String ASCII = "ASCII";
+  public static String ASCII = "ASCII";
 
   /** The SERVER. */
-  static String SERVER = "SERVER";
+  public static String SERVER = "SERVER";
 
   /** The ftp clients. */
   private Object[] ftpClients = null;

@@ -286,6 +286,8 @@ public class Console {
 
   private boolean enableTriggers;
 
+  private int prevLoadId;
+
   /**
    * Connected.
    * 
@@ -1271,7 +1273,8 @@ public class Console {
   private String runJob(String[] pCommands) throws Exception {
     StringBuffer sb = new StringBuffer();
 
-    {
+    try {
+      this.prevLoadId = this.iLoadID;
 
       int jobDetailType = Console.DEFINITION;
 
@@ -1327,8 +1330,11 @@ public class Console {
             sb.append("" + (i + 1) + ".\t" + list.get(i) + "\n");
           return sb.toString();
         case FOREGROUND:
-          if (pCommands.length != 3)
-            return "Invalid syntax - run foreground <jobid>";
+          if (pCommands.length < 3)
+            return "Invalid syntax - run foreground <jobid> {load_id}";
+
+          if (pCommands.length == 4)
+            this.iLoadID = Integer.parseInt(pCommands[3]);
 
           ETLJob[] jobs = this.md.getJobDetails(pCommands[2].replaceAll("\\*", "%"));
 
@@ -1412,6 +1418,9 @@ public class Console {
           break;
 
       }
+
+    } finally {
+      this.iLoadID = this.prevLoadId;
 
     }
 

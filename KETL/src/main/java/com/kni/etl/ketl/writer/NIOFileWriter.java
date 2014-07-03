@@ -81,7 +81,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
   private static String DEFAULT_VALUE = "DEFAULTVALUE";
 
   /** The DELIMITER. */
-  private static String DELIMITER = "DELIMITER";
+  public static String DELIMITER = "DELIMITER";
 
   /** The DELIMITE r_ A t_ END. */
   private static String DELIMITER_AT_END = "DELIMITER_AT_END";
@@ -374,8 +374,7 @@ public class NIOFileWriter extends ETLWriter implements DefaultWriterCore {
         } else
           destFieldDefinition.subPartitionPort = false;
 
-        destFieldDefinition.skip =
-            XMLHelper.getAttributeAsBoolean(nmAttrs, ETLInPort.SKIP, false);
+        destFieldDefinition.skip = XMLHelper.getAttributeAsBoolean(nmAttrs, ETLInPort.SKIP, false);
 
         if (destFieldDefinition.skip == false & lastField < pos) {
           lastField = pos;
