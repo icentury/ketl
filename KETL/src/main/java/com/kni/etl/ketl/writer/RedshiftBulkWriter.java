@@ -244,6 +244,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
   private boolean mbTruncate;
   private int fileMaxRows;
   private Integer s3Expire;
+  private boolean mCompUpdate = true;
 
   /**
    * Instantiates a new PG bulk writer.
@@ -368,7 +369,8 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
                 + ";aws_secret_access_key=" + this.secretKey + "' " + this.getCompression()
                 + " DELIMITER '\\001' MAXERROR AS " + this.getErrorLimit()
                 + " DATEFORMAT AS 'YYYYMMDD' ACCEPTINVCHARS "
-                + " TIMEFORMAT AS 'epochmillisecs'  ESCAPE TRUNCATECOLUMNS TRIMBLANKS;\n");
+                + " TIMEFORMAT AS 'epochmillisecs'  COMPUPDATE "
+                + Boolean.toString(this.getCompUpdate()) + " ESCAPE TRUNCATECOLUMNS TRIMBLANKS;\n");
             this.setWaiting("copy command to complete");
 
             stmt.execute(sb.toString());
@@ -407,6 +409,10 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
     return res;
   }
 
+
+  private boolean getCompUpdate() {
+    return this.mCompUpdate;
+  }
 
   private String getCompression() {
     return this.mZip ? "GZIP" : "";
@@ -600,6 +606,7 @@ public class RedshiftBulkWriter extends ETLWriter implements DefaultWriterCore, 
     this.mIOBufferSize = XMLHelper.getAttributeAsInt(nmAttrs, "IOBUFFER", 16384);
     this.fileMaxRows = XMLHelper.getAttributeAsInt(nmAttrs, "FILEMAXROWS", Integer.MAX_VALUE);
     this.mZip = XMLHelper.getAttributeAsBoolean(nmAttrs, "COMPRESS", true);
+    this.mCompUpdate = XMLHelper.getAttributeAsBoolean(nmAttrs, "COMPUPDATE", true);
     this.accessKey = this.getParameterValue(0, AWSKEY_ATTRIB);
     this.secretKey = this.getParameterValue(0, AWSSECRET_ATTRIB);
     this.parentDir = this.getParameterValue(0, AWSPARENTDIR_ATTRIB);

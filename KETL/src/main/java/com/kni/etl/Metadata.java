@@ -2764,7 +2764,7 @@ public class Metadata {
           this.metadataConnection.prepareStatement("insert into " + this.tablePrefix
               + "job(job_id,job_type_id,project_id,parameter_list_id,name,"
               + "description,retry_attempts,seconds_before_retry,disable_alerting,"
-              + "action,pool) values(?,?,?,?,?,?,?,?,?,?,?,?)");
+              + "action,pool,priority) values(?,?,?,?,?,?,?,?,?,?,?,?)");
 
       m_updStmt =
           this.metadataConnection.prepareStatement("update " + this.tablePrefix

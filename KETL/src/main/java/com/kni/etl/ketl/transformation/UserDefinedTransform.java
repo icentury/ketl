@@ -1,6 +1,7 @@
 package com.kni.etl.ketl.transformation;
 
 import java.lang.reflect.Constructor;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.text.Format;
 import java.text.ParsePosition;
@@ -329,6 +330,9 @@ public abstract class UserDefinedTransform implements Iterable<Object[]>, BatchT
 
       if (cl == Byte[].class || cl == byte[].class)
         return result.getBytes();
+
+      if (cl == BigDecimal.class)
+        return new BigDecimal(result);
 
       Constructor<?> con;
       try {

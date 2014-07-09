@@ -310,18 +310,18 @@ public class JDBCItemHelper {
         return java.sql.Clob.class;
       case java.sql.Types.DECIMAL:
       case java.sql.Types.NUMERIC:
-        if (pScale == 0 && pPrecision > 0) {
-          if (pPrecision < 5)
+        if (pPrecision > 0) {
+          if (pScale == 0 && pPrecision < Short.toString(Short.MAX_VALUE).length())
             return Short.class;
-          else if (pPrecision < 10)
+          else if (pScale == 0 && pPrecision < Integer.toString(Integer.MAX_VALUE).length())
             return Integer.class;
-          else if (pPrecision < 20)
+          else if (pScale == 0 && pPrecision < Long.toString(Long.MAX_VALUE).length())
             return Long.class;
-          else
+          else if (pScale == 0 && pPrecision < Double.toString(Long.MAX_VALUE).length())
             return Double.class;
-        }
-        if (pScale > 0) {
-          return Double.class;
+          else if (pScale == 0 && pScale > 0
+              && pPrecision < Double.toString(Long.MAX_VALUE).length())
+            return Double.class;
         }
         return java.math.BigDecimal.class;
       case java.sql.Types.REAL:
