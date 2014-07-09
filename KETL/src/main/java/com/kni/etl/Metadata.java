@@ -2526,6 +2526,54 @@ public class Metadata {
 
   }
 
+
+  public List<ETLJob> listJobs(String pJobID) throws SQLException, java.lang.Exception {
+    PreparedStatement m_stmt = null;
+    ResultSet m_rs = null;
+    List<ETLJob> jobs = new ArrayList<ETLJob>();
+
+    synchronized (this.oLock) {
+      // Make metadata connection alive.
+      this.refreshMetadataConnection();
+
+      m_stmt =
+          this.metadataConnection
+              .prepareStatement("SELECT JOB_ID, B.DESCRIPTION, PROJECT_ID, POOL, PRIORITY FROM  "
+                  + this.tablePrefix + "JOB A, " + this.tablePrefix
+                  + "JOB_TYPE B WHERE A.JOB_TYPE_ID = B.JOB_TYPE_ID AND JOB_ID like ?");
+      m_stmt.setString(1, pJobID.replace("*", "%"));
+      m_rs = m_stmt.executeQuery();
+
+      // cycle through pending jobs setting next run date
+      while (m_rs.next()) {
+        try {
+          ETLJob e = new ETLJob();
+          e.setJobID(m_rs.getString(1));
+          e.setJobTypeName(m_rs.getString(2));
+          e.setProjectID(m_rs.getInt(3));
+          e.setPool(m_rs.getString(4));
+          e.setPriority(m_rs.getInt(5));
+          jobs.add(e);
+        } catch (Exception e) {
+          ResourcePool.logMessage("Error creating job: " + e.getMessage());
+
+          return null;
+        }
+      }
+
+      // Close open resources
+      if (m_rs != null) {
+        m_rs.close();
+      }
+
+      if (m_stmt != null) {
+        m_stmt.close();
+      }
+
+      return jobs;
+    }
+  }
+
   /**
    * Gets the job details.
    * 

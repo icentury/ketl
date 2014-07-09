@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,6 +34,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.h2.util.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -547,6 +549,10 @@ public class Console {
       if (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.IMPORT) {
         return this.importJobs(pCommands);
       }
+
+      if (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == -1) {
+        return this.listJobs(pCommands[1]);
+      }
       /*
        * else if ((pCommands.length > 2) && (resolveCommand(pCommands[2], JOBDETAIL_TYPES) ==
        * EXECUTEDIRECT)) { return executeDirect(pCommands); }
@@ -813,6 +819,47 @@ public class Console {
       } else {
         return this.syntaxError(Console.JOB);
       }
+    }
+
+    return sb.toString();
+  }
+
+  private String listJobs(String pJobID) throws SQLException, Exception {
+
+    List<ETLJob> jobs = this.md.listJobs(pJobID);
+    StringBuffer sb = new StringBuffer();
+
+    if (jobs.size() == 0)
+      return "No jobs found";
+
+    int[] len = new int[6];
+    for (ETLJob j : jobs) {
+      len[0] = Math.max(len[0], j.getJobID().length());
+      len[1] = Math.max(len[1], Integer.toString(j.getProjectID()).length());
+      len[2] = Math.max(len[2], j.getJobTypeName().length());
+      len[3] = Math.max(len[3], j.getPool().length());
+      len[4] = Math.max(len[4], Integer.toString(j.getPriority()).length());
+    }
+
+    String[] titles = new String[] {"Job", "Project", "Type", "Pool", "Priority"};
+
+    for (int i = 0; i < titles.length; i++) {
+      len[i] = Math.max(len[i], titles[i].length());
+      sb.append(String.format("%-" + len[i] + "s ", titles[i]));
+    }
+    sb.append("\n");
+    for (int i = 0; i < titles.length; i++) {
+      sb.append(StringUtils.pad("-", len[i], "-", true));
+      sb.append(" ");
+    }
+    sb.append("\n");
+    for (ETLJob j : jobs) {
+      sb.append(String.format("%-" + len[0] + "s ", j.getJobID()));
+      sb.append(String.format("%-" + len[1] + "s ", j.getProjectID()));
+      sb.append(String.format("%-" + len[2] + "s ", j.getJobTypeName()));
+      sb.append(String.format("%-" + len[3] + "s ", j.getPool()));
+      sb.append(String.format("%-" + len[4] + "s ", j.getPriority()));
+      sb.append("\n");
     }
 
     return sb.toString();
