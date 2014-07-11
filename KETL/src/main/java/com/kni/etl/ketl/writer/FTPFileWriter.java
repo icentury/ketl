@@ -142,6 +142,10 @@ public class FTPFileWriter extends ETLWriter implements DefaultWriterCore, Write
 
   private String mFilePrefix;
 
+  private String mNullString;
+
+  private boolean mEscape;
+
 
   public FTPFileWriter(Node pXMLConfig, int pPartitionID, int pPartition,
       ETLThreadManager pThreadManager) throws KETLThreadException {
@@ -262,7 +266,7 @@ public class FTPFileWriter extends ETLWriter implements DefaultWriterCore, Write
             this.getTargetPath(), new File(EngineConstants.PARTITION_PATH + File.separator
                 + this.getPartitionID()), mUser, mPassword, mServer, this.mOverWrite, this.mBinary,
             this.mDelimiter, this.mCharset, this.mZip, this.mIOBufferSize, this.fileMaxRows,
-            this.mDateFormat, this.mDatetimeFormat);
+            this.mDateFormat, this.mDatetimeFormat, this.mNullString, this.mEscape);
 
     if (includeHeaders) {
       int i = 1;
@@ -346,6 +350,8 @@ public class FTPFileWriter extends ETLWriter implements DefaultWriterCore, Write
     this.mDatetimeFormat = XMLHelper.getAttributeAsString(nmAttrs, "DATETIMEFORMAT", "e");
     this.mDateFormat = XMLHelper.getAttributeAsString(nmAttrs, "DATEFORMAT", "e");
     this.mFilePrefix = XMLHelper.getAttributeAsString(nmAttrs, "FILEPREFIX", "");
+    this.mNullString = XMLHelper.getAttributeAsString(nmAttrs, "NULLSTR", "\\N");
+    this.mEscape = XMLHelper.getAttributeAsBoolean(nmAttrs, "ESCAPE", true);
     this.mCharset =
         XMLHelper.getAttributeAsString(nmAttrs, NIOFileWriter.CHARACTERSET_ATTRIB, "UTF-8");
     this.mUser = this.getParameterValue(0, FTPFileReader.USER);

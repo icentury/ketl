@@ -43,7 +43,7 @@ final public class FTPTempFileWriter {
   private char mDelimiter = '\001';
 
   /** The Constant mNull. */
-  private final static String mNull = "\\N";
+  private String mNull = "\\N";
 
   /** The Constant rowEnd. */
   private static final String rowEnd = "\n";
@@ -103,6 +103,8 @@ final public class FTPTempFileWriter {
 
   private SimpleDateFormat dateTimeFormatter;
 
+  private boolean escaping;
+
 
 
   /**
@@ -122,7 +124,8 @@ final public class FTPTempFileWriter {
   public FTPTempFileWriter(String[] cols, String targetFile, String targetDir, File spoolDir,
       String strUser, String strPassword, String strServer, boolean overWrite,
       boolean binaryTransfer, char delimiter, String charsetName, boolean zip, int bufferSize,
-      int rowLimit, String mDateFormat, String mDatetimeFormat) throws IOException {
+      int rowLimit, String mDateFormat, String mDatetimeFormat, String nullStr, boolean escaping)
+      throws IOException {
     super();
 
     this.mUser = strUser;
@@ -140,9 +143,11 @@ final public class FTPTempFileWriter {
     this.dateTimeFormatter = new SimpleDateFormat(mDatetimeFormat);
     this.doubleFormatter = new DecimalFormat();
     this.charsetName = charsetName;
+    this.escaping = escaping;
     // this.copy.setCopyBufferSize(1 << 20);
     this.doubleFormatter.setGroupingUsed(false);
     this.zip = zip;
+    this.mNull = nullStr;
     this.spoolDir = spoolDir;
     this.targetDir = targetDir;
     this.targetFile = this.zip ? targetFile + ".gz" : targetFile;
@@ -188,6 +193,9 @@ final public class FTPTempFileWriter {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   private String escape(String mString) throws IOException {
+
+    if (!this.escaping)
+      return mString;
 
     // check for escaping needed
     if ((mString.indexOf('\\') != -1) || (mString.indexOf('|') != -1)
@@ -426,7 +434,7 @@ final public class FTPTempFileWriter {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public void setNull(int pos, int dataType) throws IOException {
-    this.mDatums[pos - 1] = FTPTempFileWriter.mNull;
+    this.mDatums[pos - 1] = this.mNull;
   }
 
   /**
