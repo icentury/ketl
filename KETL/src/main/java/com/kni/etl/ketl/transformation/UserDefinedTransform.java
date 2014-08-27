@@ -7,6 +7,7 @@ import java.text.Format;
 import java.text.ParsePosition;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +35,10 @@ public abstract class UserDefinedTransform implements Iterable<Object[]>, BatchT
 
   final public Object getResource(String name) {
     return null;
+  }
+
+  final public String getTempDir() {
+    return this.configuration.getTempDir();
   }
 
   final public class Input {
@@ -297,21 +302,29 @@ public abstract class UserDefinedTransform implements Iterable<Object[]>, BatchT
       if (val.getClass() == cl)
         return val;
 
+      Number num = val instanceof Number ? (Number) val : null;
       String result = val.toString();
 
       if (cl == Float.class || cl == float.class)
-        return Float.parseFloat(result);
+        return num == null ? Float.parseFloat(result) : num.floatValue();
 
       if (cl == String.class)
         return result;
 
       if (cl == Long.class || cl == long.class)
-        return Long.parseLong(result);
+        return num == null ? Long.parseLong(result) : num.longValue();
 
       if (cl == Integer.class || cl == int.class)
-        return Integer.parseInt(result);
+        return num == null ? Integer.parseInt(result) : num.intValue();
 
       if (cl == java.util.Date.class || cl == java.sql.Timestamp.class || cl == java.sql.Date.class) {
+
+        if (num != null) {
+          long epoch = num.longValue();
+          if (epoch < 11396265000l)
+            epoch = epoch * 1000;
+          return new Date(epoch);
+        }
 
         position = new ParsePosition(0);
 
@@ -320,7 +333,7 @@ public abstract class UserDefinedTransform implements Iterable<Object[]>, BatchT
       }
 
       if (cl == Double.class || cl == double.class)
-        return Double.parseDouble(result);
+        return num == null ? Double.parseDouble(result) : num.doubleValue();
 
       if (cl == Character.class || cl == char.class)
         return new Character(result.charAt(0));
@@ -346,6 +359,10 @@ public abstract class UserDefinedTransform implements Iterable<Object[]>, BatchT
     } catch (Exception e) {
       throw new KETLTransformException("Failed to cast ", e);
     }
+  }
+
+  public void complete() {
+
   }
 
 }

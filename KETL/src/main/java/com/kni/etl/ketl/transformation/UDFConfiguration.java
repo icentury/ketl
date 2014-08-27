@@ -19,5 +19,6 @@ public interface UDFConfiguration extends SharedResource {
 
   void releaseConnection(Connection con);
 
+  String getTempDir();
 
 }

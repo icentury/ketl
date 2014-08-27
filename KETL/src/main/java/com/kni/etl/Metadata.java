@@ -3272,7 +3272,7 @@ public class Metadata {
    * @return true, if successful
    * @throws Exception the exception
    */
-  private boolean setParameterValue(int iParameterListId, String strParameterName, String strValue)
+  public boolean setParameterValue(int iParameterListId, String strParameterName, String strValue)
       throws Exception {
     PreparedStatement m_update = null;
 

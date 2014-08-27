@@ -66,141 +66,57 @@ import com.kni.util.FileHelpers;
  */
 public class Console {
 
-  /** The Constant CANCEL_JOB. */
-  static final int CANCEL_JOB = 12;
-
-  /** The Constant CONNECT. */
-  static final int CONNECT = 6;
-
-  /** The Constant DEFINITION. */
-  static final int DEFINITION = 1;
-
-  /** The Constant DELETE. */
-  static final int DELETE = 8;
-
-  /** The Constant DEPENDENCIES. */
-  static final int DEPENDENCIES = 2;
-
-  /** The Constant EXECUTE. */
-  static final int EXECUTE = 3;
-
-  /** The Constant EXECUTEDIRECT. */
-  static final int EXECUTEDIRECT = 11;
-
-  /** The Constant EXPORT. */
-  static final int EXPORT = 7;
-
-  /** The Constant HELP. */
-  static final int HELP = 7;
-
-  /** The Constant IGNOREDEPENDENCIES. */
-  static final int IGNOREDEPENDENCIES = 4;
-
-  /** The Constant IMPORT. */
-  static final int IMPORT = 6;
-
-  /** The Constant JOB. */
-  static final int JOB = 3;
-
-  /** The Constant JOBDETAIL_TYPES. */
-  static final String[] JOBDETAIL_TYPES = {"XMLDEFINITION", "DEFINITION", "DEPENDENCIES",
-      "EXECUTE", "IGNOREDEPENDENCIES", "MULTI", "IMPORT", "EXPORT", "DELETE", "RESTART", "SKIP",
-      "EXECUTEDIRECT", "KILL"};
-
-  /** The Constant LIST. */
-  static final int LIST = 0;
-
-  /** The Constant MULTI. */
-  static final int MULTI = 5;
-
-  /** The Constant PARAMETERLIST. */
-  static final int PARAMETERLIST = 8;
-
-  /** The Constant PAUSE. */
-  static final int PAUSE = 9;
-
-  /** The Constant PROJECT. */
-  static final int PROJECT = 11;
-
-  /** The Constant QUIT. */
-  static final int QUIT = 5;
-
-  /** The Constant RESET. */
-  static final int RESET = 1;
-
-  /** The Constant LOOKUPS. */
-  static final int LOOKUPS = 2;
-
-  /** The Constant RESTART. */
-  static final int RESTART = 4;
-
-  /** The Constant LOADID. */
-  static final int LOADID = 3;
-
-  /** The Constant RESTART_JOB. */
-  static final int RESTART_JOB = 9;
-
-  /** The Constant RESUME. */
-  static final int RESUME = 10;
-
-  /** The Constant RUN. */
-  static final int RUN = 13;
-
-  /** The Constant LAST. */
-  static final int LAST = 14;
-
-  /** The Constant RUN_TYPES. */
-  static final String[] RUN_TYPES = {"LIST", "RESET", "LOOKUPS", "LOADID", "ENABLETRIGGERS",
-      "FOREGROUND"};
-
-  /** The Constant SERVER. */
-  static final int SERVER = 12;
-
-  /** The Constant SHUTDOWN. */
-  static final int SHUTDOWN = 0;
-
-  /** The Constant SKIP. */
-  static final int SKIP = 10;
-
-  /** The Constant STARTUP. */
-  static final int STARTUP = 1;
-
-  /** The Constant STATUS. */
-  static final int STATUS = 2;
 
   /**
    * The KETL Console allows for remote management of the KETL server Supported commands STATUS
    * SHUTDOWN {IMMEDIATE|NORMAL} STARTUP JOB <NAME> {DEFINITION|XMLDEFINITION|DEPENDENCIES} RESTART
    * {IMMEDIAITE|NORMAL} QUIT.
    */
-  static final String[] strCommands = {"SHUTDOWN", "STARTUP", "STATUS", "JOB", "RESTART", "QUIT",
-      "CONNECT", "HELP", "PARAMETERLIST", "PAUSE", "RESUME", "PROJECT", "SERVER", "RUN", "/"};
+  private enum COMMANDS {
+    SHUTDOWN, STARTUP, STATUS, JOB, RESTART, QUIT, CONNECT, HELP, PARAMETERLIST, PARAMETER, PAUSE,
+    RESUME, PROJECT, SERVER, RUN, REPEAT, INVALID, LIST, RESET, LOOKUPS, LOADID, ENABLETRIGGERS,
+    FOREGROUND, XMLDEFINITION, DEFINITION, DEPENDENCIES, EXECUTE, IGNOREDEPENDENCIES, MULTI,
+    IMPORT, EXPORT, DELETE, SKIP, EXECUTEDIRECT, KILL, NOTSPECIFIED, CANCEL_JOB;
 
-  /** The Constant strSyntax. */
-  static final String[] strSyntax =
-      {
-          "SHUTDOWN <SERVERID> {IMMEDIATE|NORMAL}",
-          "STARTUP",
-          "STATUS {CLUSTER|JOBS}",
-          "JOB <NAME> {DEFINITION|DELETE|KILL|XMLDEFINITION|RESTART|SKIP|EXPORT <FILENAME>|IMPORT <FILENAME>|DEPENDENCIES|EXECUTE <PROJECTID> {MULTI} {IGNOREDEPENDENCIES}}",
-          "RESTART {IMMEDIATE|NORMAL}",
-          "QUIT",
-          "CONNECT <SERVER|LOCALHOST> <USERNAME>",
-          "HELP",
-          "PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}",
-          "PAUSE <SERVERID>",
-          "RESUME <SERVERID>",
-          "PROJECT LIST",
-          "SERVER LIST",
-          "RUN {LIST|RESET|LOOKUPS|ENABLETRIGGERS <TRUE|FALSE>|<FILENAME>|FOREGROUND <JOBID>|LOADID <VALUE>}",
-          "/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}"};
+    public String help() {
+      switch (this) {
+        case SHUTDOWN:
+          return "SHUTDOWN <SERVERID> {IMMEDIATE|NORMAL}";
+        case STATUS:
+          return "STATUS {JOBS} {ALL}";
+        case JOB:
+          return "JOB <NAME> {DEFINITION|DELETE|KILL|XMLDEFINITION|RESTART|SKIP|EXPORT <FILENAME>|IMPORT <FILENAME>|DEPENDENCIES|EXECUTE <PROJECTID> {MULTI} {IGNOREDEPENDENCIES}}";
+        case RESTART:
+          return "RESTART {IMMEDIATE|NORMAL}";
+        case CONNECT:
+          return "CONNECT <SERVER|LOCALHOST> <USERNAME>";
+        case PARAMETERLIST:
+          return "PARAMETERLIST <NAME> <EXPORT|IMPORT|DEFINITION> {FILENAME}";
+        case PARAMETER:
+          return "PARAMETER SET|GET <PARAMETERLIST_NAME> <PARAMETER_NAME> {NEW_VALUE}";
+        case QUIT:
+          return "QUIT";
+        case PAUSE:
+          return "PAUSE <SERVERID>";
+        case RESUME:
+          return "RESUME <SERVERID>";
+        case PROJECT:
+          return "PROJECT LIST";
+        case SERVER:
+          return "SERVER LIST";
+        case RUN:
+          return "RUN {LIST|RESET|LOOKUPS|ENABLETRIGGERS <TRUE|FALSE>|<FILENAME>|FOREGROUND <JOBID>|LOADID <VALUE>}";
+        case REPEAT:
+          return "/ {<REPEAT>} {<SECONDS BETWEEN REPEAT>}";
+        default:
+          return null;
+      }
+    }
 
-  /** The Constant XMLDEFINITION. */
-  static final int XMLDEFINITION = 0;
 
-  private static final int ENABLETRIGGERS = 4;
+  };
 
-  private static final int FOREGROUND = 5;
+
 
   /**
    * Display version info.
@@ -320,7 +236,7 @@ public class Console {
 
     // if number of commands greater than 3 then syntax error
     if (pCommands.length > 3) {
-      return this.syntaxError(Console.CONNECT);
+      return this.syntaxError(COMMANDS.CONNECT);
     }
 
     // get server to connect to.
@@ -421,8 +337,9 @@ public class Console {
 
     sb.append("KETL Console allows remote administration of a KETL\ncluster, the following commands are available.\n\n");
 
-    for (String element : Console.strSyntax) {
-      sb.append("\t" + element + "\n");
+    for (COMMANDS element : COMMANDS.values()) {
+      if (element.help() != null)
+        sb.append("\t" + element.help() + "\n");
     }
 
     return sb.toString();
@@ -546,11 +463,12 @@ public class Console {
 
     if (this.connected()) {
       // if its an export then load from file
-      if (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.IMPORT) {
+      if (this.resolveCommand(pCommands[2]) == COMMANDS.IMPORT) {
         return this.importJobs(pCommands);
       }
 
-      if (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == -1) {
+      if (this.resolveCommand(pCommands[2]) == COMMANDS.LIST
+          || this.resolveCommand(pCommands[2]) == COMMANDS.NOTSPECIFIED) {
         return this.listJobs(pCommands[1]);
       }
       /*
@@ -561,18 +479,18 @@ public class Console {
         try {
           ETLJob[] jobs = this.md.getJobDetails(pCommands[1].replaceAll("\\*", "%"));
 
-          int jobDetailType = Console.DEFINITION;
+          COMMANDS jobDetailType = COMMANDS.DEFINITION;
 
           if (pCommands.length > 2) {
-            jobDetailType = this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES);
+            jobDetailType = this.resolveCommand(pCommands[2]);
           }
 
-          if ((jobDetailType == Console.XMLDEFINITION) || (jobDetailType == Console.EXPORT)) {
+          if ((jobDetailType == COMMANDS.XMLDEFINITION) || (jobDetailType == COMMANDS.EXPORT)) {
             sb.append("<?xml version=\"1.0\"?>\n<ETL VERSION=\"" + this.md.getMetadataVersion()
                 + "\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">");
           }
 
-          if ((jobDetailType == Console.DELETE)) {
+          if ((jobDetailType == COMMANDS.DELETE)) {
             System.out
                 .println("WARNING: Deleting jobs can result in lost dependencies\nIt is recommended that you export job definition first!");
           }
@@ -600,7 +518,7 @@ public class Console {
                   ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE,
                       "ERROR: No export file given");
 
-                  return this.syntaxError(Console.JOB);
+                  return this.syntaxError(COMMANDS.JOB);
                 }
 
                 sb.append("\n\n<!--- Job: " + eJob.getJobID() + "-->\n");
@@ -614,7 +532,7 @@ public class Console {
 
                 break;
 
-              case RESTART_JOB:
+              case RESTART:
 
                 String choice = "Y";
                 this.md.getJobStatus(eJob);
@@ -759,26 +677,26 @@ public class Console {
 
                 boolean ignoreDeps = false;
                 boolean allowMult = false;
-                int opt1 = -1;
-                int opt2 = -1;
+                COMMANDS opt1 = COMMANDS.NOTSPECIFIED;
+                COMMANDS opt2 = COMMANDS.NOTSPECIFIED;
 
                 if (pCommands.length < 4) {
-                  return this.syntaxError(Console.JOB);
+                  return this.syntaxError(COMMANDS.JOB);
                 }
 
                 if (pCommands.length > 4) {
-                  opt1 = this.resolveCommand(pCommands[4], Console.JOBDETAIL_TYPES);
+                  opt1 = this.resolveCommand(pCommands[4]);
                 }
 
                 if (pCommands.length > 5) {
-                  opt2 = this.resolveCommand(pCommands[5], Console.JOBDETAIL_TYPES);
+                  opt2 = this.resolveCommand(pCommands[5]);
                 }
 
-                if ((opt1 == Console.IGNOREDEPENDENCIES) || (opt2 == Console.IGNOREDEPENDENCIES)) {
+                if ((opt1 == COMMANDS.IGNOREDEPENDENCIES) || (opt2 == COMMANDS.IGNOREDEPENDENCIES)) {
                   ignoreDeps = true;
                 }
 
-                if ((opt1 == Console.MULTI) || (opt2 == Console.MULTI)) {
+                if ((opt1 == COMMANDS.MULTI) || (opt2 == COMMANDS.MULTI)) {
                   allowMult = true;
                 }
 
@@ -803,11 +721,11 @@ public class Console {
             }
           }
 
-          if ((jobDetailType == Console.XMLDEFINITION) || (jobDetailType == Console.EXPORT)) {
+          if ((jobDetailType == COMMANDS.XMLDEFINITION) || (jobDetailType == COMMANDS.EXPORT)) {
             sb.append("\n</ETL>");
           }
 
-          if (jobDetailType == Console.EXPORT) {
+          if (jobDetailType == COMMANDS.EXPORT) {
             BufferedWriter out = new BufferedWriter(new java.io.FileWriter(pCommands[3]));
             out.write(sb.toString());
             out.close();
@@ -817,7 +735,7 @@ public class Console {
           ResourcePool.LogException(e, this);
         }
       } else {
-        return this.syntaxError(Console.JOB);
+        return this.syntaxError(COMMANDS.JOB);
       }
     }
 
@@ -961,20 +879,18 @@ public class Console {
 
     if (this.connected()) {
       // if its an export then load from file
-      if ((pCommands.length > 2)
-          && (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.IMPORT)) {
+      if ((pCommands.length > 2) && (this.resolveCommand(pCommands[2]) == COMMANDS.IMPORT)) {
         return this.importParameters(pCommands);
       } else if ((pCommands.length > 2)
-          && (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.DEFINITION)) {
+          && (this.resolveCommand(pCommands[2]) == COMMANDS.DEFINITION)) {
 
         return this.getXMLParameterlistDefinition(pCommands[1]);
 
-      } else if ((pCommands.length > 2)
-          && (this.resolveCommand(pCommands[2], Console.JOBDETAIL_TYPES) == Console.EXPORT)) {
+      } else if ((pCommands.length > 2) && (this.resolveCommand(pCommands[2]) == COMMANDS.EXPORT)) {
         if (pCommands.length < 4) {
           ResourcePool.LogMessage(this, ResourcePool.INFO_MESSAGE, "ERROR: No export file given");
 
-          return this.syntaxError(Console.PARAMETERLIST);
+          return this.syntaxError(COMMANDS.PARAMETERLIST);
         }
 
         BufferedWriter out = new BufferedWriter(new java.io.FileWriter(pCommands[3]));
@@ -1093,14 +1009,16 @@ public class Console {
    * @param pCommandList the command list
    * @return the int
    */
-  private int resolveCommand(String pCommand, String[] pCommandList) {
-    for (int i = 0; i < pCommandList.length; i++) {
-      if (pCommandList[i].equalsIgnoreCase(pCommand)) {
-        return i;
-      }
+  private COMMANDS resolveCommand(String pCommand) {
+    if (pCommand.equals("/")) {
+      return COMMANDS.REPEAT;
     }
 
-    return -1;
+    try {
+      return COMMANDS.valueOf(pCommand.toUpperCase());
+    } catch (Exception e) {
+      return COMMANDS.NOTSPECIFIED;
+    }
   }
 
   /**
@@ -1211,7 +1129,7 @@ public class Console {
             if (command < quickCommand.length) {
               line = quickCommand[command++];
             } else {
-              line = Console.strCommands[Console.QUIT];
+              line = COMMANDS.QUIT.name();
             }
           }
 
@@ -1221,7 +1139,7 @@ public class Console {
             if ((commands != null) && (commands.length > 0)) {
               String res = "";
 
-              switch (this.resolveCommand(commands[0], Console.strCommands)) {
+              switch (this.resolveCommand(commands[0])) {
                 case SHUTDOWN:
                   res = this.shutdown(commands);
 
@@ -1248,6 +1166,10 @@ public class Console {
 
                 case PARAMETERLIST:
                   res = this.parameterList(commands);
+
+                  break;
+                case PARAMETER:
+                  res = this.parameter(commands);
 
                   break;
                 case RUN:
@@ -1311,6 +1233,39 @@ public class Console {
 
   }
 
+  private String parameter(String[] commands) {
+    if (this.connected()) {
+
+      if (commands.length < 4)
+        return "Syntax error:" + COMMANDS.PARAMETER.help();
+
+      boolean set = commands[1].equalsIgnoreCase("SET");
+
+      if (set && commands.length != 5) {
+        return "Syntax error, set parameters:" + COMMANDS.PARAMETER.help();
+      } else if (!set && commands.length != 4) {
+        return "Syntax error, get parameters:" + COMMANDS.PARAMETER.help();
+      }
+      int id = this.md.getParameterListID(commands[2]);
+      if (id < 0)
+        return "Invalid parameter list:" + commands[2];
+
+      if (set) {
+        try {
+          if (this.md.setParameterValue(id, commands[3], commands[4]))
+            return "Parameter updated";
+          return "Failed to update";
+        } catch (Exception e) {
+          return e.getMessage();
+        }
+      } else {
+        return "Paramter value: " + this.md.getParameterValue(id, commands[3]);
+      }
+    }
+
+    return "";
+  }
+
   /**
    * Run job.
    * 
@@ -1323,12 +1278,12 @@ public class Console {
     try {
       this.prevLoadId = this.iLoadID;
 
-      int jobDetailType = Console.DEFINITION;
+      COMMANDS jobDetailType = COMMANDS.DEFINITION;
 
       if (pCommands.length > 1) {
-        jobDetailType = this.resolveCommand(pCommands[1], Console.RUN_TYPES);
+        jobDetailType = this.resolveCommand(pCommands[1]);
       } else {
-        return this.syntaxError(Console.RUN);
+        return this.syntaxError(COMMANDS.RUN);
       }
 
       // resolve output type
@@ -1461,7 +1416,7 @@ public class Console {
             }
 
           } else
-            return this.syntaxError(Console.RUN);
+            return this.syntaxError(COMMANDS.RUN);
           break;
 
       }
@@ -1722,8 +1677,8 @@ public class Console {
    * @param pCommand the command
    * @return the string
    */
-  private String syntaxError(int pCommand) {
-    return "Syntax Error: Wrong syntax for " + pCommand + "\n" + Console.strSyntax[pCommand];
+  private String syntaxError(COMMANDS pCommand) {
+    return "Syntax Error: Wrong syntax for " + pCommand + "\n" + pCommand.help();
   }
 
   /**

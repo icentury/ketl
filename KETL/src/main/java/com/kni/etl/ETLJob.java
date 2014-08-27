@@ -27,10 +27,13 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -612,7 +615,22 @@ public class ETLJob {
     }
 
     // replace any date variables with real load id's
-    java.text.SimpleDateFormat dmf = new java.text.SimpleDateFormat();
+    SimpleDateFormat dmf = new java.text.SimpleDateFormat();
+
+    for (String param : EngineConstants.getParametersFromText(strAction)) {
+      String pat = "(" + GET_TIMESTAMP.replace(".", "\\.").replace("(", "\\((.+?)") + "\\))";
+      Pattern p = Pattern.compile(pat);
+      Matcher m = p.matcher(param);
+      while (m.find()) {
+        String function = param.substring(m.start(), m.end());
+        function = function.replace(GET_TIMESTAMP, "");
+        String fmt = function.substring(0, function.length() - 1).trim();
+        dmf.applyPattern(fmt);
+        dmf.format(this.getCreationDate());
+        strAction =
+            EngineConstants.replaceParameter(strAction, param, dmf.format(this.getCreationDate()));
+      }
+    }
 
     for (int i = 0; i < EngineConstants.PARAMETER_DATE.length; i++) {
       String[] params =
@@ -645,6 +663,8 @@ public class ETLJob {
     }
     return strAction;
   }
+
+  private final String GET_TIMESTAMP = "this.getTimestamp(";
 
   /**
    * Insert the method's description here. Creation date: (5/8/2002 9:57:43 AM)

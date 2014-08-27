@@ -1,5 +1,6 @@
 package com.kni.etl.ketl.transformation;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -15,6 +16,7 @@ import net.minidev.json.JSONObject;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.kni.etl.EngineConstants;
 import com.kni.etl.dbutils.JDBCItemHelper;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.DBConnection;
@@ -32,6 +34,22 @@ import com.kni.etl.ketl.transformation.UserDefinedTransform.Output;
 import com.kni.etl.util.XMLHelper;
 
 public class JavaTransform extends ETLTransformation implements JavaTransformCore, UDFConfiguration {
+
+  @Override
+  public int complete() throws KETLThreadException {
+    if (this.isLastThreadToEnterCompletePhase()) {
+      while (this.getThreadManager().countOfStepThreadsAlive(this) > 1) {
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+          throw new KETLError(e);
+        }
+      }
+    }
+
+    customTransform.complete();
+    return super.complete();
+  }
 
   private UserDefinedTransform customTransform;
   private JARClassLoader classLoader;
@@ -201,7 +219,8 @@ public class JavaTransform extends ETLTransformation implements JavaTransformCor
 
   @Override
   public String getParameter(String arg0) {
-    return this.getParameter(arg0);
+    int id = this.getParamaterLists(this.getAttribute("PARAMETER_LIST"));
+    return this.getParameterValue(id, arg0);
   }
 
   @Override
@@ -225,6 +244,11 @@ public class JavaTransform extends ETLTransformation implements JavaTransformCor
 
   public void releaseConnection(Connection con) {
     ResourcePool.releaseConnection(con);
+  }
+
+  @Override
+  public String getTempDir() {
+    return EngineConstants.PARTITION_PATH + File.separator + this.getPartitionID();
   }
 
 
