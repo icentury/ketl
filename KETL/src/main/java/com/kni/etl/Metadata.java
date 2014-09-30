@@ -2765,8 +2765,8 @@ public class Metadata {
 
       m_stmt =
           this.metadataConnection.prepareStatement("update " + this.tablePrefix
-              + "job_log set status_id = " + ETLJobStatus.PENDING_CLOSURE_FAILED
-              + ", message = 'Failed due to server failure' where status_id = "
+              + "job_log set status_id = " + ETLJobStatus.WAITING_TO_BE_RETRIED
+              + ", message = 'Marking for retry due to server failure' where status_id = "
               + ETLJobStatus.EXECUTING + " and server_id = ?");
       m_stmt.setInt(1, serverID);
       m_stmt.executeUpdate();
