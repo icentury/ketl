@@ -1425,9 +1425,8 @@ public class Metadata {
    * @param pFinalJobList the final job list
    * @return the child jobs
    */
-  private static String getChildJobs(String[][] pJobDependencies, String pJobID,
-      ArrayList pFinalJobList) {
-    int i = 0;
+  private static String getChildJobs(List<String[]> pJobDependencies, String pJobID,
+      Map<String, String[]> pFinalJobList, String priority) {
     String bHasChildren = "N";
 
     if (pJobDependencies == null) {
@@ -1436,37 +1435,27 @@ public class Metadata {
 
     // sJobDependencies holds all dependencies for project
     // recursively cycle through deps now
-    for (i = 0; i < pJobDependencies.length; i++) {
-      if ((pJobDependencies[i][1] != null) && (pJobDependencies[i][1].compareTo(pJobID) == 0)) {
+    for (String[] jobDependencie : pJobDependencies) {
+      if ((jobDependencie[1] != null) && (jobDependencie[1].compareTo(pJobID) == 0)) {
         bHasChildren = "Y";
-        pJobDependencies[i][1] = null;
-        Metadata.getChildJobs(pJobDependencies, pJobDependencies[i][0], pFinalJobList);
+        jobDependencie[1] = null;
+        if (jobDependencie[2] != null)
+          priority = jobDependencie[2];
+        Metadata.getChildJobs(pJobDependencies, jobDependencie[0], pFinalJobList, priority);
       }
     }
 
     if (pFinalJobList == null) {
-      pFinalJobList = new ArrayList();
+      pFinalJobList = new HashMap<String, String[]>();
     }
 
-    boolean bAlreadyExists = false;
-
-    for (i = 0; i < pFinalJobList.size(); i++) {
-      String[] sJobID = (String[]) pFinalJobList.get(i);
-
-      if (sJobID != null) {
-        if (sJobID[0].compareTo(pJobID) == 0) {
-          bAlreadyExists = true;
-          i = pFinalJobList.size();
-        }
-      }
-    }
-
-    if (bAlreadyExists == false) {
-      String[] sJob = new String[2];
+    if (!pFinalJobList.containsKey(pJobID)) {
+      String[] sJob = new String[3];
       sJob[0] = pJobID;
       sJob[1] = bHasChildren;
+      sJob[2] = priority;
 
-      pFinalJobList.add(sJob);
+      pFinalJobList.put(pJobID, sJob);
     }
 
     return (bHasChildren);
@@ -1845,7 +1834,7 @@ public class Metadata {
           this.metadataConnection.prepareStatement(this.useIdentityColumn ? this.nextLoadIDSyntax
               : ("SELECT " + this.nextLoadIDSyntax + this.singleRowPullSyntax + ""));
       m_rs = m_stmt.executeQuery();
-
+      m_rs.setFetchSize(1000);
       String jobID = pJobID;
 
       PreparedStatement newLoadStmt =
@@ -1854,7 +1843,7 @@ public class Metadata {
               + this.currentTimeStampSyntax + ",?)");
       PreparedStatement dependenciesStmt =
           this.metadataConnection
-              .prepareStatement("SELECT A.JOB_ID, PARENT_JOB_ID, ALLOW_DUPLICATES, B.JOB_ID FROM  "
+              .prepareStatement("SELECT A.JOB_ID, PARENT_JOB_ID, ALLOW_DUPLICATES, B.JOB_ID, A.PATH_PRIORITY FROM  "
                   + this.tablePrefix
                   + "JOB_DEPENDENCIE A LEFT OUTER JOIN (SELECT DISTINCT JOB_ID FROM "
                   + this.tablePrefix
@@ -1865,6 +1854,7 @@ public class Metadata {
       PreparedStatement insJobsStmt = null;
       PreparedStatement insNoDepJobStmt = null;
 
+      List<String[]> jobs = new ArrayList<String[]>();
       // cycle through pending jobs to be queued
       while (m_rs.next()) {
         loadID = m_rs.getInt(1);
@@ -1876,44 +1866,31 @@ public class Metadata {
 
         newLoadStmt.executeUpdate();
 
-        String[][] sJobDependencies = null;
 
         if (pIgnoreDependencies == false) {
           dependenciesStmt.setInt(1, pProjectID);
           dependenciesStmt.setInt(2, pProjectID);
           rs = dependenciesStmt.executeQuery();
 
-          int i = 0;
           while (rs.next()) {
             boolean duplicatesAllowed =
                 rs.getString(3) == null ? false : rs.getString(3).equalsIgnoreCase("Y");
-
+            String pathPriority = Integer.toString(rs.getInt(5));
+            pathPriority = rs.wasNull() ? null : pathPriority;
             if (!duplicatesAllowed && rs.getString(4) != null) {
-              ResourcePool.logMessage("Skipping dependence, due to duplicate. Skipped job: "
-                  + rs.getString(1));
               continue;
             }
-            if (sJobDependencies == null) {
-              sJobDependencies = new String[i + 1][2];
-              sJobDependencies[i][0] = rs.getString(1);
-              sJobDependencies[i][1] = rs.getString(2);
-            } else {
-              i++;
 
-              String[][] tmp = new String[i + 1][2];
-              tmp[i][0] = rs.getString(1);
-              tmp[i][1] = rs.getString(2);
-
-              System.arraycopy(sJobDependencies, 0, tmp, 0, sJobDependencies.length);
-              sJobDependencies = tmp;
-            }
+            String[] sJobDependencie =
+                new String[] {rs.getString(1), rs.getString(2), pathPriority};
+            jobs.add(sJobDependencie);
           }
 
           // sJobDependencies holds all dependencies for project
           // recursively cycle through deps now
-          ArrayList aFinalJobList = new ArrayList();
+          Map<String, String[]> aFinalJobList = new HashMap<String, String[]>();
 
-          Metadata.getChildJobs(sJobDependencies, pJobID, aFinalJobList);
+          Metadata.getChildJobs(jobs, pJobID, aFinalJobList, null);
 
           int iStatus;
           String sStatusMessage;
@@ -1923,14 +1900,13 @@ public class Metadata {
                 this.metadataConnection
                     .prepareStatement("INSERT INTO  "
                         + this.tablePrefix
-                        + "JOB_LOG(JOB_ID,LOAD_ID,STATUS_ID,START_DATE,MESSAGE,DM_LOAD_ID) SELECT JOB_ID,?,?,"
+                        + "JOB_LOG(JOB_ID,LOAD_ID,STATUS_ID,START_DATE,MESSAGE,DM_LOAD_ID,PRIORITY) SELECT JOB_ID,?,?,"
                         + this.currentTimeStampSyntax + ",?,"
-                        + (this.useIdentityColumn ? "null" : this.nextLoadIDSyntax) + " FROM  "
+                        + (this.useIdentityColumn ? "null" : this.nextLoadIDSyntax) + ",? FROM  "
                         + this.tablePrefix + "job where job_id = ?");
           }
 
-          for (i = 0; i < aFinalJobList.size(); i++) {
-            String[] sJobID = (String[]) aFinalJobList.get(i);
+          for (String[] sJobID : aFinalJobList.values()) {
 
             if (sJobID != null) {
               if (sJobID[1].compareTo("Y") == 0) {
@@ -1945,7 +1921,11 @@ public class Metadata {
               insJobsStmt.setInt(1, loadID);
               insJobsStmt.setInt(2, iStatus);
               insJobsStmt.setString(3, sStatusMessage);
-              insJobsStmt.setString(4, sJobID[0]);
+              if (sJobID[2] == null)
+                insJobsStmt.setNull(4, Types.INTEGER);
+              else
+                insJobsStmt.setInt(4, Integer.parseInt(sJobID[2]));
+              insJobsStmt.setString(5, sJobID[0]);
 
               insJobsStmt.addBatch();
             }
@@ -2765,7 +2745,7 @@ public class Metadata {
 
       m_stmt =
           this.metadataConnection.prepareStatement("update " + this.tablePrefix
-              + "job_log set status_id = " + ETLJobStatus.WAITING_TO_BE_RETRIED
+              + "job_log set status_id = " + ETLJobStatus.READY_TO_RUN
               + ", message = 'Marking for retry due to server failure' where status_id = "
               + ETLJobStatus.EXECUTING + " and server_id = ?");
       m_stmt.setInt(1, serverID);
@@ -2824,7 +2804,7 @@ public class Metadata {
           this.metadataConnection
               .prepareStatement("insert into "
                   + this.tablePrefix
-                  + "job_dependencie(parent_job_id,job_id,continue_if_failed,allow_duplicates) values(?,?,?,?)");
+                  + "job_dependencie(parent_job_id,job_id,continue_if_failed,allow_duplicates,path_priority) values(?,?,?,?,?)");
 
       m_depDel =
           this.metadataConnection.prepareStatement("delete from  " + this.tablePrefix
@@ -3076,6 +3056,9 @@ public class Metadata {
             // set evaluation
             m_deps.setString(4, XMLHelper.getAttributeAsBoolean(n.getAttributes(),
                 "ALLOW_DUPLICATES", false) ? "Y" : "N");
+            // set evaluation
+            m_deps.setInt(5, XMLHelper.getAttributeAsInt(n.getAttributes(), "PATH_PRIORITY",
+                EngineConstants.DEFAULT_PRIORITY));
 
             m_deps.executeUpdate();
           }
@@ -3347,7 +3330,7 @@ public class Metadata {
 
       m_stmt =
           this.metadataConnection
-              .prepareStatement("SELECT JOB_ID,CONTINUE_IF_FAILED,ALLOW_DUPLICATES FROM  "
+              .prepareStatement("SELECT JOB_ID,CONTINUE_IF_FAILED,ALLOW_DUPLICATES,PATH_PRIORITY FROM  "
                   + this.tablePrefix + "JOB_DEPENDENCIE A " + "WHERE PARENT_JOB_ID = ?");
       m_stmt.setString(1, pJobID);
       m_rs = m_stmt.executeQuery();
@@ -3361,6 +3344,10 @@ public class Metadata {
 
           if (m_rs.getString(3) != null)
             res.allowDuplicates = m_rs.getString(3).equalsIgnoreCase("Y");
+
+          res.pathPriority = m_rs.getInt(4);
+          if (m_rs.wasNull())
+            res.pathPriority = 100;
 
           jobsToFetch.add(res);
         } catch (Exception e) {

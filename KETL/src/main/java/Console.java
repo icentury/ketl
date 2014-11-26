@@ -456,7 +456,7 @@ public class Console {
    * @return the string
    * @throws Exception the exception
    */
-  private String jobDetails(String[] pCommands) throws Exception {
+  private String job(String[] pCommands) throws Exception {
     StringBuffer sb = new StringBuffer();
     StringBuffer sbJobList = new StringBuffer("Export Jobs:\n");
     boolean deleteAll = false;
@@ -615,7 +615,7 @@ public class Console {
 
               case DEPENDENCIES:
                 sb.append("Job: " + eJob.getJobID() + "\n");
-                sb.append(eJob.getDepedencies() + "\n");
+                sb.append(eJob.getDependencies() + "\n");
 
                 break;
 
@@ -1160,7 +1160,7 @@ public class Console {
                   break;
 
                 case JOB:
-                  res = this.jobDetails(commands);
+                  res = this.job(commands);
 
                   break;
 

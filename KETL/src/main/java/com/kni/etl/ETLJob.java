@@ -358,6 +358,7 @@ public class ETLJob {
       }
 
       deps.setAttribute("ALLOW_DUPLICATES", d.allowDuplicates ? "Y" : "N");
+      deps.setAttribute("PATH_PRIORITY", Integer.toString(d.pathPriority));
 
       deps.appendChild(documentRoot.createTextNode(d.name));
       e.appendChild(deps);
@@ -399,7 +400,7 @@ public class ETLJob {
    * @return the depedencies
    * @throws Exception the exception
    */
-  public String getDepedencies() throws Exception {
+  public String getDependencies() throws Exception {
     String strWaitsOn = null;
     String strDependsOn = null;
 

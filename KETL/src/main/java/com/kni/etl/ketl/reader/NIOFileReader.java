@@ -42,6 +42,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.kni.etl.EngineConstants;
 import com.kni.etl.FieldLevelFastInputChannel;
+import com.kni.etl.SharedCounter;
 import com.kni.etl.SourceFieldDefinition;
 import com.kni.etl.dbutils.ResourcePool;
 import com.kni.etl.ketl.ETLOutPort;
@@ -419,6 +420,8 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
   /** The Constant PARTITION_KEY. */
   public static final String PARTITION_KEY = "PARTITIONKEY";
 
+  private static final String MAX_MISSING_FILES_ATTRIBUTE = "MAXMISSINGFILES";
+
   /** The PATH. */
   public static String PATH = "PATH";
 
@@ -639,6 +642,8 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
   /** The zipped. */
   private boolean mZipped;
 
+  private SharedCounter iMissingFiles;
+
   /** The CURREN t_ FIL e_ CHANNEL. */
   private static String CURRENT_FILE_CHANNEL =
       "((com.kni.etl.ketl.reader.NIOFileReader)this.getOwner()).getCurrentFileChannel().getReader()";
@@ -763,10 +768,20 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         } else {
           rf = new ManagedFastInputChannel(element.filePath);
         }
-        this.openChannels++;
-        this.mvReadyFiles.add(rf);
-        this.maFiles.add(element);
-        iNumPaths++;
+        if (rf.fileExists() == false) {
+          if (this.iMissingFiles.value() > this.mMaxMissingFiles)
+            throw new KETLError("File " + rf.getName()
+                + " could not be found, to many missing files");
+          else {
+            this.iMissingFiles.increment(1);
+            ResourcePool.logMessage("Skipping missing file " + rf.getName());
+          }
+        } else {
+          this.openChannels++;
+          this.mvReadyFiles.add(rf);
+          this.maFiles.add(element);
+          iNumPaths++;
+        }
       } catch (Exception e) {
         while (this.mvReadyFiles.size() > 0) {
           ManagedInputChannel fs = this.mvReadyFiles.remove(0);
@@ -812,8 +827,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
   protected void initWorker() {
 
     for (ManagedInputChannel mi : this.mvReadyFiles) {
-      if (!mi.fileExists())
+      if (!mi.fileExists()) {
         throw new KETLError("File " + mi.getName() + " could not be found");
+      }
     }
     while (this.mCurrentFileChannel == null && this.mvReadyFiles.size() > 0) {
       try {
@@ -885,7 +901,11 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
     partitionFileList.toArray(finalFileList);
 
     if (finalFileList.length > 0) {
-      if (this.getFileChannels(finalFileList) <= 0) {
+      // if files found is 0 and no missing files were identified then fail
+      this.iMissingFiles =
+          this.getJobExecutor().getCurrentETLJob().getCounter(this.getName() + ".missingFiles");
+
+      if (this.getFileChannels(finalFileList) <= 0 && this.iMissingFiles.value() == 0) {
         return false;
       }
     }
@@ -896,6 +916,8 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
 
   /** The complete file list. */
   private List completeFileList = null;
+
+  private int mMaxMissingFiles = 0;
 
   /*
    * (non-Javadoc)
@@ -1244,6 +1266,9 @@ public class NIOFileReader extends ETLReader implements QAForFileReader {
         XMLHelper.getAttributeAsBoolean(xmlSourceNode.getAttributes(),
             NIOFileReader.ALLOW_DUPLICATES_ATTRIBUTE, false);
 
+    this.mMaxMissingFiles =
+        XMLHelper.getAttributeAsInt(xmlSourceNode.getAttributes(),
+            NIOFileReader.MAX_MISSING_FILES_ATTRIBUTE, 0);
     this.mCharacterSet =
         XMLHelper.getAttributeAsString(xmlSourceNode.getAttributes(),
             NIOFileReader.CHARACTERSET_ATTRIB, java.nio.charset.Charset.defaultCharset().name());
