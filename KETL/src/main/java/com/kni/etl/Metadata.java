@@ -3057,8 +3057,11 @@ public class Metadata {
             m_deps.setString(4, XMLHelper.getAttributeAsBoolean(n.getAttributes(),
                 "ALLOW_DUPLICATES", false) ? "Y" : "N");
             // set evaluation
-            m_deps.setInt(5, XMLHelper.getAttributeAsInt(n.getAttributes(), "PATH_PRIORITY",
-                EngineConstants.DEFAULT_PRIORITY));
+            int pathPriority = XMLHelper.getAttributeAsInt(n.getAttributes(), "PATH_PRIORITY", -1);
+            if (pathPriority >= 0)
+              m_deps.setInt(5, pathPriority);
+            else
+              m_deps.setNull(5, java.sql.Types.INTEGER);
 
             m_deps.executeUpdate();
           }
