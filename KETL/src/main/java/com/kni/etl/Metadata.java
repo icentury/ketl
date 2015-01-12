@@ -1619,7 +1619,7 @@ public class Metadata {
    */
   public boolean executeJob(int pProjectID, String pJobID, boolean pIgnoreDependencies)
       throws SQLException, java.lang.Exception {
-    return this.executeJob(pProjectID, pJobID, pIgnoreDependencies, false) != -1;
+    return this.executeJob(pProjectID, pJobID, pIgnoreDependencies, false, null) != -1;
   }
 
   /**
@@ -1771,16 +1771,18 @@ public class Metadata {
   /**
    * Insert the method's description here. Creation date: (6/6/2002 9:29:56 PM)
    * 
-   * @param pIgnoreDependencies boolean
-   * @param pAllowMultiple boolean
    * @param pProjectID the project ID
    * @param pJobID the job ID
+   * @param pIgnoreDependencies boolean
+   * @param pAllowMultiple boolean
+   * @param pAlertOnSkip TODO
+   * 
    * @return load id or -1 if not executed
    * @throws SQLException the SQL exception
    * @throws Exception the exception
    */
-  public int executeJob(int pProjectID, String pJobID, boolean pIgnoreDependencies,
-      boolean pAllowMultiple) throws SQLException, java.lang.Exception {
+  public int executeJob(int pProjectID, String pJobID, Boolean pIgnoreDependencies,
+      Boolean pAllowMultiple, Boolean pAlertOnSkip) throws SQLException, java.lang.Exception {
     PreparedStatement m_stmt = null;
     ResultSet rs = null;
     ResultSet m_rs = null;
@@ -1818,11 +1820,12 @@ public class Metadata {
         }
 
         if (occurences > 0) {
-          ResourcePool.LogMessage(j, -1, ResourcePool.ERROR_MESSAGE, "Job " + pJobID
-              + " already in job queue, multiple executions of job disallowed.",
-              "To resolve this problem closeout the currently blocking job, "
-                  + "blocking job maybe a prior load failure.", Thread.currentThread().getName()
-                  .equalsIgnoreCase("ETLDaemon") ? true : false);
+          if (pAlertOnSkip == null || pAlertOnSkip)
+            ResourcePool.LogMessage(j, -1, ResourcePool.ERROR_MESSAGE, "Job " + pJobID
+                + " already in job queue, multiple executions of job disallowed.",
+                "To resolve this problem closeout the currently blocking job, "
+                    + "blocking job maybe a prior load failure.", Thread.currentThread().getName()
+                    .equalsIgnoreCase("ETLDaemon") ? true : false);
 
           return -1;
         }
@@ -5164,10 +5167,10 @@ public class Metadata {
 
           String msg = strMessage;
 
-          if (msg != null && msg.length() > 800) {
+          if (msg != null && msg.length() > EngineConstants.MAX_ERROR_MESSAGE_LENGTH) {
             System.err.println("[" + new java.util.Date()
                 + "] Error to long, trimming stored message. Full message: " + msg);
-            msg = msg.substring(0, 800);
+            msg = msg.substring(0, EngineConstants.MAX_ERROR_MESSAGE_LENGTH);
           }
 
           m_stmt.setString(1, job_id);
@@ -5250,10 +5253,15 @@ public class Metadata {
         }
 
         m_stmt.setInt(1, pETLJob.getStatus().getStatusCode());
-        m_stmt.setString(2, pETLJob.getStatus().getStatusMessage() == null ? null : (pETLJob
-            .getStatus().getStatusMessage().getBytes().length > 2000 ? pETLJob.getStatus()
-            .getStatusMessage().substring(0, 1000)
-            + ".." : pETLJob.getStatus().getStatusMessage()));
+        m_stmt
+            .setString(
+                2,
+                pETLJob.getStatus().getStatusMessage() == null ? null
+                    : (pETLJob.getStatus().getStatusMessage().getBytes().length > EngineConstants.MAX_LOG_MESSAGE_LENGTH ? pETLJob
+                        .getStatus().getStatusMessage()
+                        .substring(0, EngineConstants.MAX_LOG_MESSAGE_LENGTH)
+                        + ".."
+                        : pETLJob.getStatus().getStatusMessage()));
 
         if (logStats) {
           String xml = pETLJob.getStatus().getXMLStats();
@@ -5293,10 +5301,10 @@ public class Metadata {
           String msg =
               pETLJob.getStatus().getErrorMessage() + "\n" + pETLJob.getStatus().getStatusMessage();
 
-          if (msg != null && msg.length() > 800) {
+          if (msg != null && msg.length() > EngineConstants.MAX_ERROR_MESSAGE_LENGTH) {
             System.err.println("[" + new java.util.Date()
                 + "] Error to long, trimming stored message. Full message: " + msg);
-            msg = msg.substring(0, 800);
+            msg = msg.substring(0, EngineConstants.MAX_ERROR_MESSAGE_LENGTH);
           }
           m_stmt.setString(1, pETLJob.getJobID());
           m_stmt.setInt(2, pETLJob.getJobExecutionID());
@@ -5356,10 +5364,15 @@ public class Metadata {
             this.metadataConnection.prepareStatement("UPDATE  " + this.tablePrefix
                 + "JOB_LOG SET MESSAGE =  ? WHERE DM_LOAD_ID = ?");
 
-        m_stmt.setString(1, pETLJob.getStatus().getStatusMessage() == null ? null : (pETLJob
-            .getStatus().getStatusMessage().getBytes().length > 2000 ? pETLJob.getStatus()
-            .getStatusMessage().substring(0, 1000)
-            + ".." : pETLJob.getStatus().getStatusMessage()));
+        m_stmt
+            .setString(
+                1,
+                pETLJob.getStatus().getStatusMessage() == null ? null
+                    : (pETLJob.getStatus().getStatusMessage().getBytes().length > EngineConstants.MAX_LOG_MESSAGE_LENGTH ? pETLJob
+                        .getStatus().getStatusMessage()
+                        .substring(0, EngineConstants.MAX_LOG_MESSAGE_LENGTH)
+                        + ".."
+                        : pETLJob.getStatus().getStatusMessage()));
 
         m_stmt.setInt(2, pETLJob.getJobExecutionID());
 

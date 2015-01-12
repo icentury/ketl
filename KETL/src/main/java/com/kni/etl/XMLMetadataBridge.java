@@ -332,7 +332,7 @@ public class XMLMetadataBridge implements XMLMetadataCalls {
       synchronized (XMLMetadataBridge.mLock) {
         Metadata md = this.getMetadataByServer(pServerID);
         boolean isSuccessful =
-            md.executeJob(pProjectID, pJobID, pIgnoreDependencies, pAllowMultiple) != -1;
+            md.executeJob(pProjectID, pJobID, pIgnoreDependencies, pAllowMultiple, null) != -1;
         if (isSuccessful)
           return "success";
         else

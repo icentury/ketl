@@ -332,7 +332,7 @@ class ExecuteJob {
 
 			}
 			int loadId;
-			if ((loadId = md.executeJob(pID, jobID, ignoreDeps, allowMult)) != -1) {
+			if ((loadId = md.executeJob(pID, jobID, ignoreDeps, allowMult, null)) != -1) {
 				ResourcePool.LogMessage(Thread.currentThread(),
 						ResourcePool.ERROR_MESSAGE,
 						"Job submitted to server for direct execution, load id = "

@@ -385,8 +385,8 @@ public class EngineConstants {
   /** other default database values *. */
   public final static int MAX_STATEMENTS_PER_CONNECTION = 400;
 
-  /** The MA x_ ERRO r_ MESSAG e_ LENGTH. */
-  public static int MAX_ERROR_MESSAGE_LENGTH = 800;
+  public static int MAX_ERROR_MESSAGE_LENGTH = 1000;
+  public static int MAX_LOG_MESSAGE_LENGTH = 100;
 
   /** The VARIABL e_ PARAMETE r_ START. */
   public static String VARIABLE_PARAMETER_START = "!@#";
@@ -419,6 +419,8 @@ public class EngineConstants {
   public static final String DEFAULT_POOL = "Default";
 
   public static final Integer DEFAULT_PRIORITY = 10;
+
+  public static final Integer DEFAULT_SCHEDULEDELAYTOLERANCE = 0;
 
   /** The DEFAULTCACHESIZE. */
   private static String DEFAULTCACHESIZE = "64kb";
@@ -599,6 +601,17 @@ public class EngineConstants {
           try {
             EngineConstants.MAX_ERROR_MESSAGE_LENGTH =
                 Integer.parseInt(XMLHelper.getTextContent(e));
+          } catch (Exception e1) {
+
+          }
+        }
+
+        e =
+            (Element) XMLHelper.getElementByName(EngineConstants.globals, "OPTION", "NAME",
+                "MAXLOGMESSAGELENGTH");
+        if (e != null) {
+          try {
+            EngineConstants.MAX_LOG_MESSAGE_LENGTH = Integer.parseInt(XMLHelper.getTextContent(e));
           } catch (Exception e1) {
 
           }

@@ -706,7 +706,7 @@ public class Console {
                   pID = Integer.parseInt(pCommands[3]);
 
                   int loadId;
-                  if ((loadId = this.md.executeJob(pID, pCommands[1], ignoreDeps, allowMult)) != -1) {
+                  if ((loadId = this.md.executeJob(pID, pCommands[1], ignoreDeps, allowMult, null)) != -1) {
                     sb.append("Job submitted to server for direct execution, load id = " + loadId
                         + ".\n");
                   } else {

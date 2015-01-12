@@ -839,7 +839,7 @@ public abstract class ETLJobExecutor extends Thread {
 
 					if ((loadId = ResourcePool.getMetadata().executeJob(Integer.parseInt(params[0].trim()),
 							params[1].trim(), params.length < 3 ? false : Boolean.parseBoolean(params[2].trim()),
-							params.length < 4 ? false : Boolean.parseBoolean(params[3].trim()))) == -1) {
+							params.length < 4 ? false : Boolean.parseBoolean(params[3].trim()), null)) == -1) {
 						ResourcePool.LogMessage(Thread.currentThread(), ResourcePool.ERROR_MESSAGE,
 								"Job trigger did not fire job, check trigger and previous errors - " + trigger);
 					} else {
