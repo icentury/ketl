@@ -102,6 +102,7 @@ public class FastSimpleDateFormat extends DateFormat {
   /** The Constant EPOCH. */
   private static final int EPOCH = 21;
   private static final int EPOCH_SECONDS = 22;
+  private static final int SMART_EPOCH = 23;
 
   // Map index into pattern character string to Calendar field number
   /** The Constant PATTERN_INDEX_TO_CALENDAR_FIELD. */
@@ -111,7 +112,7 @@ public class FastSimpleDateFormat extends DateFormat {
       Calendar.DAY_OF_WEEK_IN_MONTH, Calendar.WEEK_OF_YEAR, Calendar.WEEK_OF_MONTH, Calendar.AM_PM,
       Calendar.HOUR, Calendar.HOUR, Calendar.ZONE_OFFSET, Calendar.ZONE_OFFSET,
       Calendar.ZONE_OFFSET, FastSimpleDateFormat.NANOSECOND, FastSimpleDateFormat.EPOCH,
-      FastSimpleDateFormat.EPOCH_SECONDS};
+      FastSimpleDateFormat.EPOCH_SECONDS, FastSimpleDateFormat.SMART_EPOCH};
 
   // Map index into pattern character string to DateFormat field number
   /** The Constant PATTERN_INDEX_TO_DATE_FORMAT_FIELD. */
@@ -127,7 +128,7 @@ public class FastSimpleDateFormat extends DateFormat {
    */
   // 19 is for Nanoseconds
   /** The Constant patternChars. */
-  static final String patternChars = "GyMdkHmsSEDFwWahKzZTNep";
+  static final String patternChars = "GyMdkHmsSEDFwWahKzZTNepP";
 
   // the official serial version ID which says cryptically
   // which version we're compatible with
@@ -1082,14 +1083,22 @@ public class FastSimpleDateFormat extends DateFormat {
         return this.setCalendarCache(patternCharIndex, -start);
 
         //
-      case 19:
+      case NANOSECOND:
         throw new RuntimeException("Nanoseconds not supported");
-      case 21:
+      case EPOCH:
         this.calendar.setTimeInMillis(Long.parseLong(strSub));
 
         return strSub.length();
-      case 22:
+      case EPOCH_SECONDS:
         this.calendar.setTimeInMillis(Long.parseLong(strSub) * 1000);
+
+        return strSub.length();
+      case SMART_EPOCH:
+        long epoch = this.numberFormat.parse(strSub, pos).longValue();
+        if (epoch < 11396265000l)
+          epoch = epoch * 1000;
+
+        this.calendar.setTimeInMillis(epoch * 1000);
 
         return strSub.length();
       default:
